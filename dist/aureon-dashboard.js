@@ -1,7 +1,7 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -91,6 +91,12 @@
       this._registryHass = null;
       this._deviceArea = 'all';
       this._deviceSearch = '';
+      this._deviceDomain = 'all';
+      this._deviceAvailability = 'all';
+      this._deviceGroup = 'device';
+      this._deviceShowOnly = false;
+      this._deviceLimit = 80;
+      this._expandedDevices = new Set();
     }
     setConfig(config) {
       if (config && config.type && config.type !== 'custom:aureon-dashboard') {
@@ -104,6 +110,16 @@
       const oldMode=this._hass?.themes?.darkMode;
       this._hass=value;
       if (this._configured && oldMode !== value?.themes?.darkMode) this._render();
+      // HA state changes are frequent; update entity state snapshots without reloading registries.
+      if (this._registry && value?.states) {
+        for (const row of this._registry.entityRows) {
+          const state=value.states[row.id];
+          row.state=state?.state ?? 'Sem estado';
+          row.unit=state?.attributes?.unit_of_measurement || '';
+          row.available=!!state && !['unavailable','unknown'].includes(state.state);
+        }
+        if (this._configured && this._page === 'Geräte') this._refreshDeviceStates();
+      }
       if (this._configured && value?.callWS && !this._registry && !this._registryPromise) this._loadRegistry();
     }
     async _loadRegistry(force = false) {
@@ -156,12 +172,16 @@
             id: e.entity_id,
             name: e.name || state?.attributes?.friendly_name || e.original_name || e.entity_id,
             domain: e.entity_id.split('.')[0],
+            deviceId: e.device_id || '',
             areaId: areaId || '',
             areaName: areaById.get(areaId)?.name || 'Sem ambiente',
             device: device?.name_by_user || device?.name || 'Sem dispositivo',
             state: state?.state ?? 'Sem estado',
             unit: state?.attributes?.unit_of_measurement || '',
-            shown: hasLabel(e, 'show_dboard') || hasLabel(device, 'show_dboard') || hasLabel(areaById.get(areaId), 'show_dboard')
+            shown: hasLabel(e, 'show_dboard') || hasLabel(device, 'show_dboard') || hasLabel(areaById.get(areaId), 'show_dboard'),
+            available: !!state && !['unavailable','unknown'].includes(state.state),
+            disabled: !!e.disabled_by,
+            hidden: !!e.hidden_by
           };
         }).sort((a,b) => a.areaName.localeCompare(b.areaName, hass.locale?.language || 'de') || a.name.localeCompare(b.name, hass.locale?.language || 'de'));
         return {rows, entityRows, areaCount:areas.length, deviceCount:devices.length, entityCount:entities.length, visibleCount:entityRows.length};
@@ -169,6 +189,16 @@
       try { this._registry = await this._registryPromise; }
       catch (err) { this._registryError = String(err?.message || err); }
       finally { this._registryLoading = false; this._registryPromise = null; if (this._configured) this._render(); }
+    }
+    _refreshDeviceStates() {
+      const container=this.shadowRoot?.querySelector('.device-results');
+      if (!container || !this._registry) return;
+      for (const el of container.querySelectorAll('[data-aureon-entity]')) {
+        const id=el.getAttribute('data-aureon-entity');
+        const row=this._registry.entityRows.find(e => e.id===id);
+        if (!row) continue;
+        el.textContent=`${row.state}${row.unit ? ' '+row.unit : ''}`;
+      }
     }
     getCardSize() { return 9; }
     static getStubConfig() { return { type: 'custom:aureon-dashboard' }; }
@@ -178,6 +208,9 @@
       root.replaceChildren();
       const style = document.createElement('style');
       style.textContent = `:host{display:block;color:var(--au-text);font-family:var(--paper-font-body1_-_font-family,Inter,system-ui,sans-serif)}*{box-sizing:border-box}.wrap{background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border);border-radius:22px;overflow:hidden;min-height:max(600px, calc(100vh - 64px));min-height:max(600px, calc(100dvh - 64px));display:grid;grid-template-columns:76px minmax(0,1fr)}nav{padding:18px 9px;background:var(--au-nav);border-right:1px solid var(--au-border);display:flex;flex-direction:column;gap:6px}.logo{color:var(--au-accent);font-size:29px;text-align:center;font-weight:800;margin:6px 0 22px}button{background:transparent;color:var(--au-text);border:0;border-radius:12px;cursor:pointer;padding:11px 3px;font:inherit;font-size:20px}button:hover,button.active{background:var(--au-hover);color:var(--au-accent)}button:focus-visible,select:focus-visible{outline:2px solid var(--au-accent);outline-offset:2px}main{min-width:0;padding:30px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--au-border);padding-bottom:22px}h1{font-size:29px;margin:4px 0;letter-spacing:-1px}.small{color:var(--au-accent);font-size:10px;letter-spacing:2px;font-weight:700}.muted{color:var(--au-muted);font-size:12px;line-height:1.6}.demo{color:var(--au-accent);font-size:10px;border:1px solid var(--au-border);border-radius:20px;padding:9px 12px;white-space:nowrap}.hero{border:1px solid var(--au-border);border-radius:18px;padding:35px;margin-top:24px;background:var(--au-surface);color:var(--au-surface-text);min-height:180px}.hero h2{font-size:clamp(22px,3vw,38px);margin:10px 0;letter-spacing:-1px}.hero .muted{color:inherit;opacity:.8}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:22px}.card{background:var(--au-card);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:16px;padding:18px;min-height:152px}.card .muted{color:inherit;opacity:.8}.symbol{color:var(--au-accent);font-size:27px}.card h3{font-size:14px;margin:13px 0 5px}.state{color:var(--au-accent);font-size:9px;letter-spacing:1px;margin-top:15px}.foot{color:var(--au-muted);font-size:10px;margin-top:25px}.theme-settings{margin-top:24px;padding:22px;border:1px solid var(--au-border);border-radius:16px;background:var(--au-surface);color:var(--au-surface-text)}.theme-settings h2{margin:0 0 12px;font-size:20px}.theme-settings label{display:block;font-size:13px;margin:12px 0 5px}.theme-settings select{width:100%;max-width:360px;padding:10px;border-radius:10px;background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border)}.theme-settings p{font-size:12px;opacity:.85}.area-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:22px}.area-tile{border:1px solid var(--au-border);border-radius:16px;padding:18px;background:var(--au-surface);color:var(--au-surface-text)}.area-tile h3{font-size:16px;margin:0 0 12px}.area-tile p{font-size:12px;opacity:.85}.registry-note{margin-top:18px;font-size:12px;color:var(--au-muted)}.device-tools{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.device-tools input,.device-tools select{background:var(--au-surface);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:10px;padding:11px;min-width:180px;max-width:100%}.device-tools input{flex:1}.device-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:16px}.device-item{padding:14px;border:1px solid var(--au-border);background:var(--au-surface);color:var(--au-surface-text);border-radius:12px;min-width:0}.device-item strong{display:block;font-size:13px;overflow-wrap:anywhere}.device-item small{display:block;opacity:.75;margin-top:5px;overflow-wrap:anywhere}.device-state{color:var(--au-accent);margin-top:9px;font-size:12px;overflow-wrap:anywhere}@media(max-width:650px){.wrap{grid-template-columns:54px minmax(0,1fr)}nav{padding:10px 4px}.logo{font-size:23px}button{font-size:18px}main{padding:15px}h1{font-size:23px}.demo{display:none}.hero{padding:22px}}`;
+      const filterStyle=document.createElement('style');
+      filterStyle.textContent=`.filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.filter-bar select,.filter-bar input{flex:1 1 170px;min-width:0;max-width:none}.device-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:12px}.device-group{border:1px solid var(--au-border);border-radius:14px;background:var(--au-card);color:var(--au-surface-text);padding:14px;min-width:0}.device-group summary{cursor:pointer;font-weight:650;line-height:1.5;overflow-wrap:anywhere}.device-group small{display:block;font-size:11px;opacity:.75;margin:5px 0}.device-entities{display:grid;gap:8px;margin-top:12px}.device-entity{border-top:1px solid var(--au-border);padding-top:8px;overflow-wrap:anywhere}.device-entity strong{display:block;font-size:12px}.device-entity small{font-size:10px}.device-entity .device-state{margin-top:4px}.filter-check{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap}.filter-check input{flex:none}.filter-action{font-size:12px;padding:10px 12px;border:1px solid var(--au-border);background:var(--au-card);color:var(--au-surface-text)}.filter-action:hover{color:var(--au-accent)}.device-empty{grid-column:1/-1}`;
+      root.append(filterStyle);
       for (const [key,value] of Object.entries(themeTokens(this._theme,this._hass))) this.style.setProperty(key,value);
       root.append(style);
       const make = (tag, className, text) => {
@@ -232,42 +265,75 @@
         main.append(section);
       }
       if (this._page === 'Geräte') {
-        const section = make('section');
+        const section=make('section');
         if (this._registryLoading && !this._registry) section.append(make('p','registry-note','Carregando entidades do Home Assistant…'));
-        if (this._registryError) section.append(make('p','registry-note','Erro de leitura: ' + this._registryError));
+        if (this._registryError) section.append(make('p','registry-note','Erro de leitura: '+this._registryError));
         if (this._registry) {
-          const info = this._registry;
+          const info=this._registry;
           section.append(make('p','registry-note',`${info.visibleCount} entidades visíveis de ${info.entityCount} cadastradas · Somente leitura · no_dboard tem prioridade`));
-          const tools = make('div','device-tools');
-          const select = make('select');
-          const all = make('option','','Todos os ambientes'); all.value='all'; select.append(all);
-          for (const area of info.rows) {
-            const option=make('option','',area.name);option.value=area.id;select.append(option);
-          }
-          const unassigned=make('option','','Sem ambiente');unassigned.value='unassigned';select.append(unassigned);
-          select.value=this._deviceArea;
-          select.setAttribute('aria-label','Filtrar ambiente');
-          select.addEventListener('change',()=>{this._deviceArea=select.value;this._render();});
-          const search=make('input'); search.type='search'; search.placeholder='Buscar entidade ou dispositivo';
-          search.value=this._deviceSearch;search.setAttribute('aria-label','Buscar entidades');
-          search.addEventListener('change',()=>{this._deviceSearch=search.value.trim();this._render();});
-          tools.append(select,search);section.append(tools);
+          const bar=make('div','filter-bar');
+          const dropdown=(label,options,current,callback)=>{
+            const select=make('select');select.setAttribute('aria-label',label);
+            for(const [value,title] of options){const option=make('option','',title);option.value=value;select.append(option);}
+            select.value=current;
+            select.addEventListener('change',()=>callback(select.value));
+            return select;
+          };
+          const change=(field,value)=>{this[field]=value;this._deviceLimit=80;this._render();};
+          const areas=[['all','Todos os ambientes'],...info.rows.map(a=>[a.id,a.name]),['unassigned','Sem ambiente']];
+          bar.append(dropdown('Ambiente',areas,this._deviceArea,v=>change('_deviceArea',v)));
+          const domains=[...new Set(info.entityRows.map(e=>e.domain))].sort();
+          bar.append(dropdown('Domínio',[['all','Todos os tipos'],...domains.map(d=>[d,d])],this._deviceDomain,v=>change('_deviceDomain',v)));
+          bar.append(dropdown('Disponibilidade',[['all','Todos os estados'],['available','Disponíveis'],['unavailable','Indisponíveis ou sem estado']],this._deviceAvailability,v=>change('_deviceAvailability',v)));
+          bar.append(dropdown('Organização',[['device','Agrupar por dispositivo'],['entity','Listar entidades']],this._deviceGroup,v=>change('_deviceGroup',v)));
+          const search=make('input');search.type='search';search.placeholder='Buscar nome, ID ou dispositivo';
+          search.value=this._deviceSearch;search.setAttribute('aria-label','Buscar dispositivos e entidades');
+          search.addEventListener('change',()=>change('_deviceSearch',search.value.trim()));bar.append(search);
+          const checkLabel=make('label','filter-check');const checkbox=make('input');checkbox.type='checkbox';checkbox.checked=this._deviceShowOnly;
+          checkbox.addEventListener('change',()=>change('_deviceShowOnly',checkbox.checked));
+          checkLabel.append(checkbox,document.createTextNode('Somente show_dboard'));bar.append(checkLabel);
+          section.append(bar);
           const query=this._deviceSearch.toLocaleLowerCase();
-          const filtered=info.entityRows.filter(e =>
-            (this._deviceArea==='all' || (this._deviceArea==='unassigned' ? !e.areaId : e.areaId===this._deviceArea)) &&
-            (!query || [e.id,e.name,e.device,e.domain,e.areaName].some(v=>String(v).toLocaleLowerCase().includes(query)))
+          const filtered=info.entityRows.filter(e=>
+            (this._deviceArea==='all'||(this._deviceArea==='unassigned'?!e.areaId:e.areaId===this._deviceArea))&&
+            (this._deviceDomain==='all'||e.domain===this._deviceDomain)&&
+            (this._deviceAvailability==='all'||(this._deviceAvailability==='available'?e.available:!e.available))&&
+            (!this._deviceShowOnly||e.shown)&&
+            (!query||[e.id,e.name,e.device,e.domain,e.areaName].some(v=>String(v).toLocaleLowerCase().includes(query)))
           );
-          section.append(make('p','registry-note',`${filtered.length} resultados · Mostrando até 80 por vez`));
-          const grid=make('div','device-list');
-          for (const entity of filtered.slice(0,80)) {
-            const item=make('article','device-item');
-            item.append(make('strong','',entity.name),make('small','',entity.id),
-              make('small','',`${entity.areaName} · ${entity.device}${entity.shown ? ' · show_dboard' : ''}`),
-              make('div','device-state',`${entity.state}${entity.unit ? ' '+entity.unit : ''}`));
-            grid.append(item);
+          const results=make('div','device-results');
+          const renderEntity=e=>{
+            const el=make('div','device-entity');
+            el.append(make('strong','',e.name),make('small','',e.id));
+            const state=make('div','device-state',`${e.state}${e.unit?' '+e.unit:''}`);
+            state.setAttribute('data-aureon-entity',e.id);el.append(state);
+            return el;
+          };
+          if(this._deviceGroup==='device'){
+            const groups=new Map();
+            for(const e of filtered){const key=e.deviceId||'entity:'+e.id;
+              if(!groups.has(key))groups.set(key,{key,name:e.deviceId?e.device:e.name,area:e.areaName,entities:[]});
+              groups.get(key).entities.push(e);
+            }
+            const ordered=[...groups.values()].sort((a,b)=>a.area.localeCompare(b.area)||a.name.localeCompare(b.name));
+            section.append(make('p','registry-note',`${ordered.length} dispositivos/grupos · ${filtered.length} entidades · Exibindo até ${this._deviceLimit} grupos`));
+            for(const g of ordered.slice(0,this._deviceLimit)){
+              const details=make('details','device-group');details.open=this._expandedDevices.has(g.key);
+              const summary=make('summary','',g.name);summary.append(make('small','',`${g.area} · ${g.entities.length} entidades`));details.append(summary);
+              const items=make('div','device-entities');for(const e of g.entities)items.append(renderEntity(e));details.append(items);
+              details.addEventListener('toggle',()=>{if(details.open)this._expandedDevices.add(g.key);else this._expandedDevices.delete(g.key);});
+              results.append(details);
+            }
+            if(ordered.length>this._deviceLimit){const more=make('button','filter-action','Mostrar mais grupos');more.addEventListener('click',()=>{this._deviceLimit+=80;this._render();});section.append(more);}
+          }else{
+            section.append(make('p','registry-note',`${filtered.length} entidades · Exibindo até ${this._deviceLimit}`));
+            for(const e of filtered.slice(0,this._deviceLimit)){
+              const item=make('article','device-group');item.append(renderEntity(e),make('small','',`${e.areaName} · ${e.device}${e.shown?' · show_dboard':''}`));results.append(item);
+            }
+            if(filtered.length>this._deviceLimit){const more=make('button','filter-action','Mostrar mais entidades');more.addEventListener('click',()=>{this._deviceLimit+=80;this._render();});section.append(more);}
           }
-          if (!filtered.length) grid.append(make('p','registry-note','Nenhuma entidade encontrada.'));
-          section.append(grid);
+          if(!filtered.length)results.append(make('p','device-empty registry-note','Nenhum resultado para estes filtros.'));
+          section.append(results);
         }
         main.append(section);
       }
