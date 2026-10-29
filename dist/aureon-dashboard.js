@@ -1,7 +1,7 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -72,6 +72,11 @@
       this._page = 'Início';
       this._configured = false;
       this._theme = getSavedTheme();
+      this._registry = null;
+      this._registryError = '';
+      this._registryLoading = false;
+      this._registryPromise = null;
+      this._registryHass = null;
     }
     setConfig(config) {
       if (config && config.type && config.type !== 'custom:aureon-dashboard') {
@@ -79,11 +84,61 @@
       }
       this._configured = true;
       this._render();
+      if (this._hass?.callWS && !this._registry && !this._registryPromise) this._loadRegistry();
     }
     set hass(value) {
       const oldMode=this._hass?.themes?.darkMode;
       this._hass=value;
       if (this._configured && oldMode !== value?.themes?.darkMode) this._render();
+      if (this._configured && value?.callWS && !this._registry && !this._registryPromise) this._loadRegistry();
+    }
+    async _loadRegistry(force = false) {
+      if (!this._hass?.callWS || this._registryPromise) return;
+      if (this._registry && !force) return;
+      const hass = this._hass;
+      this._registryLoading = true;
+      this._registryError = '';
+      this._render();
+      this._registryPromise = (async () => {
+        const [areas, devices, entities, labels] = await Promise.all([
+          hass.callWS({type:'config/area_registry/list'}),
+          hass.callWS({type:'config/device_registry/list'}),
+          hass.callWS({type:'config/entity_registry/list'}),
+          hass.callWS({type:'config/label_registry/list'}).catch(() => [])
+        ]);
+        if (!Array.isArray(areas) || !Array.isArray(devices) || !Array.isArray(entities)) throw new Error('Resposta inesperada dos registros do Home Assistant');
+        const labelNames = new Map((Array.isArray(labels) ? labels : []).map(l => [l.label_id, String(l.name || '').toLowerCase()]));
+        const deviceById = new Map(devices.map(d => [d.id, d]));
+        const areaById = new Map(areas.map(a => [a.area_id, a]));
+        const getArea = entity => {
+          if (entity.area_id) return entity.area_id;
+          let device = deviceById.get(entity.device_id);
+          const visited = new Set();
+          while (device && !visited.has(device.id)) {
+            visited.add(device.id);
+            if (device.area_id) return device.area_id;
+            device = deviceById.get(device.via_device_id);
+          }
+          return null;
+        };
+        const hasLabel = (item, name) => (item?.labels || []).some(id => id === name || labelNames.get(id) === name);
+        const visible = entity => {
+          if (entity.disabled_by || entity.hidden_by) return false;
+          const device = deviceById.get(entity.device_id);
+          const area = areaById.get(getArea(entity));
+          if ([entity,device,area].some(item => hasLabel(item,'no_dboard'))) return false;
+          return true;
+        };
+        const rows = areas.map(area => {
+          const areaDevices = devices.filter(d => d.area_id === area.area_id);
+          const areaEntities = entities.filter(e => getArea(e) === area.area_id && visible(e));
+          return {id:area.area_id, name:area.name || area.area_id, icon:area.icon || '⌂', devices:areaDevices.length, entities:areaEntities.length, active:areaEntities.filter(e => hass.states?.[e.entity_id] && !['unavailable','unknown'].includes(hass.states[e.entity_id].state)).length};
+        }).sort((a,b)=>a.name.localeCompare(b.name,hass.locale?.language || 'de'));
+        return {rows, areaCount:areas.length, deviceCount:devices.length, entityCount:entities.length, visibleCount:entities.filter(visible).length};
+      })();
+      try { this._registry = await this._registryPromise; }
+      catch (err) { this._registryError = String(err?.message || err); }
+      finally { this._registryLoading = false; this._registryPromise = null; if (this._configured) this._render(); }
     }
     getCardSize() { return 9; }
     static getStubConfig() { return { type: 'custom:aureon-dashboard' }; }
@@ -92,7 +147,7 @@
       const root = this.shadowRoot;
       root.replaceChildren();
       const style = document.createElement('style');
-      style.textContent = `:host{display:block;color:var(--au-text);font-family:var(--paper-font-body1_-_font-family,Inter,system-ui,sans-serif)}*{box-sizing:border-box}.wrap{background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border);border-radius:22px;overflow:hidden;min-height:600px;display:grid;grid-template-columns:76px minmax(0,1fr)}nav{padding:18px 9px;background:var(--au-nav);border-right:1px solid var(--au-border);display:flex;flex-direction:column;gap:6px}.logo{color:var(--au-accent);font-size:29px;text-align:center;font-weight:800;margin:6px 0 22px}button{background:transparent;color:var(--au-text);border:0;border-radius:12px;cursor:pointer;padding:11px 3px;font:inherit;font-size:20px}button:hover,button.active{background:var(--au-hover);color:var(--au-accent)}button:focus-visible,select:focus-visible{outline:2px solid var(--au-accent);outline-offset:2px}main{min-width:0;padding:30px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--au-border);padding-bottom:22px}h1{font-size:29px;margin:4px 0;letter-spacing:-1px}.small{color:var(--au-accent);font-size:10px;letter-spacing:2px;font-weight:700}.muted{color:var(--au-muted);font-size:12px;line-height:1.6}.demo{color:var(--au-accent);font-size:10px;border:1px solid var(--au-border);border-radius:20px;padding:9px 12px;white-space:nowrap}.hero{border:1px solid var(--au-border);border-radius:18px;padding:35px;margin-top:24px;background:var(--au-surface);color:var(--au-surface-text);min-height:180px}.hero h2{font-size:clamp(22px,3vw,38px);margin:10px 0;letter-spacing:-1px}.hero .muted{color:inherit;opacity:.8}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:22px}.card{background:var(--au-card);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:16px;padding:18px;min-height:152px}.card .muted{color:inherit;opacity:.8}.symbol{color:var(--au-accent);font-size:27px}.card h3{font-size:14px;margin:13px 0 5px}.state{color:var(--au-accent);font-size:9px;letter-spacing:1px;margin-top:15px}.foot{color:var(--au-muted);font-size:10px;margin-top:25px}.theme-settings{margin-top:24px;padding:22px;border:1px solid var(--au-border);border-radius:16px;background:var(--au-surface);color:var(--au-surface-text)}.theme-settings h2{margin:0 0 12px;font-size:20px}.theme-settings label{display:block;font-size:13px;margin:12px 0 5px}.theme-settings select{width:100%;max-width:360px;padding:10px;border-radius:10px;background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border)}.theme-settings p{font-size:12px;opacity:.85}@media(max-width:650px){.wrap{grid-template-columns:54px minmax(0,1fr)}nav{padding:10px 4px}.logo{font-size:23px}button{font-size:18px}main{padding:15px}h1{font-size:23px}.demo{display:none}.hero{padding:22px}}`;
+      style.textContent = `:host{display:block;color:var(--au-text);font-family:var(--paper-font-body1_-_font-family,Inter,system-ui,sans-serif)}*{box-sizing:border-box}.wrap{background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border);border-radius:22px;overflow:hidden;min-height:600px;display:grid;grid-template-columns:76px minmax(0,1fr)}nav{padding:18px 9px;background:var(--au-nav);border-right:1px solid var(--au-border);display:flex;flex-direction:column;gap:6px}.logo{color:var(--au-accent);font-size:29px;text-align:center;font-weight:800;margin:6px 0 22px}button{background:transparent;color:var(--au-text);border:0;border-radius:12px;cursor:pointer;padding:11px 3px;font:inherit;font-size:20px}button:hover,button.active{background:var(--au-hover);color:var(--au-accent)}button:focus-visible,select:focus-visible{outline:2px solid var(--au-accent);outline-offset:2px}main{min-width:0;padding:30px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--au-border);padding-bottom:22px}h1{font-size:29px;margin:4px 0;letter-spacing:-1px}.small{color:var(--au-accent);font-size:10px;letter-spacing:2px;font-weight:700}.muted{color:var(--au-muted);font-size:12px;line-height:1.6}.demo{color:var(--au-accent);font-size:10px;border:1px solid var(--au-border);border-radius:20px;padding:9px 12px;white-space:nowrap}.hero{border:1px solid var(--au-border);border-radius:18px;padding:35px;margin-top:24px;background:var(--au-surface);color:var(--au-surface-text);min-height:180px}.hero h2{font-size:clamp(22px,3vw,38px);margin:10px 0;letter-spacing:-1px}.hero .muted{color:inherit;opacity:.8}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:22px}.card{background:var(--au-card);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:16px;padding:18px;min-height:152px}.card .muted{color:inherit;opacity:.8}.symbol{color:var(--au-accent);font-size:27px}.card h3{font-size:14px;margin:13px 0 5px}.state{color:var(--au-accent);font-size:9px;letter-spacing:1px;margin-top:15px}.foot{color:var(--au-muted);font-size:10px;margin-top:25px}.theme-settings{margin-top:24px;padding:22px;border:1px solid var(--au-border);border-radius:16px;background:var(--au-surface);color:var(--au-surface-text)}.theme-settings h2{margin:0 0 12px;font-size:20px}.theme-settings label{display:block;font-size:13px;margin:12px 0 5px}.theme-settings select{width:100%;max-width:360px;padding:10px;border-radius:10px;background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border)}.theme-settings p{font-size:12px;opacity:.85}.area-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:22px}.area-tile{border:1px solid var(--au-border);border-radius:16px;padding:18px;background:var(--au-surface);color:var(--au-surface-text)}.area-tile h3{font-size:16px;margin:0 0 12px}.area-tile p{font-size:12px;opacity:.85}.registry-note{margin-top:18px;font-size:12px;color:var(--au-muted)}@media(max-width:650px){.wrap{grid-template-columns:54px minmax(0,1fr)}nav{padding:10px 4px}.logo{font-size:23px}button{font-size:18px}main{padding:15px}h1{font-size:23px}.demo{display:none}.hero{padding:22px}}`;
       for (const [key,value] of Object.entries(themeTokens(this._theme,this._hass))) this.style.setProperty(key,value);
       root.append(style);
       const make = (tag, className, text) => {
@@ -110,7 +165,7 @@
         button.type = 'button';
         button.title = name;
         button.setAttribute('aria-label', name);
-        button.addEventListener('click', () => { this._page = name; this._render(); });
+        button.addEventListener('click', () => { this._page = name; this._render(); if (name === 'Räume') this._loadRegistry(true); });
         nav.append(button);
       }
       const main = make('main');
@@ -128,14 +183,32 @@
         hero.append(make('p','muted','Estratégia de dashboard instalada. Integrações reais serão adicionadas depois dos testes.'));
         main.append(hero);
       }
+      if (this._page === 'Räume') {
+        const section = make('section','');
+        if (this._registryLoading && !this._registry) section.append(make('p','registry-note','Carregando ambientes do Home Assistant…'));
+        if (this._registryError) section.append(make('p','registry-note','Não foi possível ler os registros: ' + this._registryError));
+        if (this._registry) {
+          const info = this._registry;
+          section.append(make('p','registry-note',`${info.areaCount} ambientes · ${info.deviceCount} dispositivos · ${info.visibleCount} entidades visíveis de ${info.entityCount} cadastradas · Somente leitura`));
+          const grid = make('div','area-grid');
+          for (const area of info.rows) {
+            const tile = make('article','area-tile');
+            tile.append(make('h3','',area.name),make('p','',`${area.devices} dispositivos · ${area.entities} entidades visíveis`),make('p','',`${area.active} entidades com estado disponível`));
+            grid.append(tile);
+          }
+          if (!info.rows.length) grid.append(make('p','registry-note','Nenhum ambiente cadastrado no Home Assistant.'));
+          section.append(grid);
+        }
+        main.append(section);
+      }
       const cards = make('div','cards');
-      const filtered = MODULES.filter(x => this._page === 'Início' || x[2] === this._page);
+      const filtered = MODULES.filter(x => this._page === 'Início' || (this._page !== 'Räume' && x[2] === this._page));
       for (const [icon, name, , description] of filtered) {
         const card = make('article','card');
         card.append(make('div','symbol',icon),make('h3','',name),make('p','muted',description),make('div','state','EM PREPARAÇÃO'));
         cards.append(card);
       }
-      if (!filtered.length) cards.append(make('p','muted','Módulo em preparação.'));
+      if (!filtered.length && this._page !== 'Räume' && this._page !== 'Einstellungen') cards.append(make('p','muted','Módulo em preparação.'));
       if (this._page === 'Einstellungen') {
         const settings=make('section','theme-settings');
         settings.append(make('h2','','AUREON · Design System'));
