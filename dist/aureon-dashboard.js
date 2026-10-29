@@ -1,7 +1,7 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.9.0';
+  const VERSION = '0.9.1';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -99,8 +99,6 @@
       this._expandedDevices = new Set();
       this._controlBusy = new Set();
       this._controlError = '';
-      this._nativeCardHelpers = null;
-      this._nativeCards = new Map();
     }
     setConfig(config) {
       if (config && config.type && config.type !== 'custom:aureon-dashboard') {
@@ -115,7 +113,6 @@
       this._hass=value;
       if (this._configured && oldMode !== value?.themes?.darkMode) this._render();
       // HA state changes are frequent; update entity state snapshots without reloading registries.
-      for (const card of this._nativeCards.values()) card.hass = value;
       if (this._registry && value?.states) {
         for (const row of this._registry.entityRows) {
           const state=value.states[row.id];
@@ -200,65 +197,125 @@
       if (!container || !this._registry) return;
       for (const el of container.querySelectorAll('[data-aureon-entity]')) {
         const id=el.getAttribute('data-aureon-entity');
-        const row=this._registry.entityRows.find(e => e.id===id);
+        const row=this._registry.entityRows.find(e=>e.id===id);
         if (!row) continue;
         el.textContent=`${row.state}${row.unit ? ' '+row.unit : ''}`;
-        const button=el.closest('.device-entity')?.querySelector('button');
-        if (button && (row.domain === 'light' || row.domain === 'switch')) {
-          button.textContent=row.state === 'on' ? 'Desligar' : 'Ligar';
-          button.disabled=!['on','off'].includes(row.state) || this._controlBusy.has(row.id);
-          button.setAttribute('aria-label',`${row.state === 'on' ? 'Desligar' : 'Ligar'} ${row.name}`);
+      }
+      for (const control of container.querySelectorAll('[data-au-control]')) {
+        const id=control.getAttribute('data-au-control');
+        const state=this._hass?.states?.[id];
+        if (!state) continue;
+        const busy=this._controlBusy.has(id);
+        const valid=['on','off'].includes(state.state);
+        const toggle=control.querySelector('[data-au-toggle]');
+        if (toggle) {
+          toggle.textContent=state.state==='on'?'Desligar':'Ligar';
+          toggle.disabled=busy||!valid;
+          toggle.setAttribute('aria-pressed',String(state.state==='on'));
         }
+        const status=control.querySelector('[data-au-status]');
+        if (status) status.textContent=valid?(state.state==='on'?'Ligada':'Desligada'):'Indisponível';
+        const brightness=control.querySelector('[data-au-brightness]');
+        const brightValue=control.querySelector('[data-au-brightness-value]');
+        if (brightness && document.activeElement!==brightness && !brightness.matches(':active')) {
+          const pct=Math.round((Number(state.attributes?.brightness)||0)*100/255);
+          brightness.value=String(pct);
+          if(brightValue) brightValue.textContent=`${pct}%`;
+        }
+        const color=control.querySelector('[data-au-color]');
+        if(color && !color.matches(':focus')) {
+          const rgb=state.attributes?.rgb_color;
+          if(Array.isArray(rgb)&&rgb.length===3) color.value='#'+rgb.map(v=>Math.max(0,Math.min(255,Number(v)||0)).toString(16).padStart(2,'0')).join('');
+        }
+        control.querySelectorAll('input').forEach(input=>{input.disabled=busy||!valid;});
       }
     }
-    _supportsBrightness(entityId) {
-      // HA brightness support: ColorMode.BRIGHTNESS (or any color mode with brightness),
-      // plus legacy supported_features BRIGHTNESS bit for older integrations.
-      const attrs = this._hass?.states?.[entityId]?.attributes;
-      if (!attrs || !entityId.startsWith('light.')) return false;
-      const modes = attrs.supported_color_modes;
-      if (Array.isArray(modes) && modes.length) {
-        return modes.some(mode => ['brightness','color_temp','hs','xy','rgb','rgbw','rgbww','white'].includes(mode));
-      }
-      return Boolean((Number(attrs.supported_features) || 0) & 1);
+    _lightCapabilities(entityId) {
+      const a=this._hass?.states?.[entityId]?.attributes||{};
+      const modes=Array.isArray(a.supported_color_modes)?a.supported_color_modes:[];
+      return {
+        brightness:modes.some(m=>['brightness','color_temp','hs','xy','rgb','rgbw','rgbww','white'].includes(m))||(!modes.length&&Boolean((Number(a.supported_features)||0)&1)),
+        color:modes.some(m=>['hs','xy','rgb','rgbw','rgbww'].includes(m)),
+        temperature:modes.includes('color_temp')
+      };
     }
-    async _mountBubbleToggleCard(row, slot) {
-      // Reuse the working Bubble Card frontend component for lights and switches rather than
-      // duplicating its control logic or calling HA services directly.
-      if (!this._nativeCardHelpers) {
-        if (typeof window.loadCardHelpers !== 'function') {
-          slot.textContent = 'Os auxiliares de cartões do Home Assistant não estão disponíveis.';
-          return;
-        }
-        this._nativeCardHelpers = window.loadCardHelpers().catch(error => {
-          this._nativeCardHelpers = null;
-          throw error;
-        });
+    async _aureonService(entityId, service, data={}) {
+      if(this._controlBusy.has(entityId)) return;
+      if(!this._hass?.callService) {
+        this._controlError='Home Assistant não disponibilizou o serviço de controle.';
+        this._showControlError();
+        return;
       }
+      this._controlBusy.add(entityId);
+      this._refreshDeviceStates();
       try {
-        const helpers = await this._nativeCardHelpers;
-        if (!slot.isConnected) return;
-        // Bubble Card is an optional HACS dependency. A missing installation
-        // must not break device discovery or the rest of the dashboard.
-        if (!customElements.get('bubble-card')) {
-          slot.textContent = 'Bubble Card não está carregada. Instale-a pelo HACS e recarregue o Home Assistant.';
-          return;
-        }
-        const card = await helpers.createCardElement({
-          type: 'custom:bubble-card',
-          card_type: 'button',
-          button_type: this._supportsBrightness(row.id) ? 'slider' : 'switch',
-          entity: row.id,
-          name: row.name,
-          show_state: true
-        });
-        if (!slot.isConnected) return;
-        card.hass = this._hass;
-        slot.replaceChildren(card);
-        this._nativeCards.set(slot, card);
-      } catch (error) {
-        if (slot.isConnected) slot.textContent = `Não foi possível carregar Bubble Card: ${String(error?.message || error)}`;
+        await this._hass.callService(entityId.split('.')[0],service,{entity_id:entityId,...data});
+        this._controlError='';
+      } catch(err) {
+        this._controlError=`Não foi possível controlar ${entityId}: ${String(err?.message||err)}`;
+        console.error('[AUREON Controls]',err);
+      } finally {
+        this._controlBusy.delete(entityId);
+        this._showControlError();
+        this._refreshDeviceStates();
       }
+    }
+    _showControlError() {
+      const el=this.shadowRoot?.querySelector('[data-control-error]');
+      if(el) el.textContent=this._controlError;
+    }
+    _makeAureonControl(row) {
+      const state=this._hass?.states?.[row.id];
+      const capabilities=this._lightCapabilities(row.id);
+      const root=document.createElement('div');
+      root.className='au-control';
+      root.setAttribute('data-au-control',row.id);
+      const make=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
+      const top=make('div');top.className='au-control-top';
+      const status=make('span');status.setAttribute('data-au-status','');
+      const toggle=make('button');toggle.type='button';toggle.className='au-toggle';
+      toggle.setAttribute('data-au-toggle','');
+      toggle.addEventListener('click',()=>{
+        const current=this._hass?.states?.[row.id]?.state;
+        if(current==='on'||current==='off') this._aureonService(row.id,current==='on'?'turn_off':'turn_on');
+      });
+      top.append(status,toggle);root.append(top);
+      if(row.domain==='light'&&capabilities.brightness){
+        const label=make('label','Brilho ');label.className='au-control-label';
+        const output=make('span');output.setAttribute('data-au-brightness-value','');
+        const slider=make('input');slider.type='range';slider.min='1';slider.max='100';slider.step='1';
+        slider.setAttribute('data-au-brightness','');slider.setAttribute('aria-label',`Brilho de ${row.name}`);
+        slider.addEventListener('input',()=>{output.textContent=`${slider.value}%`;});
+        slider.addEventListener('change',()=>this._aureonService(row.id,'turn_on',{brightness_pct:Number(slider.value)}));
+        label.append(output);root.append(label,slider);
+      }
+      if(row.domain==='light'&&capabilities.color){
+        const label=make('label','Cor da luz ');label.className='au-control-label';
+        const picker=make('input');picker.type='color';picker.value='#ffffff';picker.setAttribute('data-au-color','');
+        picker.setAttribute('aria-label',`Cor de ${row.name}`);
+        picker.addEventListener('change',()=>{
+          const h=picker.value;
+          const rgb=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+          this._aureonService(row.id,'turn_on',{rgb_color:rgb});
+        });
+        label.append(picker);root.append(label);
+      }
+      if(row.domain==='light'&&capabilities.temperature){
+        const a=state?.attributes||{};
+        const min=Number(a.min_color_temp_kelvin)||2000;
+        const max=Number(a.max_color_temp_kelvin)||6500;
+        if(max>min){
+          const label=make('label','Temperatura (K) ');label.className='au-control-label';
+          const out=make('span',String(a.color_temp_kelvin||Math.round((min+max)/2)));
+          const slider=make('input');slider.type='range';slider.min=String(min);slider.max=String(max);slider.step='100';
+          slider.value=String(a.color_temp_kelvin||Math.round((min+max)/2));
+          slider.setAttribute('aria-label',`Temperatura de cor de ${row.name}`);
+          slider.addEventListener('input',()=>out.textContent=slider.value);
+          slider.addEventListener('change',()=>this._aureonService(row.id,'turn_on',{color_temp_kelvin:Number(slider.value)}));
+          label.append(out);root.append(label,slider);
+        }
+      }
+      return root;
     }
     getCardSize() { return 9; }
     static getStubConfig() { return { type: 'custom:aureon-dashboard' }; }
@@ -266,11 +323,10 @@
       if (!this._configured) return;
       const root = this.shadowRoot;
       root.replaceChildren();
-      this._nativeCards.clear();
       const style = document.createElement('style');
       style.textContent = `:host{display:block;color:var(--au-text);font-family:var(--paper-font-body1_-_font-family,Inter,system-ui,sans-serif)}*{box-sizing:border-box}.wrap{background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border);border-radius:22px;overflow:hidden;min-height:max(600px, calc(100vh - 64px));min-height:max(600px, calc(100dvh - 64px));display:grid;grid-template-columns:76px minmax(0,1fr)}nav{padding:18px 9px;background:var(--au-nav);border-right:1px solid var(--au-border);display:flex;flex-direction:column;gap:6px}.logo{color:var(--au-accent);font-size:29px;text-align:center;font-weight:800;margin:6px 0 22px}button{background:transparent;color:var(--au-text);border:0;border-radius:12px;cursor:pointer;padding:11px 3px;font:inherit;font-size:20px}button:hover,button.active{background:var(--au-hover);color:var(--au-accent)}button:focus-visible,select:focus-visible{outline:2px solid var(--au-accent);outline-offset:2px}main{min-width:0;padding:30px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--au-border);padding-bottom:22px}h1{font-size:29px;margin:4px 0;letter-spacing:-1px}.small{color:var(--au-accent);font-size:10px;letter-spacing:2px;font-weight:700}.muted{color:var(--au-muted);font-size:12px;line-height:1.6}.demo{color:var(--au-accent);font-size:10px;border:1px solid var(--au-border);border-radius:20px;padding:9px 12px;white-space:nowrap}.hero{border:1px solid var(--au-border);border-radius:18px;padding:35px;margin-top:24px;background:var(--au-surface);color:var(--au-surface-text);min-height:180px}.hero h2{font-size:clamp(22px,3vw,38px);margin:10px 0;letter-spacing:-1px}.hero .muted{color:inherit;opacity:.8}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:22px}.card{background:var(--au-card);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:16px;padding:18px;min-height:152px}.card .muted{color:inherit;opacity:.8}.symbol{color:var(--au-accent);font-size:27px}.card h3{font-size:14px;margin:13px 0 5px}.state{color:var(--au-accent);font-size:9px;letter-spacing:1px;margin-top:15px}.foot{color:var(--au-muted);font-size:10px;margin-top:25px}.theme-settings{margin-top:24px;padding:22px;border:1px solid var(--au-border);border-radius:16px;background:var(--au-surface);color:var(--au-surface-text)}.theme-settings h2{margin:0 0 12px;font-size:20px}.theme-settings label{display:block;font-size:13px;margin:12px 0 5px}.theme-settings select{width:100%;max-width:360px;padding:10px;border-radius:10px;background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border)}.theme-settings p{font-size:12px;opacity:.85}.area-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:22px}.area-tile{border:1px solid var(--au-border);border-radius:16px;padding:18px;background:var(--au-surface);color:var(--au-surface-text)}.area-tile h3{font-size:16px;margin:0 0 12px}.area-tile p{font-size:12px;opacity:.85}.registry-note{margin-top:18px;font-size:12px;color:var(--au-muted)}.device-tools{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.device-tools input,.device-tools select{background:var(--au-surface);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:10px;padding:11px;min-width:180px;max-width:100%}.device-tools input{flex:1}.device-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:16px}.device-item{padding:14px;border:1px solid var(--au-border);background:var(--au-surface);color:var(--au-surface-text);border-radius:12px;min-width:0}.device-item strong{display:block;font-size:13px;overflow-wrap:anywhere}.device-item small{display:block;opacity:.75;margin-top:5px;overflow-wrap:anywhere}.device-state{color:var(--au-accent);margin-top:9px;font-size:12px;overflow-wrap:anywhere}@media(max-width:650px){.wrap{grid-template-columns:54px minmax(0,1fr)}nav{padding:10px 4px}.logo{font-size:23px}button{font-size:18px}main{padding:15px}h1{font-size:23px}.demo{display:none}.hero{padding:22px}}`;
       const filterStyle=document.createElement('style');
-      filterStyle.textContent=`.filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.filter-bar select,.filter-bar input{flex:1 1 170px;min-width:0;max-width:none}.device-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:12px}.device-group{border:1px solid var(--au-border);border-radius:14px;background:var(--au-card);color:var(--au-surface-text);padding:14px;min-width:0}.device-group summary{cursor:pointer;font-weight:650;line-height:1.5;overflow-wrap:anywhere}.device-group small{display:block;font-size:11px;opacity:.75;margin:5px 0}.device-entities{display:grid;gap:8px;margin-top:12px}.device-entity{border-top:1px solid var(--au-border);padding-top:8px;overflow-wrap:anywhere}.device-entity strong{display:block;font-size:12px}.device-entity small{font-size:10px}.device-entity .device-state{margin-top:4px}.filter-check{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap}.filter-check input{flex:none}.filter-action{font-size:12px;padding:10px 12px;border:1px solid var(--au-border);background:var(--au-card);color:var(--au-surface-text)}.filter-action:hover{color:var(--au-accent)}.device-empty{grid-column:1/-1}.bubble-toggle-slot{margin-top:9px}.bubble-toggle-slot bubble-card{display:block}`;
+      filterStyle.textContent=`.filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.filter-bar select,.filter-bar input{flex:1 1 170px;min-width:0;max-width:none}.device-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:12px}.device-group{border:1px solid var(--au-border);border-radius:14px;background:var(--au-card);color:var(--au-surface-text);padding:14px;min-width:0}.device-group summary{cursor:pointer;font-weight:650;line-height:1.5;overflow-wrap:anywhere}.device-group small{display:block;font-size:11px;opacity:.75;margin:5px 0}.device-entities{display:grid;gap:8px;margin-top:12px}.device-entity{border-top:1px solid var(--au-border);padding-top:8px;overflow-wrap:anywhere}.device-entity strong{display:block;font-size:12px}.device-entity small{font-size:10px}.device-entity .device-state{margin-top:4px}.filter-check{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap}.filter-check input{flex:none}.filter-action{font-size:12px;padding:10px 12px;border:1px solid var(--au-border);background:var(--au-card);color:var(--au-surface-text)}.filter-action:hover{color:var(--au-accent)}.device-empty{grid-column:1/-1}.au-control{margin-top:10px;padding:10px;border:1px solid var(--au-border);border-radius:10px}.au-control-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.au-toggle{font-size:12px;padding:8px 12px;background:var(--au-hover);border:1px solid var(--au-border)}.au-toggle:disabled{opacity:.5;cursor:not-allowed}.au-control-label{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin:10px 0 5px}.au-control input[type=range]{width:100%;accent-color:var(--au-accent)}.au-control input[type=color]{height:30px;width:52px;border:1px solid var(--au-border);background:transparent;border-radius:6px}`;
       root.append(filterStyle);
       for (const [key,value] of Object.entries(themeTokens(this._theme,this._hass))) this.style.setProperty(key,value);
       root.append(style);
@@ -331,7 +387,7 @@
         if (this._registryError) section.append(make('p','registry-note','Erro de leitura: '+this._registryError));
         if (this._registry) {
           const info=this._registry;
-          section.append(make('p','registry-note',`${info.visibleCount} entidades visíveis de ${info.entityCount} cadastradas · Luzes e tomadas: Bubble Card (HACS) · Outros domínios: somente leitura · no_dboard tem prioridade`));
+          section.append(make('p','registry-note',`${info.visibleCount} entidades visíveis de ${info.entityCount} cadastradas · Luzes e tomadas: AUREON Controls · Outros domínios: somente leitura · no_dboard tem prioridade`));
           const controlNotice=make('p','registry-note',this._controlError);controlNotice.setAttribute('data-control-error','');section.append(controlNotice);
           const bar=make('div','filter-bar');
           const dropdown=(label,options,current,callback)=>{
@@ -369,12 +425,10 @@
             el.append(make('strong','',e.name),make('small','',e.id));
             const state=make('div','device-state',`${e.state}${e.unit?' '+e.unit:''}`);
             state.setAttribute('data-aureon-entity',e.id);el.append(state);
-                         if (e.domain === 'light' || e.domain === 'switch') {
-               const slot=make('div','bubble-toggle-slot','Carregando Bubble Card…');
-               el.append(slot);
-               this._mountBubbleToggleCard(e,slot);
-             }
-return el;
+            if (e.domain === 'light' || e.domain === 'switch') {
+              el.append(this._makeAureonControl(e));
+            }
+            return el;
           };
           if(this._deviceGroup==='device'){
             const groups=new Map();
@@ -430,7 +484,7 @@ return el;
         settings.append(modeLabel,modeSelect,paletteLabel,paletteSelect,make('p','','Automático usa as cores do tema ativo do Home Assistant. Escuro aplica Forest Luxe; Claro aplica Sage Residence. Personalizado aplica a paleta escolhida. As preferências ficam salvas apenas neste navegador.'));
         main.append(settings);
       }
-      main.append(cards, make('div','foot',`AUREON v${VERSION} · Design tokens centralizados · Luzes com dimmer quando suportado e tomadas Bubble Card`));
+      main.append(cards, make('div','foot',`AUREON v${VERSION} · Design tokens centralizados · AUREON Controls nativos para luzes e tomadas`));
       wrap.append(nav, main);
       root.append(wrap);
     }
