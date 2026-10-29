@@ -1,7 +1,55 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
+  // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
+  const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
+  const DEFAULT_THEME = 'forest';
+  const THEME_KEY = 'aureon.theme.v1';
+  const clampHex = value => /^#[0-9a-fA-F]{6}$/.test(value || '') ? value : null;
+  function luminance(hex) {
+    const rgb = [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)/255).map(v => v <= 0.04045 ? v/12.92 : ((v+0.055)/1.055)**2.4);
+    return rgb[0]*0.2126 + rgb[1]*0.7152 + rgb[2]*0.0722;
+  }
+  function contrast(a,b) { const x=luminance(a), y=luminance(b); return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05); }
+  function readableOn(bg, preferred) {
+    if (contrast(bg,preferred) >= 4.5) return preferred;
+    const options=['#ffffff','#101412'];
+    return options.sort((a,b)=>contrast(bg,b)-contrast(bg,a))[0];
+  }
+  function getSavedTheme() {
+    try { const data=JSON.parse(localStorage.getItem(THEME_KEY)||'{}'); return data && typeof data==='object' ? data : {}; }
+    catch (_) { return {}; }
+  }
+  function storeTheme(data) { try { localStorage.setItem(THEME_KEY,JSON.stringify(data)); } catch (_) {} }
+  function themeTokens(selection, hass) {
+    const dark = !!(hass && hass.themes && hass.themes.darkMode);
+    const mode=['auto','dark','light','custom'].includes(selection.mode) ? selection.mode : 'auto';
+    const palette = PALETTES[selection.palette] || PALETTES[DEFAULT_THEME];
+    let colors = { ...palette };
+    // Auto follows HA's dark/light preference, while preserving a coherent color family.
+    if (mode === 'auto' && !dark) colors = { ...PALETTES.sage };
+    if (mode === 'light') colors = { ...PALETTES.sage };
+    if (mode === 'dark' && luminance(colors.background) > 0.45) colors = { ...PALETTES.forest };
+    if (mode === 'custom') {
+      const custom=selection.custom||{};
+      for (const key of ['accent','background','surface','text']) {
+        if (clampHex(custom[key])) colors[key]=custom[key];
+      }
+    }
+    const fg = readableOn(colors.background, colors.text);
+    const surfaceFg = readableOn(colors.surface, fg);
+    const accentFg = readableOn(colors.accent, fg);
+    const isDark=luminance(colors.background)<0.25;
+    return {
+      '--au-bg':colors.background, '--au-surface':colors.surface,
+      '--au-text':fg, '--au-surface-text':surfaceFg, '--au-accent':colors.accent,
+      '--au-accent-text':accentFg, '--au-muted':isDark?'#c4d0c9':'#4b5751',
+      '--au-border':isDark?'#ffffff25':'#00000022',
+      '--au-nav':colors.background, '--au-card':colors.surface,
+      '--au-hover':isDark?'#ffffff17':'#00000012'
+    };
+  }
   const PAGES = [
     ['⌂','Início'],['▦','Räume'],['◉','Geräte'],['ϟ','Energie'],
     ['◇','Sicherheit'],['▣','Kameras'],['♫','Medien'],['✧','JARVIS'],
@@ -23,6 +71,7 @@
       this.attachShadow({ mode: 'open' });
       this._page = 'Início';
       this._configured = false;
+      this._theme = getSavedTheme();
     }
     setConfig(config) {
       if (config && config.type && config.type !== 'custom:aureon-dashboard') {
@@ -31,7 +80,11 @@
       this._configured = true;
       this._render();
     }
-    set hass(value) { this._hass = value; }
+    set hass(value) {
+      const oldMode=this._hass?.themes?.darkMode;
+      this._hass=value;
+      if (this._configured && oldMode !== value?.themes?.darkMode) this._render();
+    }
     getCardSize() { return 9; }
     static getStubConfig() { return { type: 'custom:aureon-dashboard' }; }
     _render() {
@@ -39,7 +92,8 @@
       const root = this.shadowRoot;
       root.replaceChildren();
       const style = document.createElement('style');
-      style.textContent = `:host{display:block;color:#f3f1e7;font-family:Inter,system-ui,sans-serif}*{box-sizing:border-box}.wrap{background:radial-gradient(ellipse at top,#253d32,#0b1512 70%);border:1px solid #526f5b66;border-radius:22px;overflow:hidden;min-height:600px;display:grid;grid-template-columns:76px minmax(0,1fr)}nav{padding:18px 9px;background:#0a1513;border-right:1px solid #ffffff16;display:flex;flex-direction:column;gap:6px}.logo{color:#e3c995;font-size:29px;text-align:center;font-weight:800;margin:6px 0 22px}button{background:transparent;color:#9fb4a5;border:0;border-radius:12px;cursor:pointer;padding:11px 3px;font:inherit;font-size:20px}button:hover,button.active{background:#294a38;color:#e4cb9b}main{min-width:0;padding:30px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #ffffff18;padding-bottom:22px}h1{font-size:29px;margin:4px 0;letter-spacing:-1px}.small{color:#bca67e;font-size:10px;letter-spacing:2px;font-weight:700}.muted{color:#99b0a2;font-size:12px;line-height:1.6}.demo{color:#d5c394;font-size:10px;border:1px solid #947b4a88;border-radius:20px;padding:9px 12px;white-space:nowrap}.hero{border:1px solid #6d8c6b55;border-radius:18px;padding:35px;margin-top:24px;background:linear-gradient(120deg,#294435,#182b23);min-height:180px}.hero h2{font-size:clamp(22px,3vw,38px);margin:10px 0;letter-spacing:-1px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:22px}.card{background:#182921;border:1px solid #ffffff15;border-radius:16px;padding:18px;min-height:152px}.symbol{color:#d9c496;font-size:27px}.card h3{font-size:14px;margin:13px 0 5px}.state{color:#c5ab7b;font-size:9px;letter-spacing:1px;margin-top:15px}.foot{color:#728b7b;font-size:10px;margin-top:25px}@media(max-width:650px){.wrap{grid-template-columns:54px minmax(0,1fr)}nav{padding:10px 4px}.logo{font-size:23px}button{font-size:18px}main{padding:15px}h1{font-size:23px}.demo{display:none}.hero{padding:22px}}`;
+      style.textContent = `:host{display:block;color:var(--au-text);font-family:var(--paper-font-body1_-_font-family,Inter,system-ui,sans-serif)}*{box-sizing:border-box}.wrap{background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border);border-radius:22px;overflow:hidden;min-height:600px;display:grid;grid-template-columns:76px minmax(0,1fr)}nav{padding:18px 9px;background:var(--au-nav);border-right:1px solid var(--au-border);display:flex;flex-direction:column;gap:6px}.logo{color:var(--au-accent);font-size:29px;text-align:center;font-weight:800;margin:6px 0 22px}button{background:transparent;color:var(--au-text);border:0;border-radius:12px;cursor:pointer;padding:11px 3px;font:inherit;font-size:20px}button:hover,button.active{background:var(--au-hover);color:var(--au-accent)}button:focus-visible,select:focus-visible{outline:2px solid var(--au-accent);outline-offset:2px}main{min-width:0;padding:30px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--au-border);padding-bottom:22px}h1{font-size:29px;margin:4px 0;letter-spacing:-1px}.small{color:var(--au-accent);font-size:10px;letter-spacing:2px;font-weight:700}.muted{color:var(--au-muted);font-size:12px;line-height:1.6}.demo{color:var(--au-accent);font-size:10px;border:1px solid var(--au-border);border-radius:20px;padding:9px 12px;white-space:nowrap}.hero{border:1px solid var(--au-border);border-radius:18px;padding:35px;margin-top:24px;background:var(--au-surface);color:var(--au-surface-text);min-height:180px}.hero h2{font-size:clamp(22px,3vw,38px);margin:10px 0;letter-spacing:-1px}.hero .muted{color:inherit;opacity:.8}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:22px}.card{background:var(--au-card);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:16px;padding:18px;min-height:152px}.card .muted{color:inherit;opacity:.8}.symbol{color:var(--au-accent);font-size:27px}.card h3{font-size:14px;margin:13px 0 5px}.state{color:var(--au-accent);font-size:9px;letter-spacing:1px;margin-top:15px}.foot{color:var(--au-muted);font-size:10px;margin-top:25px}.theme-settings{margin-top:24px;padding:22px;border:1px solid var(--au-border);border-radius:16px;background:var(--au-surface);color:var(--au-surface-text)}.theme-settings h2{margin:0 0 12px;font-size:20px}.theme-settings label{display:block;font-size:13px;margin:12px 0 5px}.theme-settings select{width:100%;max-width:360px;padding:10px;border-radius:10px;background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border)}.theme-settings p{font-size:12px;opacity:.85}@media(max-width:650px){.wrap{grid-template-columns:54px minmax(0,1fr)}nav{padding:10px 4px}.logo{font-size:23px}button{font-size:18px}main{padding:15px}h1{font-size:23px}.demo{display:none}.hero{padding:22px}}`;
+      for (const [key,value] of Object.entries(themeTokens(this._theme,this._hass))) this.style.setProperty(key,value);
       root.append(style);
       const make = (tag, className, text) => {
         const el = document.createElement(tag);
@@ -82,7 +136,25 @@
         cards.append(card);
       }
       if (!filtered.length) cards.append(make('p','muted','Módulo em preparação.'));
-      main.append(cards, make('div','foot',`AUREON v${VERSION} · Nenhuma ação enviada ao Home Assistant`));
+      if (this._page === 'Einstellungen') {
+        const settings=make('section','theme-settings');
+        settings.append(make('h2','','AUREON · Design System'));
+        const modeLabel=make('label','','Modo de aparência');
+        const modeSelect=make('select');
+        for (const [value,label] of [['auto','Automático · Home Assistant'],['dark','Escuro'],['light','Claro'],['custom','Personalizado']]) {
+          const opt=make('option','',label); opt.value=value; opt.selected=(this._theme.mode||'auto')===value; modeSelect.append(opt);
+        }
+        modeSelect.addEventListener('change',()=>{this._theme.mode=modeSelect.value;storeTheme(this._theme);this._render();});
+        const paletteLabel=make('label','','Paleta de cores');
+        const paletteSelect=make('select');
+        for (const [value,palette] of Object.entries(PALETTES)) {
+          const opt=make('option','',palette.name);opt.value=value;opt.selected=(this._theme.palette||DEFAULT_THEME)===value;paletteSelect.append(opt);
+        }
+        paletteSelect.addEventListener('change',()=>{this._theme.palette=paletteSelect.value;storeTheme(this._theme);this._render();});
+        settings.append(modeLabel,modeSelect,paletteLabel,paletteSelect,make('p','','No modo Automático, a AUREON acompanha o modo claro/escuro do Home Assistant. No modo Personalizado, as cores podem ser definidas futuramente pelo editor. Preferências atuais ficam salvas apenas neste navegador.'));
+        main.append(settings);
+      }
+      main.append(cards, make('div','foot',`AUREON v${VERSION} · Design tokens centralizados · Nenhuma ação enviada ao Home Assistant`));
       wrap.append(nav, main);
       root.append(wrap);
     }
