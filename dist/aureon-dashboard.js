@@ -1,7 +1,7 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.14.0';
+  const VERSION = '0.15.0';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -98,8 +98,9 @@
       this._deviceLimit = 80;
       this._deviceClass = 'all';
       this._deviceLabel = 'all';
-      this._deviceGroup = 'device';
       this._lastRegistrySignature = '';
+      this._lastRuntimeEntitySignature = '';
+      this._registryUpdatedAt = null;
       this._registryRefreshTimer = null;
       this._expandedDevices = new Set();
       this._controlBusy = new Set();
@@ -124,6 +125,26 @@
         this._lastRegistrySignature=signature;
         if(this._registryRefreshTimer) clearTimeout(this._registryRefreshTimer);
         this._registryRefreshTimer=setTimeout(()=>{this._registryRefreshTimer=null;this._loadRegistry(true);},1200);
+      }
+      // Runtime entities can appear/disappear without a registry change. Reconcile the
+      // small runtime-only subset without issuing a WebSocket registry request.
+      if (this._registry && value?.states) {
+        const currentIds=Object.keys(value.states);
+        const signature=currentIds.slice().sort().join('\n');
+        if(signature!==this._lastRuntimeEntitySignature){
+          this._lastRuntimeEntitySignature=signature;
+          const registered=new Set(this._registry.registeredEntityIds||[]);
+          const runtimeIds=new Set(currentIds.filter(id=>!registered.has(id)));
+          this._registry.entityRows=this._registry.entityRows.filter(r=>r.source!=='runtime'||runtimeIds.has(r.id));
+          const existing=new Set(this._registry.entityRows.map(r=>r.id));
+          for(const id of runtimeIds){
+            if(existing.has(id))continue;
+            const state=value.states[id];
+            this._registry.entityRows.push({id,name:state.attributes?.friendly_name||id,domain:id.split('.')[0],deviceId:'',areaId:'',areaName:'Sem ambiente',device:'Sem dispositivo',state:state.state,unit:state.attributes?.unit_of_measurement||'',shown:false,available:!['unknown','unavailable'].includes(state.state),disabled:false,hidden:false,deviceClass:state.attributes?.device_class||'',labels:[],entityCategory:'',icon:state.attributes?.icon||'',source:'runtime'});
+          }
+          this._registry.visibleCount=this._registry.entityRows.length;
+          if(this._configured&&this._page==='Geräte')this._render();
+        }
       }
       // HA state changes are frequent; update entity state snapshots without reloading registries.
       if (this._registry && value?.states) {
@@ -163,7 +184,7 @@
           while (device && !visited.has(device.id)) {
             visited.add(device.id);
             if (device.area_id) return device.area_id;
-            device = deviceById.get(device.parent_device_id || device.via_device_id);
+            device = deviceById.get(device.parent_device_id); // via_device_id is a connection, not an area parent
           }
           return null;
         };
@@ -206,15 +227,15 @@
           };
         }).sort((a,b) => a.areaName.localeCompare(b.areaName, hass.locale?.language || 'de') || a.name.localeCompare(b.name, hass.locale?.language || 'de'));
         // Some integrations create runtime entities without a registry entry; show these as unassigned read-only discoveries.
-        const known=new Set(entityRows.map(r=>r.id));
+        const known=new Set(entities.map(e=>e.entity_id));
         for(const [id,state] of Object.entries(hass.states||{})) {
-          if(known.has(id) || entities.some(e=>e.entity_id===id)) continue;
+          if(known.has(id)) continue;
           entityRows.push({id,name:state.attributes?.friendly_name||id,domain:id.split('.')[0],deviceId:'',areaId:'',areaName:'Sem ambiente',device:'Sem dispositivo',state:state.state,unit:state.attributes?.unit_of_measurement||'',shown:false,available:!['unknown','unavailable'].includes(state.state),disabled:false,hidden:false,deviceClass:state.attributes?.device_class||'',labels:[],entityCategory:'',icon:state.attributes?.icon||'',source:'runtime'});
         }
         entityRows.sort((a,b)=>a.areaName.localeCompare(b.areaName,hass.locale?.language||'de')||a.name.localeCompare(b.name,hass.locale?.language||'de'));
-        return {rows,entityRows,allLabels,areaCount:areas.length,deviceCount:devices.length,entityCount:entities.length,visibleCount:entityRows.length};
+        return {rows,entityRows,allLabels,registeredEntityIds:entities.map(e=>e.entity_id),areaCount:areas.length,deviceCount:devices.length,entityCount:entities.length,visibleCount:entityRows.length};
       })();
-      try { this._registry = await this._registryPromise; }
+      try { this._registry = await this._registryPromise; this._registryUpdatedAt=new Date().toLocaleTimeString(); this._lastRuntimeEntitySignature=Object.keys(this._hass?.states||{}).sort().join('\n'); }
       catch (err) { this._registryError = String(err?.message || err); }
       finally { this._registryLoading = false; this._registryPromise = null; if (this._configured) this._render(); }
     }
@@ -677,7 +698,10 @@
         if (this._registryError) section.append(make('p','registry-note','Erro de leitura: '+this._registryError));
         if (this._registry) {
           const info=this._registry;
-          section.append(make('p','registry-note',`${info.visibleCount} entidades visíveis de ${info.entityCount} cadastradas · Descoberta universal AUREON · controles seguros nos domínios implementados · demais domínios: leitura · no_dboard tem prioridade`));
+          section.append(make('p','registry-note',`${info.visibleCount} entidades visíveis de ${info.entityCount} cadastradas · ${info.areaCount} ambientes · ${info.deviceCount} dispositivos · Registro atualizado: ${this._registryUpdatedAt||'—'} · no_dboard tem prioridade`));
+          const refresh=make('button','filter-action','↻ Atualizar registros');
+          refresh.type='button';refresh.disabled=this._registryLoading;
+          refresh.addEventListener('click',()=>this._loadRegistry(true));section.append(refresh);
           const controlNotice=make('p','registry-note',this._controlError);controlNotice.setAttribute('data-control-error','');section.append(controlNotice);
           const bar=make('div','filter-bar');
           const dropdown=(label,options,current,callback)=>{
