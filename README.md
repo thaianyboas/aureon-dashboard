@@ -1,23 +1,15 @@
-# AUREON Dashboard v0.1
+# AUREON Dashboard v0.2
 
-Primeira versão de demonstração compatível com o frontend Home Assistant, distribuída pelo HACS como **Dashboard** (plugin frontend). Não altera nem controla dispositivos.
+Home Assistant custom dashboard strategy foundation. Includes a Community-Dashboards strategy registration and a panel-view preview card.
 
-## Estrutura
-- `dist/aureon-dashboard.js`: custom card independente, sem dependências externas.
-- `hacs.json`: metadados HACS.
+## Installation
 
-## Instalação pelo GitHub
-Faça upload dos arquivos mantendo os caminhos. Para instalações HACS de repositórios privados, verifique se o HACS consegue acessar o repositório; se não, não torne público automaticamente. Depois de adicionar o repositório personalizado como Dashboard e instalar, verifique em **Configurações > Dashboards > Recursos** se `/hacsfiles/aureon-dashboard/aureon-dashboard.js` está cadastrado como módulo JavaScript (o HACS geralmente faz isso automaticamente).
+Install through HACS as a Dashboard custom repository. Update HACS after pushing changes to master. Create a new dashboard via Settings > Dashboards > Add dashboard > Community-Dashboards > AUREON Dashboard.
 
-Crie uma view temporária no dashboard Home Assistant e adicione um card manual com YAML:
+## Status
 
-```yaml
-type: custom:aureon-dashboard
-```
+The UI is a preview. No device control, 3D floor map, JARVIS backend, or Spotify integration is active yet. This code does not send external requests or Home Assistant service calls.
 
-**Importante:** ainda é um card dentro de uma view, não um dashboard de tela cheia. O projeto evoluirá para uma experiência de painel completo. Não conectar HA real ao JARVIS, SpotifyPlus ou NeonPlan nesta versão.
+## Credits
 
-## Regras
-- Master/HACS, sem releases ou tags obrigatórios.
-- Código original de NeonPlan, JARVIS e Music Card permanece intacto.
-- Nenhum segredo no GitHub.
+The strategy registration approach was studied from Simon42 Dashboard Strategy. This implementation is independently written and does not copy its source code.
