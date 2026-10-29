@@ -1,7 +1,7 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.13.0';
+  const VERSION = '0.14.0';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -163,7 +163,7 @@
           while (device && !visited.has(device.id)) {
             visited.add(device.id);
             if (device.area_id) return device.area_id;
-            device = deviceById.get(device.via_device_id);
+            device = deviceById.get(device.parent_device_id || device.via_device_id);
           }
           return null;
         };
@@ -356,6 +356,92 @@
       const detail=[cls?`Classe: ${cls}`:'',a.state_class?`Tipo: ${a.state_class}`:''].filter(Boolean).join(' · ');
       return {value,detail:detail||'Leitura do Home Assistant',kind:'measurement'};
     }
+    // Capability-gated controls. Never expose sensitive domains through generic services.
+    _makeAureonUniversalControl(row) {
+      const state=this._hass?.states?.[row.id];
+      if(!state || ['unknown','unavailable'].includes(state.state)) return null;
+      const a=state.attributes||{};
+      const f=Number(a.supported_features)||0;
+      const root=document.createElement('div');root.className='au-control au-universal';
+      root.setAttribute('data-au-universal',row.id);
+      const mk=(tag,txt)=>{const el=document.createElement(tag);if(txt!==undefined)el.textContent=txt;return el;};
+      const add=(label,service,data={},domain=row.domain)=>{
+        const b=mk('button',label);b.type='button';b.className='au-toggle';
+        b.disabled=this._controlBusy.has(row.id);
+        b.addEventListener('click',()=>this._aureonServiceFor(row.id,domain,service,data));root.append(b);return b;
+      };
+      const slider=(label,value,min,max,step,service,field,domain=row.domain)=>{
+        if(!Number.isFinite(Number(min))||!Number.isFinite(Number(max))||Number(max)<=Number(min))return;
+        const box=mk('label',label+' ');box.className='au-control-label';
+        const out=mk('span',String(value));box.append(out);
+        const input=mk('input');input.type='range';input.min=String(min);input.max=String(max);input.step=String(step||1);
+        input.value=String(Math.min(Number(max),Math.max(Number(min),Number(value)||Number(min))));
+        input.addEventListener('input',()=>out.textContent=input.value);
+        input.addEventListener('change',()=>this._aureonServiceFor(row.id,domain,service,{[field]:Number(input.value)}));
+        root.append(box,input);
+      };
+      const choose=(label,options,selected,service,field,domain=row.domain)=>{
+        if(!Array.isArray(options)||!options.length)return;
+        const wrap=mk('label',label+' ');wrap.className='au-control-label';
+        const select=mk('select');select.className='au-climate-select';
+        for(const opt of options){const o=mk('option',String(opt));o.value=String(opt);select.append(o);}
+        select.value=String(selected??'');
+        select.addEventListener('change',()=>this._aureonServiceFor(row.id,domain,service,{[field]:select.value}));
+        wrap.append(select);root.append(wrap);
+      };
+      switch(row.domain){
+        case 'input_boolean':add(state.state==='on'?'Desligar':'Ligar',state.state==='on'?'turn_off':'turn_on');break;
+        case 'fan':
+          add(state.state==='on'?'Desligar':'Ligar',state.state==='on'?'turn_off':'turn_on');
+          if(f&1)slider('Velocidade (%)',a.percentage??0,0,100,a.percentage_step||1,'set_percentage','percentage');
+          if(f&8)choose('Modo',a.preset_modes,a.preset_mode,'set_preset_mode','preset_mode');
+          if(f&2)add('Oscilação '+(a.oscillating?'off':'on'),'oscillate',{oscillating:!a.oscillating});
+          if(f&4)choose('Direção',['forward','reverse'],a.direction,'set_direction','direction');
+          break;
+        case 'vacuum':
+          // HA VacuumEntityFeature: TURN_ON=1 TURN_OFF=2 PAUSE=4 STOP=8 RETURN_HOME=16 FAN_SPEED=32 START=8192
+          if(f&8192)add('Iniciar limpeza','start');
+          if(f&4)add('Pausar','pause');
+          if(f&8)add('Parar','stop');
+          if(f&16)add('Voltar à base','return_to_base');
+          if(f&32)choose('Potência',a.fan_speed_list,a.fan_speed,'set_fan_speed','fan_speed');
+          break;
+        case 'media_player':
+          // HA MediaPlayerEntityFeature: PAUSE=1 SEEK=2 VOLUME_SET=4 VOLUME_MUTE=8 PREVIOUS=16 NEXT=32 TURN_ON=128 TURN_OFF=256 PLAY=16384
+          if(f&128 && state.state==='off')add('Ligar','turn_on');
+          if(f&256 && state.state!=='off')add('Desligar','turn_off');
+          if(f&16384)add('Reproduzir','media_play');
+          if(f&1)add('Pausar','media_pause');
+          if(f&16)add('Anterior','media_previous_track');
+          if(f&32)add('Próxima','media_next_track');
+          if(f&4)slider('Volume (%)',Math.round((Number(a.volume_level)||0)*100),0,100,1,'volume_set','volume_level_pct_INTERNAL');
+          if(f&8)add(a.is_volume_muted?'Ativar som':'Silenciar','volume_mute',{is_volume_muted:!a.is_volume_muted});
+          if(f&2048)choose('Fonte',a.source_list,a.source,'select_source','source');
+          break;
+        case 'scene':add('Ativar cena','turn_on');break;
+        case 'script':add('Executar script','turn_on');break;
+        case 'automation':add('Executar agora','trigger',{skip_condition:false});break;
+        case 'button':add('Pressionar','press');break;
+        case 'input_button':add('Pressionar','press');break;
+        case 'number':case 'input_number':
+          slider('Valor',Number(state.state),a.min,a.max,a.step||1,'set_value','value');break;
+        case 'select':case 'input_select':
+          choose('Opção',a.options,state.state,'select_option','option');break;
+        case 'siren':
+          // Safety: no universal siren activation; read-only until dedicated security workflow.
+          break;
+        default:break;
+      }
+      return root.children.length?root:null;
+    }
+    async _aureonServiceFor(entityId,domain,service,data={}) {
+      // Validate domain against entity id; never allow a cross-domain call from UI data.
+      if(entityId.split('.')[0]!==domain)return;
+      if(domain==='media_player'&&service==='volume_set'&&Object.hasOwn(data,'volume_level_pct_INTERNAL')){
+        data={volume_level:Math.min(1,Math.max(0,data.volume_level_pct_INTERNAL/100))};
+      }
+      return this._aureonService(entityId,service,data);
+    }
     _makeAureonSensorControl(row) {
       const root=document.createElement('div');root.className='au-control au-sensor';root.setAttribute('data-au-sensor',row.id);
       const label=document.createElement('div');label.className='au-sensor-value';label.setAttribute('data-au-sensor-value','');
@@ -529,7 +615,7 @@
       const style = document.createElement('style');
       style.textContent = `:host{display:block;color:var(--au-text);font-family:var(--paper-font-body1_-_font-family,Inter,system-ui,sans-serif)}*{box-sizing:border-box}.wrap{background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border);border-radius:22px;overflow:hidden;min-height:max(600px, calc(100vh - 64px));min-height:max(600px, calc(100dvh - 64px));display:grid;grid-template-columns:76px minmax(0,1fr)}nav{padding:18px 9px;background:var(--au-nav);border-right:1px solid var(--au-border);display:flex;flex-direction:column;gap:6px}.logo{color:var(--au-accent);font-size:29px;text-align:center;font-weight:800;margin:6px 0 22px}button{background:transparent;color:var(--au-text);border:0;border-radius:12px;cursor:pointer;padding:11px 3px;font:inherit;font-size:20px}button:hover,button.active{background:var(--au-hover);color:var(--au-accent)}button:focus-visible,select:focus-visible{outline:2px solid var(--au-accent);outline-offset:2px}main{min-width:0;padding:30px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--au-border);padding-bottom:22px}h1{font-size:29px;margin:4px 0;letter-spacing:-1px}.small{color:var(--au-accent);font-size:10px;letter-spacing:2px;font-weight:700}.muted{color:var(--au-muted);font-size:12px;line-height:1.6}.demo{color:var(--au-accent);font-size:10px;border:1px solid var(--au-border);border-radius:20px;padding:9px 12px;white-space:nowrap}.hero{border:1px solid var(--au-border);border-radius:18px;padding:35px;margin-top:24px;background:var(--au-surface);color:var(--au-surface-text);min-height:180px}.hero h2{font-size:clamp(22px,3vw,38px);margin:10px 0;letter-spacing:-1px}.hero .muted{color:inherit;opacity:.8}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:22px}.card{background:var(--au-card);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:16px;padding:18px;min-height:152px}.card .muted{color:inherit;opacity:.8}.symbol{color:var(--au-accent);font-size:27px}.card h3{font-size:14px;margin:13px 0 5px}.state{color:var(--au-accent);font-size:9px;letter-spacing:1px;margin-top:15px}.foot{color:var(--au-muted);font-size:10px;margin-top:25px}.theme-settings{margin-top:24px;padding:22px;border:1px solid var(--au-border);border-radius:16px;background:var(--au-surface);color:var(--au-surface-text)}.theme-settings h2{margin:0 0 12px;font-size:20px}.theme-settings label{display:block;font-size:13px;margin:12px 0 5px}.theme-settings select{width:100%;max-width:360px;padding:10px;border-radius:10px;background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border)}.theme-settings p{font-size:12px;opacity:.85}.area-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:22px}.area-tile{border:1px solid var(--au-border);border-radius:16px;padding:18px;background:var(--au-surface);color:var(--au-surface-text)}.area-tile h3{font-size:16px;margin:0 0 12px}.area-tile p{font-size:12px;opacity:.85}.registry-note{margin-top:18px;font-size:12px;color:var(--au-muted)}.device-tools{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.device-tools input,.device-tools select{background:var(--au-surface);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:10px;padding:11px;min-width:180px;max-width:100%}.device-tools input{flex:1}.device-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:16px}.device-item{padding:14px;border:1px solid var(--au-border);background:var(--au-surface);color:var(--au-surface-text);border-radius:12px;min-width:0}.device-item strong{display:block;font-size:13px;overflow-wrap:anywhere}.device-item small{display:block;opacity:.75;margin-top:5px;overflow-wrap:anywhere}.device-state{color:var(--au-accent);margin-top:9px;font-size:12px;overflow-wrap:anywhere}@media(max-width:650px){.wrap{grid-template-columns:54px minmax(0,1fr)}nav{padding:10px 4px}.logo{font-size:23px}button{font-size:18px}main{padding:15px}h1{font-size:23px}.demo{display:none}.hero{padding:22px}}`;
       const filterStyle=document.createElement('style');
-      filterStyle.textContent=`.filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.filter-bar select,.filter-bar input{flex:1 1 170px;min-width:0;max-width:none}.device-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:12px}.device-group{border:1px solid var(--au-border);border-radius:14px;background:var(--au-card);color:var(--au-surface-text);padding:14px;min-width:0}.device-group summary{cursor:pointer;font-weight:650;line-height:1.5;overflow-wrap:anywhere}.device-group small{display:block;font-size:11px;opacity:.75;margin:5px 0}.device-entities{display:grid;gap:8px;margin-top:12px}.device-entity{border-top:1px solid var(--au-border);padding-top:8px;overflow-wrap:anywhere}.device-entity strong{display:block;font-size:12px}.device-entity small{font-size:10px}.device-entity .device-state{margin-top:4px}.filter-check{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap}.filter-check input{flex:none}.filter-action{font-size:12px;padding:10px 12px;border:1px solid var(--au-border);background:var(--au-card);color:var(--au-surface-text)}.filter-action:hover{color:var(--au-accent)}.au-generic{margin-top:8px;padding:9px;border:1px solid var(--au-border);border-radius:9px;display:grid;gap:4px}.au-generic-value{font-size:13px;color:var(--au-accent)}.device-empty{grid-column:1/-1}.au-control{margin-top:10px;padding:10px;border:1px solid var(--au-border);border-radius:10px}.au-control-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.au-toggle{font-size:12px;padding:8px 12px;background:var(--au-hover);border:1px solid var(--au-border)}.au-toggle:disabled{opacity:.5;cursor:not-allowed}.au-control-label{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin:10px 0 5px}.au-control input[type=range]{width:100%;accent-color:var(--au-accent)}.au-cover-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.au-climate-select,.au-control input[type=number]{background:var(--au-surface);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:8px;padding:8px;max-width:100%;margin:5px 6px 5px 0}.au-control input[type=color]{height:30px;width:52px;border:1px solid var(--au-border);background:transparent;border-radius:6px}`;
+      filterStyle.textContent=`.filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.filter-bar select,.filter-bar input{flex:1 1 170px;min-width:0;max-width:none}.device-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:12px}.device-group{border:1px solid var(--au-border);border-radius:14px;background:var(--au-card);color:var(--au-surface-text);padding:14px;min-width:0}.device-group summary{cursor:pointer;font-weight:650;line-height:1.5;overflow-wrap:anywhere}.device-group small{display:block;font-size:11px;opacity:.75;margin:5px 0}.device-entities{display:grid;gap:8px;margin-top:12px}.device-entity{border-top:1px solid var(--au-border);padding-top:8px;overflow-wrap:anywhere}.device-entity strong{display:block;font-size:12px}.device-entity small{font-size:10px}.device-entity .device-state{margin-top:4px}.filter-check{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap}.filter-check input{flex:none}.filter-action{font-size:12px;padding:10px 12px;border:1px solid var(--au-border);background:var(--au-card);color:var(--au-surface-text)}.filter-action:hover{color:var(--au-accent)}.au-universal{display:flex;flex-wrap:wrap;gap:6px}.au-universal .au-control-label{width:100%}.au-universal input[type=range]{width:100%}.au-generic{margin-top:8px;padding:9px;border:1px solid var(--au-border);border-radius:9px;display:grid;gap:4px}.au-generic-value{font-size:13px;color:var(--au-accent)}.device-empty{grid-column:1/-1}.au-control{margin-top:10px;padding:10px;border:1px solid var(--au-border);border-radius:10px}.au-control-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.au-toggle{font-size:12px;padding:8px 12px;background:var(--au-hover);border:1px solid var(--au-border)}.au-toggle:disabled{opacity:.5;cursor:not-allowed}.au-control-label{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin:10px 0 5px}.au-control input[type=range]{width:100%;accent-color:var(--au-accent)}.au-cover-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.au-climate-select,.au-control input[type=number]{background:var(--au-surface);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:8px;padding:8px;max-width:100%;margin:5px 6px 5px 0}.au-control input[type=color]{height:30px;width:52px;border:1px solid var(--au-border);background:transparent;border-radius:6px}`;
       filterStyle.textContent += `.au-sensor{display:grid;gap:5px}.au-sensor-value{font-size:15px;font-weight:650;overflow-wrap:anywhere}.au-sensor small{font-size:10px;opacity:.75}.au-sensor[data-au-sensor-kind=active] .au-sensor-value{color:var(--au-accent)}`;
       root.append(filterStyle);
       for (const [key,value] of Object.entries(themeTokens(this._theme,this._hass))) this.style.setProperty(key,value);
@@ -650,6 +736,8 @@
               generic.append(make('small','',details),make('div','au-generic-value',current?.state??'Sem estado'));
               const attributes=make('small','',this._entitySummary(current));attributes.setAttribute('data-au-generic-summary','');generic.append(attributes);
               el.append(generic);
+              const universal=this._makeAureonUniversalControl(e);
+              if(universal)el.append(universal);
             }
             return el;
           };
@@ -707,7 +795,7 @@
         settings.append(modeLabel,modeSelect,paletteLabel,paletteSelect,make('p','','Automático usa as cores do tema ativo do Home Assistant. Escuro aplica Forest Luxe; Claro aplica Sage Residence. Personalizado aplica a paleta escolhida. As preferências ficam salvas apenas neste navegador.'));
         main.append(settings);
       }
-      main.append(cards, make('div','foot',`AUREON v${VERSION} · Design tokens centralizados · AUREON Universal Registry · filtros por domínio, classe e label · controles compatíveis`));
+      main.append(cards, make('div','foot',`AUREON v${VERSION} · Design tokens centralizados · AUREON Universal Controls · descoberta e filtros · ações por capacidades`));
       wrap.append(nav, main);
       root.append(wrap);
     }
