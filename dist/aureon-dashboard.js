@@ -1,7 +1,7 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.6.0';
+  const VERSION = '0.7.0';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -97,6 +97,8 @@
       this._deviceShowOnly = false;
       this._deviceLimit = 80;
       this._expandedDevices = new Set();
+      this._controlBusy = new Set();
+      this._controlError = '';
     }
     setConfig(config) {
       if (config && config.type && config.type !== 'custom:aureon-dashboard') {
@@ -198,6 +200,35 @@
         const row=this._registry.entityRows.find(e => e.id===id);
         if (!row) continue;
         el.textContent=`${row.state}${row.unit ? ' '+row.unit : ''}`;
+        const button=el.closest('.device-entity')?.querySelector('button');
+        if (button && row.domain === 'light') {
+          button.textContent=row.state === 'on' ? 'Desligar' : 'Ligar';
+          button.disabled=!['on','off'].includes(row.state) || this._controlBusy.has(row.id);
+          button.setAttribute('aria-label',`${row.state === 'on' ? 'Desligar' : 'Ligar'} ${row.name}`);
+        }
+      }
+    }
+    async _toggleLight(row, button) {
+      // Only an explicit click may send a service call; never infer an entity from its name.
+      if (row.domain !== 'light' || !['on','off'].includes(row.state) || this._controlBusy.has(row.id)) return;
+      if (!this._hass || typeof this._hass.callService !== 'function') return;
+      const service = row.state === 'on' ? 'turn_off' : 'turn_on';
+      this._controlBusy.add(row.id);
+      button.disabled = true;
+      button.textContent = 'Aguarde…';
+      this._controlError = '';
+      try {
+        await this._hass.callService('light', service, { entity_id: row.id });
+        // Never fabricate a new state. The hass setter receives the real update.
+        button.textContent = 'Enviado';
+      } catch (error) {
+        this._controlError = `Falha ao controlar ${row.id}: ${String(error?.message || error)}`;
+        button.textContent = 'Falhou';
+        const notice = this.shadowRoot?.querySelector('[data-control-error]');
+        if (notice) notice.textContent = this._controlError;
+      } finally {
+        this._controlBusy.delete(row.id);
+        button.disabled = false;
       }
     }
     getCardSize() { return 9; }
@@ -270,7 +301,8 @@
         if (this._registryError) section.append(make('p','registry-note','Erro de leitura: '+this._registryError));
         if (this._registry) {
           const info=this._registry;
-          section.append(make('p','registry-note',`${info.visibleCount} entidades visíveis de ${info.entityCount} cadastradas · Somente leitura · no_dboard tem prioridade`));
+          section.append(make('p','registry-note',`${info.visibleCount} entidades visíveis de ${info.entityCount} cadastradas · Luzes: controles por clique · Outros domínios: somente leitura · no_dboard tem prioridade`));
+          const controlNotice=make('p','registry-note',this._controlError);controlNotice.setAttribute('data-control-error','');section.append(controlNotice);
           const bar=make('div','filter-bar');
           const dropdown=(label,options,current,callback)=>{
             const select=make('select');select.setAttribute('aria-label',label);
@@ -307,6 +339,14 @@
             el.append(make('strong','',e.name),make('small','',e.id));
             const state=make('div','device-state',`${e.state}${e.unit?' '+e.unit:''}`);
             state.setAttribute('data-aureon-entity',e.id);el.append(state);
+            if (e.domain === 'light') {
+              const button=make('button','filter-action',e.state === 'on' ? 'Desligar' : 'Ligar');
+              button.type='button';
+              button.setAttribute('aria-label',`${e.state === 'on' ? 'Desligar' : 'Ligar'} ${e.name}`);
+              button.disabled=!['on','off'].includes(e.state) || this._controlBusy.has(e.id) || typeof this._hass?.callService !== 'function';
+              button.addEventListener('click',()=>this._toggleLight(e,button));
+              el.append(button);
+            }
             return el;
           };
           if(this._deviceGroup==='device'){
