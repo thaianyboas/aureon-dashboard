@@ -13,3 +13,8 @@ The UI is a preview. No device control, 3D floor map, JARVIS backend, or Spotify
 ## Credits
 
 The strategy registration approach was studied from Simon42 Dashboard Strategy. This implementation is independently written and does not copy its source code.
+
+
+## v0.3 — Design System Foundation
+
+22 paletas visuais de referência, CSS custom properties `--au-*`, contraste automático para texto, seleção em Einstellungen, modo Auto seguindo `hass.themes.darkMode`. Preferências temporariamente locais ao navegador. Ainda não integra temas com Music Card/NeonPlan, nem sincroniza seleção entre usuários/dispositivos.
