@@ -12,19 +12,25 @@ export interface ExportFile {
   building: Building;
 }
 
-/** A copy of the building without any link to entities or areas (background images stay out anyway). */
+// Reference fields include nested modules (cars/pools/energy), not just the primary entity.
+// Clear strings only: names such as grid, tilt, temperature and light also occur as numeric geometry/settings.
+const SHARE_REFS = new Set(("area_id ha_floor entity entity_id device device_id contact contact2 cover tilt tilt2 position lock tilt_angle awning_position bin_source bin_out mailbox_door moisture remaining heat_sensor service service2 power door_left door_right soc charge export status room_sensor state_entity state_entity2 color_entity extra fan clients water_temp look_of type_entity window range charging plugged climate tracker temperature humidity co2 heater pump light ph chlorine salt grid solar battery battery_soc consumption tariff gas water weather_entity rain_entity notes camera person pipeline pipeline_id").split(" "));
+const SHARE_ARRAYS = new Set(["placements", "presence", "panel", "hidden", "no_state", "detect_sensors", "favorites", "buttons", "media_presets", "pictures"]);
+const SHARE_BLOCKS = new Set(["background", "mods", "director"]);
+function shareCopy(value: unknown, key = ""): unknown {
+  if (SHARE_ARRAYS.has(key)) return [];
+  if (SHARE_BLOCKS.has(key)) return null;
+  if (typeof value === "string" && (SHARE_REFS.has(key) || /_(entity|sensor|camera|pipeline)(2|_id)?$/.test(key) || key === "image")) return null;
+  if (Array.isArray(value)) return value.map((item) => shareCopy(item));
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([name, item]) => [name, shareCopy(item, name)]));
+  return value;
+}
+
+/** A geometry/design template without HA links, local actions, module data or personal images.
+ * Full backups take a separate unfiltered copy. Template export never modifies the source building.
+ */
 export function withoutEntities(b: Building): Building {
-  const out = structuredClone(b);
-  out.energy = { ...out.energy, grid: null, solar: null, battery: null, battery_soc: null, tariff: null };
-  out.presence = [];
-  for (const f of out.floors) {
-    f.placements = [];
-    f.background = null;
-    f.rooms = f.rooms.map((r) => ({ ...r, area_id: null }));
-    f.furniture = f.furniture.map((m) => ({ ...m, entity: null, power: null }));
-    f.openings = f.openings.map((o) => ({ ...o, cover: null, contact: null, tilt: null }));
-  }
-  return out;
+  return shareCopy(b) as Building;
 }
 
 export function exportFile(b: Building, shareable: boolean): ExportFile {

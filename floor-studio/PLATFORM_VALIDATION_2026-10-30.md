@@ -11,9 +11,13 @@ This document updates the source candidate. Stable v0.28.0 is unchanged. It is n
 - `frontend/src/viewer/real-pbr.ts`: real Three.js MeshPhysicalMaterial rendering, generated albedo/roughness/metalness/normal maps, PMREM RoomEnvironment, directional/environment lighting, shadows and ACES tone mapping. Preserves original renderer geometry/ownership/fold masks, restores original materials/settings after drawing and disposes cached physical resources on quality changes. Other looks retain their original rendering path.
 - Real supports architectural, wood, fabric, metal, glass and stone presets. Generated maps are deterministic, not downloaded paid textures. Furniture groups use type-based presets; this is not a finished user-authored PBR material-map editor or proof of photorealistic fidelity for every imported asset. Low quality reduces texture size and omits expensive shadows/transmission.
 
+## Shared-template privacy correction
+
+The native share export previously removed the primary entity links but left nested room climate/panels, outdoor areas, secondary opening sensors, energy meters, car/pool links, module data, local buttons/media presets and image rules. `frontend/src/transfer.ts` now clears these integration-specific fields recursively for **share templates only**. Numeric geometry/settings with overlapping names (grid, tilt, etc.), object types, materials and shapes are preserved. Full backup export is unchanged and retains the user's own bindings; the source building is never mutated. Templates deliberately omit local module settings and personal images. Room/object names and geometry are still part of a template; this is not anonymization of the floor plan itself. Nothing automatically publishes or uploads either export.
+
 ## Verification
 
-`npm test`: 702 passing JavaScript/TypeScript tests (190 dashboard/module/contract tests plus 512 native frontend tests). This includes 26 new platform tests, five physical-material tests and three music pagination/category tests.
+`npm test`: 705 passing JavaScript/TypeScript tests (190 dashboard/module/contract tests plus 515 native frontend tests). This includes 26 new platform tests, five physical-material tests three music pagination/category tests and three shared-template privacy regression tests.
 
 `python -m unittest discover -s floor-studio/tests -p 'test_*.py'`: ten publication gate tests. Isolated Python backend suite: 121 tests; exact published revision also runs in both repository workflows.
 
