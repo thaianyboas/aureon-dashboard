@@ -8,6 +8,6 @@
     "build": "python3 floor-studio/tests/verify_frontend_build.py && node scripts/build-dashboard-candidate.mjs && node scripts/package-candidate.mjs",
     "validate": "node scripts/validate-distribution.mjs && python3 floor-studio/tests/check_public_distribution.py floor-studio",
     "readiness": "python3 floor-studio/tests/check_release_readiness.py",
-    "test:browser": "node scripts/test-music-browser.mjs && node scripts/test-platform-browser.mjs && node scripts/test-floor-browser.mjs"
+    "test:browser": "node scripts/test-music-browser.mjs && node scripts/test-platform-browser.mjs && node scripts/test-floor-browser.mjs && node scripts/test-editor-browser.mjs"
   }
 }

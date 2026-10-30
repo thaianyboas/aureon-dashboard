@@ -19,7 +19,7 @@ This document updates the source candidate. Stable v0.28.0 is unchanged. It is n
 
 `npm run build`: typecheck, locked frontend build, measured bundle budgets, dashboard compilation and candidate packaging pass. Viewer measures 859.9 KiB; its bounded budget is now 880 KiB to accommodate physical shaders/environment generation (previous 840 KiB). Other bundle budgets are unchanged.
 
-`npm run test:browser` runs three actual Chromium suites against synthetic fixtures, without connecting to or installing HA:
+`npm run test:browser` runs four actual Chromium suites against synthetic fixtures, without connecting to or installing HA:
 
 - Music: 20 checks, Full/Compact synchronization, actual service payloads, categories/paging, failures, locale, injection, focus, cleanup and 1440/820/390 layouts.
 - Platform: 22 checks, functional pages/commands/confirmations, lazy native camera fixture, statistics/calendar/assistant, cross-account cleanup and ten pages at three widths.
@@ -27,12 +27,14 @@ This document updates the source candidate. Stable v0.28.0 is unchanged. It is n
 
 Native camera helper, recorder/calendar/service responses are synthetic contracts. They are not a substitute for actual HA/provider/device acceptance. Browser screenshots are review evidence, not final visual approval. The synthetic standalone page does not load HA's icon registry.
 
+- Native compiled editor: eight checks, empty initial plan, native floor creation, pointer-drawn room, exact undo/redo geometry, serialized parent reload, native JSON round-trip and malformed-input rejection, non-admin UI restrictions, captures at three widths. Parent persistence is synthetic; backend storage and authorization are not proven by this suite.
+
 ## Captures and reproduction
 
-Workflows upload `build/music-browser`, `build/platform-browser` and `build/floor-browser` as review artifacts. They include full/compact at 1440/820/390; all ten platform views at those widths; Neon, Blueprint, Day, Night, Real and Real-low. Only synthetic data/artwork/plans appear. Run locked dependency installation, `npm run build`, then `CHROME_BIN=/path/to/chromium npm run test:browser` to reproduce.
+Workflows upload `build/music-browser`, `build/platform-browser` `build/floor-browser` and `build/editor-browser` as review artifacts. They include full/compact at 1440/820/390; all ten platform views at those widths; Neon, Blueprint, Day, Night, Real and Real-low, plus native editor at three widths. Only synthetic data/artwork/plans appear. Run locked dependency installation, `npm run build`, then `CHROME_BIN=/path/to/chromium npm run test:browser` to reproduce.
 
 ## Remaining development and external acceptance
 
-Milestone A (all development ready for final acceptance) is **not complete**. Remaining independent work includes broader editor persistence/import/permission interaction tests; write-through native room/plan association; richer module/room/integration configuration; calibration-driven cross-provider robot tracking presentation; notification scheduling; accessibility/performance review and final design comparison. Physical material authoring and imported asset fidelity still need more coverage.
+Milestone A (all development ready for final acceptance) is **not complete**. Remaining independent work includes broader editor/import/3D interaction tests and actual backend persistence/permission acceptance; write-through native room/plan association; richer module/room/integration configuration; calibration-driven cross-provider robot tracking presentation; notification scheduling; accessibility/performance review and final design comparison. Physical material authoring and imported asset fidelity still need more coverage.
 
 Milestone B (100% production validation) is **not complete**: no live HA, SpotifyPlus/Spotcast, actual camera/robot or user device has been exercised; no installation/update/migration/rollback runtime has occurred. Stable HACS update is not approved. Final promotion requires explicit user authorization after candidate completion. No intermediate installation or real HA test is requested.
