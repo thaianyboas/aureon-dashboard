@@ -11,7 +11,7 @@ The authoritative AUREON source remains in this repository. Avoid uploading full
 | `spotifyplus_card-master(2).zip` | Music card UI/browse reference | `eb7463067c335a3a` | MIT |
 | `Bubble-Card-main(2).zip` | HA frontend/card interaction reference | `efe4004229f0cf07` | MIT |
 | `dreame-vacuum-master(2).zip` | Vacuum entity and map reference | `a37bcdad01b5a8aa` | MIT |
-| `hacs_waste_collection_schedule-master(2).zip` | Waste pickup calendar integration reference | `da0b325020fd2009` | License file needs manual review; do not assume MIT |
+| `hacs_waste_collection_schedule-master(2).zip` | Waste pickup calendar integration reference | `da0b325020fd2009` | Root LICENSE begins with MIT License (copyright Steffen Zimmerman); verify any separately licensed bundled material before reuse |
 | `jarvis-main(2).zip` | Agent architecture reference, not a verified HA integration | `326bc3ec58ca4ea3` | MIT |
 | `simon42-dashboard-strategy-main(1).zip` | Dashboard design/interaction inspiration only | `8986ce5c716054e6` | CC BY-NC-SA 4.0: noncommercial/share-alike restrictions; do not copy into AUREON without review |
 | `neonplan3d-main(2).zip` | Original 3D engine/editor reference | `917dfc2b78eb37d3` | MIT; preserve attribution |
