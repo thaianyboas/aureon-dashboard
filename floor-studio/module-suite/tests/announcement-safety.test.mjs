@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {sendAnnouncement,resolveTargets} from '../src/announcements.mjs';
+const hass={states:{'media_player.other':{state:'idle'},'tts.demo':{state:'idle'}},entities:{}};
+const building={floors:[{rooms:[{id:'bed',name:'Bedroom',area_id:'bedroom'}]}]};
+const host={hass:()=>hass,building:()=>building};
+test('no accidental global fallback for unmapped room',()=>assert.deepEqual(resolveTargets(host,['bed'],{defaultSpeaker:'media_player.other'}),[]));
+test('global fallback requires explicit opt-in',()=>assert.deepEqual(resolveTargets(host,['bed'],{defaultSpeaker:'media_player.other',allowDefaultSpeaker:true}),['media_player.other']));
+test('quiet room blocks even explicitly enabled global fallback',async()=>{let calls=0;const result=await sendAnnouncement({...host,callService:()=>{calls++}},{message:'Hello',roomIds:['bed'],confirmed:true,now:new Date(2026,0,1,23),config:{ttsEntity:'tts.demo',allowDefaultSpeaker:true,defaultSpeaker:'media_player.other',quiet:{bed:{from:22,to:7}}}});assert.equal(result.reason,'quiet_hours');assert.equal(calls,0)});
+test('unknown room ids cannot trigger fallback',async()=>{let calls=0;const result=await sendAnnouncement({...host,callService:()=>{calls++}},{message:'Hello',roomIds:['unknown'],confirmed:true,config:{ttsEntity:'tts.demo',allowDefaultSpeaker:true,defaultSpeaker:'media_player.other'}});assert.equal(result.reason,'invalid_rooms');assert.equal(calls,0)});
+test('synchronous HA call errors become service_error result',async()=>{const result=await sendAnnouncement({...host,callService:()=>{throw Error('offline')}},{message:'Hello',roomIds:['bed'],confirmed:true,config:{ttsEntity:'tts.demo',allowDefaultSpeaker:true,defaultSpeaker:'media_player.other'}});assert.equal(result.ok,false);assert.equal(result.reason,'service_error');assert.equal(result.failed,1)});

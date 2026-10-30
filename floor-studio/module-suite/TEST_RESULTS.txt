@@ -1,0 +1,257 @@
+TAP version 13
+# Subtest: languages
+ok 1 - languages
+  ---
+  duration_ms: 1.364106
+  type: 'test'
+  ...
+# Subtest: area mapping
+ok 2 - area mapping
+  ---
+  duration_ms: 0.160798
+  type: 'test'
+  ...
+# Subtest: speaker discovery excludes TV
+ok 3 - speaker discovery excludes TV
+  ---
+  duration_ms: 0.360072
+  type: 'test'
+  ...
+# Subtest: deduplicates room targets
+ok 4 - deduplicates room targets
+  ---
+  duration_ms: 0.193737
+  type: 'test'
+  ...
+# Subtest: quiet hours overnight
+ok 5 - quiet hours overnight
+  ---
+  duration_ms: 0.296809
+  type: 'test'
+  ...
+# Subtest: no calls without confirmation
+ok 6 - no calls without confirmation
+  ---
+  duration_ms: 0.257901
+  type: 'test'
+  ...
+# Subtest: requires configured TTS
+ok 7 - requires configured TTS
+  ---
+  duration_ms: 0.193637
+  type: 'test'
+  ...
+# Subtest: sends only to configured room with explicit confirmation
+ok 8 - sends only to configured room with explicit confirmation
+  ---
+  duration_ms: 0.293153
+  type: 'test'
+  ...
+# Subtest: quiet rooms do not receive broadcast
+ok 9 - quiet rooms do not receive broadcast
+  ---
+  duration_ms: 0.350999
+  type: 'test'
+  ...
+# Subtest: fahrenheit temperature conversion
+ok 10 - fahrenheit temperature conversion
+  ---
+  duration_ms: 1.152233
+  type: 'test'
+  ...
+# Subtest: power and energy conversions
+ok 11 - power and energy conversions
+  ---
+  duration_ms: 1.458706
+  type: 'test'
+  ...
+# Subtest: unavailable and missing readings are null
+ok 12 - unavailable and missing readings are null
+  ---
+  duration_ms: 0.284291
+  type: 'test'
+  ...
+# Subtest: COP and temperature spread
+ok 13 - COP and temperature spread
+  ---
+  duration_ms: 0.391068
+  type: 'test'
+  ...
+# Subtest: no false alarm on healthy state
+ok 14 - no false alarm on healthy state
+  ---
+  duration_ms: 0.915753
+  type: 'test'
+  ...
+# Subtest: fault triggers localized alert
+ok 15 - fault triggers localized alert
+  ---
+  duration_ms: 0.48744
+  type: 'test'
+  ...
+# Subtest: low COP alerts require opt-in
+ok 16 - low COP alerts require opt-in
+  ---
+  duration_ms: 0.349897
+  type: 'test'
+  ...
+# Subtest: module exposes read-only api
+ok 17 - module exposes read-only api
+  ---
+  duration_ms: 0.150693
+  type: 'test'
+  ...
+# Subtest: module watches configured entities
+ok 18 - module watches configured entities
+  ---
+  duration_ms: 0.466199
+  type: 'test'
+  ...
+# Subtest: recognizes Portuguese lights
+ok 19 - recognizes Portuguese lights
+  ---
+  duration_ms: 1.153846
+  type: 'test'
+  ...
+# Subtest: recognizes German windows
+ok 20 - recognizes German windows
+  ---
+  duration_ms: 0.521982
+  type: 'test'
+  ...
+# Subtest: recognizes English people
+ok 21 - recognizes English people
+  ---
+  duration_ms: 0.418779
+  type: 'test'
+  ...
+# Subtest: counts active lights
+ok 22 - counts active lights
+  ---
+  duration_ms: 0.282228
+  type: 'test'
+  ...
+# Subtest: counts open windows
+ok 23 - counts open windows
+  ---
+  duration_ms: 0.179275
+  type: 'test'
+  ...
+# Subtest: counts home persons
+ok 24 - counts home persons
+  ---
+  duration_ms: 0.195669
+  type: 'test'
+  ...
+# Subtest: reads weather temperature
+ok 25 - reads weather temperature
+  ---
+  duration_ms: 0.177262
+  type: 'test'
+  ...
+# Subtest: voice response in Portuguese
+ok 26 - voice response in Portuguese
+  ---
+  duration_ms: 0.311411
+  type: 'test'
+  ...
+# Subtest: unrecognized sentence yields null
+ok 27 - unrecognized sentence yields null
+  ---
+  duration_ms: 0.607278
+  type: 'test'
+  ...
+# Subtest: module API version
+ok 28 - module API version
+  ---
+  duration_ms: 0.473129
+  type: 'test'
+  ...
+# Subtest: four distinct modules
+ok 29 - four distinct modules
+  ---
+  duration_ms: 0.73743
+  type: 'test'
+  ...
+# Subtest: all modules expose GUI settings
+ok 30 - all modules expose GUI settings
+  ---
+  duration_ms: 0.151895
+  type: 'test'
+  ...
+# Subtest: all modules expose API 1
+ok 31 - all modules expose API 1
+  ---
+  duration_ms: 0.176421
+  type: 'test'
+  ...
+# Subtest: heat has configurable sensor mappings
+ok 32 - heat has configurable sensor mappings
+  ---
+  duration_ms: 0.401914
+  type: 'test'
+  ...
+# Subtest: language supports pt/de/en
+ok 33 - language supports pt/de/en
+  ---
+  duration_ms: 0.879901
+  type: 'test'
+  ...
+# Subtest: cold window warns after 20 minutes
+ok 34 - cold window warns after 20 minutes
+  ---
+  duration_ms: 1.7452
+  type: 'test'
+  ...
+# Subtest: heating window warns after 10 minutes
+ok 35 - heating window warns after 10 minutes
+  ---
+  duration_ms: 0.239504
+  type: 'test'
+  ...
+# Subtest: short openings are ignored
+ok 36 - short openings are ignored
+  ---
+  duration_ms: 0.165485
+  type: 'test'
+  ...
+# Subtest: warm weather without heating does not warn
+ok 37 - warm weather without heating does not warn
+  ---
+  duration_ms: 0.354074
+  type: 'test'
+  ...
+# Subtest: Fahrenheit converted correctly
+ok 38 - Fahrenheit converted correctly
+  ---
+  duration_ms: 0.173797
+  type: 'test'
+  ...
+# Subtest: module exports API 1
+ok 39 - module exports API 1
+  ---
+  duration_ms: 0.242448
+  type: 'test'
+  ...
+# Subtest: alerts include room, floor and localized text
+ok 40 - alerts include room, floor and localized text
+  ---
+  duration_ms: 0.536293
+  type: 'test'
+  ...
+# Subtest: maps NeonPlan room IDs to HA area IDs
+ok 41 - maps NeonPlan room IDs to HA area IDs
+  ---
+  duration_ms: 0.634118
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 41
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 133.508564
+

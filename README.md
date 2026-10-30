@@ -1,20 +1,28 @@
-# AUREON Dashboard v0.2
+# AUREON Dashboard
 
-Home Assistant custom dashboard strategy foundation. Includes a Community-Dashboards strategy registration and a panel-view preview card.
+The stable HACS dashboard distribution remains unchanged in `dist/aureon-dashboard.js` (v0.28.0 line). Do not update expecting Floor Studio yet.
 
-## Installation
+## Floor Studio source integration
 
-Install through HACS as a Dashboard custom repository. Update HACS after pushing changes to master. Create a new dashboard via Settings > Dashboards > Add dashboard > Community-Dashboards > AUREON Dashboard.
+`floor-studio/` contains the supplied consolidated source checkpoint, the original MIT-licensed NeonPlan3D frontend/editor/backend, five visual modes (Neon, Blueprint, Day, Night, Real) and four optional AUREON modules: Window Watch, Announcements, Heat Monitor and House Answers. Each module requires explicit administrator approval. Original shop licensing and third-party pack approval remain intact; no paid packs or personal apartment presets are included.
 
-## Status
+The build uses the exact frontend lockfile. The tested module implementations and the modules bundled in the frontend are checked for byte-for-byte parity. Real currently uses procedural palette/shader shading; it is not a completed PBR renderer.
 
-The UI is a preview. No device control, 3D floor map, JARVIS backend, or Spotify integration is active yet. This code does not send external requests or Home Assistant service calls.
+```sh
+npm ci --prefix floor-studio/neonplan3d-main/frontend
+npm run validate
+python3 -m unittest discover -s floor-studio/tests -p 'test_*.py'
+npm test
+npm run build
+npm run readiness
+```
 
-## Credits
+Run the gate regression tests before the build: they deliberately test the state without generated build evidence. `npm run build` typechecks, compiles all NeonPlan3D bundles, records hashes and packages a **candidate only** under `build/floor-studio-candidate`. It does not overwrite the stable HACS distribution. GitHub Actions runs source tests, the build and backend tests and uploads the candidate without creating releases or development branches.
 
-The strategy registration approach was studied from Simon42 Dashboard Strategy. This implementation is independently written and does not copy its source code.
+## Installation blockers
 
+The supplied dashboard bridge uses the NeonPlan3D integration's original card and `/neonplan3d` editor. Updating this repository as a HACS **Dashboard** does not install the Python backend or replace the original integration's served frontend. A supported HACS installation path for the modified integration must be validated before promotion. The nested backend is source, not a claim of HACS integration packaging.
 
-## v0.3 — Design System Foundation
+The readiness gate remains blocked until actual Home Assistant functional testing verifies the floor view, administrator editor, nonadministrator restrictions, project persistence and module permissions. Backend unit tests use Home Assistant's test harness with mocked frontend registration; they do not establish browser/runtime acceptance. No runtime evidence is fabricated.
 
-22 paletas visuais de referência, CSS custom properties `--au-*`, contraste automático para texto, seleção em Einstellungen, modo Auto seguindo `hass.themes.darkMode`. Preferências temporariamente locais ao navegador. Ainda não integra temas com Music Card/NeonPlan, nem sincroniza seleção entre usuários/dispositivos.
+Upstream license: `floor-studio/neonplan3d-main/LICENSE`. Unrelated upstream demo media, firmware, shop tooling and tutorial recordings are omitted; the complete supplied ZIP was inspected locally.

@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const source=readFileSync(new URL('../aureon-dashboard.js',import.meta.url),'utf8');
+test('editor restricted to HA administrators',()=>{assert.match(source,/this\._hass\?\.user\?\.is_admin/);assert.match(source,/editButton\.disabled=!canEdit/);});
+test('non-admin cannot activate editor through mode switching',()=>assert.match(source,/mode==='editor' && canEdit/));
+test('native editor fallback remains',()=>assert.match(source,/editorLink\.href='\/neonplan3d'/));
+test('iframe uses same-origin native panel',()=>{assert.match(source,/frame\.src='\/neonplan3d'/);assert.match(source,/frame\.referrerPolicy='same-origin'/);});
+test('editor iframe disposed when switching to view',()=>assert.match(source,/editorHost\.replaceChildren\(\)/));
+test('native 3D viewer is preserved',()=>assert.match(source,/custom:neonplan3d-card/));
+test('viewer is disconnected on editor activation rather than only hidden',()=>assert.match(source,/host\.replaceChildren\(\);\s*if\(!editorHost\.firstChild\)/));
+test('viewer remounts when returning from editor',()=>assert.match(source,/if\(wasEditor\)\{\s*host\.textContent=this\._floorText\('loading'\);\s*queueMicrotask\(\(\)=>this\._mountNeonPlan\(\)\)/));
+test('asynchronous viewer mounting respects hidden host',()=>assert.match(source,/host\.hidden \|\| this\._page!=='Planta'/));
+test('iframe failure offers fullscreen fallback',()=>assert.match(source,/frame\.addEventListener\('error',[\s\S]*?this\._floorText\('frameError'\)/));

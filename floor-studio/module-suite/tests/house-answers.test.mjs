@@ -1,0 +1,13 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import module,{intent,summary} from '../src/house-answers.mjs';
+const h={language:()=> 'pt-BR',hass:()=>({states:{'light.one':{state:'on'},'light.two':{state:'off'},'person.a':{state:'home'},'weather.home':{attributes:{temperature:20}}}}),weather:()=> 'weather.home',openings:()=>[{kind:'window',open:true,entity:'binary_sensor.window'}]};
+test('recognizes Portuguese lights',()=>assert.equal(intent('Quantas luzes estão acesas?'),'lights'));
+test('recognizes German windows',()=>assert.equal(intent('Welche Fenster sind offen?'),'windows'));
+test('recognizes English people',()=>assert.equal(intent('Who is home?'),'people'));
+test('counts active lights',()=>assert.equal(summary(h,'lights'),1));
+test('counts open windows',()=>assert.equal(summary(h,'windows'),1));
+test('counts home persons',()=>assert.equal(summary(h,'people'),1));
+test('reads weather temperature',()=>assert.equal(summary(h,'temperature'),20));
+test('voice response in Portuguese',()=>assert.match(module.voice('Quantas luzes estão acesas?',h).text,/Luzes acesas: 1/));
+test('unrecognized sentence yields null',()=>assert.equal(module.voice('toque música',h),null));
+test('module API version',()=>assert.equal(module.api,1));

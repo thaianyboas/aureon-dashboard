@@ -1,0 +1,12 @@
+{
+  "name": "aureon-dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "npm --prefix floor-studio/neonplan3d-main/frontend run typecheck",
+    "test": "node --test floor-studio/tests/*.test.mjs floor-studio/module-suite/tests/*.test.mjs floor-studio/neonplan3d-main/frontend/src/viewer/*aureon*.test.mjs && npm --prefix floor-studio/neonplan3d-main/frontend test",
+    "build": "python3 floor-studio/tests/verify_frontend_build.py && node scripts/package-candidate.mjs",
+    "validate": "node scripts/validate-distribution.mjs && python3 floor-studio/tests/check_public_distribution.py floor-studio",
+    "readiness": "python3 floor-studio/tests/check_release_readiness.py"
+  }
+}

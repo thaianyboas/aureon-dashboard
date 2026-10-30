@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {locale,areaOf,speakersForRoom,resolveTargets,quietAt,sendAnnouncement} from '../src/announcements.mjs';
+const hass={states:{'media_player.kitchen':{state:'idle',attributes:{device_class:'speaker'}},'media_player.tv':{state:'idle',attributes:{device_class:'tv'}},'tts.google_translate':{state:'idle',attributes:{}}},entities:{'media_player.kitchen':{area_id:'kitchen'},'media_player.tv':{area_id:'kitchen'}}};
+const host={hass:()=>hass,building:()=>({floors:[{rooms:[{id:'k',area_id:'kitchen'}]}]})};
+test('languages',()=>assert.deepEqual(['pt','de','en'].map(locale),['pt','de','en']));
+test('area mapping',()=>assert.equal(areaOf(hass,'media_player.kitchen'),'kitchen'));
+test('speaker discovery excludes TV',()=>assert.deepEqual(speakersForRoom(hass,{id:'k',area_id:'kitchen'}),['media_player.kitchen']));
+test('deduplicates room targets',()=>assert.deepEqual(resolveTargets(host,['k','k']),['media_player.kitchen']));
+test('quiet hours overnight',()=>{assert.equal(quietAt(new Date(2026,0,1,23),22,7),true);assert.equal(quietAt(new Date(2026,0,1,12),22,7),false)});
+test('no calls without confirmation',async()=>{let n=0;const r=await sendAnnouncement({...host,callService:()=>{n++}},{message:'Oi',roomIds:['k']});assert.equal(r.reason,'confirmation_required');assert.equal(n,0)});
+test('requires configured TTS',async()=>{const r=await sendAnnouncement({...host,callService:()=>{}},{message:'Oi',roomIds:['k'],confirmed:true});assert.equal(r.reason,'tts_not_configured')});
+test('sends only to configured room with explicit confirmation',async()=>{let calls=[];const r=await sendAnnouncement({...host,callService:async(...args)=>calls.push(args)},{message:'Oi',roomIds:['k'],confirmed:true,config:{ttsEntity:'tts.google_translate'}});assert.equal(r.ok,true);assert.equal(calls.length,1);assert.deepEqual(calls[0].slice(0,2),['tts','speak'])});
+test('quiet rooms do not receive broadcast',async()=>{let n=0;const r=await sendAnnouncement({...host,callService:()=>{n++}},{message:'Oi',roomIds:['k'],confirmed:true,now:new Date(2026,0,1,23),config:{ttsEntity:'tts.google_translate',quiet:{k:{from:22,to:7}}}});assert.equal(r.reason,'quiet_hours');assert.equal(n,0)});

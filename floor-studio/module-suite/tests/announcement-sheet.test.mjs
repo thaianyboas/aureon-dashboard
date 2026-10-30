@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {announcementSheet,module} from '../src/announcements.mjs';
+const place={floorId:'f',roomId:'r'};
+function fixture(){let calls=[];let notes=[];const host={language:()=> 'pt-BR',canEdit:()=>true,building:()=>({floors:[{id:'f',rooms:[{id:'r',name:'Sala',area_id:'sala'}]}],settings:{mods:{'aureon.announcements':{ttsEntity:'tts.home',roomSpeakers:{r:'media_player.sala'}}}}}),hass:()=>({states:{'tts.home':{state:'idle'},'media_player.sala':{state:'idle'}}}),callService:async(...args)=>{calls.push(args)},notify:s=>notes.push(s)};return {host,calls,notes};}
+test('room sheet appears only for valid editable rooms',()=>{const {host}=fixture();assert.equal(module.roomSheets(host,place).length,1);assert.equal(module.roomSheets(host,{floorId:'bad',roomId:'r'}).length,0);host.canEdit=()=>false;assert.equal(module.roomSheets(host,place).length,0)});
+test('cancelling explicit confirmation does not call HA',async()=>{const {host,calls}=fixture();const sh=announcementSheet(host,place,()=>false);await sh.input.onSubmit('Olá');assert.equal(calls.length,0)});
+test('confirmed announcement sends only to selected room',async()=>{const {host,calls,notes}=fixture();const sh=announcementSheet(host,place,()=>true);const res=await sh.input.onSubmit('Olá');assert.equal(res.ok,true);assert.equal(calls.length,1);assert.equal(calls[0][0],'tts');assert.equal(calls[0][2].media_player_entity_id,'media_player.sala');assert.ok(notes.length)});
+test('empty and overlong messages never request confirmation',async()=>{const {host,calls}=fixture();let n=0;const sh=announcementSheet(host,place,()=>{n++;return true});await sh.input.onSubmit(' ');await sh.input.onSubmit('a'.repeat(501));assert.equal(n,0);assert.equal(calls.length,0)});
+test('room sheet localized in German and English',()=>{const {host}=fixture();host.language=()=> 'de-DE';assert.equal(announcementSheet(host,place,()=>false).title,'Durchsage');host.language=()=> 'en-US';assert.equal(announcementSheet(host,place,()=>false).title,'Announce')});

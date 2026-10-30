@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const panel=readFileSync(new URL('../neonplan3d-main/frontend/src/panel.ts',import.meta.url),'utf8');
+const dashboard=readFileSync(new URL('../aureon-dashboard.js',import.meta.url),'utf8');
+test('approval interface uses Home Assistant language',()=>assert.match(panel,/this\.hass\?\.language/));
+test('approval warnings are translated to three languages',()=>{for(const word of ['Ative apenas módulos confiáveis','Aktivieren Sie nur vertrauenswürdige Module','Enable only trusted modules'])assert.ok(panel.includes(word));});
+test('approval is still admin-only',()=>assert.match(panel,/this\.isAdmin && this\._aureonApprovalOpen/));
+test('module approval remains explicit',()=>assert.match(panel,/@click=\$\{\(\) => this\.toggleAureonModule\(id\)\}/));
+test('stale async mount errors cannot replace editor',()=>assert.match(dashboard,/const explain=\(message\)=>\{\s*if\(token!==this\._floorMountToken/));
