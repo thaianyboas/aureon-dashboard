@@ -1,8 +1,8 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.25.0';
-  const BUILD_ID = 'AUREON-0250-20261030-UNIVERSAL-CARD-CATALOG';
+  const VERSION = '0.26.1';
+  const BUILD_ID = 'AUREON-0261-20261030-CARD-VALIDATION';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -894,6 +894,8 @@
         if(type==='entities'||type==='history-graph') config.entities=[entity];
         else config.entity=entity;
       }
+      if(type.startsWith('custom:') && entity) config.entity=entity;
+      if(['thermostat','humidifier','weather-forecast','media-control','alarm-panel','calendar','todo-list','plant-status','entity','button','picture-entity','sensor'].includes(type) && entity) config.entity=entity;
       if(type==='markdown') config.content=title||'Meu cartão AUREON';
       else if(title) config.name=title;
       return config;
@@ -930,6 +932,31 @@
       const unique=new Map();for(const item of entries)if(!unique.has(item.type))unique.set(item.type,item);
       return [...unique.values()].sort((x,y)=>x.name.localeCompare(y.name,'pt'));
     }
+    _studioAllowedDomains(type) {
+      // Compatibility rules are explicit. Do not guess support for unknown HACS cards.
+      const known={
+        'thermostat':['climate'],'humidifier':['humidifier'],'weather-forecast':['weather'],
+        'media-control':['media_player'],'alarm-panel':['alarm_control_panel'],
+        'calendar':['calendar'],'todo-list':['todo'],'plant-status':['plant'],
+        'custom:mushroom-light-card':['light'],
+        'custom:mushroom-climate-card':['climate'],
+        'custom:mushroom-cover-card':['cover'],
+        'custom:mushroom-fan-card':['fan'],
+        'custom:mushroom-humidifier-card':['humidifier'],
+        'custom:mushroom-lock-card':['lock'],
+        'custom:mushroom-media-player-card':['media_player'],
+        'custom:mushroom-person-card':['person'],
+        'custom:mushroom-vacuum-card':['vacuum'],
+        'custom:mushroom-update-card':['update'],
+        'custom:mushroom-alarm-control-panel-card':['alarm_control_panel'],
+        'custom:mushroom-entity-card':null,
+        'custom:mushroom-template-card':null,
+        'custom:mushroom-chips-card':null
+      };
+      if(Object.prototype.hasOwnProperty.call(known,type))return known[type];
+      // Native multi-domain cards intentionally accept any entity.
+      return null;
+    }
     _studioEditor(container,existing) {
       const make=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
       const panel=make('section');panel.className='au-studio-editor';
@@ -959,25 +986,48 @@
       const typeLabel=make('p',selected?`Selecionado: ${selected}`:'Selecione um cartão acima');
       search.addEventListener('input',draw);category.addEventListener('change',draw);
       panel.append(search,category,info,catalog,typeLabel);
-      const entity=make('select');const placeholder=make('option','Selecione uma entidade');placeholder.value='';entity.append(placeholder);
-      const ids=Object.keys(this._hass?.states||{}).sort((a,b)=>a.localeCompare(b));
-      for(const id of ids){const option=make('option',`${this._hass.states[id]?.attributes?.friendly_name||id} (${id})`);option.value=id;entity.append(option);}
-      entity.value=initial.entity||initial.entities?.[0]||'';
+      const entity=make('select');
       const entityLabel=make('label','Entidade do Home Assistant');entityLabel.append(entity);panel.append(entityLabel);
+      const compatibilityHint=make('p');compatibilityHint.className='au-studio-compatibility';panel.append(compatibilityHint);
+      const initialEntity=initial.entity||initial.entities?.[0]||'';
+      const updateEntityOptions=()=>{
+        const previous=entity.value||initialEntity;
+        const domains=this._studioAllowedDomains(selected);
+        const ids=Object.keys(this._hass?.states||{}).filter(id=>!domains||domains.includes(id.split('.')[0]))
+          .sort((a,b)=>a.localeCompare(b));
+        entity.replaceChildren();
+        const placeholder=make('option',ids.length?'Selecione uma entidade':'Nenhuma entidade compatível encontrada');
+        placeholder.value='';entity.append(placeholder);
+        for(const id of ids){
+          const state=this._hass.states[id];
+          const option=make('option',`${state?.attributes?.friendly_name||id} (${id})`);
+          option.value=id;entity.append(option);
+        }
+        entity.value=ids.includes(previous)?previous:'';
+        entity.disabled=!ids.length;
+        compatibilityHint.textContent=domains
+          ? `Compatibilidade: ${domains.map(d=>d+'.*').join(', ')} · ${ids.length} entidades encontradas.`
+          : 'Este tipo de cartão não possui restrição de domínio confirmada. Exibindo todas as entidades; alguns cartões HACS exigem configuração própria.';
+      };
       const title=make('input');title.type='text';title.maxLength=100;title.placeholder='Título (opcional)';title.value=initial.name||(initial.type==='markdown'?initial.content:'')||'';
       const titleLabel=make('label','Título ou texto');titleLabel.append(title);panel.append(titleLabel);
       const advanced=make('details');advanced.append(make('summary','Configuração avançada JSON (opcional)'));
       const json=make('textarea');json.rows=7;json.spellcheck=false;json.placeholder='{"type":"custom:..."}';
       if(existing)json.value=JSON.stringify(initial,null,2);
       advanced.append(json,make('p','Para cartões que exigem configurações específicas, use JSON válido. O editor visual nativo de cada cartão ainda não está integrado.'));panel.append(advanced);
-      const update=()=>{entityLabel.style.display=selected==='markdown'?'none':'';};draw();update();
+      const update=()=>{entityLabel.style.display=selected==='markdown'?'none':'';updateEntityOptions();};draw();update();
       const error=make('p');error.className='au-studio-error';panel.append(error);
       const actions=make('div');actions.className='au-studio-actions';
       const cancel=make('button','Cancelar');cancel.type='button';cancel.addEventListener('click',()=>{this._studioEdit=null;this._render();});
       const save=make('button','Adicionar / Salvar cartão');save.type='button';save.addEventListener('click',()=>{
         try {
           if(!selected)throw new Error('Escolha um cartão no catálogo.');
-          const config=json.value.trim()?JSON.parse(json.value):this._studioConfig(selected,entity.value,title.value.trim());
+          const advancedConfig=json.value.trim()?JSON.parse(json.value):null;
+          const config=advancedConfig||this._studioConfig(selected,entity.value,title.value.trim());
+          if(existing && advancedConfig && selected===initial.type && entity.value && Object.prototype.hasOwnProperty.call(config,'entity'))config.entity=entity.value;
+          const allowed=this._studioAllowedDomains(config.type);
+          if(allowed && allowed.length && !config.entity && !Array.isArray(config.entities))throw new Error('Escolha uma entidade compatível antes de salvar este cartão.');
+          if(allowed && config.entity && !allowed.includes(String(config.entity).split('.')[0]))throw new Error('A entidade selecionada não é compatível com este cartão.');
           if(!config||typeof config!=='object'||Array.isArray(config)||typeof config.type!=='string'||!config.type.trim())throw new Error('Configuração inválida.');
           if(config.type==='custom:aureon-dashboard')throw new Error('Não é permitido adicionar a AUREON dentro dela mesma.');
           const previous=this._studioCards.slice();const item={id:existing?.id||this._studioNewId(),config};
@@ -1029,10 +1079,18 @@
         const item=this._studioCards.find(c=>c.id===host.getAttribute('data-studio-id'));
         if(!item)continue;
         try{
-          const card=helpers.createCardElement(item.config);
-          card.hass=this._hass;
+          const config=item.config;
+          const allowed=this._studioAllowedDomains(config.type);
+          if(allowed?.length && !config.entity && !config.entities?.length) {
+            host.textContent='Cartão sem entidade. Clique em Editar e selecione uma entidade compatível.';
+            continue;
+          }
+          const card=helpers.createCardElement(config);
           host.replaceChildren(card);
+          // Some custom cards need to be connected to the DOM before hass is assigned.
+          card.hass=this._hass;
           this._studioRendered.push(card);
+          if(card.tagName==='HUI-ERROR-CARD') console.warn('[AUREON] Card reported a configuration error',config);
         }catch(error){host.textContent='Erro neste cartão: '+(error.message||String(error));console.warn('[AUREON] Card Studio render error',item.config.type,error);}
       }
     }
