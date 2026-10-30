@@ -1,8 +1,8 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.23.0';
-  const BUILD_ID = 'AUREON-0230-20261030-ELEGANT-NAVIGATION';
+  const VERSION = '0.24.0';
+  const BUILD_ID = 'AUREON-0240-20261030-CARD-STUDIO-FOUNDATION';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -129,6 +129,10 @@
       this._controlBusy = new Set();
       this._controlError = '';
       this._homeStateSignature = '';
+      this._studioCards = this._studioRead();
+      this._studioEdit = null;
+      this._studioRendered = [];
+      this._studioRenderToken = 0;
     }
     setConfig(config) {
       if (config && config.type && config.type !== 'custom:aureon-dashboard') {
@@ -148,6 +152,9 @@
     set hass(value) {
       const oldMode=this._hass?.themes?.darkMode;
       this._hass=value;
+      const studioKey=this._studioStorageKey();
+      if(this._studioLoadedKey!==studioKey){this._studioLoadedKey=studioKey;this._studioCards=this._studioRead();if(this._configured&&this._page==='Início')this._render();}
+      for (const card of this._studioRendered) { try { card.hass=value; } catch(error) { console.warn('[AUREON] Card state update failed',error); } }
       if (this._configured && oldMode !== value?.themes?.darkMode) this._render();
       // Registry references are exposed by newer HA frontends; older versions use the WS fallback.
       // Debounce registry refreshes, never refetch on every sensor state update.
@@ -862,6 +869,125 @@
       }
       return root;
     }
+    // Card Studio v0.24: local, browser-specific storage. No HA backend writes.
+    _studioStorageKey() {
+      // Scope to HA URL + authenticated user; no credentials or state stored.
+      const user=this._hass?.user?.id || 'local';
+      return `aureon.card-studio.v1.${location.pathname.split('/')[1] || 'dashboard'}.${user}`;
+    }
+    _studioRead() {
+      try {
+        const raw=localStorage.getItem(this._studioStorageKey());
+        const parsed=raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.filter(c=>c&&typeof c.id==='string'&&c.config&&typeof c.config.type==='string').slice(0,40) : [];
+      } catch(error) { console.warn('[AUREON] Card Studio storage unavailable',error); return []; }
+    }
+    _studioWrite() {
+      try { localStorage.setItem(this._studioStorageKey(),JSON.stringify(this._studioCards)); return true; }
+      catch(error) { console.error('[AUREON] Card Studio save failed',error); return false; }
+    }
+    _studioNewId() { return `card-${Date.now()}-${Math.random().toString(36).slice(2,9)}`; }
+    _studioConfig(type,entity,title) {
+      const config={type};
+      if (['tile','gauge','history-graph','entities'].includes(type)) {
+        if(!entity) throw new Error('Escolha uma entidade do Home Assistant.');
+        if(type==='entities'||type==='history-graph') config.entities=[entity];
+        else config.entity=entity;
+      }
+      if(type==='markdown') config.content=title||'Meu cartão AUREON';
+      else if(title) config.name=title;
+      return config;
+    }
+    _studioEditor(container,existing) {
+      const make=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
+      const panel=make('section');panel.className='au-studio-editor';
+      const heading=make('h3',existing?'Editar cartão':'Adicionar cartão');panel.append(heading);
+      const label=(name,field)=>{const row=make('label',name);row.append(field);panel.append(row);return field;};
+      const type=make('select');
+      for(const [value,name] of [['tile','Kachel · Tile'],['entities','Entidades'],['gauge','Medidor · Gauge'],['history-graph','Histórico'],['markdown','Texto · Markdown']]){
+        const opt=make('option',name);opt.value=value;type.append(opt);
+      }
+      const initial=existing?.config||{};
+      type.value=['tile','entities','gauge','history-graph','markdown'].includes(initial.type)?initial.type:'tile';
+      label('Tipo de cartão',type);
+      const entity=make('select');
+      const placeholder=make('option','Selecione uma entidade');placeholder.value='';entity.append(placeholder);
+      const ids=Object.keys(this._hass?.states||{}).sort((a,b)=>a.localeCompare(b));
+      for(const id of ids){const option=make('option',`${this._hass.states[id]?.attributes?.friendly_name||id} (${id})`);option.value=id;entity.append(option);}
+      entity.value=initial.entity||initial.entities?.[0]||'';
+      const entityLabel=label('Entidade do Home Assistant',entity);
+      const title=make('input');title.type='text';title.maxLength=100;title.placeholder='Nome opcional';title.value=initial.name||(initial.type==='markdown'?initial.content:'')||'';
+      label('Título ou texto',title);
+      const advanced=make('details');advanced.append(make('summary','Configuração YAML/JSON avançada (JSON)'));
+      const json=make('textarea');json.rows=6;json.spellcheck=false;json.placeholder='{"type":"custom:..."}';
+      if(existing) json.value=JSON.stringify(initial,null,2);
+      advanced.append(json,make('p','Use JSON para configurações avançadas e cartões customizados já instalados no HA.'));panel.append(advanced);
+      const update=()=>{entityLabel.style.display=type.value==='markdown'?'none':'';};type.addEventListener('change',()=>{json.value='';update();});update();
+      const error=make('p');error.className='au-studio-error';panel.append(error);
+      const actions=make('div');actions.className='au-studio-actions';
+      const cancel=make('button','Cancelar');cancel.type='button';cancel.addEventListener('click',()=>{this._studioEdit=null;this._render();});
+      const save=make('button','Salvar cartão');save.type='button';save.addEventListener('click',()=>{
+        try {
+          const config=json.value.trim()?JSON.parse(json.value):this._studioConfig(type.value,entity.value,title.value.trim());
+          if(!config||typeof config!=='object'||Array.isArray(config)||typeof config.type!=='string'||!config.type.trim())throw new Error('Configuração inválida: informe um tipo de cartão.');
+          if(config.type==='custom:aureon-dashboard')throw new Error('Não é permitido adicionar a AUREON dentro dela mesma.');
+          const previous=this._studioCards.slice();
+          const item={id:existing?.id||this._studioNewId(),config};
+          const index=this._studioCards.findIndex(c=>c.id===item.id);
+          if(index<0){if(this._studioCards.length>=40)throw new Error('Limite inicial de 40 cartões.');this._studioCards.push(item);}else this._studioCards[index]=item;
+          if(!this._studioWrite()){this._studioCards=previous;throw new Error('Não foi possível salvar neste navegador.');}
+          this._studioEdit=null;this._render();
+        } catch(ex) {error.textContent=ex.message||String(ex);}
+      });actions.append(cancel,save);panel.append(actions);container.append(panel);
+    }
+    _studioSection(main) {
+      const make=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
+      const section=make('section');section.className='au-studio';
+      const bar=make('div');bar.className='au-studio-header';bar.append(make('h2','Meus cartões'));
+      const add=make('button','+ Adicionar cartão');add.type='button';add.addEventListener('click',()=>{this._studioEdit='new';this._render();});bar.append(add);section.append(bar);
+      section.append(make('p','Card Studio · Configurações salvas apenas neste navegador e usuário. Ainda não sincroniza com outros dispositivos ou backups do Home Assistant.'));
+      if(this._studioEdit){const existing=this._studioCards.find(c=>c.id===this._studioEdit);this._studioEditor(section,existing);}
+      const grid=make('div');grid.className='au-studio-grid';section.append(grid);
+      for(const [index,item] of this._studioCards.entries()){
+        const slot=make('article');slot.className='au-studio-slot';
+        const controls=make('div');controls.className='au-studio-actions';
+        const label=make('span',item.config.name||item.config.type);controls.append(label);
+        const action=(name,fn)=>{const b=make('button',name);b.type='button';b.addEventListener('click',fn);controls.append(b);};
+        action('Editar',()=>{this._studioEdit=item.id;this._render();});
+        action('↑',()=>this._studioMove(index,-1));action('↓',()=>this._studioMove(index,1));
+        action('Excluir',()=>{if(!confirm('Excluir este cartão da AUREON?'))return;const before=this._studioCards.slice();this._studioCards=this._studioCards.filter(c=>c.id!==item.id);if(!this._studioWrite()){this._studioCards=before;return;}this._render();});
+        slot.append(controls);
+        const host=make('div');host.className='au-studio-card-host';host.setAttribute('data-studio-id',item.id);host.textContent='Carregando cartão…';slot.append(host);grid.append(slot);
+      }
+      main.append(section);
+    }
+    _studioMove(index,offset){
+      const next=index+offset;if(next<0||next>=this._studioCards.length)return;
+      const before=this._studioCards.slice();
+      [this._studioCards[index],this._studioCards[next]]=[this._studioCards[next],this._studioCards[index]];
+      if(!this._studioWrite()){this._studioCards=before;return;}this._render();
+    }
+    async _studioMount() {
+      const token=++this._studioRenderToken;
+      this._studioRendered=[];
+      if(this._page!=='Início')return;
+      const hosts=[...this.shadowRoot.querySelectorAll('[data-studio-id]')];
+      if(!hosts.length)return;
+      let helpers;
+      try {helpers=await window.loadCardHelpers?.();if(!helpers?.createCardElement)throw new Error('API de cartões do HA indisponível');}
+      catch(error){for(const host of hosts)host.textContent='Não foi possível carregar os cartões do Home Assistant: '+error.message;return;}
+      if(token!==this._studioRenderToken)return;
+      for(const host of hosts){
+        const item=this._studioCards.find(c=>c.id===host.getAttribute('data-studio-id'));
+        if(!item)continue;
+        try{
+          const card=helpers.createCardElement(item.config);
+          card.hass=this._hass;
+          host.replaceChildren(card);
+          this._studioRendered.push(card);
+        }catch(error){host.textContent='Erro neste cartão: '+(error.message||String(error));console.warn('[AUREON] Card Studio render error',item.config.type,error);}
+      }
+    }
     getCardSize() { return 9; }
     static getStubConfig() { return { type: 'custom:aureon-dashboard' }; }
     _render() {
@@ -873,6 +999,7 @@
       const filterStyle=document.createElement('style');
       filterStyle.textContent=`.filter-bar{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.filter-bar select,.filter-bar input{flex:1 1 170px;min-width:0;max-width:none}.device-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:12px}.device-group{border:1px solid var(--au-border);border-radius:14px;background:var(--au-card);color:var(--au-surface-text);padding:14px;min-width:0}.device-group summary{cursor:pointer;font-weight:650;line-height:1.5;overflow-wrap:anywhere}.device-group small{display:block;font-size:11px;opacity:.75;margin:5px 0}.device-entities{display:grid;gap:8px;margin-top:12px}.device-entity{border-top:1px solid var(--au-border);padding-top:8px;overflow-wrap:anywhere}.device-entity strong{display:block;font-size:12px}.device-entity small{font-size:10px}.device-entity .device-state{margin-top:4px}.filter-check{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap}.filter-check input{flex:none}.filter-action{font-size:12px;padding:10px 12px;border:1px solid var(--au-border);background:var(--au-card);color:var(--au-surface-text)}.filter-action:hover{color:var(--au-accent)}.au-universal{display:flex;flex-wrap:wrap;gap:6px}.au-universal .au-control-label{width:100%}.au-universal input[type=range]{width:100%}.au-generic{margin-top:8px;padding:9px;border:1px solid var(--au-border);border-radius:9px;display:grid;gap:4px}.au-generic-value{font-size:13px;color:var(--au-accent)}.device-empty{grid-column:1/-1}.au-control{margin-top:10px;padding:10px;border:1px solid var(--au-border);border-radius:10px}.au-control-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.au-toggle{font-size:12px;padding:8px 12px;background:var(--au-hover);border:1px solid var(--au-border)}.au-toggle:disabled{opacity:.5;cursor:not-allowed}.au-control-label{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin:10px 0 5px}.au-control input[type=range]{width:100%;accent-color:var(--au-accent)}.au-cover-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.au-climate-select,.au-control input[type=number]{background:var(--au-surface);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:8px;padding:8px;max-width:100%;margin:5px 6px 5px 0}.au-control input[type=color]{height:30px;width:52px;border:1px solid var(--au-border);background:transparent;border-radius:6px}`;
       filterStyle.textContent += `.au-sensor{display:grid;gap:5px}.au-sensor-value{font-size:15px;font-weight:650;overflow-wrap:anywhere}.au-sensor small{font-size:10px;opacity:.75}.au-sensor[data-au-sensor-kind=active] .au-sensor-value{color:var(--au-accent)}`;
+      filterStyle.textContent += `.au-studio{margin-top:24px}.au-studio-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.au-studio-header h2{font-size:19px}.au-studio p{font-size:12px;color:var(--au-muted)}.au-studio button{font-size:12px;padding:8px 10px;border:1px solid var(--au-border);border-radius:9px;background:var(--au-surface);color:var(--au-surface-text)}.au-studio-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:15px}.au-studio-slot,.au-studio-editor{padding:14px;border:1px solid var(--au-border);border-radius:14px;background:var(--au-card);color:var(--au-surface-text);min-width:0}.au-studio-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:12px}.au-studio-actions span{font-size:12px;font-weight:600;margin-right:auto;overflow-wrap:anywhere}.au-studio-editor{max-width:650px;margin:12px 0}.au-studio-editor label{display:grid;gap:6px;font-size:12px;margin:12px 0}.au-studio-editor select,.au-studio-editor input,.au-studio-editor textarea{width:100%;padding:10px;background:var(--au-surface);color:var(--au-surface-text);border:1px solid var(--au-border);border-radius:8px;font:inherit}.au-studio-editor summary{font-size:12px;cursor:pointer}.au-studio-error{color:#c94d4d!important}.au-studio-card-host{min-height:80px;overflow:hidden}`;
       root.append(filterStyle);
       for (const [key,value] of Object.entries(themeTokens(this._theme,this._hass))) this.style.setProperty(key,value);
       root.append(style);
@@ -1045,6 +1172,7 @@
         }
         main.append(section);
       }
+      if(this._page==='Início') this._studioSection(main);
       const cards = make('div','cards');
       const filtered = MODULES.filter(x => this._page === 'Início' || (this._page !== 'Räume' && x[2] === this._page));
       for (const [icon, name, , description] of filtered) {
@@ -1075,6 +1203,7 @@
       main.append(cards, make('div','foot',`AUREON v${VERSION} · Build ${BUILD_ID} · descoberta e filtros · ações por capacidades`));
       wrap.append(nav, main);
       root.append(wrap);
+      this._studioMount().catch(error=>console.warn('[AUREON] Card Studio mount failed',error));
       // Render only AFTER mounting. Otherwise querySelector cannot find the overview.
       if (this._page === 'Início' && this._registry) {
         try { this._updateHomeOverview(); }
