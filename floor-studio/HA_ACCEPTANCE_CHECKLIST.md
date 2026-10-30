@@ -42,4 +42,4 @@ A GitHub Actions artifact is **not** automatically an installable HACS repositor
 
 ## Release gate
 
-Do not replace `dist/aureon-dashboard.js` or claim HACS readiness until the installation path and runtime acceptance matrix have been validated. The procedural Real mode is not a finished PBR renderer. Stable v0.28.0 remains the published dashboard.
+Do not replace `dist/aureon-dashboard.js` or claim HACS readiness until the installation path and runtime acceptance matrix have been validated. The physical Real renderer still requires final visual and device acceptance. Stable v0.28.0 remains the published dashboard.

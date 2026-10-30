@@ -17,17 +17,17 @@ The native share export previously removed the primary entity links but left nes
 
 ## Verification
 
-`npm test`: 705 passing JavaScript/TypeScript tests (190 dashboard/module/contract tests plus 515 native frontend tests). This includes 26 new platform tests, five physical-material tests three music pagination/category tests and three shared-template privacy regression tests.
+`npm test`: 711 passing JavaScript/TypeScript tests (196 dashboard/module/contract tests plus 515 native frontend tests). This includes 26 new platform tests, five physical-material tests three music pagination/category tests and three shared-template privacy regression tests.
 
-`python -m unittest discover -s floor-studio/tests -p 'test_*.py'`: ten publication gate tests. Isolated Python backend suite: 121 tests; exact published revision also runs in both repository workflows.
+`python -m unittest discover -s floor-studio/tests -p 'test_*.py'`: ten publication gate tests. Isolated Python backend suite: 130 tests; exact published revision also runs in both repository workflows.
 
 `npm run build`: typecheck, locked frontend build, measured bundle budgets, dashboard compilation and candidate packaging pass. Viewer measures 860.2 KiB; its bounded budget is now 880 KiB to accommodate physical shaders/environment generation (previous 840 KiB). Other bundle budgets are unchanged.
 
 `npm run test:browser` runs four actual Chromium suites against synthetic fixtures, without connecting to or installing HA:
 
 - Music: 20 checks, Full/Compact synchronization, actual service payloads, categories/paging, failures, locale, injection, focus, cleanup and 1440/820/390 layouts.
-- Platform: 22 checks, functional pages/commands/confirmations, lazy native camera fixture, statistics/calendar/assistant, cross-account cleanup and ten pages at three widths.
-- Original floor renderer: eight checks, all five modes draw triangles with valid shaders and distinct captures; actual physical maps/materials present; original materials restored after draw; low quality releases previous resources and removes original-material listeners; disposal removes canvas.
+- Platform: 24 checks, functional pages/commands/confirmations, lazy native camera fixture, statistics/calendar/assistant, cross-account cleanup and ten pages at three widths.
+- Original floor renderer: nine checks, all five modes draw triangles with valid shaders and distinct captures; actual physical maps/materials present; original materials restored after draw; low quality releases previous resources and removes original-material listeners; disposal removes canvas.
 
 Native camera helper, recorder/calendar/service responses are synthetic contracts. They are not a substitute for actual HA/provider/device acceptance. Browser screenshots are review evidence, not final visual approval. The synthetic standalone page does not load HA's icon registry.
 
@@ -39,6 +39,12 @@ Workflows upload `build/music-browser`, `build/platform-browser` `build/floor-br
 
 ## Remaining development and external acceptance
 
-Milestone A (all development ready for final acceptance) is **not complete**. Remaining independent work includes broader editor/import/3D interaction tests and actual backend persistence/permission acceptance; write-through native room/plan association; richer module/room/integration configuration; calibration-driven cross-provider robot tracking presentation; notification scheduling; accessibility/performance review and final design comparison. Physical material authoring and imported asset fidelity still need more coverage.
+Milestone A (all development ready for final acceptance) is **not complete**. Remaining independent work includes broader editor/import/3D interaction tests and actual backend persistence/permission acceptance; broader native binding interaction coverage; richer module/room/integration configuration; calibration-driven cross-provider robot tracking presentation; notification scheduling; accessibility/performance review and final design comparison. Physical material authoring and imported asset fidelity still need more coverage.
 
 Milestone B (100% production validation) is **not complete**: no live HA, SpotifyPlus/Spotcast, actual camera/robot or user device has been exercised; no installation/update/migration/rollback runtime has occurred. Stable HACS update is not approved. Final promotion requires explicit user authorization after candidate completion. No intermediate installation or real HA test is requested.
+
+## Native binding continuation
+
+See `NATIVE_BINDINGS_VALIDATION.md` for the server-validated native room/object/opening associations, conflict handling, isolated storage and permissions tests and current limits. This updates the previous local-only floor choice; it does not declare all development complete.
+
+Atualização de fidelidade: `NEONPLAN_FIDELITY_AUDIT.md` documenta a restauração das APIs oficiais privadas de licença, sem loja pública ou atualização comercial automática. As verificações de assinatura/instância permanecem intactas.

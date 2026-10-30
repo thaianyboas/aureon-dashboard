@@ -1,9 +1,10 @@
-"""Local pack binding and removal of remote commerce endpoints."""
+"""Shop connection: key activation, bound pack installs and the daily update check."""
 
 from __future__ import annotations
 
 import base64
 import json
+from types import SimpleNamespace
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -11,6 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMockResponse
 
 from custom_components.neonplan3d import license as lic
 from custom_components.neonplan3d import packs
@@ -44,6 +46,14 @@ def _sign(private: Ed25519PrivateKey, keys: dict[str, str], payload: dict) -> st
     return json.dumps({"payload": payload, "signature": {"key": next(iter(keys)), "sig": sig}})
 
 
+def test_keys_are_normalised() -> None:
+    assert lic.normalize_key("np-abcd-efgh-2345-6789") == "NP-ABCD-EFGH-2345-6789"
+    assert lic.normalize_key(" NPABCDEFGH23456789 ") == "NP-ABCD-EFGH-2345-6789"
+    with pytest.raises(lic.LicenseError) as err:
+        lic.normalize_key("NP-ABCD")
+    assert err.value.code == "invalid_key"
+
+
 def test_bound_packs_are_only_accepted_by_their_installation() -> None:
     private, keys = _key()
     fp = packs.fingerprint("some-instance-id")
@@ -60,12 +70,201 @@ def test_bound_packs_are_only_accepted_by_their_installation() -> None:
     assert free["instance"] is None and free["release"] == 1
 
 
+def test_a_module_update_waiting_for_approval_is_not_offered_again() -> None:
+    # #805: the update to release 8 was fetched and waits beside release 7, the shop list must not offer it again
+    data = SimpleNamespace(
+        license={
+            "key": "NP-ABCD-EFGH-2345-6789",
+            "catalog": [{"id": "pro_heat", "release": 8}, {"id": "shop.living", "release": 2}],
+        },
+        packs=[{"id": "pro_heat", "release": 7, "pending": {"release": 8}}, {"id": "shop.living", "release": 1}],
+    )
+    heat, living = lic.status(data, "x")["packs"]
+    assert heat["installed"] == 8 and heat["waits"] is True
+    assert living["installed"] == 1 and living["waits"] is False
+
+
 async def _setup(hass: HomeAssistant) -> None:
     await async_setup_component(hass, "http", {})
     entry = MockConfigEntry(domain=DOMAIN, data={})
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
+
+
+async def test_activate_install_and_update(hass: HomeAssistant, hass_ws_client, aioclient_mock, monkeypatch) -> None:
+    private, keys = _key()
+    monkeypatch.setattr(packs, "PACK_PUBLIC_KEYS", keys)
+    await _setup(hass)
+    client = await hass_ws_client(hass)
+    fp = await lic.async_instance_fingerprint(hass)
+
+    catalog = {
+        "licensee": "Anna",
+        "packs": [{"id": "shop.living", "name": "Wohnzimmer", "release": 1, "url": "https://shop/x"}],
+    }
+    aioclient_mock.post(f"{lic.SHOP_API}/catalog", json=catalog)
+    aioclient_mock.post(
+        f"{lic.SHOP_API}/pack", text=_sign(private, keys, {**PAYLOAD, "instance": fp, "licensee": "Anna"})
+    )
+
+    await client.send_json_auto_id({"type": "neonplan3d/license/get"})
+    before = (await client.receive_json())["result"]
+    assert before["instance"] == fp and not before["active"] and before["packs"] == []
+
+    await client.send_json_auto_id({"type": "neonplan3d/license/activate", "key": "np-abcd-efgh-2345-6789"})
+    result = await client.receive_json()
+    assert result["success"], result
+    status = result["result"]
+    assert status["active"] and status["licensee"] == "Anna" and status["key_hint"] == "…6789"
+    assert status["packs"] == [
+        {
+            "id": "shop.living",
+            "name": "Wohnzimmer",
+            "release": 1,
+            "url": "https://shop/x",
+            "installed": None,
+            "waits": False,
+        }
+    ]
+    # an older shop sends no offers and no loyalty code
+    assert status["offers"] == [] and status["loyalty"] is None and status["supporter"] is None
+    sent = aioclient_mock.mock_calls[-1][2]
+    # the version goes along, so the shop can ask an old installation to update first
+    assert {k: v for k, v in sent.items() if k != "version"} == {"key": "NP-ABCD-EFGH-2345-6789", "instance": fp}
+    assert isinstance(sent["version"], str) and sent["version"]
+
+    await client.send_json_auto_id({"type": "neonplan3d/packs/install", "pack_id": "shop.living"})
+    result = await client.receive_json()
+    assert result["success"], result
+    assert result["result"]["licensee"] == "Anna" and result["result"]["release"] == 1
+    assert [p["id"] for p in hass.data[DOMAIN].packs] == ["shop.living"]
+
+    # the daily check finds release 2 and installs it; the shop now also announces offers and a code
+    aioclient_mock.clear_requests()
+    catalog["packs"][0]["release"] = 2
+    catalog["offers"] = [
+        {
+            "id": "kino",
+            "name": "Heimkino",
+            "teaser": "Lautsprecher",
+            "url": "https://shop/kino",
+            "kind": "pack",
+            "new": True,
+        },
+        {"id": "fun_pets", "name": "Haustiere", "url": "https://shop/fun", "kind": "fun", "price": "0,00 €"},
+        {"id": "bad", "name": "No link", "url": "http://insecure"},
+    ]
+    catalog["loyalty"] = {"code": "NP-TREUE-AB12CD", "percent": 10}
+    catalog["supporter"] = {"code": "NPS-7KQ4-X2M9", "until": "2027-12-31"}
+    catalog["newsletter"] = {"url": "https://shop/newsletter"}
+    aioclient_mock.post(f"{lic.SHOP_API}/catalog", json=catalog)
+    aioclient_mock.post(
+        f"{lic.SHOP_API}/pack", text=_sign(private, keys, {**PAYLOAD, "instance": fp, "licensee": "Anna", "release": 2})
+    )
+    # a check from the last 20 hours makes the daily check wait: pretend the last one is old
+    hass.data[DOMAIN].license["checked_at"] = 0
+    await lic.async_refresh_quietly(hass, hass.data[DOMAIN])
+    assert hass.data[DOMAIN].packs[0]["release"] == 2
+    await client.send_json_auto_id({"type": "neonplan3d/license/get"})
+    status = (await client.receive_json())["result"]
+    assert status["packs"][0]["installed"] == 2 and status["error"] is None
+    assert [o["id"] for o in status["offers"]] == ["kino", "fun_pets"] and status["offers"][0]["new"]
+    assert status["offers"][1]["kind"] == "fun"
+    # the update is remembered for the extensions page
+    assert [(u["id"], u["release"]) for u in status["updates"]] == [("shop.living", 2)]
+    assert status["offers"][0]["image"] is None and status["offers"][0]["kind"] == "pack"
+    assert status["loyalty"] == {"code": "NP-TREUE-AB12CD", "percent": 10}
+    assert status["supporter"] == {"code": "NPS-7KQ4-X2M9", "until": "2027-12-31"}
+    assert status["newsletter"] == {"url": "https://shop/newsletter"}
+
+    # the request carries our own User-Agent (the host blocks aiohttp's default one)
+    assert aioclient_mock.mock_calls[-1][3]["User-Agent"].startswith("NeonPlan3D/")
+
+    # the host throttles with a bare 429: the request is repeated after a pause and then goes through
+    monkeypatch.setattr(lic, "RETRY_WAITS", (0.0, 0.0))
+    aioclient_mock.clear_requests()
+    answers = iter([(429, "<html>Too Many Requests</html>"), (200, json.dumps(catalog))])
+
+    async def throttled(method, url, data):
+        status, text = next(answers)
+        return AiohttpClientMockResponse(method, url, status=status, text=text)
+
+    aioclient_mock.post(f"{lic.SHOP_API}/catalog", side_effect=throttled)
+    await client.send_json_auto_id({"type": "neonplan3d/license/refresh"})
+    result = await client.receive_json()
+    assert result["success"] and result["result"]["licensee"] == "Anna"
+    assert aioclient_mock.call_count == 2
+
+    # the shop refuses a key: the error comes through with the shop's code
+    aioclient_mock.clear_requests()
+    refusal = {"code": "ms_np_activation_limit", "message": "no"}
+    aioclient_mock.post(f"{lic.SHOP_API}/catalog", status=403, json=refusal)
+    await client.send_json_auto_id({"type": "neonplan3d/license/activate", "key": "NP-ABCD-EFGH-2345-6789"})
+    result = await client.receive_json()
+    assert not result["success"] and result["error"]["code"] == "activation_limit"
+
+    # forgetting the key keeps the packs and drops offers and code
+    await client.send_json_auto_id({"type": "neonplan3d/license/remove"})
+    status = (await client.receive_json())["result"]
+    assert not status["active"] and len(hass.data[DOMAIN].packs) == 1
+    assert status["offers"] == [] and status["loyalty"] is None and status["supporter"] is None
+    assert status["newsletter"] is None
+
+
+async def test_a_pack_that_newly_belongs_to_the_customer_is_announced_once(
+    hass: HomeAssistant, hass_ws_client, aioclient_mock, monkeypatch
+) -> None:
+    private, keys = _key()
+    monkeypatch.setattr(packs, "PACK_PUBLIC_KEYS", keys)
+    await _setup(hass)
+    client = await hass_ws_client(hass)
+    notices: list[tuple[str, str]] = []
+    dismissed: list[str] = []
+    monkeypatch.setattr(
+        lic.persistent_notification,
+        "async_create",
+        lambda hass, message, title=None, notification_id=None: notices.append((notification_id, title)),
+    )
+    monkeypatch.setattr(
+        lic.persistent_notification, "async_dismiss", lambda hass, notification_id: dismissed.append(notification_id)
+    )
+    living = {"id": "shop.living", "name": "Wohnzimmer", "release": 1, "url": "https://shop/x"}
+    aioclient_mock.post(f"{lic.SHOP_API}/catalog", json={"licensee": "Anna", "packs": [living]})
+    await client.send_json_auto_id({"type": "neonplan3d/license/activate", "key": "NP-ABCD-EFGH-2345-6789"})
+    assert (await client.receive_json())["success"]
+    # the first catalog of a key: no notice (the customer is on the extensions page)
+    assert notices == []
+
+    # a gift turns up in the catalog: one notice, not again on the next check
+    gift = {"id": "mastershort.fun_halloween", "name": "Fun-Pack: Halloween", "release": 1, "url": "https://shop/h"}
+    aioclient_mock.clear_requests()
+    aioclient_mock.post(f"{lic.SHOP_API}/catalog", json={"licensee": "Anna", "packs": [living, gift]})
+    await lic.async_refresh(hass, hass.data[DOMAIN])
+    await lic.async_refresh(hass, hass.data[DOMAIN])
+    assert [n[0] for n in notices] == ["neonplan3d_pack_mastershort.fun_halloween"]
+
+    # installed: the notice goes
+    fp = await lic.async_instance_fingerprint(hass)
+    aioclient_mock.post(
+        f"{lic.SHOP_API}/pack",
+        text=_sign(
+            private, keys, {**PAYLOAD, "id": gift["id"], "name": gift["name"], "instance": fp, "licensee": "Anna"}
+        ),
+    )
+    await lic.async_install(hass, hass.data[DOMAIN], gift["id"])
+    assert "neonplan3d_pack_mastershort.fun_halloween" in dismissed
+
+    # four taster packs at once: one notice for all of them, gone once one is installed
+    samples = [
+        {"id": f"mastershort.{n}_sample", "name": n, "release": 1, "url": "https://shop/s"}
+        for n in ("living", "kitchen", "bedroom", "bath")
+    ]
+    notices.clear()
+    aioclient_mock.clear_requests()
+    aioclient_mock.post(f"{lic.SHOP_API}/catalog", json={"licensee": "Anna", "packs": [living, gift, *samples]})
+    await lic.async_refresh(hass, hass.data[DOMAIN], install_updates=False)
+    assert notices == [("neonplan3d_packs_new", "NeonPlan 3D: 4 new packs are ready")]
 
 
 async def test_a_pack_bound_elsewhere_is_refused_on_import(hass: HomeAssistant, hass_ws_client, monkeypatch) -> None:
@@ -81,13 +280,3 @@ async def test_a_pack_bound_elsewhere_is_refused_on_import(hass: HomeAssistant, 
     )
     result = await client.receive_json()
     assert not result["success"] and result["error"]["code"] == "wrong_instance"
-
-
-async def test_commerce_routes_are_not_registered(hass: HomeAssistant, hass_ws_client) -> None:
-    await _setup(hass)
-    client = await hass_ws_client(hass)
-    for index, route in enumerate(("license/get", "license/activate", "license/refresh", "license/remove", "packs/install"), 1):
-        await client.send_json({"id": index, "type": "neonplan3d/" + route})
-        response = await client.receive_json()
-        assert response["success"] is False
-        assert response["error"]["code"] == "unknown_command"

@@ -6,6 +6,7 @@ stores so frequent saves from the editor never rewrite the large image data.
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import logging
 import time
@@ -116,6 +117,7 @@ class FloorplanData:
         self._license_store: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, STORAGE_KEY_LICENSE)
         self.building: dict[str, Any] = empty_building()
         self.revision = 0
+        self._building_lock = asyncio.Lock()
         self._images: dict[str, str] = {}
         self._history: list[dict[str, Any]] = []
         # imported furniture packs (checked payloads, see packs.py)
@@ -146,20 +148,28 @@ class FloorplanData:
                 self._images.pop(image_id)
             await self._save_images()
 
-    async def async_save_building(self, building: dict[str, Any]) -> int:
+    async def async_save_building(self, building: dict[str, Any], expected_revision: int | None = None) -> int:
         """Store a validated building, bump the revision and notify subscribers.
 
         The state before the save becomes a restore point when the last one is older than
         HISTORY_INTERVAL, so a long editing session leaves a trail without saving every step.
         """
-        last = self._history[-1]["saved_at"] if self._history else 0
-        if self.building.get("floors") and time.time() - last > HISTORY_INTERVAL:
-            await self.async_snapshot()
-        self.building = building
-        self.revision += 1
-        await self._building_store.async_save({"revision": self.revision, "building": building})
-        async_dispatcher_send(self.hass, SIGNAL_BUILDING_UPDATED, self.revision)
-        return self.revision
+        async with self._building_lock:
+            if expected_revision is not None and expected_revision != self.revision:
+                raise ValueError("Plan changed; refresh before saving bindings")
+            last = self._history[-1]["saved_at"] if self._history else 0
+            if self.building.get("floors") and time.time() - last > HISTORY_INTERVAL:
+                await self.async_snapshot()
+            previous, previous_revision = self.building, self.revision
+            self.building = building
+            self.revision += 1
+            try:
+                await self._building_store.async_save({"revision": self.revision, "building": building})
+            except Exception:
+                self.building, self.revision = previous, previous_revision
+                raise
+            async_dispatcher_send(self.hass, SIGNAL_BUILDING_UPDATED, self.revision)
+            return self.revision
 
     async def async_snapshot(self) -> None:
         """Keep the current building as a restore point."""

@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 import json
 import time
 from typing import Any
 
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import area_registry
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.loader import async_get_integration
 import voluptuous as vol
 
 from . import license as lic
+from .bindings import bind_plan
 from .const import DATA_ASK, DATA_DIAGNOSTICS, DATA_VOICE, DOMAIN, SIGNAL_ASK, SIGNAL_BUILDING_UPDATED
 from .diagnostics_report import DiagnosticsError, DiagnosticsReporter
 from .locate.recorder import ws_locate_rec
@@ -32,6 +35,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     for command in (
         ws_get_building,
         ws_save_building,
+        ws_bind_building,
         ws_subscribe_building,
         ws_get_image,
         ws_set_image,
@@ -42,6 +46,11 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_packs_list,
         ws_packs_import,
         ws_packs_remove,
+        ws_packs_install,
+        ws_license_get,
+        ws_license_activate,
+        ws_license_remove,
+        ws_license_refresh,
         ws_modules_code,
         ws_modules_review,
         ws_modules_approve,
@@ -101,6 +110,41 @@ async def ws_save_building(
     if (data := _data(hass, connection, msg)) is None:
         return
     revision = await data.async_save_building(msg["building"])
+    connection.send_result(msg["id"], {"revision": revision})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "neonplan3d/building/bind",
+        vol.Required("revision"): vol.All(int, vol.Range(min=0)),
+        vol.Required("floor_id"): str,
+        vol.Required("kind"): vol.In(["room", "furniture", "opening"]),
+        vol.Required("target_id"): str,
+        vol.Required("field"): str,
+        vol.Required("value"): vol.Any(None, str),
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_bind_building(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Apply a narrow binding with optimistic concurrency and server-side validation."""
+    if (data := _data(hass, connection, msg)) is None:
+        return
+    try:
+        value = msg["value"]
+        if value not in (None, "none"):
+            if msg["field"] == "area_id":
+                if area_registry.async_get(hass).async_get_area(value) is None:
+                    raise ValueError("Home Assistant area no longer exists")
+            elif hass.states.get(value) is None:
+                raise ValueError("Home Assistant entity no longer exists")
+        building = bind_plan(data.building, msg["floor_id"], msg["kind"], msg["target_id"], msg["field"], value)
+        revision = await data.async_save_building(building, expected_revision=msg["revision"])
+    except ValueError as error:
+        connection.send_error(msg["id"], "binding_conflict", str(error))
+        return
     connection.send_result(msg["id"], {"revision": revision})
 
 
@@ -307,6 +351,78 @@ async def ws_packs_remove(hass: HomeAssistant, connection: websocket_api.ActiveC
         connection.send_error(msg["id"], "not_found", "Pack not found")
         return
     connection.send_result(msg["id"])
+
+
+# ---------------------------------------------------------------------------- official private license compatibility
+
+
+async def _license_call(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+    call: Callable[[FloorplanData], Awaitable[dict[str, Any]]],
+) -> None:
+    """Run a shop call and answer with its status, or with the shop's error code."""
+    if (data := _data(hass, connection, msg)) is None:
+        return
+    try:
+        connection.send_result(msg["id"], await call(data))
+    except lic.LicenseError as err:
+        connection.send_error(msg["id"], err.code, err.detail or err.code)
+
+
+@websocket_api.websocket_command({vol.Required("type"): "neonplan3d/license/get"})
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_license_get(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """The installation's fingerprint, the key's state and the catalog of bought packs."""
+    if (data := _data(hass, connection, msg)) is None:
+        return
+    connection.send_result(msg["id"], lic.status(data, await lic.async_instance_fingerprint(hass)))
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "neonplan3d/license/activate", vol.Required("key"): vol.All(str, vol.Length(max=40))}
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_license_activate(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Bind this installation to a customer key at the shop and keep the key."""
+    await _license_call(hass, connection, msg, lambda data: lic.async_activate(hass, data, msg["key"]))
+
+
+@websocket_api.websocket_command({vol.Required("type"): "neonplan3d/license/remove"})
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_license_remove(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Forget the key (installed packs stay)."""
+    await _license_call(hass, connection, msg, lambda data: lic.async_remove(hass, data))
+
+
+@websocket_api.websocket_command({vol.Required("type"): "neonplan3d/license/refresh"})
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_license_refresh(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Ask the shop again now (new purchases, updates of installed packs)."""
+    await _license_call(hass, connection, msg, lambda data: lic.async_refresh(hass, data))
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "neonplan3d/packs/install", vol.Required("pack_id"): vol.All(str, vol.Length(max=64))}
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_packs_install(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Fetch a bought pack from the shop, signed for this installation, and keep it."""
+    await _license_call(hass, connection, msg, lambda data: lic.async_install(hass, data, msg["pack_id"]))
 
 
 # ---------------------------------------------------------------------------- backup

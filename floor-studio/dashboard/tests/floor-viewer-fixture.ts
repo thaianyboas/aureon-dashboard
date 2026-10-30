@@ -13,3 +13,19 @@ const w=globalThis as unknown as Record<string,unknown>;
 w.viewer=viewer;w.changeLook=(theme:Theme)=>viewer.setTheme(theme);
 w.rendererMetrics=()=>{const v=viewer as unknown as {renderer:{info:{render:{calls:number;triangles:number};programs:{diagnostics?:{runnable:boolean}}[]}}};return {calls:v.renderer.info.render.calls,triangles:v.renderer.info.render.triangles,programsValid:v.renderer.info.programs.every(p=>p.diagnostics?.runnable!==false)};};
 w.disposeViewer=()=>viewer.dispose();
+
+// Feed persisted native bindings through the same adapter used by <fp3d-view3d>.
+import {openingEntities,openingState} from '../../neonplan3d-main/frontend/src/devices.ts';
+import {parseExport,exportFile} from '../../neonplan3d-main/frontend/src/transfer.ts';
+import type {HomeAssistant} from '../../neonplan3d-main/frontend/src/types.ts';
+const bound=parseExport(JSON.stringify(exportFile(building,false)));
+bound.floors[0].openings[0].contact='binary_sensor.fixture_window';
+bound.floors[0].openings[0].cover='cover.fixture_blind';
+w.nativeBindingState=(state:string,cover:number)=>{
+ const hass={states:{'binary_sensor.fixture_window':{entity_id:'binary_sensor.fixture_window',state,attributes:{}},'cover.fixture_blind':{entity_id:'cover.fixture_blind',state:'open',attributes:{current_position:cover}}},entities:{},areas:{},devices:{}} as unknown as HomeAssistant;
+ viewer.setBuilding(bound);
+ const links=openingEntities(hass,bound.floors);
+ const states=new Map([...links].map(([id,e])=>[id,openingState(hass,e,'window')]));
+ viewer.setOpeningStates(states,true);
+ return states.get('fixture-window');
+};

@@ -9,14 +9,15 @@ test('all interactive surfaces are independent of commerce and license requests'
     const source = read('frontend/src/' + file);
     assert.doesNotMatch(source, /\b(?:shopUrl|supporterUrl|registerUrl|getLicense|activateLicense|refreshLicense|renderOffers|renderShop|renderNewsletter)\s*\(/, file);
   }
-  assert.doesNotMatch(read('frontend/src/api.ts'), /neonplan3d\/(?:license\/|packs\/install)/);
+  // Original API exports remain for legal private licensing compatibility; no public UI calls them.
 });
 
-test('only local import routes are registered, without background commerce refresh', () => {
+test('original admin license APIs coexist with local imports, without background commerce refresh', () => {
   const backend = read('custom_components/neonplan3d/websocket.py');
   const registry = backend.split('for command in (')[1].split('):')[0];
-  assert.doesNotMatch(backend, /neonplan3d\/(?:license\/|packs\/install)/);
-  assert.doesNotMatch(read('custom_components/neonplan3d/license.py'), /SHOP_API|async_activate|async_refresh|async_fetch_pack/);
+  assert.match(backend, /neonplan3d\/license\/activate/);
+  assert.match(registry, /ws_license_activate/);
+  assert.match(read('custom_components/neonplan3d/license.py'), /verify_pack/);
   assert.match(registry, /ws_packs_import/);
   assert.match(registry, /ws_modules_review/);
   assert.match(registry, /ws_modules_approve/);

@@ -31,8 +31,9 @@ for (const item of index.files) {
 for (const required of ['__init__.py', 'manifest.json', 'frontend/neonplan3d.js', 'frontend/neonplan3d-3d.js', 'frontend/neonplan3d-editor.js']) {
   assert.ok(names.has('custom_components/neonplan3d/' + required), 'Missing ' + required);
 }
-assert.doesNotMatch(readFileSync(join(base, 'license.py'), 'utf8'), /SHOP_API|async_activate|async_refresh|async_fetch_pack/);
-assert.doesNotMatch(readFileSync(join(base, 'websocket.py'), 'utf8'), /neonplan3d\/(?:license\/|packs\/install)/);
+const licenseBaseline=JSON.parse(readFileSync('floor-studio/fidelity/FILES.json','utf8')).files.find(f=>f.path==='custom_components/neonplan3d/license.py');
+assert.equal(createHash('sha256').update(readFileSync(join(base,'license.py'))).digest('hex'),licenseBaseline.original_sha256,'Official private licensing protections must remain intact');
+assert.doesNotMatch(readFileSync(join(base,'__init__.py'),'utf8'), /async_refresh_quietly|FIRST_CHECK_DELAY|REFRESH_INTERVAL/);
 for (const bundle of ['neonplan3d.js', 'neonplan3d-editor.js', 'neonplan3d-3d.js']) {
   assert.doesNotMatch(readFileSync(join(base, 'frontend', bundle), 'utf8'), /neonplan3d\/(?:license\/|packs\/install)/);
 }

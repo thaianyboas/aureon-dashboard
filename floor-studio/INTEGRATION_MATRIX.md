@@ -57,3 +57,5 @@ Python integration with provider modules/coordinator/aggregator, calendar and se
 ## Public/private and integration boundaries
 
 Independent backends: SpotifyPlus, Spotcast, Dreame and Waste Collection Schedule. Optional absence never prevents the core dashboard from loading. No ZIP, private plan, paid pack, credential, license key or reference screenshot is copied into public code. Existing signed local resource imports and entitlement checks remain intact. No third-party installer or paid AI is added as a required AUREON dependency.
+
+Atualização de fidelidade: `NEONPLAN_FIDELITY_AUDIT.md` documenta a restauração das APIs oficiais privadas de licença, sem loja pública ou atualização comercial automática. As verificações de assinatura/instância permanecem intactas.

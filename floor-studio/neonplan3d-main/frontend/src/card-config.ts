@@ -52,7 +52,7 @@ export interface CardConfig {
   heatmap?: "none" | "temperature" | "humidity" | "co2";
   /** Look: neon | blueprint | day. */
   /** The look; "auto" shows Day while the sun is up and Neon at night. */
-  theme?: "neon" | "blueprint" | "day" | "auto";
+  theme?: "neon" | "blueprint" | "day" | "night" | "real" | "auto";
   /** Date and time in a corner of the view (default off). */
   clock?: ClockPos;
   /** Accent colour for the neon look and the card's chips ("#rrggbb"); leave out for the stock cyan. */

@@ -19,7 +19,7 @@ The candidate now registers a shared, localized platform controller and Lit page
 | Page | Implemented candidate behavior | Remaining acceptance |
 | --- | --- | --- |
 | Startseite | Real user/time/presence and associated phone battery; weather/forecast, configured energy/cost, waste, light/climate/security/vacuum controls, existing scenes/scripts, Compact music | Final visual acceptance and real device behavior; optional summaries require selected sources |
-| Räume | Discovered areas, native modal controls, explicit stored floor choice | Write-through room-to-native-plan mapping and room customization beyond local floor selection |
+| Räume | Discovered areas, native modal controls, explicit stored floor choice | Native room/area, climate, object/entity and opening/sensor bindings now persist through a validated revision-checked API; broader room customization and final native interaction coverage remain |
 | Geräte | Registry/state intersection, search/area/domain/category filters, paginated entities; capability-based actions and dimmer/temperature/cover controls | Remaining domain-specific controls and live permission/device acceptance |
 | Energie | Explicit power/period usage sources, validated units/tariff/currency, recorder change statistics, chart/table and comparisons | Real statistic metadata/reset/missing-period acceptance; no guessed meter or tariff |
 | Sicherheit | Real locks/alarms/door/window/motion states; history; single-use scoped confirmation for sensitive commands | Server permission and code-required live device acceptance |

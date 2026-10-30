@@ -122,6 +122,129 @@ export async function removePack(hass: HomeAssistant, packId: string): Promise<v
   await hass.callWS({ type: "neonplan3d/packs/remove", pack_id: packId });
 }
 
+/** A bought pack as the shop lists it, with the release installed here (null = not installed). */
+export interface CatalogPack {
+  id: string;
+  name: string;
+  release: number;
+  url: string;
+  installed: number | null;
+  /** A module update was fetched and waits for the admin's approval (installed counts it already). */
+  waits?: boolean;
+}
+
+/** A pack or Pro add-on in the shop the customer does not own yet. */
+export interface ShopOffer {
+  id: string;
+  name: string;
+  teaser: string;
+  image: string | null;
+  url: string;
+  kind: "pack" | "pro" | "bundle" | "fun";
+  price: string;
+  new: boolean;
+}
+
+/** The customer's loyalty code: a discount on further purchases. */
+export interface ShopLoyalty {
+  code: string;
+  percent: number;
+}
+
+/** Ids of the offers seen on the extensions page (the tab shows a dot for new ones). */
+const SEEN_OFFERS = "neonplan3d.seenOffers";
+
+export function unseenOffers(offers: readonly ShopOffer[]): ShopOffer[] {
+  let seen: string[] = [];
+  try {
+    seen = JSON.parse(localStorage.getItem(SEEN_OFFERS) ?? "[]") as string[];
+  } catch {
+    // no storage: every offer counts as new for this page
+  }
+  return offers.filter((o) => !seen.includes(o.id));
+}
+
+export function markOffersSeen(offers: readonly ShopOffer[]): void {
+  try {
+    localStorage.setItem(SEEN_OFFERS, JSON.stringify(offers.map((o) => o.id)));
+  } catch {
+    // no storage: nothing to remember
+  }
+}
+
+/** A pack update installed from the shop (shown once on the extensions page). */
+export interface PackUpdate {
+  id: string;
+  name: string;
+  release: number;
+  added: number;
+  at: number;
+}
+
+const SEEN_UPDATES = "neonplan3d.seenUpdates";
+
+export function unseenUpdates(updates: readonly PackUpdate[]): PackUpdate[] {
+  let seen: string[] = [];
+  try {
+    seen = JSON.parse(localStorage.getItem(SEEN_UPDATES) ?? "[]") as string[];
+  } catch {
+    // no storage: every update counts as new for this page
+  }
+  return updates.filter((u) => !seen.includes(`${u.id}@${u.release}`));
+}
+
+export function markUpdatesSeen(updates: readonly PackUpdate[]): void {
+  try {
+    localStorage.setItem(SEEN_UPDATES, JSON.stringify(updates.map((u) => `${u.id}@${u.release}`)));
+  } catch {
+    // no storage: nothing to remember
+  }
+}
+
+/** A shop link that brings the loyalty code into the cart. */
+export function offerLink(url: string, loyalty: ShopLoyalty | null): string {
+  if (!loyalty) return url;
+  return `${url}${url.includes("?") ? "&" : "?"}np_coupon=${encodeURIComponent(loyalty.code)}`;
+}
+
+/** The shop connection: this installation's fingerprint, the key's state and the bought packs. */
+export interface LicenseStatus {
+  instance: string;
+  active: boolean;
+  key_hint: string | null;
+  licensee: string | null;
+  checked_at: number | null;
+  error: string | null;
+  shop_url: string;
+  packs: CatalogPack[];
+  /** Packs and Pro add-ons not owned yet (empty without a key or with an older shop). */
+  offers?: ShopOffer[];
+  loyalty?: ShopLoyalty | null;
+  /** Supporter-Pass holders: the code that unlocks the supporter role on Discord (/supporter). */
+  supporter?: { code: string; until: string | null } | null;
+  /** The shop's newsletter invitation (taster packs as a thank-you): only while the customer has not signed up. */
+  newsletter?: { url: string } | null;
+  /** Pack updates installed from the shop, newest last. */
+  updates?: PackUpdate[];
+}
+
+export function getLicense(hass: HomeAssistant): Promise<LicenseStatus> {
+  return hass.callWS<LicenseStatus>({ type: "neonplan3d/license/get" });
+}
+
+/** Bind this installation to a customer key (errors carry the shop's code, e.g. "invalid_key"). */
+export function activateLicense(hass: HomeAssistant, key: string): Promise<LicenseStatus> {
+  return hass.callWS<LicenseStatus>({ type: "neonplan3d/license/activate", key });
+}
+
+export function removeLicense(hass: HomeAssistant): Promise<LicenseStatus> {
+  return hass.callWS<LicenseStatus>({ type: "neonplan3d/license/remove" });
+}
+
+export function refreshLicense(hass: HomeAssistant): Promise<LicenseStatus> {
+  return hass.callWS<LicenseStatus>({ type: "neonplan3d/license/refresh" });
+}
+
 /** A full backup file: the plan, the packs with their signatures and every stored picture. */
 export interface BackupFile {
   format: "neonplan3d-backup";
@@ -145,7 +268,10 @@ export function restoreBackup(
   return hass.callWS({ type: "neonplan3d/backup/import", building, packs });
 }
 
-
+/** Fetch a bought pack from the shop, signed for this installation (also updates it). */
+export function installPack(hass: HomeAssistant, packId: string): Promise<ImportedPack & { release: number }> {
+  return hass.callWS<ImportedPack & { release: number }>({ type: "neonplan3d/packs/install", pack_id: packId });
+}
 
 /** The opt-in reports ("help improve NeonPlan"): the setting and the exact next daily report. */
 export interface DiagnosticsStatus {

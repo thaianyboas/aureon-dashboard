@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, relative, sep, join } from 'node:path';
 const root=resolve('.'),record=JSON.parse(readFileSync('build/dashboard/DASHBOARD_BUILD.json','utf8'));
 const walk=p=>readdirSync(p,{withFileTypes:true}).flatMap(x=>x.isDirectory()?walk(join(p,x.name)):[join(p,x.name)]);
-const inputs=[...walk('floor-studio/dashboard'),'floor-studio/aureon-dashboard.js','package.json','scripts/build-dashboard-candidate.mjs','floor-studio/neonplan3d-main/frontend/package.json','floor-studio/neonplan3d-main/frontend/package-lock.json'];
+const inputs=[...walk('floor-studio/dashboard'),'floor-studio/aureon-dashboard.js','package.json','package-lock.json','scripts/build-dashboard-candidate.mjs','floor-studio/neonplan3d-main/frontend/package.json','floor-studio/neonplan3d-main/frontend/package-lock.json'];
 assert.equal(record.installation_approved,false);
 assert.deepEqual(Object.keys(record.sources).sort(),inputs.sort(),'Dashboard input inventory changed; rebuild');
 for(const [name,digest] of Object.entries(record.sources)){
