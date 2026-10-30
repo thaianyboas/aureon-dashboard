@@ -31,5 +31,5 @@ function walk(dir) {
 }
 walk(target);
 writeFileSync(join(output, 'MANIFEST.json'), JSON.stringify({ domain: manifest.domain, version: manifest.version, files }, null, 2) + '\n');
-execFileSync('python3', ['-m', 'compileall', '-q', target], { stdio: 'inherit' });
+execFileSync('python3', ['-m', 'compileall', '-q', target], { stdio: 'inherit', env: { ...process.env, PYTHONPYCACHEPREFIX: 'build/python-bytecode-cache' } });
 console.log('Separate HACS integration candidate packaged: ' + files.length + ' files. NOT INSTALLATION APPROVED.');
