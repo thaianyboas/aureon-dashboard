@@ -1,8 +1,8 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.19.0';
-  const BUILD_ID = 'AUREON-0190-20261030-ROOM-NAVIGATION';
+  const VERSION = '0.20.0';
+  const BUILD_ID = 'AUREON-0200-20261030-ROOM-INTELLIGENCE-HOME-FIX';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -265,6 +265,28 @@
       catch (err) { this._registryError = String(err?.message || err); }
       finally { this._registryLoading = false; this._registryPromise = null; if (this._configured) this._render(); }
     }
+    _roomIntelligence(areaId) {
+      const rows=this._registry?.entityRows?.filter(r=>r.areaId===areaId)||[];
+      const states=this._hass?.states||{};
+      const active=rows.filter(r=>states[r.id]&&!['unavailable','unknown'].includes(states[r.id].state));
+      const lights=active.filter(r=>r.domain==='light');
+      const sensors=active.filter(r=>r.domain==='binary_sensor');
+      const opened=sensors.filter(r=>['door','window','opening','garage_door'].includes(r.deviceClass||states[r.id]?.attributes?.device_class)&&states[r.id].state==='on');
+      const motion=sensors.filter(r=>['motion','occupancy','presence'].includes(r.deviceClass||states[r.id]?.attributes?.device_class)&&states[r.id].state==='on');
+      const temperatures=active.filter(r=>r.domain==='sensor'&&(r.deviceClass==='temperature'||states[r.id]?.attributes?.device_class==='temperature'))
+        .map(r=>({name:r.name,value:states[r.id].state,unit:states[r.id].attributes?.unit_of_measurement||'°C'}))
+        .filter(x=>Number.isFinite(Number(x.value)));
+      return {on:lights.filter(r=>states[r.id].state==='on').length,lights:lights.length,opened:opened.length,motion:motion.length,
+        temperature:temperatures[0]||null};
+    }
+    _updateRoomIntelligence(areaId, tile) {
+      const target=tile?.querySelector('[data-au-room-intelligence]');
+      if(!target)return;
+      const data=this._roomIntelligence(areaId);
+      const pieces=[`Luzes ligadas: ${data.on}/${data.lights}`,`Aberturas: ${data.opened}`,`Movimento/presença: ${data.motion}`];
+      if(data.temperature)pieces.push(`Temperatura: ${data.temperature.value} ${data.temperature.unit}`);
+      target.textContent=pieces.join(' · ');
+    }
     _refreshRoomCounts() {
       const root=this.shadowRoot;
       if(!root || !this._registry) return;
@@ -276,6 +298,8 @@
           &&!['unknown','unavailable'].includes(states[e.id].state)).length;
         const status=tile.querySelector('[data-au-area-available]');
         if(status)status.textContent=`${available} entidades com estado disponível`;
+        try { this._updateRoomIntelligence(area.id,tile); }
+        catch(error) { console.warn('[AUREON] Room intelligence refresh failed',area.id,error); }
       }
     }
     _openAreaDevices(areaId) {
@@ -294,7 +318,10 @@
     _homeOverviewData() {
       const rows=this._registry?.entityRows||[];
       const states=this._hass?.states||{};
-      const persons=rows.filter(r=>r.domain==='person'&&states[r.id]&&!r.hidden&&!r.disabled)
+      const known=new Set(rows.map(r=>r.id));
+      const personRows=rows.concat(Object.keys(states).filter(id=>id.startsWith('person.')&&!known.has(id))
+        .map(id=>({id,name:states[id]?.attributes?.friendly_name||id,domain:'person',hidden:false,disabled:false})));
+      const persons=personRows.filter(r=>r.domain==='person'&&states[r.id]&&!r.hidden&&!r.disabled)
         .map(r=>{
           const st=states[r.id];
           const trackers=Array.isArray(st.attributes?.device_trackers)?st.attributes.device_trackers:[];
@@ -354,11 +381,14 @@
         } else {
           card.append(make('p','muted','Bateria não vinculada ao dispositivo da pessoa'));
         }
-        if(person.picture && (person.picture.startsWith("/") || person.picture.startsWith("https://") || person.picture.startsWith("http://"))){
-          const img=make('img');img.src=person.picture;img.alt='';img.loading='lazy';
+        const avatar=make('div','',person.name.trim().charAt(0).toUpperCase()||'?');
+        avatar.style.cssText='width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--au-hover);color:var(--au-accent);font-weight:700';
+        if(person.picture && (person.picture.startsWith('/') || person.picture.startsWith('https://') || person.picture.startsWith('http://'))){
+          const img=make('img');img.src=person.picture;img.alt=person.name;img.loading='lazy';
           img.style.cssText='width:48px;height:48px;border-radius:50%;object-fit:cover';
+          img.onerror=()=>img.replaceWith(avatar);
           card.prepend(img);
-        }
+        } else card.prepend(avatar);
         grid.append(card);
       }
       for(const w of weather){
@@ -810,13 +840,7 @@
         const overview=make('section','');
         overview.setAttribute('data-au-home-overview','');
         main.append(overview);
-        if(this._registry) {
-          try { this._updateHomeOverview(); }
-          catch(error) {
-            console.error('[AUREON] Home overview render failed',error);
-            overview.textContent='Pessoas e clima temporariamente indisponíveis.';
-          }
-        }
+        overview.append(make('p','registry-note','Carregando pessoas e clima do Home Assistant…')); 
       }
       if (this._page === 'Räume') {
         const section = make('section','');
@@ -835,7 +859,11 @@
             open.type='button';
             open.setAttribute('aria-label',`Ver dispositivos de ${area.name}`);
             open.addEventListener('click',()=>this._openAreaDevices(area.id));
-            tile.append(make('h3','',area.name),make('p','',`${area.devices} dispositivos · ${area.entities} entidades visíveis`),live,open);
+            const intelligence=make('p','', '');
+            intelligence.setAttribute('data-au-room-intelligence','');
+            tile.append(make('h3','',area.name),make('p','',`${area.devices} dispositivos · ${area.entities} entidades visíveis`),live,intelligence,open);
+            try { this._updateRoomIntelligence(area.id,tile); }
+            catch(error) { console.warn('[AUREON] Room intelligence failed',area.id,error); }
             grid.append(tile);
           }
           if (!info.rows.length) grid.append(make('p','registry-note','Nenhum ambiente cadastrado no Home Assistant.'));
@@ -974,6 +1002,11 @@
       main.append(cards, make('div','foot',`AUREON v${VERSION} · Build ${BUILD_ID} · descoberta e filtros · ações por capacidades`));
       wrap.append(nav, main);
       root.append(wrap);
+      // Render only AFTER mounting. Otherwise querySelector cannot find the overview.
+      if (this._page === 'Início' && this._registry) {
+        try { this._updateHomeOverview(); }
+        catch(error) { console.error('[AUREON] Home overview render failed',error); }
+      }
     }
   }
   if (!customElements.get('aureon-dashboard')) customElements.define('aureon-dashboard', AureonDashboard);
