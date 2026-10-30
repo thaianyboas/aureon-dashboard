@@ -1,8 +1,8 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.16.0';
-  const BUILD_ID = 'AUREON-016-20261029-REGISTRY-CHECK';
+  const VERSION = '0.17.0';
+  const BUILD_ID = 'AUREON-017-20261030-HOME-PERSONS-WEATHER';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -106,6 +106,7 @@
       this._expandedDevices = new Set();
       this._controlBusy = new Set();
       this._controlError = '';
+      this._homeStateSignature = '';
     }
     setConfig(config) {
       if (config && config.type && config.type !== 'custom:aureon-dashboard') {
@@ -156,6 +157,17 @@
           row.available=!!state && !['unavailable','unknown'].includes(state.state);
         }
         if (this._configured && this._page === 'Geräte') this._refreshDeviceStates();
+      }
+      if (this._configured && this._page === 'Início' && this._registry && value?.states) {
+        const tracked = this._registry.entityRows.filter(r=>r.domain==='person'||r.domain==='weather');
+        const signature = tracked.map(r=>{
+          const st=value.states[r.id];
+          return [r.id,st?.state,st?.attributes?.temperature,st?.attributes?.humidity].join(':');
+        }).join('|');
+        if (signature !== this._homeStateSignature) {
+          this._homeStateSignature=signature;
+          this._updateHomeOverview();
+        }
       }
       if (this._configured && value?.callWS && !this._registry && !this._registryPromise) this._loadRegistry();
     }
@@ -239,6 +251,55 @@
       try { this._registry = await this._registryPromise; this._registryUpdatedAt=new Date().toLocaleTimeString(); this._lastRuntimeEntitySignature=Object.keys(this._hass?.states||{}).sort().join('\n'); }
       catch (err) { this._registryError = String(err?.message || err); }
       finally { this._registryLoading = false; this._registryPromise = null; if (this._configured) this._render(); }
+    }
+    _homeOverviewData() {
+      const rows=this._registry?.entityRows||[];
+      const states=this._hass?.states||{};
+      const persons=rows.filter(r=>r.domain==='person'&&states[r.id])
+        .map(r=>({id:r.id,name:states[r.id].attributes?.friendly_name||r.name,state:states[r.id].state,
+          picture:states[r.id].attributes?.entity_picture||'',source:r.source}))
+        .sort((a,b)=>a.name.localeCompare(b.name));
+      const weather=rows.filter(r=>r.domain==='weather'&&states[r.id])
+        .map(r=>({id:r.id,name:r.name,state:states[r.id].state,
+          temperature:states[r.id].attributes?.temperature,
+          humidity:states[r.id].attributes?.humidity,
+          temperatureUnit:states[r.id].attributes?.temperature_unit||this._hass?.config?.unit_system?.temperature||'°C'}));
+      return {persons,weather};
+    }
+    _updateHomeOverview() {
+      const target=this.shadowRoot?.querySelector('[data-au-home-overview]');
+      if (!target || !this._registry) return;
+      target.replaceChildren();
+      const {persons,weather}=this._homeOverviewData();
+      const title=make('h2','','Pessoas e clima · Home Assistant');
+      target.append(title);
+      const note=make('p','muted','Dados lidos das entidades reais person.* e weather.*. Nenhuma localização é estimada.');
+      target.append(note);
+      const grid=make('div','area-grid');
+      for(const person of persons){
+        const card=make('article','area-tile');
+        const heading=make('h3','',person.name);
+        const status=person.state==='home'?'Zuhause':person.state==='not_home'?'Abwesend':
+          person.state==='unknown'?'Desconhecido':person.state==='unavailable'?'Indisponível':person.state;
+        card.append(heading,make('p','',status));
+        if(person.picture && (person.picture.startsWith("/") || person.picture.startsWith("https://") || person.picture.startsWith("http://"))){
+          const img=make('img');img.src=person.picture;img.alt='';img.loading='lazy';
+          img.style.cssText='width:48px;height:48px;border-radius:50%;object-fit:cover';
+          card.prepend(img);
+        }
+        grid.append(card);
+      }
+      for(const w of weather){
+        const card=make('article','area-tile');
+        card.append(make('h3','',w.name),make('p','',w.state));
+        if(w.temperature!==undefined && w.temperature!==null)
+          card.append(make('p','',`Temperatura: ${w.temperature} ${w.temperatureUnit}`));
+        if(w.humidity!==undefined && w.humidity!==null)
+          card.append(make('p','',`Umidade: ${w.humidity}%`));
+        grid.append(card);
+      }
+      if(!persons.length && !weather.length) grid.append(make('p','muted','Nenhuma entidade person ou weather disponível nos registros.'));
+      target.append(grid);
     }
     _refreshDeviceStates() {
       const container=this.shadowRoot?.querySelector('.device-results');
@@ -674,6 +735,10 @@
         hero.append(make('h2','','Sua casa. Seu universo.'));
         hero.append(make('p','muted','Estratégia de dashboard instalada. Integrações reais serão adicionadas depois dos testes.'));
         main.append(hero);
+        const overview=make('section','');
+        overview.setAttribute('data-au-home-overview','');
+        main.append(overview);
+        if(this._registry)this._updateHomeOverview();
       }
       if (this._page === 'Räume') {
         const section = make('section','');
