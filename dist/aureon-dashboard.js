@@ -1,8 +1,8 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.21.0';
-  const BUILD_ID = 'AUREON-0210-20261030-ROOM-SENSOR-INTELLIGENCE-HOME-FIX';
+  const VERSION = '0.22.0';
+  const BUILD_ID = 'AUREON-0220-20261030-DEVICE-RELIABILITY';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -450,8 +450,12 @@
       for (const control of container.querySelectorAll('[data-au-control]')) {
         const id=control.getAttribute('data-au-control');
         const state=this._hass?.states?.[id];
-        if (!state) continue;
+        if (!state) {
+          this._setControlAvailability(control,id);
+          continue;
+        }
         const busy=this._controlBusy.has(id);
+        this._setControlAvailability(control,id);
         if(id.startsWith('climate.')) {
           const attrs=state.attributes||{};
           const unavailable=['unavailable','unknown'].includes(state.state);
@@ -484,7 +488,7 @@
             const current=state.attributes?.current_position;
             if(typeof current==='number') {pos.value=String(current);if(value)value.textContent=`${current}%`;}
           }
-          control.querySelectorAll('button,input').forEach(el=>{el.disabled=busy||state.state==='unavailable';});
+          control.querySelectorAll('button,input').forEach(el=>{el.disabled=busy||!this._isEntityControllable(id);});
           continue;
         }
         const valid=['on','off'].includes(state.state);
@@ -520,8 +524,27 @@
         temperature:modes.includes('color_temp')
       };
     }
+    _isEntityControllable(entityId) {
+      const state=this._hass?.states?.[entityId];
+      return Boolean(state && state.state !== 'unknown' && state.state !== 'unavailable');
+    }
+    _setControlAvailability(control,entityId) {
+      if(!control) return;
+      const usable=this._isEntityControllable(entityId);
+      const busy=this._controlBusy.has(entityId);
+      control.setAttribute('data-au-available',String(usable));
+      control.querySelectorAll('button,input,select').forEach(el=>{el.disabled=!usable||busy;});
+      if(!usable)control.setAttribute('title','Entidade indisponível no Home Assistant');
+      else control.removeAttribute('title');
+    }
     async _aureonService(entityId, service, data={}) {
       if(this._controlBusy.has(entityId)) return;
+      if(!this._isEntityControllable(entityId)) {
+        this._controlError=`${entityId} está indisponível ou sem estado válido no Home Assistant.`;
+        this._showControlError();
+        this._refreshDeviceStates();
+        return;
+      }
       if(!this._hass?.callService) {
         this._controlError='Home Assistant não disponibilizou o serviço de controle.';
         this._showControlError();
@@ -950,11 +973,11 @@
             const state=make('div','device-state',`${e.state}${e.unit?' '+e.unit:''}`);
             state.setAttribute('data-aureon-entity',e.id);el.append(state);
             if (e.domain === 'light' || e.domain === 'switch') {
-              el.append(this._makeAureonControl(e));
+              const control=this._makeAureonControl(e);this._setControlAvailability(control,e.id);el.append(control);
             } else if(e.domain === 'climate') {
-              el.append(this._makeAureonClimateControl(e));
+              const control=this._makeAureonClimateControl(e);this._setControlAvailability(control,e.id);el.append(control);
             } else if(e.domain === 'cover') {
-              el.append(this._makeAureonCoverControl(e));
+              const control=this._makeAureonCoverControl(e);this._setControlAvailability(control,e.id);el.append(control);
             } else if(e.domain === 'sensor' || e.domain === 'binary_sensor') {
               el.append(this._makeAureonSensorControl(e));
             } else {
