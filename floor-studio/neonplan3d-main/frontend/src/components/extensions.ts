@@ -161,43 +161,16 @@ export class Extensions extends LitElement {
   }
 
   protected render() {
-    const unlocked = unlockedFeatures(this.packs ?? []);
+    // AUREON public distribution: no storefront, purchase links, offers or
+    // license-key prompts. Existing locally imported packs remain available.
+    // Private licensed assets are never bundled with the public frontend.
     return html`<div class="fp3d-ext">
       <header class="fp3d-ext-head">
-        <h2>${this.t("ext_title")}</h2>
-        <p class="fp3d-sub">${this.t("ext_intro")}</p>
-        <div class="fp3d-ext-actions">
-          <a class="fp3d-btn fp3d-primary" href=${shopUrl(this.hass?.language)} target="_blank" rel="noopener">${this.t("ext_shop")}</a>
-          <a class="fp3d-btn" href="https://github.com/Mastershort/neonplan3d/issues/new/choose" target="_blank" rel="noopener">🐞 ${this.t("help_issue")}</a>
-          <a class="fp3d-btn" href="https://github.com/Mastershort/neonplan3d/discussions/categories/ideas" target="_blank" rel="noopener">💡 ${this.t("help_idea")}</a>
-          <a class="fp3d-btn" href="https://discord.gg/SSdVVFsev7" target="_blank" rel="noopener">💬 ${this.t("help_discord")}</a>
-          <a class="fp3d-btn" href=${manualUrl(this.hass?.language, "extensions")} target="_blank" rel="noopener">📖 ${this.t("manual")}</a>
-        </div>
+        <h2>${this.t("packs")}</h2>
+        <p class="fp3d-sub">Import your own objects and packs. Installed resources remain local to your Home Assistant instance.</p>
       </header>
-      ${this.renderUpdates()} ${this.renderSupporter()} ${this.renderNewsletter()} ${this.renderOffers()} ${this.renderShop()}
-      <section class="fp3d-ext-card">
-        <h3>${this.t("ext_pro")}</h3>
-        <div class="fp3d-ext-pro">
-          ${FEATURES.filter((f) => released(f)).map(
-            (f) => html`<div class="fp3d-ext-feature ${unlocked.has(f) ? "fp3d-ext-on" : ""} ${isBeta(f) ? "fp3d-ext-beta" : ""}">
-              <b>${unlocked.has(f) ? "✓" : "🔒"} ${this.t(`pro_name_${f}` as I18nKey)}</b>
-              ${isBeta(f) ? html`<span class="fp3d-beta-tag">🧪 ${this.t(unlocked.has(f) ? "beta_yours" : "beta_supporters")}</span>` : nothing}
-              <span class="fp3d-sub">${this.t(`pro_feature_${f}` as I18nKey)}</span>
-              ${isBeta(f) ? html`<span class="fp3d-sub">${this.t(unlocked.has(f) ? "beta_yours_hint" : "beta_supporters_hint")}</span>` : nothing}
-              <span class="fp3d-ext-links">
-                ${unlocked.has(f)
-                  ? html`<span class="fp3d-ext-state">${this.t("ext_active")}</span>
-                      ${isBeta(f) ? html`<a class="fp3d-ext-link" href=${DISCORD_URL} target="_blank" rel="noopener">💬 ${this.t("beta_feedback")}</a>` : nothing}`
-                  : isBeta(f)
-                    ? this.renderBetaLocked(f)
-                    : html`<a class="fp3d-ext-link" href=${shopUrl(this.hass?.language)} target="_blank" rel="noopener">${this.t("ext_get")}</a>`}
-                <a class="fp3d-ext-link" href=${manualUrl(this.hass?.language, f)} target="_blank" rel="noopener">${this.t("manual_more")}</a>
-              </span>
-            </div>`,
-          )}
-        </div>
-      </section>
-      ${this.renderFun(unlocked)} ${this.renderPacks()} ${this.renderModules()}
+      ${this.renderPacks()}
+      ${this.renderModules()}
     </div>`;
   }
 
