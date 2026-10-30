@@ -22,3 +22,14 @@ A separate HACS integration repository or another supported integration delivery
 5. Promote dashboard distribution only after all release gates pass.
 
 No production Home Assistant or HACS installation test is claimed.
+
+## Official AUREON repository layout (user-approved)
+
+The user requests clearly named AUREON repositories and no unrelated duplicate source copies.
+
+1. `thaianyboas/aureon-dashboard` — authoritative source, frontend/dashboard, modules, integration candidate generation and CI.
+2. `thaianyboas/aureon-integration` — dedicated HACS Integration distribution repository (to be created); generated Python integration and required frontend bundle only. Do not independently develop a divergent fork here.
+
+The old `thaianyboas/neonplan3d` source fork is not part of the AUREON distribution plan. Keep the installed official NeonPlan3D in Home Assistant until a separately validated migration is ready. Do not replace stable dashboard v0.28.0 yet.
+
+**Repository provisioning:** The connected GitHub actions in this session can edit existing repositories but do not expose a create-repository operation. The dedicated repository therefore remains **planned, not created**. Once provisioned, CI publishing must be configured with explicitly approved credentials and a verified distribution layout. Never assert that automated cross-repository publication is already configured.
