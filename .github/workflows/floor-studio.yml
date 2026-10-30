@@ -28,7 +28,7 @@ jobs:
         run: npm test
       - name: Typecheck, build and package candidate
         run: npm run build
-      - name: Music player browser checks with isolated HA fixtures
+      - name: Music, platform and five-mode renderer browser checks with isolated fixtures
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: npm run test:browser
@@ -55,6 +55,9 @@ jobs:
             build/floor-studio-candidate
             build/neonplan3d-hacs-integration-candidate
             build/readiness.txt
+            build/music-browser
+            build/platform-browser
+            build/floor-browser
   backend-tests:
     runs-on: ubuntu-latest
     defaults:

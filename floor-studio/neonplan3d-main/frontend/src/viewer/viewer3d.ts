@@ -42,9 +42,11 @@ import {
   Vector3,
   WebGLRenderer,
   WebGLRenderTarget,
+  type Camera as CameraForPbr,
   type BufferGeometry,
   type Material,
 } from "three";
+import {RealPbrRenderer,furniturePbrKind,floorPbrKind,type PbrGroup,type PbrKind} from './real-pbr.ts';
 import type { Building, Floor, Furniture, Room, StartView } from "../model.ts";
 import { recolorLamps, SHADE_SENTINEL, shadeFactors } from "./lamp-colors.ts";
 import { centroid, GANG_TYPES, outdoorZones, pointInPolygon, openingStyle, setTerrain, WALL_LAMP_Y, zonesOf } from "../model.ts";
@@ -547,6 +549,7 @@ export function isLowEnd(): boolean {
 }
 
 export class FloorplanViewer {
+  private realPbr: RealPbrRenderer | null = null;
   private readonly host: HTMLElement;
   private readonly options: ViewerOptions;
   private renderer: WebGLRenderer;
@@ -872,6 +875,7 @@ export class FloorplanViewer {
     this.rebuildTier();
     this.applyTierFlags();
     canvas.replaceWith(next.domElement);
+    this.realPbr?.dispose();this.realPbr=null;
     this.renderer.dispose();
     this.renderer.forceContextLoss();
     this.renderer = next;
@@ -2040,6 +2044,7 @@ export class FloorplanViewer {
   }
 
   dispose(): void {
+    this.realPbr?.dispose();this.realPbr=null;
     this.projections.dispose();
     this.disposed = true;
     cancelAnimationFrame(this.frame);
@@ -2601,6 +2606,12 @@ export class FloorplanViewer {
       // glass walls are drawn after everything opaque in the room, so doors and furniture show through
       const glassWalls = new Mesh(geo.walls, materials.glassWall);
       const wallMesh = new Mesh(geo.walls, materials.wall);
+      const grouped=(total:number,ranges:{start:number;end:number;kind:PbrKind}[],fallback:PbrKind):PbrGroup[]=>{const groups:PbrGroup[]=[];let cursor=0;for(const range of ranges){if(range.start>cursor)groups.push({start:cursor,end:range.start,kind:fallback});if(range.end>range.start)groups.push(range);cursor=range.end;}if(cursor<total)groups.push({start:cursor,end:total,kind:fallback});return groups;};
+      floorMesh.userData.aureonPbrKind='stone';
+      floorMesh.userData.aureonPbrGroups=grouped(geo.floor.getAttribute('position').count/3,geo.roomTris.map(r=>({start:r.start,end:r.end,kind:floorPbrKind(floor.rooms.find(room=>room.id===r.roomId)?.floor_material||'')})),'stone');
+      wallMesh.userData.aureonPbrKind='architecture';
+      wallMesh.userData.aureonPbrGroups=grouped(geo.walls.getAttribute('position').count/3,geo.furnitureTris.map(r=>({start:r.start,end:r.end,kind:furniturePbrKind(floor.furniture.find(f=>f.id===r.id)?.type||'')})),'architecture');
+      framesMesh.userData.aureonPbrKind='wood';blindsMesh.userData.aureonPbrKind='fabric';glassMesh.userData.aureonPbrKind='glass';
       glassWalls.renderOrder = 6;
       // pool water after the basin, see-through
       const waterMesh = new Mesh(geo.water, materials.water);
@@ -2849,6 +2860,8 @@ export class FloorplanViewer {
       }
       return { group: part, floorId: geo.floor.id, rideId: roofRider(this.building!, geo.floor, geo.sections ?? []), base: geo.base, lift: geo.lift !== false, win };
     });
+    const kinds=new Map<Material,PbrKind>([[solid,'stone'],[glass,'glass'],[winSolid,'wood'],[winGlass,'glass'],[roofWinGlass,'glass']]);
+    for(const root of [group,wins])root.traverse(o=>{const mesh=o as Mesh;const kind=kinds.get(mesh.material as Material);if(mesh.isMesh&&kind)mesh.userData.aureonPbrKind=kind;});
     group.renderOrder = 8;
     this.scene.add(group);
     this.scene.add(wins);
@@ -2914,7 +2927,7 @@ export class FloorplanViewer {
    */
   private applyTierFlags(): void {
     const low = this.lowQuality;
-    this.ground.visible = !low && this.theme !== "day" && this.floors.some((f) => f.floor.rooms.length > 0);
+    this.ground.visible = !low && !["day","real"].includes(this.theme) && this.floors.some((f) => f.floor.rooms.length > 0);
     for (const fv of this.floors) {
       fv.patternMesh.visible = !low;
       fv.shadowMesh.visible = !low && fv.o > 0.98;
@@ -4073,7 +4086,7 @@ export class FloorplanViewer {
       for (const room of fv.floor.rooms) for (const [x, z] of room.points) box.expandByPoint(new Vector3(x, 0, z));
       for (const a of fv.floor.outdoor ?? []) for (const [x, z] of a.points) box.expandByPoint(new Vector3(x, 0, z));
     }
-    this.ground.visible = !box.isEmpty() && !this.lowQuality && this.theme !== "day";
+    this.ground.visible = !box.isEmpty() && !this.lowQuality && !["day","real"].includes(this.theme);
     if (box.isEmpty()) return;
     if (this.ground.visible && !this.groundTexture) {
       this.groundTexture = makeGroundTexture();
@@ -4575,7 +4588,7 @@ export class FloorplanViewer {
         camera.updateProjectionMatrix();
         this.renderer.setRenderTarget(target);
         this.renderer.clear();
-        this.renderer.render(this.scene, camera);
+        this.renderScene(camera);
         this.renderer.readRenderTargetPixels(target, 0, 0, w, h, pixels);
         // the target's rows start at the bottom
         const img = ctx.createImageData(w, h);
@@ -4888,6 +4901,11 @@ export class FloorplanViewer {
     this.invalidate();
   }
 
+  private renderScene(camera: CameraForPbr): void {
+    if(this.theme==='real'){this.realPbr??=new RealPbrRenderer(this.renderer,this.lowQuality);this.realPbr.render(this.scene,camera);}
+    else this.renderer.render(this.scene,camera);
+  }
+
   private render(now: number): void {
     this.frame = 0;
     if (this.disposed) return;
@@ -4942,7 +4960,7 @@ export class FloorplanViewer {
     if (this.projections.active) this.updateProjections();
     // the house's shadow belongs to the whole house
     this.sunFx.showShadow(this.floorId === null && this.shadowSig !== "");
-    this.renderer.render(this.scene, this.camera);
+    this.renderScene(this.camera);
     this.disposeRetired();
     // labels are placed only when the view or something on it moved (style writes cost layout)
     if (this.viewChanged() || floorsMoving || this.labelsDirty) {

@@ -136,8 +136,9 @@ function copyFonts() {
 // main 718 KB, editor 940 KB, card editor 272 KB on 2026-10-28: the ⚙ settings over the 3D view, modules' sheets in rooms and the ⭐ menu (announcements), detection sensors chosen per camera, and their texts
 // main 722 KB, editor 944 KB, card editor 273 KB on 2026-10-28: a module's list edited entry by entry, module markers standing in rooms, the backup import's reason
 // AUREON: explicit four-module approval UI and five visual themes add code.
-// 752/840 KiB retain bounded headroom over the measured integrated bundles.
-const BUDGET = { "neonplan3d.js": 752 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 840 * 1024, "neonplan3d-editor.js": 944 * 1024, "neonplan3d-card-editor.js": 273 * 1024 };
+// Main: 752 KiB. Viewer: 880 KiB allows bounded headroom over the 859.9 KiB
+// physically based renderer (physical material shaders, maps and PMREM environment).
+const BUDGET = { "neonplan3d.js": 752 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 880 * 1024, "neonplan3d-editor.js": 944 * 1024, "neonplan3d-card-editor.js": 273 * 1024 };
 
 copyFonts();
 if (watch) {

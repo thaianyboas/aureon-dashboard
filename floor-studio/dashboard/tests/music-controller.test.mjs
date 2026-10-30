@@ -6,7 +6,7 @@ const features=1|2|4|16|32|512|2048|16384|32768|262144;
 function fixture(){
  const calls=[];const entity='media_player.music';
  const state={entity_id:entity,state:'playing',attributes:{friendly_name:'Music',sp_user_id:'fixture',media_content_id:'spotify:track:abc',supported_features:features,media_duration:240,media_position:60,volume_level:.5,source_list:['Speaker'],shuffle:false,repeat:'off'}};
- const names=['get_spotify_connect_devices','player_transfer_playback','get_playlist_favorites','get_album_favorites','get_track_favorites','search_tracks','search_albums','search_playlists','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks'];
+ const names=['get_browse_categorys_list','get_category_playlists','get_spotify_connect_devices','player_transfer_playback','get_playlist_favorites','get_album_favorites','get_track_favorites','search_tracks','search_albums','search_playlists','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks'];
  const hass={user:{id:'fixture'},connection:{},states:{[entity]:state},services:{media_player:Object.fromEntries(['media_play','media_pause','media_next_track','media_previous_track','media_seek','volume_set','shuffle_set','repeat_set','select_source','play_media'].map(x=>[x,{}])),spotifyplus:Object.fromEntries(names.map(x=>[x,{}]))},callService:async(...args)=>{calls.push(args);return {response:{result:{abc:false}}};}};
  const c=new MusicController();c.setHass(hass);return {c,hass,state,calls,entity};
 }
@@ -67,3 +67,16 @@ test('artwork rejects executable, data, protocol-relative and credential-bearing
 test('DE/PT/EN follow HA locale and unsupported languages use English',()=>{assert.equal(labels({language:'de-DE'}).play,'Abspielen');assert.equal(labels({locale:{language:'pt-BR'}}).play,'Reproduzir');assert.equal(labels({language:'fr'}).play,'Play');});
 
 test('search albums and playlists use their published SpotifyPlus services',async()=>{const {c,calls}=fixture();await c.browse('searchAlbums','ambient');await c.browse('searchPlaylists','focus');assert.deepEqual(calls.map(x=>x[1]),['search_albums','search_playlists']);assert.equal(calls[0][2].criteria,'ambient');});
+
+test('manual library and search pagination use bounded offsets, never next URLs or limit_total',async()=>{
+ const {c,hass,calls}=fixture();hass.callService=async(...a)=>{calls.push(a);return {response:{result:{tracks:{items:[{name:'Track',uri:'spotify:track:abc'}],total:25,next:'https://untrusted.invalid/page'}}}};};
+ await c.browse('search','focus');assert.equal(c.hasNext,true);await c.changePage(1);assert.equal(c.pageIndex,1);assert.equal(calls[1][2].offset,10);assert.equal(calls[1][2].limit,10);assert.equal(calls[1][2].criteria,'focus');assert.equal('limit_total' in calls[1][2],false);await c.changePage(-1);assert.equal(c.pageIndex,0);assert.equal(await c.changePage(-1),false);
+ await c.browse('albums');assert.equal(calls.at(-1)[2].limit,20);assert.equal(calls.at(-1)[2].sort_result,false);assert.equal(await c.browse('albums','',501),false);
+});
+test('categories page a bounded response locally and open category playlists through the correct service',async()=>{
+ const {c,hass,calls}=fixture();hass.callService=async(...a)=>{calls.push(a);return {response:{result:a[1]==='get_browse_categorys_list'?Array.from({length:23},(_,i)=>({id:'category'+i,name:'Category '+i,icons:[]})):{items:[],total:0,next:null}}};};
+ await c.browse('categories');assert.equal(c.results.length,20);assert.equal(c.hasNext,true);await c.changePage(1);assert.equal(c.results.length,3);assert.equal(calls.length,1);const item=c.results[0];assert.equal(await c.openCategory({...item,id:'forged'}),false);await c.openCategory(item);assert.equal(calls.at(-1)[1],'get_category_playlists');assert.equal(calls.at(-1)[2].category_id,'category20');assert.equal(c.hasNext,false);
+});
+test('account changes clear pagination and category caches; invalid page/category payloads send nothing',async()=>{
+ const {c,hass,calls}=fixture();assert.equal(await c.browse('category','',0,'invalid/id'),false);assert.equal(await c.browse('albums','',NaN),false);assert.equal(calls.length,0);c._categories=[{name:'Private'}];c.pageIndex=4;c.hasNext=true;c.categoryId='private';c.setHass({...hass,user:{id:'next'}});assert.deepEqual(c._categories,[]);assert.equal(c.pageIndex,0);assert.equal(c.hasNext,false);assert.equal(c.categoryId,'');
+});

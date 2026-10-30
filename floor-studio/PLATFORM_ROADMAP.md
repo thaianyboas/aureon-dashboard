@@ -8,34 +8,37 @@ The attached mission expands the existing project; it does not restart it. Stabl
 | --- | --- | --- |
 | Native NeonPlan engine/editor | Source integrated; frontend/backend build and tests | Final editor permissions, persistence/reload, native loading and interaction |
 | Free library and own imports | Commerce removed; model importer and signature/binding preserved | Final import/restore UX and representative free model acceptance |
-| Five looks | Neon/blueprint/day/night/real registered; shader tests | Final visual/device acceptance; Real remains procedural, full PBR pending |
+| Five looks | Neon/blueprint/day/night/real registered; shader tests | Final visual/device acceptance; Real now uses physical materials/maps/environment/shadows; final material authoring, fidelity and device acceptance pending |
 | Four AUREON modules | Shared source/build implementations and tests | Final configuration UX and HA service acceptance |
 | Integration/HACS | Separate builder, checksum/license/source provenance | Final install/update/migration/rollback; build success is not installation validation |
 
 ## Milestone B — product pages
 
-| Page | Current source | Remaining work |
-| --- | --- | --- |
-| Startseite | Actual presence/weather overview; new Compact music | Replace preparation tiles; waste/energy/security summaries and consistent locale |
-| Räume | Actual HA area/device/entity discovery; area-to-device navigation | Compact popups, light/climate controls, floor associations, room customization |
-| Geräte | Registry filters and capability-based controls | Remaining domain coverage and accessible visual refinement; click-first settings |
-| Energie | Navigation/preparation card; Floor Studio energy is separate | Configurable real usage/power/cost/history and rate settings; no guessed totals |
-| Sicherheit | Navigation/preparation card; Floor Studio window module separate | Door/window/alarm summaries, scoped controls and sensitive confirmations |
-| Kameras | Navigation/preparation card; Floor Studio camera features separate | Permission-aware streams/states, optional floor association and reconnect behavior |
-| Medien | Functional Full/Compact player in source candidate | Live SpotifyPlus/Spotcast acceptance, pagination/categories/edge cases, final visual approval |
-| Automationen | Dedicated page absent | HA automations/scripts/scenes, state/actions and safe confirmations |
-| Kalender | Agenda navigation/preparation card | Native events, explicit waste sources, timezone/locale, empty/loading/error states |
-| Einstellungen | Existing theme/registry/card settings; music settings | Unify per-user persistence, visibility and integration configuration without ordinary YAML editing |
-| Floor Studio | Planta route exists | Final navigation/permission polish, without private defaults |
+The candidate now registers a shared, localized platform controller and Lit page component through `dashboard/entry.mjs`. These are working source components, not route-only preparation tiles. Data and commands remain HA-owned; no private home is a default.
 
-Existing page labels are not consistently translated. A route or preparation tile is not an implemented feature. New music follows HA EN/DE/PT; other pages still require shared localization.
+| Page | Implemented candidate behavior | Remaining acceptance |
+| --- | --- | --- |
+| Startseite | Real user/time/presence and associated phone battery; weather/forecast, configured energy/cost, waste, light/climate/security/vacuum controls, existing scenes/scripts, Compact music | Final visual acceptance and real device behavior; optional summaries require selected sources |
+| Räume | Discovered areas, native modal controls, explicit stored floor choice | Write-through room-to-native-plan mapping and room customization beyond local floor selection |
+| Geräte | Registry/state intersection, search/area/domain/category filters, paginated entities; capability-based actions and dimmer/temperature/cover controls | Remaining domain-specific controls and live permission/device acceptance |
+| Energie | Explicit power/period usage sources, validated units/tariff/currency, recorder change statistics, chart/table and comparisons | Real statistic metadata/reset/missing-period acceptance; no guessed meter or tariff |
+| Sicherheit | Real locks/alarms/door/window/motion states; history; single-use scoped confirmation for sensitive commands | Server permission and code-required live device acceptance |
+| Kameras | Native HA live card only after explicit open, state/close/reconnect; scope changes remove stream | Browser/provider streaming and native HA permission acceptance; no invented stream URL |
+| Medien | Shared Full/Compact controls, categories and bounded service-offset pagination; persisted per-user preferences | Live SpotifyPlus/Spotcast edge cases and final visual approval |
+| Automationen | HA automation toggles/trigger preserving conditions, confirmed scripts/scenes | Real execution/permissions and broader configuration UX |
+| Kalender | Selected native calendars, 7/14/30/90-day agenda, explicit waste sensor/calendar widget with HA timezone | Real provider/update acceptance and notification scheduling (not implemented) |
+| Einstellungen | Scoped user/origin persistence, EN/DE/PT, theme/appearance/density/widgets, energy/waste/floors/visibility; whitelisted import/export and native admin settings link | More granular module/room/integration editors and accessibility review; native users remain HA-managed |
+| Assistant | Local visible-state query and explicitly confirmed native HA conversation | Real Assist availability/permissions; optional external providers not implemented |
+| Floor Studio | Original engine/editor route retained, new physical Real rendering path | Final editor/import/reload/native interaction acceptance |
+
+New platform page dictionaries have matching EN/DE/PT keys and follow HA language unless explicitly overridden per user. Legacy Floor Studio and optional-module translations still need a complete end-to-end visual audit.
 
 ## Milestone C — complementary integrations
 
 - `INTEGRATION_MATRIX.md` and `ZIP_INVENTORY_VERIFIED.json` ground all nine original archives and licenses. The ninth is SpotifyPlus Card.
 - SpotifyPlus, Spotcast, Dreame and Waste Collection Schedule remain independent installations; no duplicated backend or mandatory paid dependency.
 - Full and Compact music share one controller per dashboard, with capability checks and protection against stale account/library responses. No global private-library cache.
-- Waste date/calendar normalization is implemented and tested as a **contract**, not yet a visible widget. Next: explicit source/type selection and widget presentation.
+- Waste date/calendar normalization is integrated into visible home/calendar widgets with explicit source selection. Scheduling notifications and real provider acceptance remain pending.
 - Cross-provider vacuum transform is implemented and tested as a **contract**, not live tracking. Require actual position, map identity, units, timestamp and calibration. Missing/stale/unmatched data yields no position.
 - Simon42/Bubble Card inform independently written components; no restricted Simon code/assets copied.
 - The supplied JARVIS is a Claude Code browser assistant. Do not import its bridge as a mandatory HA backend. Native HA conversation/basic queries can be independent; optional providers require an explicit adapter and permission model. Sensitive actions require server authorization and appropriate confirmation.
@@ -53,6 +56,6 @@ Existing page labels are not consistently translated. A route or preparation til
 
 The supplied image is the official visual reference: horizontal large cover left, controls right, dark glass, green/blue/violet ambience and floating dock. No Upgrade, purchase, advertising, fictional person or reference cover is a default. ControlRoom Music Card reference commit `fc3c869b3468301c6ff1f6ac59f98df06456d351` was inspected read-only and is unchanged.
 
-Implemented: native transport, volume, seek, shuffle/repeat, actual artwork/title/artist, player/account selection, SpotifyPlus favorites, device discovery/transfer, playlists/albums/favorite tracks and search. Missing capabilities are disabled. Optional Spotcast requires explicit compatible destination. Settings remain session-local; persistent per-user settings and broader category/pagination parity are pending.
+Implemented: native transport, volume, seek, shuffle/repeat, actual artwork/title/artist, player/account selection, SpotifyPlus favorites, device discovery/transfer, playlists/albums/favorite tracks and search. Missing capabilities are disabled. Optional Spotcast requires explicit compatible destination. Player/account/provider/appearance/optional destination settings persist through the scoped platform preferences. Categories and offset pagination are implemented; remaining provider edge cases need live acceptance.
 
 Browser checks use synthetic artwork and mocked HA services, including the actual dashboard container. Checks cover service payloads, synchronization, errors, injection, keyboard focus, cleanup and 1440/820/390 px layouts. This does not replace live backend validation or the user's final visual approval.

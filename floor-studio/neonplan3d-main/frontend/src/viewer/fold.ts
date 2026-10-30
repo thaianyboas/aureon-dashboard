@@ -20,6 +20,7 @@ export interface FoldMasks {
 export type FoldRole = "plain" | "solid" | "glass";
 
 export function makeFoldable<T extends Material>(material: T, masks: FoldMasks, role: FoldRole = "plain"): T {
+  material.userData.fp3dFold={masks,role};
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uStanding = masks.standing;
     shader.uniforms.uGlass = masks.glass;

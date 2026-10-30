@@ -88,7 +88,7 @@
   const PAGES = [
     ['⌂','Início'],['▦','Räume'],['◉','Geräte'],['ϟ','Energie'],
     ['◇','Sicherheit'],['▣','Kameras'],['♫','Medien'],['✧','JARVIS'],
-    ['▤','Agenda'],['▱','Planta'],['⚙','Einstellungen']
+    ['▤','Agenda'],['↻','Automationen'],['▱','Planta'],['⚙','Einstellungen']
   ];
   const MODULES = [
     ['▱','Floor Studio','Planta','NeonPlan3D original integrado'],
@@ -153,8 +153,12 @@
     }
     set hass(value) {
       const oldMode=this._hass?.themes?.darkMode;
+      const identityChanged=!!this._hass&&(this._hass.user?.id!==value?.user?.id||this._hass.connection!==value?.connection);
+      if(identityChanged){this._registryEpoch=(this._registryEpoch||0)+1;this._registry=null;this._registryPromise=null;this._registryError='';this._musicController?.configure({allowedEntities:[]});}
       this._hass=value;
       this._musicController?.setHass(value);
+      this._platformController?.update(value,this._registry);
+      if(identityChanged&&this._configured)this._render();
       const studioKey=this._studioStorageKey();
       if(this._studioLoadedKey!==studioKey){this._studioLoadedKey=studioKey;this._studioCards=this._studioRead();if(this._configured&&this._page==='Início')this._render();}
       for (const card of this._studioRendered) { try { card.hass=value; } catch(error) { console.warn('[AUREON] Card state update failed',error); } }
@@ -216,15 +220,28 @@
       }
       if (this._configured && value?.callWS && !this._registry && !this._registryPromise) this._loadRegistry();
     }
+    _platformSection(target, make) {
+      const Page=customElements.get('aureon-platform');
+      const route=Page?.routeNames?.[this._page];
+      if(!Page?.createController||!route||['media','floor'].includes(route))return false;
+      if(!this._platformController)this._platformController=Page.createController();
+      this._platformController.update(this._hass,this._registry);
+      const page=make('aureon-platform');page.page=route;page.controller=this._platformController;page.palettes=Object.entries(PALETTES).map(([id,p])=>({id,name:p.name}));
+      page.addEventListener('aureon-platform-navigate',e=>{this._page=e.detail;this._render();});
+      page.addEventListener('aureon-preferences-changed',e=>{this._theme={...this._theme,mode:e.detail.appearance,palette:e.detail.palette};this._render();});
+      target.append(page);return true;
+    }
     _musicSection(target, make, compact = false) {
       const Player = customElements.get('aureon-music-player');
       if (!Player?.createController) return;
       if (!this._musicController) this._musicController = Player.createController();
       const allowed = this._registry?.entityRows?.map(row => row.id);
-      this._musicController.configure({ ...this._musicConfig, ...(allowed ? { allowedEntities: allowed } : {}) });
+      this._musicController.configure({ language:this._platformController?.language, ...this._musicConfig, ...this._platformController?.preferences?.music, ...(allowed ? { allowedEntities: allowed } : {}) });
       this._musicController.setHass(this._hass);
       const player = make('aureon-music-player');
       player.compact = compact;
+      player.appearance=this._platformController?.preferences?.music?.appearance || 'auto';
+      player.addEventListener('aureon-music-preferences',e=>{if(this._platformController)this._platformController.patch('music',e.detail);});
       player.controller = this._musicController;
       player.style.marginTop = '24px';
       player.addEventListener('aureon-music-open', () => { this._page = 'Medien'; this._render(); });
@@ -234,6 +251,7 @@
       if (!this._hass?.callWS || this._registryPromise) return;
       if (this._registry && !force) return;
       const hass = this._hass;
+      const epoch=this._registryEpoch||0;
       this._registryLoading = true;
       this._registryError = '';
       this._render();
@@ -307,9 +325,9 @@
         entityRows.sort((a,b)=>a.areaName.localeCompare(b.areaName,hass.locale?.language||'de')||a.name.localeCompare(b.name,hass.locale?.language||'de'));
         return {rows,entityRows,allLabels,registeredEntityIds:entities.map(e=>e.entity_id),areaCount:areas.length,deviceCount:devices.length,entityCount:entities.length,visibleCount:entityRows.length};
       })();
-      try { this._registry = await this._registryPromise; this._registryUpdatedAt=new Date().toLocaleTimeString(); this._lastRuntimeEntitySignature=Object.keys(this._hass?.states||{}).sort().join('\n'); }
-      catch (err) { this._registryError = String(err?.message || err); }
-      finally { this._registryLoading = false; this._registryPromise = null; if (this._configured) this._render(); }
+      try { const registry=await this._registryPromise;if(epoch===(this._registryEpoch||0)){this._registry=registry;this._registryUpdatedAt=new Date().toLocaleTimeString();this._lastRuntimeEntitySignature=Object.keys(this._hass?.states||{}).sort().join('\n');} }
+      catch (err) { if(epoch===(this._registryEpoch||0))this._registryError = String(err?.message || err); }
+      finally { if(epoch===(this._registryEpoch||0)){this._registryLoading = false;this._registryPromise = null;if (this._configured) this._render();} }
     }
     _roomIntelligence(areaId) {
       const rows=this._registry?.entityRows?.filter(r=>r.areaId===areaId)||[];
@@ -1484,6 +1502,9 @@
       queueMicrotask(()=>this._mountNeonPlan());
     }
     _render() {
+      const Platform=customElements.get('aureon-platform');
+      if(Platform?.createController){if(!this._platformController)this._platformController=Platform.createController();this._platformController.update(this._hass,this._registry);this._theme={...this._theme,mode:this._platformController.preferences.appearance,palette:this._platformController.preferences.palette};}
+
       if (!this._configured) return;
       const root = this.shadowRoot;
       // A page re-render removes the previous viewer: invalidate pending loads
@@ -1542,8 +1563,10 @@
         const button = make('button', 'au-nav-button' + (name === this._page ? ' active' : ''));
         button.append(aureonNavIcon(name));
         button.type = 'button';
-        button.title = name;
-        button.setAttribute('aria-label', name);
+        const Page=customElements.get('aureon-platform');
+        const pageLabel=Page?.labels?.(this._platformController?.language||this._hass?.locale?.language||this._hass?.language||'en')?.[Page?.routeNames?.[name]]||name;
+        button.title = pageLabel;
+        button.setAttribute('aria-label', pageLabel);
         if (name === this._page) button.setAttribute('aria-current', 'page');
         button.addEventListener('click', () => { this._page = name; this._render(); if (name === 'Räume' || name === 'Geräte') this._loadRegistry(true); });
         nav.append(button);
@@ -1552,10 +1575,15 @@
       const header = make('header');
       const heading = make('div');
       heading.append(make('div','small','AUREON / CONTROL CENTER'));
-      heading.append(make('h1','',this._page === 'Início' ? 'Visão geral' : this._page));
-      heading.append(make('div','muted','Seu ambiente, em perfeita harmonia.'));
-      header.append(heading, make('div','demo','● DEMONSTRAÇÃO'));
+      const Page=customElements.get('aureon-platform');
+      heading.append(make('h1','',Page?.labels?.(this._platformController?.language||this._hass?.locale?.language||this._hass?.language||'en')?.[Page?.routeNames?.[this._page]]||this._page));
+      heading.append(make('div','muted',Page?.labels?.(this._platformController?.language||this._hass?.language||'en')?.tagline||''));
+      header.append(heading);
       main.append(header);
+      if(this._platformSection(main,make)){
+        if(this._page==='Início'&&this._platformController.preferences.widgets.music)this._musicSection(main,make,true);
+        wrap.append(nav,main);root.append(wrap);return;
+      }
       if (this._page === 'Início') {
         const hero = make('section','hero');
         hero.append(make('div','small','AUREON · SMART LIVING'));
