@@ -8,7 +8,7 @@ This document updates the source candidate. Stable v0.28.0 is unchanged. It is n
 - `controller.mjs`, `actions.mjs`: visibility-filtered real state model, validated capabilities/parameters, explicit commands, single-use 60-second sensitive confirmations. User/connection/visibility changes invalidate async data and confirmations.
 - `page.mjs`, `locales.mjs`, `styles.mjs`: functional home, rooms, devices, energy, security, cameras, automation, calendar, settings and assistant views. Home includes Compact music; Medien uses Full. See roadmap for exact remaining limitations.
 - Music library: manual offset paging (20 library items, 10 search results), categories through the published SpotifyPlus services. Category list is bounded and locally paged; category selection browses playlists rather than playing a synthetic URI. Provider `next` URLs are never fetched. Cache/account invalidation remains shared by Full/Compact.
-- `frontend/src/viewer/real-pbr.ts`: real Three.js MeshPhysicalMaterial rendering, generated albedo/roughness/metalness/normal maps, PMREM RoomEnvironment, directional/environment lighting, shadows and ACES tone mapping. Preserves original renderer geometry/ownership/fold masks, restores original materials/settings after drawing and disposes cached physical resources on quality changes. Other looks retain their original rendering path.
+- `frontend/src/viewer/real-pbr.ts`: real Three.js MeshPhysicalMaterial rendering, generated albedo/roughness/metalness/normal maps, PMREM RoomEnvironment, directional/environment lighting, shadows and ACES tone mapping. Preserves original renderer geometry/ownership/fold masks, restores original materials/settings after drawing and disposes cached physical resources and unregisters original-material listeners on quality changes. Other looks retain their original rendering path.
 - Real supports architectural, wood, fabric, metal, glass and stone presets. Generated maps are deterministic, not downloaded paid textures. Furniture groups use type-based presets; this is not a finished user-authored PBR material-map editor or proof of photorealistic fidelity for every imported asset. Low quality reduces texture size and omits expensive shadows/transmission.
 
 ## Shared-template privacy correction
@@ -21,13 +21,13 @@ The native share export previously removed the primary entity links but left nes
 
 `python -m unittest discover -s floor-studio/tests -p 'test_*.py'`: ten publication gate tests. Isolated Python backend suite: 121 tests; exact published revision also runs in both repository workflows.
 
-`npm run build`: typecheck, locked frontend build, measured bundle budgets, dashboard compilation and candidate packaging pass. Viewer measures 859.9 KiB; its bounded budget is now 880 KiB to accommodate physical shaders/environment generation (previous 840 KiB). Other bundle budgets are unchanged.
+`npm run build`: typecheck, locked frontend build, measured bundle budgets, dashboard compilation and candidate packaging pass. Viewer measures 860.2 KiB; its bounded budget is now 880 KiB to accommodate physical shaders/environment generation (previous 840 KiB). Other bundle budgets are unchanged.
 
 `npm run test:browser` runs four actual Chromium suites against synthetic fixtures, without connecting to or installing HA:
 
 - Music: 20 checks, Full/Compact synchronization, actual service payloads, categories/paging, failures, locale, injection, focus, cleanup and 1440/820/390 layouts.
 - Platform: 22 checks, functional pages/commands/confirmations, lazy native camera fixture, statistics/calendar/assistant, cross-account cleanup and ten pages at three widths.
-- Original floor renderer: eight checks, all five modes draw triangles with valid shaders and distinct captures; actual physical maps/materials present; original materials restored after draw; low quality releases previous resources; disposal removes canvas.
+- Original floor renderer: eight checks, all five modes draw triangles with valid shaders and distinct captures; actual physical maps/materials present; original materials restored after draw; low quality releases previous resources and removes original-material listeners; disposal removes canvas.
 
 Native camera helper, recorder/calendar/service responses are synthetic contracts. They are not a substitute for actual HA/provider/device acceptance. Browser screenshots are review evidence, not final visual approval. The synthetic standalone page does not load HA's icon registry.
 

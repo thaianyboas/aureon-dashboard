@@ -38,6 +38,7 @@ export class RealPbrRenderer {
  private maps=new Map<PbrKind,PbrMaps>();
  private materials=new WeakMap<Material,CacheEntry[]>();
  private owned=new Set<Material>();
+ private subscriptions=new Map<Material,()=>void>();
  private depths=new WeakMap<Material,MeshDepthMaterial>();
  private geometryVersions=new WeakMap<BufferGeometry,{position:unknown;version:number;count:number}>();
  private lights=new Group();
@@ -54,7 +55,7 @@ export class RealPbrRenderer {
  }
  private textureSet(kind:PbrKind):PbrMaps {let maps=this.maps.get(kind);if(!maps){maps=makePbrMaps(kind,this.low?64:128);this.maps.set(kind,maps);}return maps;}
  private physical(original:MeshBasicMaterial,kind:PbrKind):MeshPhysicalMaterial {
-  let entries=this.materials.get(original);if(!entries){entries=[];this.materials.set(original,entries);const owned=entries;original.addEventListener('dispose',()=>{for(const entry of owned){if(this.owned.delete(entry.material))entry.material.dispose();}const depth=this.depths.get(original);if(depth&&this.owned.delete(depth))depth.dispose();});}let material=entries.find(e=>e.kind===kind)?.material;
+  let entries=this.materials.get(original);if(!entries){entries=[];this.materials.set(original,entries);const owned=entries;const retire=()=>{for(const entry of owned){if(this.owned.delete(entry.material))entry.material.dispose();}owned.length=0;const depth=this.depths.get(original);if(depth&&this.owned.delete(depth))depth.dispose();this.materials.delete(original);this.depths.delete(original);original.removeEventListener('dispose',retire);this.subscriptions.delete(original);};this.subscriptions.set(original,retire);original.addEventListener('dispose',retire);}let material=entries.find(e=>e.kind===kind)?.material;
   if(!material){const maps=this.textureSet(kind);material=new MeshPhysicalMaterial({map:maps.color,roughnessMap:maps.roughness,metalnessMap:maps.metalness,normalMap:maps.normal,roughness:1,metalness:kind==='metal'?1:0,side:DoubleSide,vertexColors:false,envMapIntensity:kind==='metal'?1.3:.75,clearcoat:kind==='wood' ? 0.12 : 0,clearcoatRoughness:.4});material.normalScale.set(this.low ? 0.1 : 0.2,this.low ? 0.1 : 0.2);
    if(kind==='glass'){material.transmission=this.low?0:.92;material.ior=1.5;material.thickness=.06;material.roughness=.08;material.roughnessMap=null;material.normalMap=null;material.transparent=true;material.opacity=this.low ? 0.3 : 1;material.depthWrite=false;}
    const fold=original.userData.fp3dFold as FoldData|undefined;if(fold)makeFoldable(material,fold.masks,fold.role);
@@ -89,5 +90,5 @@ export class RealPbrRenderer {
    this.renderer.render(scene,camera);
   }finally{for(const fn of restore.reverse())fn();scene.remove(this.lights);scene.environment=previous.environment;this.renderer.toneMapping=previous.tone;this.renderer.toneMappingExposure=previous.exposure;this.renderer.shadowMap.enabled=previous.shadows;this.renderer.shadowMap.type=previous.type;}
  }
- dispose():void {for(const material of this.owned)material.dispose();this.owned.clear();for(const maps of this.maps.values())for(const texture of Object.values(maps))texture.dispose();this.maps.clear();this.sun.shadow.map?.dispose();this.environmentTarget?.dispose();this.pmrem?.dispose();this.environment=null;}
+ dispose():void {for(const [original,listener] of this.subscriptions)original.removeEventListener('dispose',listener);this.subscriptions.clear();for(const material of this.owned)material.dispose();this.owned.clear();for(const maps of this.maps.values())for(const texture of Object.values(maps))texture.dispose();this.maps.clear();this.sun.shadow.map?.dispose();this.environmentTarget?.dispose();this.pmrem?.dispose();this.environment=null;}
 }
