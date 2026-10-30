@@ -34,14 +34,8 @@ jobs:
         run: node scripts/package-hacs-integration-candidate.mjs
       - name: Verify packaged integration layout and checksums
         run: node scripts/verify-hacs-integration-candidate.mjs
-      - name: Verify build outputs and capture generated bundle changes
-        run: |
-          git diff --binary -- floor-studio/neonplan3d-main/custom_components/neonplan3d/frontend floor-studio/neonplan3d-main/site/import/neonplan-import.js > build/generated-bundles.patch
-          if test -s build/generated-bundles.patch; then
-            echo 'Generated bundles differ from committed copies; candidate artifact includes the reproducible patch.' >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo 'Generated bundles match committed copies.' >> "$GITHUB_STEP_SUMMARY"
-          fi
+      - name: Verify committed bundles are reproducible
+        run: git diff --exit-code -- floor-studio/neonplan3d-main/custom_components/neonplan3d/frontend floor-studio/neonplan3d-main/site/import/neonplan-import.js
       - name: Report readiness without claiming Home Assistant validation
         run: |
           if npm run readiness > build/readiness.txt 2>&1; then
@@ -57,7 +51,6 @@ jobs:
             build/floor-studio-candidate
             build/neonplan3d-hacs-integration-candidate
             build/readiness.txt
-            build/generated-bundles.patch
   backend-tests:
     runs-on: ubuntu-latest
     defaults:

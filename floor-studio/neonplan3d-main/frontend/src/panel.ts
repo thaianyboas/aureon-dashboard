@@ -20,12 +20,11 @@ import { furnitureName } from "./furniture-names.ts";
 import { confirmEntities, defaultHeight, entityName, kindOf } from "./devices.ts";
 import { canLift, zonesOf, type LampMount } from "./model.ts";
 import { mountBase, packsVersion } from "./packs.ts";
-import { hasFeature, labOn, registerUrl, UNRELEASED } from "./features.ts";
+import { hasFeature, labOn } from "./features.ts";
 import { mountLocateLab } from "./locate-lab.ts";
 import { directorOnHere } from "./director.ts";
 import { loadVoice, micProbeDone, screenName, voiceOnHere } from "./load-voice.ts";
 import type { ClockPos } from "./card-config.ts";
-import { getLicense, unseenOffers, unseenUpdates } from "./api.ts";
 import { TimeTravel } from "./load-timetravel.ts";
 import type { HistorySpec } from "./timetravel/types.ts";
 import type { Feature } from "./features.ts";
@@ -61,10 +60,6 @@ export class Floorplan3dPanel extends LitElement {
     route: { attribute: false },
     panel: { attribute: false },
     _mode: { state: true },
-    _newOffers: { state: true },
-    _readyPacks: { state: true },
-    _shopConnected: { state: true },
-    _giftLater: { state: true },
     _showOpen: { state: true },
     _editorReady: { state: true },
     _floorId: { state: true },
@@ -121,16 +116,11 @@ export class Floorplan3dPanel extends LitElement {
   }
   private declare _mode: Mode;
   /** Shop offers not seen yet (a dot on the extensions tab). */
-  private declare _newOffers: number;
   /** Bought packs waiting here: updates and packs not installed yet (a gift such as a fun pack too). */
-  private declare _readyPacks: number;
   /** Whether this installation is connected to the shop (null until known). */
-  private declare _shopConnected: boolean | null;
   /** "Later" on the gift notice: gone for this visit. */
-  private declare _giftLater: boolean;
   /** The view's "Show" menu (walls, floors, heat map, names, trail, cameras, weather) is open. */
   private declare _showOpen: boolean;
-  private offersChecked = false;
   /** The editor bundle is loaded (it is fetched the first time the editor opens). */
   private declare _editorReady: boolean;
   private declare _floorId: string | null;
@@ -187,15 +177,10 @@ export class Floorplan3dPanel extends LitElement {
   /** A ?tt= link was looked at (it starts the time travel once). */
   private ttLinked = false;
 
-
   constructor() {
     super();
     this.narrow = false;
     this._mode = "view";
-    this._newOffers = 0;
-    this._readyPacks = 0;
-    this._shopConnected = null;
-    this._giftLater = false;
     this._showOpen = false;
     this._editorReady = !!customElements.get("fp3d-editor");
     this._floorId = null;
@@ -557,20 +542,6 @@ export class Floorplan3dPanel extends LitElement {
   }
 
   /** Once per page: are there shop offers the admin has not seen yet? (Only with a shop key.) */
-  private checkOffers(): void {
-    if (this.offersChecked || !this.hass?.user?.is_admin) return;
-    this.offersChecked = true;
-    getLicense(this.hass)
-      .then((lic) => {
-        this._shopConnected = !!lic.active;
-        // "3 new" (shop offers) only for customers who bought something: a free user is not nudged on the tab, the
-        // offers still wait under Extensions (fun packs and taster packs are gifts, not purchases)
-        const bought = (lic.packs ?? []).some((p) => !/^(mastershort\.)?fun_|_sample$/.test(p.id));
-        this._newOffers = lic.active && bought ? unseenOffers(lic.offers ?? []).length : 0;
-        this._readyPacks = lic.active ? unseenUpdates(lic.updates ?? []).length + (lic.packs ?? []).filter((p) => p.installed === null).length : 0;
-      })
-      .catch(() => undefined);
-  }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
@@ -582,7 +553,7 @@ export class Floorplan3dPanel extends LitElement {
 
   protected render() {
     if (this.hass && !languageReady(this.hass.language)) return nothing;
-    this.checkOffers();
+
     const b = this.data.building;
     const saveState = this.data.saveState;
     const aureonLang = (this.hass?.language || "en").toLowerCase().split("-")[0];
@@ -627,11 +598,7 @@ export class Floorplan3dPanel extends LitElement {
                 <button role="tab" aria-pressed=${this._mode === "view"} @click=${() => this.setMode("view")}>${this.t("view")}</button>
                 <button role="tab" aria-pressed=${this._mode === "editor"} @click=${() => this.setMode("editor")}>${this.t("editor")}</button>
                 <button role="tab" class="fp3d-tab-ext" aria-pressed=${this._mode === "extensions"} @click=${() => this.setMode("extensions")}>
-                  ✦ ${this.t("ext_tab")}${this._readyPacks
-                    ? html`<span class="fp3d-badge" title=${this.t("ext_badge_ready_hint")}>⬇ ${this.t("ext_badge_ready", { n: this._readyPacks })}</span>`
-                    : this._newOffers
-                      ? html`<span class="fp3d-badge" title=${this.t("offers_dot")}>${this.t("ext_badge_new", { n: this._newOffers })}</span>`
-                      : nothing}
+                  ✦ ${this.t("ext_tab")}
                 </button>
               </div>`
             : nothing}
@@ -816,7 +783,7 @@ export class Floorplan3dPanel extends LitElement {
               ? this.renderExtensions()
               : this.renderView(b)
           : nothing}
-        ${this.renderGift()}
+
       </div>
     `;
   }
@@ -825,39 +792,6 @@ export class Floorplan3dPanel extends LitElement {
    * A gift for everyone (the fun pack "Halloween"), once per admin until "don't show again": connected to the shop,
    * it is waiting under Extensions; not connected, a free customer account brings it (and connects the app).
    */
-  private renderGift() {
-    const id = "fun_gifts_2026";
-    // only once the installed packs are known, so it never flashes up for whoever has both
-    if (!this.isAdmin || this._giftLater || this._shopConnected === null || !this.data.packsLoaded || UNRELEASED.includes("fun_halloween") || (hasFeature("fun_halloween") && hasFeature("fun_pets"))) return nothing;
-    try {
-      if (localStorage.getItem(`neonplan3d.news.${id}`) === "never") return nothing;
-    } catch {
-      // no storage: shown each visit until "later"
-    }
-    const never = () => {
-      try {
-        localStorage.setItem(`neonplan3d.news.${id}`, "never");
-      } catch {
-        // a private window
-      }
-      this._giftLater = true;
-    };
-    const connected = this._shopConnected;
-    return html`<div class="fp3d-gift-veil" @click=${(e: Event) => e.target === e.currentTarget && (this._giftLater = true)}>
-      <div class="fp3d-gift" role="dialog" aria-label=${this.t(connected ? "gift_title" : "gift_title_free")}>
-        <div class="fp3d-gift-pic">🎃 👻 🐱 🐶</div>
-        <h3>${this.t(connected ? "gift_title" : "gift_title_free")}</h3>
-        <p>${this.t(connected ? "gift_text" : "gift_text_free")}</p>
-        <div class="fp3d-gift-actions">
-          ${connected
-            ? html`<button class="fp3d-btn fp3d-primary" @click=${() => ((this._giftLater = true), this.setMode("extensions"))}>⬇ ${this.t("gift_install")}</button>`
-            : html`<a class="fp3d-btn fp3d-primary" href=${registerUrl(this.hass?.language)} target="_blank" rel="noopener" @click=${() => (this._giftLater = true)}>🎁 ${this.t("gift_register")}</a>`}
-          <button class="fp3d-btn" @click=${() => (this._giftLater = true)}>${this.t("news_later")}</button>
-          <button class="fp3d-btn" @click=${never}>${this.t("news_never")}</button>
-        </div>
-      </div>
-    </div>`;
-  }
 
   /** Restart hint, save errors and unsaved edits from an earlier session. */
   private renderNotices() {
@@ -906,8 +840,6 @@ export class Floorplan3dPanel extends LitElement {
       .building=${this.data.building}
       @building-edit=${(e: CustomEvent<Building>) => this.data.edit(e.detail)}
       @packs-changed=${() => void this.data.reloadPacks()}
-      @offers-seen=${() => (this._newOffers = 0)}
-      @packs-ready=${(e: CustomEvent<number>) => (this._readyPacks = e.detail)}
     ></fp3d-extensions>`;
   }
 

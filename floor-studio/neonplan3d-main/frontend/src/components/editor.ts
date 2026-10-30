@@ -18,9 +18,8 @@ import { devicePorts, FILTER_VALVES, jointPortAt, jointPorts, nodePart, poolPort
 import { holeInRoom } from "../geometry/holes.ts";
 import { weatherEntity, isRainSource } from "../weather.ts";
 import { SHOW_PRESENCE } from "../flags.ts";
-import { hasFeature, labOn, manualUrl, released, shopUrl, UNRELEASED } from "../features.ts";
+import { hasFeature, labOn, manualUrl, released } from "../features.ts";
 import { loadLocate } from "../load-locate.ts";
-import { isBeta, supporterUrl } from "../beta.ts";
 import { BIN_SHAPES, BIN_SIZE, binColors, binShape, householdCountry, isPackPlant, MAILBOX_SHAPES, MAILBOX_SIZE, mailboxShape, WASTE_KINDS, wasteColors } from "../household.ts";
 import { cameraMotionSensors, cameraOwnSensors, detectionKind, setCameraSensors } from "../markers.ts";
 import { backdropImage } from "../backdrop.ts";
@@ -3117,8 +3116,6 @@ export class Fp3dEditor extends LitElement {
     return this._roofId ? this._doc.settings.roof.sections?.find((x) => x.id === this._roofId) : undefined;
   }
 
-
-
   /** Switch to a roof of sections; without sections yet, propose them from the rooms. */
   private useRoofSections(regenerate = false): void {
     if (!this.isAdmin) return;
@@ -4138,7 +4135,7 @@ export class Fp3dEditor extends LitElement {
         ? { state: batteryOk ? "ok" : "todo", label: this.t(batteryOk ? "chk_battery" : "chk_battery_sensor"), action: () => goTo(batteries[0]) }
         : { state: "opt", label: this.t("chk_battery_opt"), action: () => this.addEnergyDevice("home_battery") },
       grid.length ? { state: "ok", label: this.t("chk_grid"), action: () => goTo(grid[0]) } : { state: "opt", label: this.t("chk_grid_opt"), action: () => this.addEnergyDevice("grid_point") },
-      pro ? { state: "ok", label: this.t("chk_pro_active") } : { state: "opt", label: this.t("chk_pro_get"), href: shopUrl(this.hass?.language) },
+      { state: pro ? "ok" : "opt", label: this.t(pro ? "chk_pro_active" : "pro_locked") },
     ];
     const done = rows.filter((r) => r.state === "ok").length;
     return html`<section class="fp3d-checklist">
@@ -4175,19 +4172,7 @@ export class Fp3dEditor extends LitElement {
         <div class="fp3d-actions"><a class="fp3d-btn" href=${manualUrl(lang, "energy_pro")} target="_blank" rel="noopener">📖 ${this.t("manual")}</a></div>
       </section>`;
     }
-    const picture = new URL("./images/solar-pro.jpg", import.meta.url).href;
-    return html`<section class="fp3d-teaser">
-      <div class="fp3d-teaser-head"><b>⚡ ${this.t("pro_name_energy_pro")}</b><a class="fp3d-btn fp3d-primary" href=${shopUrl(lang)} target="_blank" rel="noopener">${this.t("pro_unlock")}</a></div>
-      <img src=${picture} alt=${this.t("solar_pro_title")} loading="lazy" />
-      <ul>
-        <li>${this.t("solar_pro_1")}</li>
-        <li>${this.t("solar_pro_2")}</li>
-        <li>${this.t("solar_pro_3")}</li>
-        <li>${this.t("solar_pro_4")}</li>
-      </ul>
-      <p class="fp3d-sub">${this.t("solar_pro_free")}</p>
-      <div class="fp3d-actions"><a class="fp3d-btn" href=${manualUrl(lang, "energy_pro")} target="_blank" rel="noopener">📖 ${this.t("manual")}</a></div>
-    </section>`;
+    return nothing;
   }
 
   /**
@@ -5324,49 +5309,7 @@ export class Fp3dEditor extends LitElement {
 
   // ------------------------------------------------------------------ rendering
 
-  /** "Later" on the news: gone for this visit of the editor, back the next time. */
-  private newsLater = false;
 
-  /**
-   * News from the shop after an update, once per announcement: a new fun pack to pick up (the pets, a present for the
-   * customers). Shown to admins who bought something and do not have it yet, until "don't show again".
-   */
-  private renderNews() {
-    // the pets' notice went with the gift notice of the panel (both fun packs free with a customer account)
-    const news: { id: string; feature: "fun_pets" }[] = [];
-    if (this.newsLater || !this.isAdmin) return nothing;
-    const customer = (this.packs ?? []).some((p) => p.licensee);
-    const item = news.find((n) => {
-      if (UNRELEASED.includes(n.feature) || hasFeature(n.feature) || !customer) return false;
-      try {
-        return localStorage.getItem(`neonplan3d.news.${n.id}`) !== "never";
-      } catch {
-        return true;
-      }
-    });
-    if (!item) return nothing;
-    const never = () => {
-      try {
-        localStorage.setItem(`neonplan3d.news.${item.id}`, "never");
-      } catch {
-        // a private window: it only stays away for this visit
-      }
-      this.newsLater = true;
-      this.requestUpdate();
-    };
-    return html`<div class="fp3d-news-veil" @click=${(e: Event) => e.target === e.currentTarget && ((this.newsLater = true), this.requestUpdate())}>
-      <div class="fp3d-news" role="dialog" aria-label=${this.t("news_pets_title")}>
-        <div class="fp3d-news-pic">🐱 🐶 🐰 🐟</div>
-        <h3>${this.t("news_pets_title")}</h3>
-        <p>${this.t("news_pets_text")}</p>
-        <div class="fp3d-news-actions">
-          <a class="fp3d-btn fp3d-primary" href=${shopUrl(this.hass?.language)} target="_blank" rel="noopener" @click=${() => ((this.newsLater = true), this.requestUpdate())}>🎁 ${this.t("news_to_shop")}</a>
-          <button class="fp3d-btn" @click=${() => ((this.newsLater = true), this.requestUpdate())}>${this.t("news_later")}</button>
-          <button class="fp3d-btn" @click=${never}>${this.t("news_never")}</button>
-        </div>
-      </div>
-    </div>`;
-  }
 
   /** Work on another floor (from the floor menu of the toolbar). */
   private selectFloor(id: string): void {
@@ -5756,7 +5699,7 @@ export class Fp3dEditor extends LitElement {
     const floor = this.floor;
     const walls = floor ? generateWalls(floor.rooms, { exterior: this._doc.settings.wall_exterior, interior: this._doc.settings.wall_interior }, floor.walls ?? []) : null;
     return html`
-      ${this.renderPreview()} ${this.renderWallView()} ${this.renderPartCard()} ${this.renderDiagnosticsView()} ${this.renderNews()} ${this.renderSettingsDialog()}
+      ${this.renderPreview()} ${this.renderWallView()} ${this.renderPartCard()} ${this.renderDiagnosticsView()}  ${this.renderSettingsDialog()}
       <div class="fp3d-editor ${this.narrow ? "fp3d-narrow" : ""}" style=${`--fp3d-side-w:${this._sideWidth}px`}>
         <div class="fp3d-main">
           <div class="fp3d-toolbar">
@@ -6246,7 +6189,6 @@ export class Fp3dEditor extends LitElement {
     </div>`;
   }
 
-
   /** Corner handles of the selected outdoor area (a rectangle stays a rectangle while dragging). */
   private renderOutdoorHandles(floor: Floor) {
     const a = this._outdoorId ? floor.outdoor.find((x) => x.id === this._outdoorId) : undefined;
@@ -6454,7 +6396,6 @@ export class Fp3dEditor extends LitElement {
         : nothing}
     </section>`;
   }
-
 
   // ------------------------------------------------------------------ the wall view
 
@@ -11764,17 +11705,7 @@ export class Fp3dEditor extends LitElement {
    */
   private renderHouseholdForm(f: Furniture) {
     const admin = this.isAdmin;
-    const lang = this.hass?.language;
     const pro = hasFeature("household");
-    const teaser = !pro && released("household")
-      ? html`<section class="fp3d-teaser fp3d-wide">
-          <div class="fp3d-teaser-head">
-            <b>🏠 ${this.t("pro_name_household")}</b>
-            <a class="fp3d-btn fp3d-primary" href=${isBeta("household") ? supporterUrl(lang) : shopUrl(lang)} target="_blank" rel="noopener">${this.t(isBeta("household") ? "beta_become" : "pro_unlock")}</a>
-          </div>
-          <p class="fp3d-sub">${this.t(f.type === "waste_bin" ? "household_teaser_bin" : "household_teaser_mail")}</p>
-        </section>`
-      : nothing;
     const select = <T extends string>(label: string, value: T, options: readonly T[], key: (o: T) => I18nKey, onChange: (v: T) => void) =>
       html`<label class="fp3d-field fp3d-wide"
         >${label}
@@ -11829,7 +11760,7 @@ export class Fp3dEditor extends LitElement {
                   }}
               /></label>
               <p class="fp3d-sub fp3d-wide">${this.t("bin_tags_hint")}</p>`
-          : teaser}
+          : nothing}
       </div>`;
     }
     const shape = mailboxShape(f);
@@ -11844,7 +11775,7 @@ export class Fp3dEditor extends LitElement {
         ? html`${this.entitySelect(this.t("mailbox_entity"), typeof f.entity === "string" && f.entity !== "none" ? f.entity : null, undefined, flags, (v) => this.updateFurniture({ entity: v ?? "none" }))}
             ${this.entitySelect(this.t("mailbox_door"), f.mailbox_door ?? null, undefined, doors, (v) => this.updateFurniture({ mailbox_door: v === "none" ? null : v }))}
             <p class="fp3d-sub fp3d-wide">${this.t("mailbox_hint")}</p>`
-        : teaser}
+        : nothing}
     </div>`;
   }
 
@@ -11858,17 +11789,7 @@ export class Fp3dEditor extends LitElement {
     const fridge = f.type === "fridge" || f.type === "fridge_smart";
     const electric = isElectric(f.type);
     if (!plant && !electric) return nothing;
-    if (!hasFeature("household")) {
-      if (!released("household") || !(plant || appliance || fridge)) return nothing;
-      const lang = this.hass?.language;
-      return html`<section class="fp3d-teaser">
-        <div class="fp3d-teaser-head">
-          <b>🏠 ${this.t("pro_name_household")}</b>
-          <a class="fp3d-btn fp3d-primary" href=${isBeta("household") ? supporterUrl(lang) : shopUrl(lang)} target="_blank" rel="noopener">${this.t(isBeta("household") ? "beta_become" : "pro_unlock")}</a>
-        </div>
-        <p class="fp3d-sub">${this.t(plant ? "hh_teaser_plant" : fridge ? "hh_teaser_fridge" : "hh_teaser_appliance")}</p>
-      </section>`;
-    }
+    if (!hasFeature("household")) return nothing;
     const sensors = this.entityOptions((id) => id.startsWith("sensor."));
     const doors = this.entityOptions((id) => id.startsWith("binary_sensor."));
     const services = this.entityOptions((id) => ["sensor.", "binary_sensor.", "input_boolean.", "input_datetime.", "input_number."].some((d) => id.startsWith(d)));
@@ -12304,12 +12225,7 @@ export class Fp3dEditor extends LitElement {
 
   /** Auto Pro: the car's entities – one entity of the car's device is enough, the roles are found beside it. */
   private renderCarForm(f: Furniture) {
-    const lang = this.hass?.language;
-    if (!hasFeature("auto_pro"))
-      return html`<section class="fp3d-teaser">
-        <div class="fp3d-teaser-head"><b>🚗 ${this.t("pro_name_auto_pro")}</b><a class="fp3d-btn fp3d-primary" href=${shopUrl(lang)} target="_blank" rel="noopener">${this.t("pro_unlock")}</a></div>
-        <p class="fp3d-sub">${this.t("auto_pro_teaser")}</p>
-      </section>`;
+    if (!hasFeature("auto_pro")) return nothing;
     if (!this.hass) return nothing;
     const hass = this.hass;
     const car = f.car ?? {};
@@ -12355,7 +12271,7 @@ export class Fp3dEditor extends LitElement {
     if (!hasFeature("screens")) {
       return html`<div class="fp3d-wide">
         <div class="fp3d-sub">${this.t("screen_pictures")}</div>
-        <p class="fp3d-sub">🔒 ${this.t("pro_feature_screens")} – ${this.t("pro_locked")} <a href=${shopUrl(this.hass?.language)} target="_blank" rel="noopener">${this.t("pro_shop")}</a> · <a href=${manualUrl(this.hass?.language, "screens")} target="_blank" rel="noopener">${this.t("manual_more")}</a></p>
+        <p class="fp3d-sub">🔒 ${this.t("pro_feature_screens")} – ${this.t("pro_locked")}  · <a href=${manualUrl(this.hass?.language, "screens")} target="_blank" rel="noopener">${this.t("manual_more")}</a></p>
       </div>`;
     }
     const set = (next: ScreenPicture[]) => this.updateFurniture({ pictures: next });

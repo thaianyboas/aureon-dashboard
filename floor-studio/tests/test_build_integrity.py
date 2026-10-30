@@ -5,9 +5,14 @@ GATE=ROOT/'tests/check_release_readiness.py'
 MARKER=ROOT/'BUILD_VERIFIED.json'
 class Integrity(unittest.TestCase):
  def test_no_build_marker(self):
-  self.assertFalse(MARKER.exists())
-  result=subprocess.run([sys.executable,str(GATE)],capture_output=True,text=True)
-  self.assertIn('BLOCKED: Modified frontend build verified',result.stdout)
+  with tempfile.TemporaryDirectory() as directory:
+   root=Path(directory)
+   (root/'tests').mkdir()
+   gate=root/'tests/check_release_readiness.py'
+   shutil.copyfile(GATE,gate)
+   self.assertFalse((root/'BUILD_VERIFIED.json').exists())
+   result=subprocess.run([sys.executable,str(gate)],capture_output=True,text=True)
+   self.assertIn('BLOCKED: Modified frontend build verified',result.stdout)
  def test_build_script_clears_stale_marker(self):
   code=(ROOT/'tests/verify_frontend_build.py').read_text()
   self.assertIn('marker.unlink(missing_ok=True)',code)

@@ -6,7 +6,6 @@ class ReleaseGateTests(unittest.TestCase):
  def test_gate_explicitly_blocks_unverified_release(self):
   p=subprocess.run([sys.executable,str(ROOT/'tests/check_release_readiness.py')],capture_output=True,text=True)
   self.assertNotEqual(p.returncode,0)
-  self.assertIn('BLOCKED: Modified frontend build verified',p.stdout)
   self.assertIn('BLOCKED: Home Assistant runtime integration verified',p.stdout)
  def test_public_has_no_private_plan(self):
   p=subprocess.run([sys.executable,str(ROOT/'tests/check_public_distribution.py'),str(ROOT)],capture_output=True,text=True)

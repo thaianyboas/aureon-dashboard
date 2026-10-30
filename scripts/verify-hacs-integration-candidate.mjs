@@ -11,10 +11,13 @@ const index = JSON.parse(readFileSync(join(root, 'MANIFEST.json'), 'utf8'));
 assert.equal(metadata.content_in_root, false);
 assert.equal(integration.domain, 'neonplan3d');
 assert.equal(index.domain, integration.domain);
+assert.equal(index.source_repository, 'thaianyboas/aureon-dashboard');
+assert.match(index.source_commit, /^[a-f0-9]{40}$/);
+assert.equal(index.installation_approved, false);
 assert.ok(Array.isArray(index.files) && index.files.length > 10, 'Missing integration files');
 const names = new Set();
 for (const item of index.files) {
-  assert.ok(item.path.startsWith('custom_components/neonplan3d/'));
+  assert.ok(item.path.startsWith('custom_components/neonplan3d/') || ['hacs.json', 'README.md', 'LICENSE'].includes(item.path));
   assert.ok(!item.path.includes('..'), 'Unsafe manifest path');
   assert.ok(!names.has(item.path), 'Duplicate file');
   names.add(item.path);
@@ -28,4 +31,11 @@ for (const item of index.files) {
 for (const required of ['__init__.py', 'manifest.json', 'frontend/neonplan3d.js', 'frontend/neonplan3d-3d.js', 'frontend/neonplan3d-editor.js']) {
   assert.ok(names.has('custom_components/neonplan3d/' + required), 'Missing ' + required);
 }
+assert.doesNotMatch(readFileSync(join(base, 'license.py'), 'utf8'), /SHOP_API|async_activate|async_refresh|async_fetch_pack/);
+assert.doesNotMatch(readFileSync(join(base, 'websocket.py'), 'utf8'), /neonplan3d\/(?:license\/|packs\/install)/);
+for (const bundle of ['neonplan3d.js', 'neonplan3d-editor.js', 'neonplan3d-3d.js']) {
+  assert.doesNotMatch(readFileSync(join(base, 'frontend', bundle), 'utf8'), /neonplan3d\/(?:license\/|packs\/install)/);
+}
+assert.ok(names.has('LICENSE'), 'Upstream license must accompany the integration');
+assert.match(readFileSync(join(root, 'LICENSE'), 'utf8'), /Copyright \(c\) 2026 Mastershort/);
 console.log('PASS: integration package layout, file hashes and required frontend assets (' + names.size + ' files). This is not a Home Assistant runtime test.');

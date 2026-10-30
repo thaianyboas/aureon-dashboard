@@ -110,7 +110,7 @@ import { parkedVehicle, PRESENT_STATES, parkedVehicles, vehicleFurniture } from 
 import { TRAIL_ICON, TRAIL_WINDOW_MS, trailEvents, trailPoints, trailSources, trailTime, type HistoryRow } from "../trail.ts";
 import { limitEffects, weatherEntity, weatherState } from "../weather.ts";
 import { SHOW_PRESENCE } from "../flags.ts";
-import { hasFeature, manualUrl, projectionOn, released, shopUrl, type Feature } from "../features.ts";
+import { hasFeature, manualUrl, projectionOn, released, type Feature } from "../features.ts";
 import { searchIndex, searchItems, type SearchItem } from "../search.ts";
 import type { Shown } from "../voice/targets.ts";
 import { anyModule, moduleAlerts, moduleCards, moduleMenuSheets, modulePools, moduleRoomSheets, moduleScene, moduleSettings, modulesWithSettings, moduleVoice, moduleWatched, syncModules, type ModuleCard, type ModuleField, type ModuleHost, type ModuleSheet, type ScenePiece, type SpokenAlert, type SpokenCar, type SpokenDevice, type SpokenOpening, type VoiceAnswer } from "../modules.ts";
@@ -149,8 +149,6 @@ import { sunPath, type SunPath } from "../sun-path.ts";
 /** Which HTML markers are shown: none, only what has no 3D object or shows a value, or all. */
 /** "room": no symbols in the house and floor views, in a room only that room's (D477, D595). */
 export type MarkerMode = "none" | "important" | "all" | "room";
-
-
 
 /**
  * An own button lights up while the entity it works on is active (#188): the entity of "more info", or the
@@ -5048,7 +5046,6 @@ export class Fp3dView3d extends LitElement {
       <span>${translate(this.hass, `pro_feature_${this._proHint}` as I18nKey)}</span>
       <span class="fp3d-sub">${translate(this.hass, "pro_locked")}</span>
       <div>
-        <a class="fp3d-chip fp3d-chip-on" href=${shopUrl(this.hass.language)} target="_blank" rel="noopener">${translate(this.hass, "pro_shop")}</a>
         <a class="fp3d-chip" href=${manualUrl(this.hass.language, this._proHint)} target="_blank" rel="noopener">${translate(this.hass, "manual_more")}</a>
         <button class="fp3d-chip" @click=${() => ((this._proHint = null), this.fire("open-extensions", null))}>${translate(this.hass, "ext_tab")}</button>
         <button class="fp3d-chip" @click=${() => (this._proHint = null)}>${translate(this.hass, "close")}</button>

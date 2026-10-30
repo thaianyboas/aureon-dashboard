@@ -6,7 +6,6 @@ import contextlib
 import hashlib
 import logging
 from pathlib import Path
-import random
 
 from aiohttp import web
 from homeassistant.components import frontend, panel_custom
@@ -14,7 +13,6 @@ from homeassistant.components.http import HomeAssistantView
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.event import async_call_later, async_track_time_interval
 from homeassistant.helpers.http import KEY_HASS
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
@@ -38,7 +36,6 @@ from .const import (
     URL_BASE,
 )
 from .diagnostics_report import DiagnosticsReporter
-from .license import FIRST_CHECK_DELAY, REFRESH_INTERVAL, async_refresh_quietly
 from .locate.service import DATA_LOCATE, LocateService
 from .storage import FloorplanData
 from .voice import async_remove_sentences, async_setup_voice, async_unload_voice
@@ -127,12 +124,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await data.async_load()
     hass.data[DOMAIN] = data
 
-    # with a shop key, bought packs are checked for updates once a day (never needed for what is installed)
-    async def _check(_now) -> None:
-        await async_refresh_quietly(hass, data)
-
-    entry.async_on_unload(async_track_time_interval(hass, _check, REFRESH_INTERVAL))
-    entry.async_on_unload(async_call_later(hass, random.uniform(*FIRST_CHECK_DELAY), _check))
+    # Local resources only: do not contact a commerce server or refresh licenses.
 
     # opt-in usage and error reports: inert (nothing is sent) unless the user switched them on
     reporter = DiagnosticsReporter(hass, data)

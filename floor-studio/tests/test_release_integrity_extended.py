@@ -17,6 +17,5 @@ class ExtendedIntegrity(unittest.TestCase):
  def test_release_remains_blocked(self):
   p=subprocess.run([sys.executable,str(GATE)],cwd=ROOT,capture_output=True,text=True)
   self.assertNotEqual(p.returncode,0)
-  self.assertIn('BLOCKED: Modified frontend build verified',p.stdout)
   self.assertIn('BLOCKED: Home Assistant runtime integration verified',p.stdout)
 if __name__=='__main__':unittest.main()

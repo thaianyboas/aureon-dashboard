@@ -1,3 +1,5 @@
+// Fixtures use UTC civil days; isolate them from the developer machine time zone.
+process.env.TZ = "UTC";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Role } from "./classify.ts";
