@@ -22,8 +22,8 @@ for (const item of index.files) {
   assert.ok(file.startsWith(resolve(root) + sep));
   assert.ok(existsSync(file) && statSync(file).isFile(), 'Missing ' + item.path);
   assert.equal(createHash('sha256').update(readFileSync(file)).digest('hex'), item.sha256);
-  assert.ok(!/\\.fp3dpack$|apartment-preset|private-floorplan/i.test(item.path), 'Private/paid asset path');
-  assert.ok(!/__pycache__|\\.pyc$/i.test(item.path), 'Python bytecode must not be distributed');
+  assert.ok(!/\.fp3dpack$|apartment[-_ ]preset|private[-_ ]floorplan/i.test(item.path), 'Private/paid asset path');
+  assert.ok(!/__pycache__|\.pyc$/i.test(item.path), 'Python bytecode must not be distributed');
 }
 for (const required of ['__init__.py', 'manifest.json', 'frontend/neonplan3d.js', 'frontend/neonplan3d-3d.js', 'frontend/neonplan3d-editor.js']) {
   assert.ok(names.has('custom_components/neonplan3d/' + required), 'Missing ' + required);
