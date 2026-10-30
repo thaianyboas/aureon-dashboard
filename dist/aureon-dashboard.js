@@ -1,8 +1,8 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.18.1';
-  const BUILD_ID = 'AUREON-0181-20261030-ERROR-BOUNDARY';
+  const VERSION = '0.19.0';
+  const BUILD_ID = 'AUREON-0190-20261030-ROOM-NAVIGATION';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -164,6 +164,10 @@
           row.available=!!state && !['unavailable','unknown'].includes(state.state);
         }
         if (this._configured && this._page === 'Geräte') this._refreshDeviceStates();
+        if (this._configured && this._page === 'Räume') {
+          try { this._refreshRoomCounts(); }
+          catch (error) { console.error('[AUREON] Room counts update failed',error); }
+        }
       }
       if (this._configured && this._page === 'Início' && this._registry && value?.states) {
         const tracked = this._registry.entityRows.filter(r=>r.domain==='person'||r.domain==='weather');
@@ -260,6 +264,32 @@
       try { this._registry = await this._registryPromise; this._registryUpdatedAt=new Date().toLocaleTimeString(); this._lastRuntimeEntitySignature=Object.keys(this._hass?.states||{}).sort().join('\n'); }
       catch (err) { this._registryError = String(err?.message || err); }
       finally { this._registryLoading = false; this._registryPromise = null; if (this._configured) this._render(); }
+    }
+    _refreshRoomCounts() {
+      const root=this.shadowRoot;
+      if(!root || !this._registry) return;
+      const states=this._hass?.states||{};
+      for(const area of this._registry.rows){
+        const tile=[...root.querySelectorAll('[data-au-area]')].find(el=>el.getAttribute('data-au-area')===area.id);
+        if(!tile) continue;
+        const available=this._registry.entityRows.filter(e=>e.areaId===area.id&&states[e.id]
+          &&!['unknown','unavailable'].includes(states[e.id].state)).length;
+        const status=tile.querySelector('[data-au-area-available]');
+        if(status)status.textContent=`${available} entidades com estado disponível`;
+      }
+    }
+    _openAreaDevices(areaId) {
+      if(!this._registry) return;
+      this._deviceArea=areaId;
+      this._deviceDomain='all';
+      this._deviceClass='all';
+      this._deviceLabel='all';
+      this._deviceAvailability='all';
+      this._deviceSearch='';
+      this._deviceLimit=80;
+      this._page='Geräte';
+      try { this._render(); }
+      catch(error) { console.error('[AUREON] Room navigation failed',error); }
     }
     _homeOverviewData() {
       const rows=this._registry?.entityRows||[];
@@ -798,7 +828,14 @@
           const grid = make('div','area-grid');
           for (const area of info.rows) {
             const tile = make('article','area-tile');
-            tile.append(make('h3','',area.name),make('p','',`${area.devices} dispositivos · ${area.entities} entidades visíveis`),make('p','',`${area.active} entidades com estado disponível`));
+            tile.setAttribute('data-au-area',area.id);
+            const live=make('p','',`${area.active} entidades com estado disponível`);
+            live.setAttribute('data-au-area-available','');
+            const open=make('button','filter-action','Ver dispositivos deste ambiente');
+            open.type='button';
+            open.setAttribute('aria-label',`Ver dispositivos de ${area.name}`);
+            open.addEventListener('click',()=>this._openAreaDevices(area.id));
+            tile.append(make('h3','',area.name),make('p','',`${area.devices} dispositivos · ${area.entities} entidades visíveis`),live,open);
             grid.append(tile);
           }
           if (!info.rows.length) grid.append(make('p','registry-note','Nenhum ambiente cadastrado no Home Assistant.'));
