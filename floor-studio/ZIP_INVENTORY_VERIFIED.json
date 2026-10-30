@@ -1,0 +1,174 @@
+{
+  "schema": 1,
+  "historical_catalog_commit": "057c515dcace73453143783d407652a1c858c6d9",
+  "audit_date": "2026-10-30",
+  "scope": "Archive CRC and every-member inventory verified; root licenses and relevant architecture/API surfaces reviewed. Third-party projects were not installed or runtime-tested.",
+  "archives": [
+    {
+      "archive": "Bubble-Card-main(2).zip",
+      "sha256": "efe4004229f0cf074e2b600a6c0dde829b28459367561528316ef384ca07807e",
+      "members": 543,
+      "uncompressed_bytes": 30139318,
+      "archive_crc_verified": true,
+      "root_licenses": [
+        {
+          "path": "Bubble-Card-main/LICENSE",
+          "sha256": "141cd4c9108a84d52806f765a0366d3fd67f76452fab7beed4ff08a3dab66ae3",
+          "first_line": "MIT License"
+        }
+      ],
+      "additional_license_files": [
+        {
+          "path": "Bubble-Card-main/dist/bubble-card.js.LICENSE.txt",
+          "sha256": "0298482c29652ccf9cbdb0ee19611bf67c1946c88465b063b3c08c9648b1809f"
+        }
+      ]
+    },
+    {
+      "archive": "dreame-vacuum-master(2).zip",
+      "sha256": "a37bcdad01b5a8aaf61e291166783df5759cdb310b8406bc4f68c7b26508d881",
+      "members": 89,
+      "uncompressed_bytes": 35506908,
+      "archive_crc_verified": true,
+      "root_licenses": [
+        {
+          "path": "dreame-vacuum-master/LICENSE",
+          "sha256": "df5ad0ce70a2f4c43f38d5acc41e3f597dcceec732b15184d4f94a514ecaa3cd",
+          "first_line": "MIT License"
+        }
+      ],
+      "additional_license_files": []
+    },
+    {
+      "archive": "hacs_waste_collection_schedule-master(2).zip",
+      "sha256": "da0b325020fd20096faf4249d498b4cfbadc12a13293f8dc01053024b917ea16",
+      "members": 2609,
+      "uncompressed_bytes": 20176762,
+      "archive_crc_verified": true,
+      "root_licenses": [
+        {
+          "path": "hacs_waste_collection_schedule-master/LICENSE",
+          "sha256": "d771ebe02d8e8027953c8baa0c2048a603248362c88d5102fcf44fcd733bf3ae",
+          "first_line": "<img src=\"/images/icon.png\" alt=\"Waste Collection Schedule logo\" title=\"Waste Collection Schedule\" align=\"right\" height=\"60\" />"
+        }
+      ],
+      "additional_license_files": [
+        {
+          "path": "hacs_waste_collection_schedule-master/md_archive/LICENSE",
+          "sha256": "620d0056260fc42ef4244cdb697ec5931643b0b19df6d9d409680fc47b279fac"
+        }
+      ]
+    },
+    {
+      "archive": "homeassistantcomponent_spotifyplus-master(2).zip",
+      "sha256": "c20082c93e800d01f945036381db8b3bdb44a9fafdc14d26075dc9185b14702d",
+      "members": 96,
+      "uncompressed_bytes": 2049367,
+      "archive_crc_verified": true,
+      "root_licenses": [
+        {
+          "path": "homeassistantcomponent_spotifyplus-master/LICENSE",
+          "sha256": "f59c9188de6274d15971ea08391cbe5fb0d9624e83f2f5453b196ab985a24fe6",
+          "first_line": "MIT License"
+        }
+      ],
+      "additional_license_files": []
+    },
+    {
+      "archive": "jarvis-main(2).zip",
+      "sha256": "326bc3ec58ca4ea3870c862426d7c77ca49640eacadb2a8221ec2be2207cc16d",
+      "members": 75,
+      "uncompressed_bytes": 3749605,
+      "archive_crc_verified": true,
+      "root_licenses": [
+        {
+          "path": "jarvis-main/LICENSE",
+          "sha256": "972ad8f45834d33659b568e0c16881841058d6395ee0bb7049e402b4955d6c51",
+          "first_line": "MIT License"
+        }
+      ],
+      "additional_license_files": []
+    },
+    {
+      "archive": "neonplan3d-main(2).zip",
+      "sha256": "917dfc2b78eb37d3de760316078be24c17a0f262ae14986a778061328c2aa744",
+      "members": 615,
+      "uncompressed_bytes": 42023560,
+      "archive_crc_verified": true,
+      "root_licenses": [
+        {
+          "path": "neonplan3d-main/LICENSE",
+          "sha256": "5c9c5c82ecf832ea978615a3a7199d3dcf8676581100bddf5e64aa766f8489de",
+          "first_line": "MIT License"
+        }
+      ],
+      "additional_license_files": [
+        {
+          "path": "neonplan3d-main/custom_components/neonplan3d/frontend/fonts/bricolage-grotesque-LICENSE.txt",
+          "sha256": "923f4ddf0fd39f9b7794ab0df7332f3d95dc43e8ad7ec2289d6d9e8491177f51"
+        },
+        {
+          "path": "neonplan3d-main/custom_components/neonplan3d/frontend/fonts/figtree-LICENSE.txt",
+          "sha256": "ee23e6c84000126692e112ff067b456470493349f993ceaa8b4d3766dd6fad5d"
+        },
+        {
+          "path": "neonplan3d-main/custom_components/neonplan3d/license.py",
+          "sha256": "0190a06464a0cc2bf042d88b89c452be30df82dfe855e2c9e5ad8e8037f22244"
+        },
+        {
+          "path": "neonplan3d-main/tests/test_license.py",
+          "sha256": "6b782c50065761260385ac6f8dc607dc9c5c12ea9218f2bdc57fb8904ac8532e"
+        },
+        {
+          "path": "neonplan3d-main/tools/shop/ms-np-license.php",
+          "sha256": "1cd6a5994aed612ce6395bd86ed2a40a95968764456a78123cb2987a2b0e36b6"
+        }
+      ]
+    },
+    {
+      "archive": "simon42-dashboard-strategy-main(1).zip",
+      "sha256": "8986ce5c716054e66187657fb28e9acb0f63729dee8b1ef7202a841304b1d971",
+      "members": 205,
+      "uncompressed_bytes": 329308489,
+      "archive_crc_verified": true,
+      "root_licenses": [
+        {
+          "path": "simon42-dashboard-strategy-main/LICENSE",
+          "sha256": "1349a4b6148492b44f629e64eed676612e234fe9a839e4f3b277c1482c8849f1",
+          "first_line": "Attribution-NonCommercial-ShareAlike 4.0 International"
+        }
+      ],
+      "additional_license_files": []
+    },
+    {
+      "archive": "spotcast-main(2).zip",
+      "sha256": "090924033d826247d285831955a44c6590cb7deffdf53be701be455a204a623f",
+      "members": 585,
+      "uncompressed_bytes": 2682600,
+      "archive_crc_verified": true,
+      "root_licenses": [
+        {
+          "path": "spotcast-main/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+          "first_line": "                                 Apache License"
+        }
+      ],
+      "additional_license_files": []
+    },
+    {
+      "archive": "spotifyplus_card-master(2).zip",
+      "sha256": "eb7463067c335a3ad60bb525cec572a491b2c1d64ca14e50e01ef08ceecf36aa",
+      "members": 247,
+      "uncompressed_bytes": 9953300,
+      "archive_crc_verified": true,
+      "root_licenses": [
+        {
+          "path": "spotifyplus_card-master/LICENSE",
+          "sha256": "f59c9188de6274d15971ea08391cbe5fb0d9624e83f2f5453b196ab985a24fe6",
+          "first_line": "MIT License"
+        }
+      ],
+      "additional_license_files": []
+    }
+  ]
+}

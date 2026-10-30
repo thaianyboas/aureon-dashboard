@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const VERSION = '0.28.0';
-  const BUILD_ID = 'AUREON-0280-20261030-EDITOR-ADMIN-LIFECYCLE';
+  const BUILD_ID = 'AUREON-CANDIDATE-20261030-MUSIC-FULL-COMPACT';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -93,7 +93,6 @@
   const MODULES = [
     ['▱','Floor Studio','Planta','NeonPlan3D original integrado'],
     ['✧','JARVIS AI','JARVIS','IA e ferramentas protegidas em preparação'],
-    ['♫','Music & SpotifyPlus','Medien','Player e temas compartilhados em preparação'],
     ['◇','Segurança','Sicherheit','Controles e permissões em preparação'],
     ['ϟ','Energia','Energie','Consumo e custos em preparação'],
     ['▤','Müll & Agenda','Agenda','Coleta e calendário em preparação'],
@@ -140,6 +139,7 @@
       if (config && config.type && config.type !== 'custom:aureon-dashboard') {
         throw new Error('Tipo de cartão AUREON inválido');
       }
+      this._musicConfig = config?.music || {};
       this._configured = true;
       try { this._render(); }
       catch (error) {
@@ -154,6 +154,7 @@
     set hass(value) {
       const oldMode=this._hass?.themes?.darkMode;
       this._hass=value;
+      this._musicController?.setHass(value);
       const studioKey=this._studioStorageKey();
       if(this._studioLoadedKey!==studioKey){this._studioLoadedKey=studioKey;this._studioCards=this._studioRead();if(this._configured&&this._page==='Início')this._render();}
       for (const card of this._studioRendered) { try { card.hass=value; } catch(error) { console.warn('[AUREON] Card state update failed',error); } }
@@ -214,6 +215,20 @@
         }
       }
       if (this._configured && value?.callWS && !this._registry && !this._registryPromise) this._loadRegistry();
+    }
+    _musicSection(target, make, compact = false) {
+      const Player = customElements.get('aureon-music-player');
+      if (!Player?.createController) return;
+      if (!this._musicController) this._musicController = Player.createController();
+      const allowed = this._registry?.entityRows?.map(row => row.id);
+      this._musicController.configure({ ...this._musicConfig, ...(allowed ? { allowedEntities: allowed } : {}) });
+      this._musicController.setHass(this._hass);
+      const player = make('aureon-music-player');
+      player.compact = compact;
+      player.controller = this._musicController;
+      player.style.marginTop = '24px';
+      player.addEventListener('aureon-music-open', () => { this._page = 'Medien'; this._render(); });
+      target.append(player);
     }
     async _loadRegistry(force = false) {
       if (!this._hass?.callWS || this._registryPromise) return;
@@ -1552,6 +1567,8 @@
         main.append(overview);
         overview.append(make('p','registry-note','Carregando pessoas e clima do Home Assistant…')); 
       }
+      if (this._page === 'Início') this._musicSection(main,make,true);
+      if (this._page === 'Medien') this._musicSection(main,make,false);
       if (this._page === 'Planta') this._floorSection(main,make);
       if (this._page === 'Räume') {
         const section = make('section','');
@@ -1685,13 +1702,13 @@
       }
       if(this._page==='Início') this._studioSection(main);
       const cards = make('div','cards');
-      const filtered = MODULES.filter(x => this._page === 'Início' || (this._page !== 'Räume' && x[2] === this._page));
+      const filtered = MODULES.filter(x => this._page === 'Início' || (!['Räume','Medien'].includes(this._page) && x[2] === this._page));
       for (const [icon, name, , description] of filtered) {
         const card = make('article','card');
         card.append(make('div','symbol',icon),make('h3','',name),make('p','muted',description),make('div','state','EM PREPARAÇÃO'));
         cards.append(card);
       }
-      if (!filtered.length && this._page !== 'Räume' && this._page !== 'Einstellungen') cards.append(make('p','muted','Módulo em preparação.'));
+      if (!filtered.length && !['Räume','Einstellungen','Medien'].includes(this._page)) cards.append(make('p','muted','Módulo em preparação.'));
       if (this._page === 'Einstellungen') {
         const settings=make('section','theme-settings');
         settings.append(make('h2','','AUREON · Design System'));

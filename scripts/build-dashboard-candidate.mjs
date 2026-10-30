@@ -1,0 +1,11 @@
+import { build } from '../floor-studio/neonplan3d-main/frontend/node_modules/esbuild/lib/main.js';
+import { mkdirSync, writeFileSync, readFileSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { join } from 'node:path';
+const root='floor-studio/dashboard',out='build/dashboard';mkdirSync(out,{recursive:true});
+const walk=p=>readdirSync(p,{withFileTypes:true}).flatMap(x=>x.isDirectory()?walk(join(p,x.name)):[join(p,x.name)]);
+const inputs=[...walk(root),'floor-studio/aureon-dashboard.js','package.json','scripts/build-dashboard-candidate.mjs','floor-studio/neonplan3d-main/frontend/package.json','floor-studio/neonplan3d-main/frontend/package-lock.json'];
+await build({entryPoints:[root+'/entry.mjs'],outfile:out+'/aureon-dashboard.js',bundle:true,format:'iife',target:'es2022',minify:true,legalComments:'inline'});
+const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex');
+writeFileSync(out+'/DASHBOARD_BUILD.json',JSON.stringify({installation_approved:false,sources:Object.fromEntries(inputs.map(p=>[p,hash(p)])),bundle:hash(out+'/aureon-dashboard.js')},null,2)+'\n');
+console.log('Dashboard candidate compiled with Full/Compact music components; stable dist untouched.');

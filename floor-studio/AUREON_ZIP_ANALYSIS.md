@@ -34,3 +34,7 @@ The authoritative AUREON source remains in this repository. Avoid uploading full
 - JARVIS reference security and architectural relevance
 
 No Home Assistant runtime tests are claimed.
+
+## Follow-up source audit
+
+All nine archives were recovered for the expanded mission and their full digests/CRC/member inventories verified. The catalogue above is preserved as historical provenance. Current per-project architecture, reviewed interfaces, licenses, implemented versus pending work and test limits are in `INTEGRATION_MATRIX.md`; exact fingerprints are in `ZIP_INVENTORY_VERIFIED.json`. Full archives remain external inputs and are not redistributed.

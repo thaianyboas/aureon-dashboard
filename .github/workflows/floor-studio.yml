@@ -28,6 +28,10 @@ jobs:
         run: npm test
       - name: Typecheck, build and package candidate
         run: npm run build
+      - name: Music player browser checks with isolated HA fixtures
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: npm run test:browser
       - name: Verify migration compatibility contract
         run: node scripts/check-neonplan-migration-contract.mjs
       - name: Package separate HACS integration candidate
