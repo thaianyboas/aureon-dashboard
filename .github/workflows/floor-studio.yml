@@ -30,6 +30,8 @@ jobs:
         run: npm run build
       - name: Package separate HACS integration candidate
         run: node scripts/package-hacs-integration-candidate.mjs
+      - name: Verify packaged integration layout and checksums
+        run: node scripts/verify-hacs-integration-candidate.mjs
       - name: Verify reproducible committed bundles
         run: git diff --exit-code -- floor-studio/neonplan3d-main/custom_components/neonplan3d/frontend floor-studio/neonplan3d-main/site/import/neonplan-import.js
       - name: Report readiness without claiming Home Assistant validation
