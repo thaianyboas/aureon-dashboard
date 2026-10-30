@@ -28,7 +28,7 @@ jobs:
         run: npm test
       - name: Typecheck, build and package candidate
         run: npm run build
-      - name: Verify reproducible committed bundles
+      - name: Package separate HACS integration candidate\n        run: node scripts/package-hacs-integration-candidate.mjs\n      - name: Verify reproducible committed bundles
         run: git diff --exit-code -- floor-studio/neonplan3d-main/custom_components/neonplan3d/frontend floor-studio/neonplan3d-main/site/import/neonplan-import.js
       - name: Report readiness without claiming Home Assistant validation
         run: |
@@ -42,7 +42,7 @@ jobs:
         with:
           name: floor-studio-build-candidate
           path: |
-            build/floor-studio-candidate
+            build/floor-studio-candidate\n            build/neonplan3d-hacs-integration-candidate
             build/readiness.txt
   backend-tests:
     runs-on: ubuntu-latest
