@@ -12,7 +12,7 @@ export function areaOf(hass, entityId) {
 }
 export function speakersForRoom(hass, room, config = {}) {
  const explicit = config.roomSpeakers?.[room.id];
- if (explicit && hass?.states?.[explicit] && !['unavailable','unknown'].includes(hass.states[explicit].state)) return [explicit];
+ if (typeof explicit === 'string' && /^media_player\.[a-z0-9_]+$/.test(explicit) && hass?.states?.[explicit] && !['unavailable','unknown'].includes(hass.states[explicit].state)) return [explicit];
  const candidates = Object.keys(hass?.states || {}).filter(id => id.startsWith('media_player.') && areaOf(hass,id) === room.area_id && !['unavailable','unknown'].includes(hass.states[id].state) && hass.states[id].attributes?.device_class !== 'tv');
  return candidates.sort();
 }
@@ -23,7 +23,7 @@ export function resolveTargets(host, roomIds, config) {
  const rooms = building.floors.flatMap(f => f.rooms || []).filter(r => roomIds.includes(r.id));
  const ids = rooms.flatMap(room => speakersForRoom(hass,room,config));
  // A global fallback must be explicitly enabled: a missing room mapping must not broadcast elsewhere.
- if (!ids.length && config.allowDefaultSpeaker === true && config.defaultSpeaker && hass.states[config.defaultSpeaker] && !['unavailable','unknown'].includes(hass.states[config.defaultSpeaker].state)) ids.push(config.defaultSpeaker);
+ if (!ids.length && config.allowDefaultSpeaker === true && typeof config.defaultSpeaker === 'string' && /^media_player\.[a-z0-9_]+$/.test(config.defaultSpeaker) && hass.states[config.defaultSpeaker] && !['unavailable','unknown'].includes(hass.states[config.defaultSpeaker].state)) ids.push(config.defaultSpeaker);
  return [...new Set(ids)];
 }
 export function quietAt(date, from, to) {
