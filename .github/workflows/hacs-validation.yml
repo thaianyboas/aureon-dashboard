@@ -1,0 +1,36 @@
+name: AUREON HACS validation
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-hacs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate HACS metadata and compiled dashboard
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const fs=require('node:fs');const h=JSON.parse(fs.readFileSync('hacs.json','utf8'));if(h.filename!=='aureon-dashboard.js'||h.content_in_root!==false)process.exit(1);"
+          test -s dist/aureon-dashboard.js
+          node --check dist/aureon-dashboard.js
+          echo "Existing HACS dashboard syntax and metadata validated."
+      - name: Report source-build availability
+        shell: bash
+        run: |
+          if [ -f package.json ]; then
+            echo "package.json found; source build must be configured and tested separately." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No package.json in repository root. This workflow validates the existing HACS distribution only; it does NOT compile NeonPlan3D or certify the four modules or Real mode." >> "$GITHUB_STEP_SUMMARY"
+          fi
