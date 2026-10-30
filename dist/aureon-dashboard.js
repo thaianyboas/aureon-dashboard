@@ -1,8 +1,8 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.17.0';
-  const BUILD_ID = 'AUREON-017-20261030-HOME-PERSONS-WEATHER';
+  const VERSION = '0.18.0';
+  const BUILD_ID = 'AUREON-018-20261030-PERSON-MOBILE-BATTERY';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -162,8 +162,9 @@
         const tracked = this._registry.entityRows.filter(r=>r.domain==='person'||r.domain==='weather');
         const signature = tracked.map(r=>{
           const st=value.states[r.id];
-          return [r.id,st?.state,st?.attributes?.temperature,st?.attributes?.humidity].join(':');
-        }).join('|');
+          return [r.id,st?.state,st?.attributes?.temperature,st?.attributes?.humidity,st?.attributes?.entity_picture].join(':');
+        }).join('|')+'|'+this._registry.entityRows.filter(r=>r.domain==='sensor'&&r.deviceClass==='battery')
+          .map(r=>r.id+':'+value.states[r.id]?.state).join('|');
         if (signature !== this._homeStateSignature) {
           this._homeStateSignature=signature;
           this._updateHomeOverview();
@@ -255,11 +256,23 @@
     _homeOverviewData() {
       const rows=this._registry?.entityRows||[];
       const states=this._hass?.states||{};
-      const persons=rows.filter(r=>r.domain==='person'&&states[r.id])
-        .map(r=>({id:r.id,name:states[r.id].attributes?.friendly_name||r.name,state:states[r.id].state,
-          picture:states[r.id].attributes?.entity_picture||'',source:r.source}))
-        .sort((a,b)=>a.name.localeCompare(b.name));
-      const weather=rows.filter(r=>r.domain==='weather'&&states[r.id])
+      const persons=rows.filter(r=>r.domain==='person'&&states[r.id]&&!r.hidden&&!r.disabled)
+        .map(r=>{
+          const st=states[r.id];
+          const trackers=Array.isArray(st.attributes?.device_trackers)?st.attributes.device_trackers:[];
+          // A person explicitly names its device_tracker entities. Only pair
+          // battery sensors via the SAME registered HA device_id; never infer
+          // ownership from names, labels, or substring matching.
+          const trackerDevices=new Set(trackers.map(id=>rows.find(e=>e.id===id)?.deviceId).filter(Boolean));
+          const batteries=rows.filter(e=>e.domain==='sensor'&&e.deviceId&&trackerDevices.has(e.deviceId)
+            &&(e.deviceClass==='battery'||states[e.id]?.attributes?.device_class==='battery'))
+            .map(e=>({id:e.id,value:states[e.id]?.state,unit:states[e.id]?.attributes?.unit_of_measurement||'%',
+              name:e.name,available:states[e.id]&&!['unknown','unavailable'].includes(states[e.id].state)}));
+          const valid=batteries.filter(b=>b.available&&Number.isFinite(Number(b.value))&&Number(b.value)>=0&&Number(b.value)<=100);
+          return {id:r.id,name:st.attributes?.friendly_name||r.name,state:st.state,
+            picture:st.attributes?.entity_picture||'',trackers,batteries:valid,source:r.source};
+        }).sort((a,b)=>a.name.localeCompare(b.name));
+      const weather=rows.filter(r=>r.domain==='weather'&&states[r.id]&&!r.hidden&&!r.disabled)
         .map(r=>({id:r.id,name:r.name,state:states[r.id].state,
           temperature:states[r.id].attributes?.temperature,
           humidity:states[r.id].attributes?.humidity,
@@ -282,6 +295,12 @@
         const status=person.state==='home'?'Zuhause':person.state==='not_home'?'Abwesend':
           person.state==='unknown'?'Desconhecido':person.state==='unavailable'?'Indisponível':person.state;
         card.append(heading,make('p','',status));
+        if(person.batteries.length) {
+          for(const battery of person.batteries)
+            card.append(make('p','',`Bateria · ${battery.name}: ${battery.value}${battery.unit}`));
+        } else {
+          card.append(make('p','muted','Bateria não vinculada ao dispositivo da pessoa'));
+        }
         if(person.picture && (person.picture.startsWith("/") || person.picture.startsWith("https://") || person.picture.startsWith("http://"))){
           const img=make('img');img.src=person.picture;img.alt='';img.loading='lazy';
           img.style.cssText='width:48px;height:48px;border-radius:50%;object-fit:cover';
