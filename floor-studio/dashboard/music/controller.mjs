@@ -1,5 +1,5 @@
 // Original AUREON adapter. Integrations remain external; HA enforces service permissions.
-export const FEATURES = { pause:1, seek:2, volume:4, previous:16, next:32, playMedia:512, source:2048, play:16384, shuffle:32768, repeat:262144 };
+export const FEATURES = { pause:1, seek:2, volume:4, previous:16, next:32, playMedia:512, source:2048, play:16384, shuffle:32768, browse:131072, repeat:262144, search:4194304 };
 export const supported = (state, feature) => !!(Number(state?.attributes?.supported_features || 0) & FEATURES[feature]);
 export const available = state => !!state && !['unknown','unavailable'].includes(state.state);
 export function isSpotifyPlus(hass,id,config={}) {
@@ -33,18 +33,20 @@ export function position(state,now=Date.now()) {
 export function resultOf(response) { const body=response?.response ?? response; return body?.result ?? body ?? {}; }
 export function mediaItems(response) {
   const result=resultOf(response); const list=Array.isArray(result)?result:result.items || result.tracks?.items || result.albums?.items || result.playlists?.items || [];
-  return (Array.isArray(list)?list:[]).map(x=>x.track || x.album || x).filter(x=>x && typeof x.name==='string' && /^spotify:(track|album|playlist):[A-Za-z0-9]+$/.test(x.uri || '')).slice(0,50);
+  const seen=new Set();return (Array.isArray(list)?list:[]).map(x=>x.track || x.album || x.show || x).filter(x=>x && typeof x.name==='string' && /^spotify:(track|album|playlist|show):[A-Za-z0-9]+$/.test(x.uri || '') && !seen.has(x.uri) && seen.add(x.uri)).slice(0,50);
 }
 export function connectDevices(response) {
   const result=resultOf(response); const list=result.Items || result.items || result.devices || [];
   return (Array.isArray(list)?list:[]).map(d=>({id:d.Id || d.id,name:d.Name || d.name,active:!!(d.IsActiveDevice || d.is_active)})).filter(d=>typeof d.id==='string' && typeof d.name==='string');
 }
-export const BROWSE_SERVICES={playlists:'get_playlist_favorites',albums:'get_album_favorites',favorites:'get_track_favorites',search:'search_tracks',searchAlbums:'search_albums',searchPlaylists:'search_playlists',categories:'get_browse_categorys_list',category:'get_category_playlists'};
+export const BROWSE_SERVICES={podcasts:'get_show_favorites',recent:'get_player_recent_tracks',playlists:'get_playlist_favorites',albums:'get_album_favorites',favorites:'get_track_favorites',search:'search_tracks',searchAlbums:'search_albums',searchPlaylists:'search_playlists',categories:'get_browse_categorys_list',category:'get_category_playlists'};
 export function categoryItems(response){const result=resultOf(response),list=Array.isArray(result)?result:result.items || result.categories?.items || [];return (Array.isArray(list)?list:[]).filter(x=>typeof x?.name==='string' && typeof x.id==='string' && /^[A-Za-z0-9_-]{1,200}$/.test(x.id)).slice(0,500).map(x=>({...x,category:true}));}
+// Native Home Assistant media browser (media_player/browse_media, media_player/search_media).
+export function nativeChildren(result){const list=Array.isArray(result)?result:Array.isArray(result?.children)?result.children:Array.isArray(result?.result)?result.result:[];return list.filter(x=>x&&typeof x.title==='string'&&typeof x.media_content_id==='string'&&typeof x.media_content_type==='string').slice(0,200).map(x=>({title:x.title.slice(0,300),thumbnail:typeof x.thumbnail==='string'?x.thumbnail:'',media_content_id:x.media_content_id,media_content_type:x.media_content_type,media_class:String(x.media_class||''),can_play:!!x.can_play,can_expand:!!x.can_expand,native:true}));}
 function pageContainer(response){const r=resultOf(response);return r.tracks || r.albums || r.playlists || r;}
-const ADVANCED = new Set(['get_browse_categorys_list','get_category_playlists','get_spotify_connect_devices','player_transfer_playback','search_tracks','search_albums','search_playlists','get_playlist_favorites','get_album_favorites','get_track_favorites','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks']);
+const ADVANCED = new Set(['get_player_recent_tracks','get_featured_playlists','get_show_favorites','playlist_items_add','get_browse_categorys_list','get_category_playlists','get_spotify_connect_devices','player_transfer_playback','search_tracks','search_albums','search_playlists','get_playlist_favorites','get_album_favorites','get_track_favorites','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks']);
 export class MusicController {
-  constructor(){ this.listeners=new Set(); this.config={}; this.entityId='';this.hass=null;this.epoch=0;this.pending=new Set();this.error='';this.results=[];this.devices=[];this.favorite=null;this.view='player';this.libraryKind='playlists';this.query='';this._scope=null;this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={}; }
+  constructor(){ this.listeners=new Set(); this.config={}; this.entityId='';this.hass=null;this.epoch=0;this.pending=new Set();this.error='';this.results=[];this.devices=[];this.favorite=null;this.view='player';this.libraryKind='playlists';this.query='';this._scope=null;this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};this.shelfSources={};this.native={kind:'',stack:[],items:[],title:''};this.ownPlaylists=null;this.addedTo=''; }
   subscribe(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
   emit(){for(const fn of this.listeners)fn();}
   configure(config={}) {this.config={...config}; if(this.hass)this.setHass(this.hass);}
@@ -66,7 +68,7 @@ export class MusicController {
   service(domain,name){return !!this.hass?.services?.[domain]?.[name];}
   can(feature){const services={play:'media_play',pause:'media_pause',previous:'media_previous_track',next:'media_next_track',volume:'volume_set',seek:'media_seek',shuffle:'shuffle_set',repeat:'repeat_set',source:'select_source',playMedia:'play_media'};return this.ready && supported(this.state,feature) && this.service('media_player',services[feature]);}
   advanced(name){return this.ready && this.spotify && ADVANCED.has(name) && this.service('spotifyplus',name);}
-  invalidate(){this.epoch++;this.error='';this.results=[];this.devices=[];this.favorite=null;this.pending.clear();this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};}
+  invalidate(){this.epoch++;this.error='';this.results=[];this.devices=[];this.favorite=null;this.pending.clear();this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};this.shelfSources={};this.native={kind:'',stack:[],items:[],title:''};this.ownPlaylists=null;this.addedTo='';}
   reset(){this.entityId='';this.view='player';this.query='';this.invalidate();}
   select(id){if(!this.players.some(p=>p.entity_id===id))return false;this.entityId=id;this.invalidate();this.emit();return true;}
   async request(key,fn){
@@ -97,14 +99,14 @@ export class MusicController {
     if(!this.advanced(name))return false;
     return this.request('browse',async current=>{
       // Categories use a non-paged service; page its bounded response locally. Never fetch provider next URLs.
-      const response=kind==='categories'&&page>0?null:await this.callSpotify(name,kind==='categories'?{refresh:false}:{limit:size,offset:page*size,...(search?{criteria:this.query}:{}),...(kind==='category'?{category_id:categoryId}:{sort_result:false})},true);
+      const response=kind==='categories'&&page>0?null:await this.callSpotify(name,kind==='categories'?{refresh:false}:kind==='recent'?{limit:size}:{limit:size,offset:page*size,...(search?{criteria:this.query}:{}),...(kind==='category'?{category_id:categoryId}:{sort_result:false})},true);
       if(!current())return false;
       if(kind==='categories'){
         if(response)this._categories=categoryItems(response);
         this.results=this._categories.slice(page*size,(page+1)*size);this.hasNext=this._categories.length>(page+1)*size;
       }else{
         const container=pageContainer(response),items=mediaItems(response);this.results=items.slice(0,size);
-        const total=Number(container.total);this.hasNext=items.length>0&&(typeof container.next==='string'&&container.next.length>0 || Number.isFinite(total)&&total>(page+1)*size);
+        const total=Number(container.total);this.hasNext=kind!=='recent'&&items.length>0&&(typeof container.next==='string'&&container.next.length>0 || Number.isFinite(total)&&total>(page+1)*size);
       }
       return true;
     });
@@ -116,9 +118,52 @@ export class MusicController {
   async openCategory(item){if(!item?.category || !(this.results.some(x=>x.category&&x.id===item.id)||this.shelves.categories?.some(x=>x.id===item.id)))return false;return this.browse('category','',0,item.id);}
   // Overview shelves: read-only library listings, only after an explicit user request.
   async loadShelves(){
-    const kinds=[['categories','get_browse_categorys_list'],['playlists','get_playlist_favorites'],['favorites','get_track_favorites'],['albums','get_album_favorites']].filter(([,name])=>this.advanced(name));
-    if(!kinds.length)return false;
-    return this.request('shelves',async current=>{const out={};for(const [kind,name] of kinds){const response=await this.callSpotify(name,kind==='categories'?{refresh:false}:{limit:12,offset:0,sort_result:false},true);if(!current())return false;out[kind]=kind==='categories'?categoryItems(response).slice(0,12):mediaItems(response).slice(0,12);}this.shelves=out;return true;});
+    const plan=[['categories',['get_browse_categorys_list']],['recent',['get_player_recent_tracks']],['recommended',['get_featured_playlists','get_playlist_favorites']]].map(([kind,names])=>[kind,names.filter(n=>this.advanced(n))]).filter(([,names])=>names.length);
+    if(!plan.length)return false;
+    return this.request('shelves',async current=>{const out={},sources={},errors=[];
+      for(const [kind,names] of plan){for(const name of names){try{
+        const args=name==='get_browse_categorys_list'?{refresh:false}:name==='get_player_recent_tracks'?{limit:24}:{limit:16,offset:0,...(name==='get_playlist_favorites'?{sort_result:false}:{})};
+        const response=await this.callSpotify(name,args,true);if(!current())return false;
+        const items=kind==='categories'?categoryItems(response).slice(0,16):mediaItems(response).slice(0,16);
+        if(items.length){out[kind]=items;sources[kind]=name;break;}
+      }catch(error){if(!current())return false;errors.push(name);}}}
+      this.shelves=out;this.shelfSources=sources;if(!Object.keys(out).length&&errors.length)throw new Error(errors.join(', '));return true;});
+  }
+  // Native HA media browser for players with BROWSE_MEDIA; read-only until the user starts an item.
+  get canBrowse(){return this.ready&&supported(this.state,'browse');}
+  get radioAvailable(){return this.canBrowse&&!!this.hass?.config?.components?.includes?.('radio_browser');}
+  async nativeBrowse(kind='library',node=null){
+    if(!this.canBrowse||(kind==='radio'&&!this.radioAvailable))return false;
+    const target=node||(kind==='radio'?{media_content_id:'media-source://radio_browser',media_content_type:'app',title:''}:null);
+    const stack=node?[...this.native.stack,node]:target?[target]:[];
+    this.view='native';this.native={kind,stack,items:[],title:node?.title||''};this.emit();
+    return this.request('browse',async current=>{
+      const msg={type:'media_player/browse_media',entity_id:this.entityId,...(target?{media_content_id:target.media_content_id,media_content_type:target.media_content_type}:{})};
+      const result=await this.hass.callWS(msg);if(!current())return false;
+      this.native={kind,stack,items:nativeChildren(result),title:typeof result?.title==='string'?result.title:''};return true;});
+  }
+  async nativeBack(){const stack=this.native.stack.slice(0,-1);if(!stack.length)return this.nativeBrowse(this.native.kind);const parent=stack.at(-1);this.native={...this.native,stack:stack.slice(0,-1)};return this.nativeBrowse(this.native.kind,parent);}
+  async nativeSearch(query){
+    const q=String(query||'').trim().slice(0,200);if(!q||!this.ready||!supported(this.state,'search'))return false;
+    this.view='native';this.native={kind:'search',stack:[],items:[],title:q};this.emit();
+    return this.request('browse',async current=>{const result=await this.hass.callWS({type:'media_player/search_media',entity_id:this.entityId,search_query:q});if(!current())return false;this.native={kind:'search',stack:[],items:nativeChildren(result),title:q};return true;});
+  }
+  async nativePlay(item){
+    if(!item?.native||!item.can_play||!this.can('playMedia')||!this.service('media_player','play_media'))return false;
+    if(!this.native.items.includes(item))return false;
+    return this.request('play-item',async()=>{await this.hass.callService('media_player','play_media',{entity_id:this.entityId,media_content_id:item.media_content_id,media_content_type:item.media_content_type});return true;});
+  }
+  // "Add to playlist": only playlists owned by this Spotify account (or collaborative) are offered.
+  async loadOwnPlaylists(){
+    if(!this.advanced('get_playlist_favorites')||!this.advanced('playlist_items_add'))return false;
+    this.view='add-to-playlist';this.addedTo='';this.emit();
+    return this.request('playlists',async current=>{const response=await this.callSpotify('get_playlist_favorites',{limit:50,offset:0,sort_result:true},true);if(!current())return false;
+      const user=this.state?.attributes?.sp_user_id;this.ownPlaylists=mediaItems(response).filter(p=>p.uri.startsWith('spotify:playlist:')&&(p.collaborative===true||(user&&p.owner?.id===user)));return true;});
+  }
+  async addCurrentToPlaylist(playlist){
+    const id=trackId(this.state),pid=/^spotify:playlist:([A-Za-z0-9]+)$/.exec(playlist?.uri||'')?.[1];
+    if(!id||!pid||!this.ownPlaylists?.includes(playlist)||!this.advanced('playlist_items_add'))return false;
+    return this.request('add',async current=>{await this.callSpotify('playlist_items_add',{playlist_id:pid,uris:'spotify:track:'+id});if(current())this.addedTo=playlist.uri;return true;});
   }
   playerVolume(entity){const s=this.hass?.states?.[entity];return available(s)&&supported(s,'volume')&&this.service('media_player','volume_set');}
   async setVolume(entity,value){

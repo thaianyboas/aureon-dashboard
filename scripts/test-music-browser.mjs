@@ -32,7 +32,7 @@ try{
  await page.evaluate(()=>{hass.states['media_player.fixture']={...hass.states['media_player.fixture'],state:'paused'};controller.setHass(hass);});
  await page.waitForFunction(()=>document.querySelector('#compact').shadowRoot.querySelector('[data-action="play"]'));checks.push('Full and Compact synchronize backend state');
  await page.click('#full >>> [data-action="favorite"]');await page.waitForFunction(()=>controller.favorite===true);checks.push('favorite checks backend before writing');
- await page.click('#full >>> [aria-label="Your library"]');await page.waitForFunction(()=>document.querySelector('#full').shadowRoot.querySelector('.item'));
+ await page.click('#full >>> [data-tab="library"]');await page.waitForFunction(()=>document.querySelector('#full').shadowRoot.querySelector('.item'));
  await page.click('#full >>> .item');assert.equal(await page.evaluate(()=>calls.at(-1)[1]),'player_media_play_context');checks.push('library returns real response and plays context');
  await page.click('#full >>> [aria-label="Result pages"] button:last-child');await page.waitForFunction(()=>controller.pageIndex===1&&!controller.pending.has('browse'));assert.equal(await page.evaluate(()=>calls.at(-1)[2].offset),20);checks.push('library next page uses service offset');
  await page.evaluate(()=>controller.browse('categories'));await page.waitForFunction(()=>document.querySelector('#full').shadowRoot.querySelector('.item')?.textContent.includes('Focus'));await page.click('#full >>> .item');await page.waitForFunction(()=>calls.at(-1)[1]==='get_category_playlists');assert.equal(await page.evaluate(()=>calls.at(-1)[2].category_id),'focus');checks.push('category selection browses playlists without issuing playback');

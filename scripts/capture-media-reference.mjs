@@ -21,7 +21,7 @@ try{
  await page.evaluate(()=>{
   window.calls=[];
   const mp=['media_play','media_pause','media_next_track','media_previous_track','media_seek','volume_set','shuffle_set','repeat_set','select_source','play_media'];
-  const sp=['get_browse_categorys_list','get_category_playlists','get_spotify_connect_devices','player_transfer_playback','get_playlist_favorites','get_album_favorites','get_track_favorites','search_tracks','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks'];
+  const sp=['get_player_recent_tracks','get_featured_playlists','get_show_favorites','playlist_items_add','get_browse_categorys_list','get_category_playlists','get_spotify_connect_devices','player_transfer_playback','get_playlist_favorites','get_album_favorites','get_track_favorites','search_tracks','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks'];
   const player=(id,name,state,extra={})=>({entity_id:id,state,attributes:{friendly_name:name,supported_features:1|2|4|16|32|512|2048|16384|32768|262144,volume_level:.5,...extra}});
   const states={};
   for(const s of [player('media_player.apartment','Apartment music','playing',{media_title:'Synthetic evening session',media_artist:'Fixture Ensemble',media_album_name:'Generated artwork',entity_picture:'/art/0.svg',media_position:102,media_duration:228,media_position_updated_at:new Date().toISOString(),volume_level:.65,shuffle:false,repeat:'off',sp_user_id:'fixture',media_content_id:'spotify:track:abc',source:'Living room · Kitchen'}),player('media_player.living','Living room speaker','idle',{volume_level:.5}),player('media_player.kitchen','Kitchen speaker','idle',{volume_level:.5}),player('media_player.bedroom','Bedroom radio','off',{volume_level:.3})])states[s.entity_id]=s;
@@ -30,7 +30,7 @@ try{
   window.hass={user:{id:'fixture-user',is_admin:true,name:'Fixture'},connection:{},language:'de',locale:{language:'de'},themes:{darkMode:true},config:{time_zone:'Europe/Berlin',unit_system:{temperature:'°C'}},states,services:{media_player:Object.fromEntries(mp.map(s=>[s,{}])),spotifyplus:Object.fromEntries(sp.map(s=>[s,{}]))},
    hassUrl:p=>p,
    callWS:async({type})=>type==='config/entity_registry/list'?Object.keys(states).map(id=>({entity_id:id,platform:id==='media_player.apartment'?'spotifyplus':'cast'})):[],
-   callService:async(...args)=>{calls.push(args);const n=args[1];return {response:{result:n==='check_track_favorites'?{abc:false}:n==='get_browse_categorys_list'?names.slice(0,9).map((name,i)=>({id:'c'+i,name,icons:[{url:`/art/${i%8}.svg`}]})):{items:items(n.includes('album')?'albums':n.includes('track')?'favorites':'playlists',12),total:12}}};}};
+   callService:async(...args)=>{calls.push(args);const n=args[1];return {response:{result:n==='check_track_favorites'?{abc:false}:n==='get_browse_categorys_list'?names.slice(0,9).map((name,i)=>({id:'c'+i,name,icons:[{url:`/art/${i%8}.svg`}]})):{items:items(n.includes('album')?'albums':n.includes('track')?'favorites':'playlists',12).map(x=>n==='get_player_recent_tracks'?{track:x,played_at:'2026-10-31T18:00:00Z'}:x),total:12}}};}};
   const d=document.createElement('aureon-dashboard');d.id='dashboard';d.hass=hass;d.setConfig({type:'custom:aureon-dashboard'});document.body.append(d);window.dashboard=d;
  });
  await page.waitForFunction(()=>dashboard.shadowRoot?.querySelector('nav'));
@@ -39,8 +39,8 @@ try{
  await page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-music-player')?.shadowRoot?.querySelector('.now .title'));
  assert.equal(await page.evaluate(()=>calls.length),0);checks.push('opening Medien issues no service call');
  await page.click(`${full} >>> [data-action="load-library"]`);
- await page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-music-player').shadowRoot.querySelectorAll('.shelf').length===4);
- assert.deepEqual(await page.evaluate(()=>calls.map(c=>c[1])),['get_browse_categorys_list','get_playlist_favorites','get_track_favorites','get_album_favorites']);
+ await page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-music-player').shadowRoot.querySelectorAll('.shelf').length===3);
+ assert.deepEqual(await page.evaluate(()=>calls.map(c=>c[1])),['get_browse_categorys_list','get_player_recent_tracks','get_featured_playlists']);
  assert.ok(await page.evaluate(()=>calls.every(c=>c[0]==='spotifyplus'&&c[2].entity_id==='media_player.apartment')));
  checks.push('library shelves load only after explicit request, scoped to the selected SpotifyPlus account');
  await new Promise(r=>setTimeout(r,500));
