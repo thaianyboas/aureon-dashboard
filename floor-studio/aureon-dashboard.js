@@ -227,7 +227,7 @@
       if (!main||!wrap) { this._render();return; }
       ++this._floorMountToken;this._floorCard=null;this._studioRendered=[];
       const header=main.querySelector(':scope>header');main.replaceChildren(...(header?[header]:[]));
-      wrap.classList.toggle('au-home',name==='Início');
+      wrap.classList.toggle('au-home',name==='Início'||name==='Medien');wrap.classList.toggle('au-media',name==='Medien');
       const Page=customElements.get('aureon-platform'),labels=Page?.labels(this._platformController?.language||this._hass?.language||'en');
       if(header&&labels){header.querySelector('h1').textContent=labels[Page.routeNames[name]]||name;}
       [...this.shadowRoot.querySelectorAll('nav .au-nav-button')].forEach((button,i)=>{const active=PAGES[i]?.[1]===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
@@ -258,7 +258,7 @@
       player.appearance=this._platformController?.preferences?.music?.appearance || 'auto';
       player.addEventListener('aureon-music-preferences',e=>{if(this._platformController)this._platformController.patch('music',e.detail);});
       player.controller = this._musicController;
-      player.style.marginTop = compact?'0':'24px';if(compact&&target.tagName==='AUREON-PLATFORM')player.slot='mini-player';
+      player.style.marginTop = compact||this._page==='Medien'?'0':'24px';if(compact&&target.tagName==='AUREON-PLATFORM')player.slot='mini-player';
       player.addEventListener('aureon-music-open', () => this._navigate('Medien'));
       target.append(player);
     }
@@ -1572,7 +1572,7 @@
         if (text !== undefined) el.textContent = text;
         return el;
       };
-      const wrap = make('div', 'wrap'+(this._page==='Início'?' au-home':''));
+      const wrap = make('div', 'wrap'+(this._page==='Início'||this._page==='Medien'?' au-home':'')+(this._page==='Medien'?' au-media':''));
       const nav = make('nav');
       nav.setAttribute('aria-label', 'AUREON navigation');
       nav.append(make('div', 'logo', 'A✦'));

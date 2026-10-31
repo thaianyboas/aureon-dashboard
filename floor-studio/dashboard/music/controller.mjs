@@ -44,7 +44,7 @@ export function categoryItems(response){const result=resultOf(response),list=Arr
 function pageContainer(response){const r=resultOf(response);return r.tracks || r.albums || r.playlists || r;}
 const ADVANCED = new Set(['get_browse_categorys_list','get_category_playlists','get_spotify_connect_devices','player_transfer_playback','search_tracks','search_albums','search_playlists','get_playlist_favorites','get_album_favorites','get_track_favorites','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks']);
 export class MusicController {
-  constructor(){ this.listeners=new Set(); this.config={}; this.entityId='';this.hass=null;this.epoch=0;this.pending=new Set();this.error='';this.results=[];this.devices=[];this.favorite=null;this.view='player';this.libraryKind='playlists';this.query='';this._scope=null;this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[]; }
+  constructor(){ this.listeners=new Set(); this.config={}; this.entityId='';this.hass=null;this.epoch=0;this.pending=new Set();this.error='';this.results=[];this.devices=[];this.favorite=null;this.view='player';this.libraryKind='playlists';this.query='';this._scope=null;this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={}; }
   subscribe(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
   emit(){for(const fn of this.listeners)fn();}
   configure(config={}) {this.config={...config}; if(this.hass)this.setHass(this.hass);}
@@ -66,7 +66,7 @@ export class MusicController {
   service(domain,name){return !!this.hass?.services?.[domain]?.[name];}
   can(feature){const services={play:'media_play',pause:'media_pause',previous:'media_previous_track',next:'media_next_track',volume:'volume_set',seek:'media_seek',shuffle:'shuffle_set',repeat:'repeat_set',source:'select_source',playMedia:'play_media'};return this.ready && supported(this.state,feature) && this.service('media_player',services[feature]);}
   advanced(name){return this.ready && this.spotify && ADVANCED.has(name) && this.service('spotifyplus',name);}
-  invalidate(){this.epoch++;this.error='';this.results=[];this.devices=[];this.favorite=null;this.pending.clear();this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];}
+  invalidate(){this.epoch++;this.error='';this.results=[];this.devices=[];this.favorite=null;this.pending.clear();this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};}
   reset(){this.entityId='';this.view='player';this.query='';this.invalidate();}
   select(id){if(!this.players.some(p=>p.entity_id===id))return false;this.entityId=id;this.invalidate();this.emit();return true;}
   async request(key,fn){
@@ -113,7 +113,23 @@ export class MusicController {
     if(![-1,1].includes(delta) || delta===1&&!this.hasNext || delta===-1&&!this.pageIndex)return false;
     return this.browse(this.libraryKind,this.query,this.pageIndex+delta,this.categoryId);
   }
-  async openCategory(item){if(!item?.category || !this.results.some(x=>x.category&&x.id===item.id))return false;return this.browse('category','',0,item.id);}
+  async openCategory(item){if(!item?.category || !(this.results.some(x=>x.category&&x.id===item.id)||this.shelves.categories?.some(x=>x.id===item.id)))return false;return this.browse('category','',0,item.id);}
+  // Overview shelves: read-only library listings, only after an explicit user request.
+  async loadShelves(){
+    const kinds=[['categories','get_browse_categorys_list'],['playlists','get_playlist_favorites'],['favorites','get_track_favorites'],['albums','get_album_favorites']].filter(([,name])=>this.advanced(name));
+    if(!kinds.length)return false;
+    return this.request('shelves',async current=>{const out={};for(const [kind,name] of kinds){const response=await this.callSpotify(name,kind==='categories'?{refresh:false}:{limit:12,offset:0,sort_result:false},true);if(!current())return false;out[kind]=kind==='categories'?categoryItems(response).slice(0,12):mediaItems(response).slice(0,12);}this.shelves=out;return true;});
+  }
+  playerVolume(entity){const s=this.hass?.states?.[entity];return available(s)&&supported(s,'volume')&&this.service('media_player','volume_set');}
+  async setVolume(entity,value){
+    const v=Number(value);if(!this.players.some(p=>p.entity_id===entity)||!this.playerVolume(entity)||!Number.isFinite(v))return false;
+    return this.request('volume:'+entity,async()=>{await this.hass.callService('media_player','volume_set',{entity_id:entity,volume_level:Math.max(0,Math.min(1,v))});return true;});
+  }
+  async pauseAll(){
+    const ids=this.players.filter(p=>p.state==='playing'&&supported(p,'pause')).map(p=>p.entity_id);
+    if(!ids.length||!this.service('media_player','media_pause'))return false;
+    return this.request('pause-all',async()=>{await this.hass.callService('media_player','media_pause',{entity_id:ids});return true;});
+  }
   async loadDevices(){
     this.view='devices';this.emit();
     if(!this.advanced('get_spotify_connect_devices'))return false;

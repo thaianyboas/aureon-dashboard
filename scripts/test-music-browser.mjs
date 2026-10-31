@@ -62,7 +62,7 @@ try{
  await page.waitForFunction(()=>document.querySelector('#dashboard').shadowRoot.querySelector('aureon-music-player[compact]'));
  await page.evaluate(()=>{window.dashboardShell=dashboard.shadowRoot.querySelector('.wrap');window.sharedMusic=dashboard._musicController;window.navigationCalls=calls.length;window.selectedEntity=sharedMusic.entityId;});
  await page.click('#dashboard >>> aureon-music-player >>> .open-full');
- await page.waitForFunction(()=>{const p=document.querySelector('#dashboard').shadowRoot.querySelector('aureon-music-player');return p && !p.compact && p.shadowRoot.querySelector('.stage');});
+ await page.waitForFunction(()=>{const p=document.querySelector('#dashboard').shadowRoot.querySelector('aureon-music-player');return p && !p.compact && p.shadowRoot.querySelector('.now');});
  assert.ok(await page.evaluate(()=>dashboard.shadowRoot.querySelector('.wrap')===dashboardShell));assert.ok(await page.evaluate(()=>dashboard._musicController===sharedMusic));assert.equal(await page.evaluate(()=>calls.length),await page.evaluate(()=>navigationCalls));assert.equal(await page.evaluate(()=>sharedMusic.entityId),await page.evaluate(()=>selectedEntity));checks.push('internal navigation preserves shell, controller and selected entity without playback calls');
  assert.equal(await page.evaluate(()=>document.querySelector('#dashboard')._page),'Medien');checks.push('Startseite Compact opens Medien Full inside actual dashboard candidate');
  await page.click('#dashboard >>> aureon-music-player >>> [data-action="play"]');assert.equal(await page.evaluate(()=>calls.at(-1)[1]),'media_play');checks.push('integrated dashboard controls reach HA service adapter');
