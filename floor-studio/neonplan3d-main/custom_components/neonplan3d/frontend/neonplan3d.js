@@ -1822,7 +1822,8 @@ ${n}`)===!0){let n=js(o.language?.()),r=o.building?.()?.floors?.find(l=>l.id===e
         overflow: hidden;
         container-type: size;
         container-name: fp3d;
-        background: radial-gradient(ellipse at 50% 35%, var(--fp3d-sky, var(--fp3d-bg2)), var(--fp3d-ground, var(--fp3d-bg)) 72%);
+        /* AUREON extension: a host may integrate the stage into its own background; unset keeps the original sky. */
+        background: var(--aureon-stage-background, radial-gradient(ellipse at 50% 35%, var(--fp3d-sky, var(--fp3d-bg2)), var(--fp3d-ground, var(--fp3d-bg)) 72%));
         transition: background 2s ease;
       }
       .fp3d-canvas {
@@ -4828,7 +4829,8 @@ background:#0b1120f2;color:#e6f7ff;border:1px solid #37e0ff66;border-radius:12px
       }
       ha-card {
         overflow: hidden;
-        background: var(--fp3d-bg);
+        /* AUREON extension: unset keeps the original background. */
+        background: var(--aureon-card-background, var(--fp3d-bg));
         height: 100%;
       }
       ha-card:fullscreen {

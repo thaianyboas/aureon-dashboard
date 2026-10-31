@@ -573,7 +573,8 @@ clearTimeout(this.cleanTimer);
       }
       ha-card {
         overflow: hidden;
-        background: var(--fp3d-bg);
+        /* AUREON extension: unset keeps the original background. */
+        background: var(--aureon-card-background, var(--fp3d-bg));
         height: 100%;
       }
       ha-card:fullscreen {

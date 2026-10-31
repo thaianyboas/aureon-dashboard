@@ -9,4 +9,24 @@ export const styles=`
 @media(max-width:1050px){.compact .panel{grid-template-columns:minmax(0,1fr) auto}.mini-volume{grid-column:1/-1;justify-self:end;width:140px}.compact .title{font-size:12px}}
 @media(max-width:760px){.compact .stage{grid-template-columns:55px minmax(0,1fr)}.compact .panel{grid-template-columns:minmax(0,1fr);gap:6px;padding:10px 15px}.compact .transport{justify-content:center}.compact .transport button:not(.primary):not(.extra){display:grid}.mini-volume{grid-column:auto;width:140px;justify-self:center}.compact .cover{min-height:70px}.compact .artist,.destination{font-size:9px}.compact .open-full{width:32px;height:32px}}
 .mini-volume input{appearance:none;-webkit-appearance:none;background:transparent;padding:0;border:0;border-radius:0}.mini-volume input::-webkit-slider-runnable-track{height:3px;border-radius:8px;background:var(--m-line)}.mini-volume input::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--m-green);margin-top:-4px}.mini-volume input::-moz-range-track{height:3px;border-radius:8px;background:var(--m-line)}.mini-volume input::-moz-range-thumb{width:11px;height:11px;border:0;border-radius:50%;background:var(--m-green)}
+
+/* Palette integration: inside AUREON the active palette (22 palettes, light/dark/auto/custom) drives the player; standalone fallbacks stay unchanged. */
+.shell.dark{--m-green:var(--au-accent,#40dc8e);--m-text:var(--au-text,#f8fafc);--m-muted:var(--au-muted,#d0d4df);--m-line:var(--au-border,rgba(213,230,255,.23));background:var(--au-bg,#07111c)}
+.shell.dark .wash{background:radial-gradient(ellipse at 90% 45%,color-mix(in srgb,var(--au-accent,#42338b) 20%,transparent),transparent 58%),radial-gradient(ellipse at 0% 100%,color-mix(in srgb,var(--au-accent,#046b60) 12%,transparent),transparent 55%),linear-gradient(120deg,color-mix(in srgb,var(--au-surface,#061a22) 72%,transparent),color-mix(in srgb,var(--au-bg,#000817) 88%,transparent))}
+.shell.dark input[type=range]{background:linear-gradient(90deg,color-mix(in srgb,var(--m-green) 55%,transparent) 0%,var(--m-green) var(--progress,0%),color-mix(in srgb,var(--m-muted) 30%,transparent) var(--progress,0%),color-mix(in srgb,var(--m-muted) 30%,transparent) 100%)}
+.shell.dark .transport .primary{background:color-mix(in srgb,var(--au-bg,#07131b) 55%,transparent);color:var(--m-green);border:2px solid var(--m-green);box-shadow:0 0 28px color-mix(in srgb,var(--m-green) 38%,transparent),inset 0 0 18px color-mix(in srgb,var(--m-green) 14%,transparent)}
+.shell.dark select,.shell.dark .pane{background:color-mix(in srgb,var(--au-surface,#122531) 88%,transparent);color:var(--m-text)}
+/* Compact (mini) player: floating glass bar — cover, title, favourite, transport, progress, volume, expand. */
+.compact.shell{container-type:inline-size;border-radius:22px;background:color-mix(in srgb,var(--au-surface,#10212b) 62%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);box-shadow:0 22px 50px #00000045,inset 0 1px 0 #ffffff14}
+.compact .wash{opacity:.55}.compact .ambient{opacity:.22}
+.compact .stage{background:transparent;grid-template-columns:62px minmax(0,1fr)}
+.compact .cover{min-height:0;height:54px;width:54px;margin:9px 0 9px 9px;border-radius:14px;box-shadow:0 6px 16px #0005}
+.compact .panel{padding:8px 44px 8px 14px;display:grid;grid-template-columns:minmax(140px,1.1fr) auto minmax(150px,1fr) auto;gap:16px;align-items:center}
+.compact .title-row{gap:10px}.compact .favorite{display:grid;width:36px;height:36px;background:none;border:0;box-shadow:none}.compact .favorite svg{width:20px;height:20px}
+.compact .title{font-size:13.5px;font-weight:600;letter-spacing:-.2px}.compact .artist{font-size:10.5px;margin-top:3px}.compact .destination{font-size:10px;margin-top:2px}
+.compact .transport{gap:6px}.compact .transport .primary{width:46px;height:46px}.compact .transport .primary svg{width:42%;height:42%}
+.compact .progress{display:block;margin:0}.compact .progress input{height:3px}.compact .progress .times{margin-top:6px;font-size:10px}
+.compact .mini-volume{width:110px;grid-column:auto;justify-self:auto}.shell.dark .mini-volume input{background:transparent}
+@container (max-width:760px){.compact .panel{grid-template-columns:minmax(0,1fr) auto auto}.compact .progress{display:none}}
+@container (max-width:560px){.compact .panel{grid-template-columns:minmax(0,1fr) auto;padding-right:36px;gap:8px}.compact .mini-volume,.compact .favorite{display:none}.compact .transport button:not(.primary):not(.extra){display:grid}.compact .transport{justify-content:flex-end}}
 `;

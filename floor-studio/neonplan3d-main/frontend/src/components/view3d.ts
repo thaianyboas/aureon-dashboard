@@ -5881,7 +5881,8 @@ export class Fp3dView3d extends LitElement {
         overflow: hidden;
         container-type: size;
         container-name: fp3d;
-        background: radial-gradient(ellipse at 50% 35%, var(--fp3d-sky, var(--fp3d-bg2)), var(--fp3d-ground, var(--fp3d-bg)) 72%);
+        /* AUREON extension: a host may integrate the stage into its own background; unset keeps the original sky. */
+        background: var(--aureon-stage-background, radial-gradient(ellipse at 50% 35%, var(--fp3d-sky, var(--fp3d-bg2)), var(--fp3d-ground, var(--fp3d-bg)) 72%));
         transition: background 2s ease;
       }
       .fp3d-canvas {
