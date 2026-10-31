@@ -778,8 +778,9 @@
       "original_line": 313,
       "candidate_line": 320,
       "original_sha256": "465957948ab630a38e182ebacaabc058b09e6d1151f13325f4c4d2effe0ad906",
-      "candidate_sha256": "465957948ab630a38e182ebacaabc058b09e6d1151f13325f4c4d2effe0ad906",
-      "status": "preserved"
+      "candidate_sha256": "858e8efcb6021e170eb7106ddfb083f771bc3e88b21d51872638b55d6e57bd47",
+      "status": "aureon_extension",
+      "note": "Adds one binding: .frameScale from the optional aureon_frame config (default 1 = original fit)."
     },
     {
       "symbol": "components/editor.ts::patchItem",
@@ -5584,8 +5585,9 @@
       "original_line": 854,
       "candidate_line": 852,
       "original_sha256": "6b9f39e0394b10d578c4c41659cc5ba16a6011a682a371dfd675025ee94e1725",
-      "candidate_sha256": "6b9f39e0394b10d578c4c41659cc5ba16a6011a682a371dfd675025ee94e1725",
-      "status": "preserved"
+      "candidate_sha256": "d7d27cb0c2ba9a8408b52f3949539925093073a88468e408918a5bd3944ec077",
+      "status": "aureon_extension",
+      "note": "Passes frameScale to the viewer after creation; all original calls unchanged."
     },
     {
       "symbol": "components/view3d.ts::Fp3dView3d.willUpdate",
@@ -5600,8 +5602,9 @@
       "original_line": 935,
       "candidate_line": 933,
       "original_sha256": "96136ac2a65972424023d03dc4271f486406b27b715488549dd47436e908f08c",
-      "candidate_sha256": "96136ac2a65972424023d03dc4271f486406b27b715488549dd47436e908f08c",
-      "status": "preserved"
+      "candidate_sha256": "cf98583d24f6fa9ace92294909ce2f05a47a68af883715fd43222df77e57da05",
+      "status": "aureon_extension",
+      "note": "Forwards frameScale changes; all original branches unchanged."
     },
     {
       "symbol": "components/view3d.ts::Fp3dView3d.syncDevices",
@@ -16672,8 +16675,9 @@
       "original_line": 4020,
       "candidate_line": 4035,
       "original_sha256": "f05fdb1ffaa701612329f0082906de8c06efdfcea4bb6b6af4ec75f430ce48b0",
-      "candidate_sha256": "f05fdb1ffaa701612329f0082906de8c06efdfcea4bb6b6af4ec75f430ce48b0",
-      "status": "preserved"
+      "candidate_sha256": "f7e58900b67c6c9722d11ce9372e46d5e6317f30c3f572917a6c4778623597e4",
+      "status": "aureon_extension",
+      "note": "Radius multiplied by frameScale (1 = original bounding-sphere fit); start views still win."
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.placeGround",

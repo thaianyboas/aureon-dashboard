@@ -46,7 +46,7 @@ import {
   type BufferGeometry,
   type Material,
 } from "three";
-import {RealPbrRenderer,furniturePbrKind,floorPbrKind,type PbrGroup,type PbrKind} from './real-pbr.ts';
+import {RealPbrRenderer,furniturePbrKind,floorPbrKind,type PbrGroup,type PbrKind,type PbrLamp} from './real-pbr.ts';
 import type { Building, Floor, Furniture, Room, StartView } from "../model.ts";
 import { recolorLamps, SHADE_SENTINEL, shadeFactors } from "./lamp-colors.ts";
 import { centroid, GANG_TYPES, outdoorZones, pointInPolygon, openingStyle, setTerrain, WALL_LAMP_Y, zonesOf } from "../model.ts";
@@ -911,6 +911,15 @@ export class FloorplanViewer {
   setKeepView(on: boolean): void {
     this.keepView = on;
   }
+
+  /** AUREON extension: closer (< 1) or wider (> 1) framing of the fitted view; 1 keeps the original fit. */
+  setFrameScale(scale: number): void {
+    const next = Number.isFinite(scale) ? Math.min(1.5, Math.max(0.5, scale)) : 1;
+    if (next === this.frameScale) return;
+    this.frameScale = next;
+    if (this.building) this.fit(350);
+  }
+  private frameScale = 1;
 
   /** 3D lock: the angle stays where it is; dragging moves the view, zooming still works. */
   setAngleLock(on: boolean): void {
@@ -4052,7 +4061,7 @@ export class FloorplanViewer {
     const center = box.getCenter(new Vector3());
     const size = box.getSize(new Vector3());
     // perspective widens the near corners; portrait screens need a little more room for that
-    const radius = Math.max(8, this.distanceFor(size) * (this.camera.aspect < 1 ? 1.16 : 1.02));
+    const radius = Math.max(8 * Math.min(1, this.frameScale), this.distanceFor(size) * (this.camera.aspect < 1 ? 1.16 : 1.02) * this.frameScale);
     this.controls.maxRadius = Math.max(40, radius * 3);
     center.y = box.min.y + size.y * (this.houseView ? 0.45 : 0.3);
     if (this.floorId === null || this.floors.length === 1) this.houseRadius = radius;
@@ -4901,8 +4910,18 @@ export class FloorplanViewer {
     this.invalidate();
   }
 
+  /** Lit lamps of the shown floors in world coordinates, for the Real look's light sources. */
+  private realLamps(): PbrLamp[] {
+    const out: PbrLamp[] = [];
+    for (const fv of this.activeFloors()) {
+      const y0 = fv.floor.elevation + fv.ty;
+      for (const s of this.lightSources(fv)) out.push({ x: s.x, y: y0 + s.y, z: s.z, color: s.color, level: s.level });
+    }
+    return out;
+  }
+
   private renderScene(camera: CameraForPbr): void {
-    if(this.theme==='real'){this.realPbr??=new RealPbrRenderer(this.renderer,this.lowQuality);this.realPbr.render(this.scene,camera);}
+    if(this.theme==='real'){this.realPbr??=new RealPbrRenderer(this.renderer,this.lowQuality);this.realPbr.render(this.scene,camera,{night:this.nightFactor(),lamps:this.realLamps()});}
     else this.renderer.render(this.scene,camera);
   }
 

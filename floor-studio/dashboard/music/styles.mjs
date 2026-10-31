@@ -27,8 +27,8 @@ export const styles=`
 .compact .transport{gap:6px}.compact .transport .primary{width:46px;height:46px}.compact .transport .primary svg{width:42%;height:42%}
 .compact .progress{display:block;margin:0}.compact .progress input{height:3px}.compact .progress .times{margin-top:6px;font-size:10px}
 .compact .mini-volume{width:110px;grid-column:auto;justify-self:auto}.shell.dark .mini-volume input{background:transparent}
-@container (max-width:760px){.compact .panel{grid-template-columns:minmax(0,1fr) auto auto}.compact .progress{display:none}}
-@container (max-width:560px){.compact .panel{grid-template-columns:minmax(0,1fr) auto;padding-right:36px;gap:8px}.compact .mini-volume,.compact .favorite{display:none}.compact .transport button:not(.primary):not(.extra){display:grid}.compact .transport{justify-content:flex-end}}
+@container (max-width:600px){.compact .panel{grid-template-columns:minmax(0,1fr) auto auto}.compact .progress{display:none}}
+@container (max-width:560px){.compact .destination,.compact .artist{white-space:normal;overflow:visible;text-overflow:clip}.compact .panel{grid-template-columns:minmax(0,1fr) auto;padding-right:36px;gap:8px}.compact .mini-volume,.compact .favorite{display:none}.compact .transport button:not(.primary):not(.extra){display:grid}.compact .transport{justify-content:flex-end}}
 
 /* Full Medien (approved reference): search + sources header, now-playing glass card left, library shelves right, players / volume / quick actions below. */
 .full.shell{container-type:inline-size;padding:18px 20px 20px;border-radius:30px}

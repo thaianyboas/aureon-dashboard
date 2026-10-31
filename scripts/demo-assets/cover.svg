@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><!-- Synthetic demo cover art, not provider artwork. -->
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9d6b0"/><stop offset="1" stop-color="#c79a62"/></linearGradient><radialGradient id="sun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#f7d9a0"/><stop offset="1" stop-color="#d7a35a"/></radialGradient></defs>
+<rect width="600" height="600" fill="url(#s)"/><circle cx="380" cy="230" r="110" fill="url(#sun)"/>
+<path d="M0 380C120 300 220 330 300 360s200 10 300-60v300H0z" fill="#3e5a52"/><path d="M0 450c140-60 260-30 340 0s180 20 260-30v180H0z" fill="#22352f"/><path d="M0 520c160-40 300-10 420 10s140-10 180-30v100H0z" fill="#121d1a"/>
+<rect x="18" y="552" width="110" height="30" rx="15" fill="#0008"/><text x="73" y="573" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#fff">DEMO</text></svg>

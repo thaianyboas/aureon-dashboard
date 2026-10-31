@@ -269,7 +269,8 @@ clearTimeout(this.cleanTimer);
   }
 
   /** Presentation changes keep native floor selection, camera and building state intact. */
-  setViewOptions(options: Pick<CardConfig, "height" | "theme">): void {
+  setViewOptions(options: Pick<CardConfig, "height" | "theme" | "aureon_frame">): void {
+    if (options.aureon_frame !== undefined && !(Number.isFinite(options.aureon_frame) && options.aureon_frame >= 0.5 && options.aureon_frame <= 1.5)) throw new Error("Invalid view frame");
     if (options.height !== undefined && !(Number.isFinite(options.height) && options.height > 100)) throw new Error("Invalid view height");
     if (options.theme !== undefined && !["neon", "blueprint", "day", "night", "real", "auto"].includes(options.theme)) throw new Error("Invalid view theme");
     this._config = { ...this._config, ...options };
@@ -389,6 +390,7 @@ clearTimeout(this.cleanTimer);
               .controlsRight=${c?.controls_side === "right"}
               .keepView=${c?.keep_view === true}
               .angleLock=${c?.angle_lock === true}
+              .frameScale=${c?.aureon_frame ?? 1}
               .floorStack=${c?.floor_stack ?? "dim"}
               .panelOpen=${!!this._roomId && c?.room_panel !== false}
               .alerts=${c?.alerts !== false}

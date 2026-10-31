@@ -1,4 +1,6 @@
-export const defaults=()=>({schema:1,floorLook:'real',language:'auto',appearance:'auto',palette:'forest',density:'compact',hidden:[],widgets:{music:true,weather:true,people:true,energy:true,waste:true,security:true},energy:{power:'',total:'',daily:'',weekly:'',monthly:'',yearly:'',tariff:null,currency:'EUR'},waste:[],roomFloor:{},music:{entity:'',appearance:'auto',providers:{},spotcastTargets:[]}});
+export const defaults=()=>({schema:1,floorLook:'real',language:'auto',appearance:'auto',palette:'forest',density:'compact',hidden:[],widgets:{music:true,weather:true,people:true,energy:true,waste:true,security:true},energy:{power:'',total:'',daily:'',weekly:'',monthly:'',yearly:'',tariff:null,currency:'EUR'},waste:[],roomFloor:{},roomImages:{},music:{entity:'',appearance:'auto',providers:{},spotcastTargets:[]}});
+// Room pictures: the owner's own files in Home Assistant (/local/…, media/image proxy) or an https address. Never embedded data.
+export function roomImageUrl(value){if(typeof value!=='string'||value.length>2048)return '';const v=value.trim();if(/^\/(local|media|api\/image\/serve)\/[^\s"'<>\\]+$/.test(v)&&!v.includes('..'))return v;try{const u=new URL(v);return u.protocol==='https:'&&!u.username&&!u.password?u.href:'';}catch{return '';}}
 const id=value=>typeof value==='string'&&/^[a-z_]+\.[a-z0-9_]+$/.test(value)?value:'';
 export function validatePreferences(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.schema!==1)throw new Error('Invalid configuration');
@@ -10,6 +12,7 @@ export function validatePreferences(raw){
  if(raw.energy){for(const key of ['power','total','daily','weekly','monthly','yearly'])out.energy[key]=id(raw.energy[key]);const rate=Number(raw.energy.tariff);if(raw.energy.tariff!==null&&String(raw.energy.tariff??'').trim()!==''&&Number.isFinite(rate)&&rate>=0&&rate<=10000)out.energy.tariff=rate;if(/^[A-Z]{3}$/.test(raw.energy.currency||''))out.energy.currency=raw.energy.currency;}
  if(Array.isArray(raw.waste))out.waste=[...new Set(raw.waste.map(id).filter(x=>x.startsWith('sensor.')||x.startsWith('calendar.')))].slice(0,30);
  if(raw.roomFloor&&typeof raw.roomFloor==='object')for(const [area,floor] of Object.entries(raw.roomFloor).slice(0,200))if(/^[a-zA-Z0-9_-]{1,100}$/.test(area)&&typeof floor==='string'&&floor.length<=100)out.roomFloor[area]=floor;
+ if(raw.roomImages&&typeof raw.roomImages==='object'&&!Array.isArray(raw.roomImages))for(const [area,url] of Object.entries(raw.roomImages).slice(0,200)){const clean=roomImageUrl(url);if(/^[a-zA-Z0-9_-]{1,100}$/.test(area)&&clean)out.roomImages[area]=clean;}
  if(raw.music){out.music.entity=id(raw.music.entity);if(['auto','dark','light','custom'].includes(raw.music.appearance))out.music.appearance=raw.music.appearance;
   if(Array.isArray(raw.music.spotcastTargets))out.music.spotcastTargets=raw.music.spotcastTargets.map(id).filter(x=>x.startsWith('media_player.')).slice(0,30);
   if(raw.music.providers&&typeof raw.music.providers==='object')for(const [entity,provider] of Object.entries(raw.music.providers))if(id(entity)&&['native','spotifyplus'].includes(provider))out.music.providers[entity]=provider;

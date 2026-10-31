@@ -1,5 +1,5 @@
 /** Real-only physical rendering. Original materials/geometry ownership and non-Real looks are preserved. */
-import {ACESFilmicToneMapping, AmbientLight, DataTexture, DirectionalLight, DoubleSide, Float32BufferAttribute, Group, HemisphereLight, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshPhysicalMaterial, NoColorSpace, NormalBlending, PCFSoftShadowMap, PMREMGenerator, RepeatWrapping, RGBADepthPacking, RGBAFormat, SRGBColorSpace, UnsignedByteType, type BufferGeometry, type Camera, type Material, type Scene, type Texture, type WebGLRenderer} from 'three';
+import {AddEquation, AdditiveBlending, CustomBlending, OneFactor, SrcAlphaFactor, ZeroFactor, ACESFilmicToneMapping, AmbientLight, Box3, Color, PointLight, Vector3, DataTexture, DirectionalLight, DoubleSide, Float32BufferAttribute, Group, HemisphereLight, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshPhysicalMaterial, NoColorSpace, NormalBlending, PCFSoftShadowMap, PMREMGenerator, RepeatWrapping, RGBADepthPacking, RGBAFormat, SRGBColorSpace, UnsignedByteType, type BufferGeometry, type Camera, type Material, type Scene, type Texture, type WebGLRenderer} from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {makeFoldable, type FoldMasks, type FoldRole} from './fold.ts';
 export type PbrKind='architecture'|'wood'|'fabric'|'metal'|'glass'|'stone';
@@ -22,7 +22,7 @@ export function pbrHeight(kind:PbrKind,x:number,y:number):number {
 export interface PbrMaps { color:DataTexture;roughness:DataTexture;metalness:DataTexture;normal:DataTexture; }
 export function makePbrMaps(kind:PbrKind,size=128):PbrMaps {
  const n=Math.max(16,Math.min(256,Math.round(size))),c=new Uint8Array(n*n*4),r=new Uint8Array(c.length),m=new Uint8Array(c.length),normal=new Uint8Array(c.length);
- const base:Record<PbrKind,[number,number,number]>={architecture:[224,217,205],wood:[177,124,77],fabric:[158,160,156],metal:[194,199,203],glass:[233,245,247],stone:[199,193,182]};
+ const base:Record<PbrKind,[number,number,number]>={architecture:[216,209,197],wood:[150,100,60],fabric:[158,160,156],metal:[194,199,203],glass:[233,245,247],stone:[199,193,182]};
  const rough:Record<PbrKind,number>={architecture:.86,wood:.55,fabric:.94,metal:.27,glass:.08,stone:.68};
  for(let y=0;y<n;y++)for(let x=0;x<n;x++){const i=(y*n+x)*4,h=pbrHeight(kind,x*128/n,y*128/n),dx=pbrHeight(kind,(x+1)*128/n,y*128/n)-pbrHeight(kind,(x-1)*128/n,y*128/n),dy=pbrHeight(kind,x*128/n,(y+1)*128/n)-pbrHeight(kind,x*128/n,(y-1)*128/n);const length=Math.hypot(dx,dy,1);
   for(let k=0;k<3;k++){c[i+k]=Math.round(Math.min(255,Math.max(0,base[kind][k]*(.9+h*.2))));r[i+k]=Math.round(Math.max(.03,Math.min(1,rough[kind]+(h-.5)*.12))*255);m[i+k]=kind==='metal'?235:0;}
@@ -32,6 +32,10 @@ export function makePbrMaps(kind:PbrKind,size=128):PbrMaps {
  return {color:texture(c,true),roughness:texture(r),metalness:texture(m),normal:texture(normal)};
 }
 export interface PbrGroup {start:number;end:number;kind:PbrKind;}
+/** Lit lamps of the active floors in world coordinates (linear colour 0..1, level 0..1). */
+export interface PbrLamp {x:number;y:number;z:number;color:[number,number,number];level:number;}
+export interface PbrFrame {night?:number;lamps?:readonly PbrLamp[];}
+const MAX_LAMPS=8;
 interface FoldData {masks:FoldMasks;role:FoldRole;}
 interface CacheEntry {kind:PbrKind;material:MeshPhysicalMaterial;}
 export class RealPbrRenderer {
@@ -46,12 +50,18 @@ export class RealPbrRenderer {
  private pmrem:PMREMGenerator|null=null;
  private environmentTarget:ReturnType<PMREMGenerator['fromScene']>|null=null;
  readonly sun=new DirectionalLight(0xfff0dc,3.2);
+ private sky=new HemisphereLight(0xdce9ff,0x68604c,1.25);
+ private lamps:PointLight[]=[];
+ private ambient=new AmbientLight(0xffffff,.06);
+ private bounds=new Box3();
+ private static DAY=new Color(0xfff0dc);private static MOON=new Color(0x9fb3e6);
  private renderer:WebGLRenderer;
  private low:boolean;
  constructor(renderer:WebGLRenderer,low=false){
   this.renderer=renderer;this.low=low;
-  this.sun.position.set(7,12,8);this.sun.castShadow=!low;this.sun.shadow.mapSize.set(low?512:1024,low?512:1024);this.sun.shadow.camera.left=-25;this.sun.shadow.camera.right=25;this.sun.shadow.camera.top=25;this.sun.shadow.camera.bottom=-25;this.sun.shadow.camera.near=.1;this.sun.shadow.camera.far=70;this.sun.shadow.normalBias=.025;this.sun.shadow.bias=-.0002;this.sun.shadow.radius=3;
-  this.lights.add(this.sun,new HemisphereLight(0xdce9ff,0x68604c,1.25),new AmbientLight(0xffffff,.15));
+  this.sun.position.set(7,12,8);this.sun.castShadow=!low;this.sun.shadow.mapSize.set(low?512:2048,low?512:2048);this.sun.shadow.camera.left=-25;this.sun.shadow.camera.right=25;this.sun.shadow.camera.top=25;this.sun.shadow.camera.bottom=-25;this.sun.shadow.camera.near=.1;this.sun.shadow.camera.far=70;this.sun.shadow.normalBias=.025;this.sun.shadow.bias=-.0002;this.sun.shadow.radius=3;
+  this.lights.add(this.sun,this.sun.target,this.sky,this.ambient);
+  for(let i=0;i<(low?3:MAX_LAMPS);i++){const lamp=new PointLight(0xffd6a0,0,6.5,2);lamp.visible=false;this.lamps.push(lamp);this.lights.add(lamp);}
  }
  private textureSet(kind:PbrKind):PbrMaps {let maps=this.maps.get(kind);if(!maps){maps=makePbrMaps(kind,this.low?64:128);this.maps.set(kind,maps);}return maps;}
  private physical(original:MeshBasicMaterial,kind:PbrKind):MeshPhysicalMaterial {
@@ -73,20 +83,40 @@ export class RealPbrRenderer {
   if(!g.getAttribute('uv')||g.userData.aureonPbrUv){g.setAttribute('uv',new Float32BufferAttribute(uv,2));g.userData.aureonPbrUv=true;}
   this.geometryVersions.set(g,{position,version,count:position.count});
  }
- render(scene:Scene,camera:Camera):void {
+ /** Fits the sun's shadow to the house, dims day light by night and lights lit lamps warmly. */
+ private stage(frame:PbrFrame):void {
+  const night=Math.min(1,Math.max(0,frame.night??0)),box=this.bounds;
+  const c=box.isEmpty()?new Vector3():box.getCenter(new Vector3()),r=box.isEmpty()?12:Math.max(4,box.getSize(new Vector3()).length()/2+1);
+  this.sun.target.position.copy(c);this.sun.position.set(c.x+r*.9,c.y+r*1.7,c.z+r*1.1);
+  const cam=this.sun.shadow.camera;if(cam.right!==r||cam.far!==r*5){cam.left=-r;cam.right=r;cam.top=r;cam.bottom=-r;cam.near=.1;cam.far=r*5;cam.updateProjectionMatrix();}
+  this.sun.color.copy(RealPbrRenderer.DAY).lerp(RealPbrRenderer.MOON,night);this.sun.intensity=3.4*(1-night)+.35*night;
+  this.sky.intensity=.7*(1-.8*night);this.ambient.intensity=.06*(1-.5*night);
+  const lamps=(frame.lamps??[]).filter(l=>l.level>0).sort((a,b)=>b.level-a.level);
+  this.lamps.forEach((light,i)=>{const l=lamps[i];light.visible=!!l;if(!l)return;light.position.set(l.x,l.y,l.z);light.color.setRGB(Math.min(1,l.color[0]),Math.min(1,l.color[1]),Math.min(1,l.color[2]));light.intensity=l.level*(3+9*night);});
+ }
+ render(scene:Scene,camera:Camera,frame:PbrFrame={}):void {
   if(!this.environment){const room=new RoomEnvironment();this.pmrem=new PMREMGenerator(this.renderer);this.environmentTarget=this.pmrem.fromScene(room,.04,.1,100);this.environment=this.environmentTarget.texture;room.dispose();}
   const previous={environment:scene.environment,tone:this.renderer.toneMapping,exposure:this.renderer.toneMappingExposure,shadows:this.renderer.shadowMap.enabled,type:this.renderer.shadowMap.type};
   const restore:(()=>void)[]=[];
   try{
-   scene.environment=this.environment;scene.add(this.lights);this.renderer.toneMapping=ACESFilmicToneMapping;this.renderer.toneMappingExposure=1;this.renderer.shadowMap.enabled=!this.low;this.renderer.shadowMap.type=PCFSoftShadowMap;
+   const night=Math.min(1,Math.max(0,frame.night??0)),previousIntensity=(scene as Scene&{environmentIntensity?:number}).environmentIntensity;
+   restore.push(()=>{(scene as Scene&{environmentIntensity?:number}).environmentIntensity=previousIntensity;});
+   (scene as Scene&{environmentIntensity?:number}).environmentIntensity=.42-.3*night;
+   scene.environment=this.environment;scene.add(this.lights);this.renderer.toneMapping=ACESFilmicToneMapping;this.renderer.toneMappingExposure=1-.08*night;
+   this.bounds.makeEmpty();this.renderer.shadowMap.enabled=!this.low;this.renderer.shadowMap.type=PCFSoftShadowMap;
+   // Additive glows (window spill, light cones) add colour but must not write alpha into the transparent canvas,
+   // otherwise they show as dark patches over a host page behind the stage.
+   scene.traverse(object=>{const mesh=object as Mesh,m=mesh.material as Material|undefined;if(!mesh.isMesh||!m||Array.isArray(m)||m.blending!==AdditiveBlending)return;const prev={blending:m.blending,src:m.blendSrc,dst:m.blendDst,eq:m.blendEquation,srcA:m.blendSrcAlpha,dstA:m.blendDstAlpha};m.blending=CustomBlending;m.blendEquation=AddEquation;m.blendSrc=SrcAlphaFactor;m.blendDst=OneFactor;m.blendSrcAlpha=ZeroFactor;m.blendDstAlpha=OneFactor;restore.push(()=>{m.blending=prev.blending;m.blendSrc=prev.src;m.blendDst=prev.dst;m.blendEquation=prev.eq;m.blendSrcAlpha=prev.srcA;m.blendDstAlpha=prev.dstA;});});
    scene.traverse(object=>{const mesh=object as Mesh;if(!mesh.isMesh||!mesh.userData.aureonPbrKind||Array.isArray(mesh.material)||!(mesh.material as MeshBasicMaterial).isMeshBasicMaterial)return;
     const original=mesh.material as MeshBasicMaterial,kind=mesh.userData.aureonPbrKind as PbrKind;if(!PBR_KINDS.includes(kind))return;this.prepareGeometry(mesh.geometry);
+    if(original.visible&&kind!=='glass'){if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();const b=mesh.geometry.boundingBox;if(b&&!b.isEmpty())this.bounds.union(b.clone().applyMatrix4(mesh.matrixWorld));}
     const groups=mesh.userData.aureonPbrGroups as PbrGroup[]|undefined,oldGroups=mesh.geometry.groups,oldCast=mesh.castShadow,oldReceive=mesh.receiveShadow,oldDepth=mesh.customDepthMaterial;
     if(groups?.length){const materials:MeshPhysicalMaterial[]=[];mesh.geometry.groups=[];for(const group of groups){const physical=this.physical(original,group.kind);let index=materials.indexOf(physical);if(index<0){index=materials.length;materials.push(physical);}mesh.geometry.addGroup(group.start*3,(group.end-group.start)*3,index);}mesh.material=materials;}else mesh.material=this.physical(original,kind);
     mesh.castShadow=kind!=='glass';mesh.receiveShadow=true;
     const fold=original.userData.fp3dFold as FoldData|undefined;if(fold){let depth=this.depths.get(original);if(!depth){depth=new MeshDepthMaterial({depthPacking:RGBADepthPacking});makeFoldable(depth,fold.masks,fold.role);this.depths.set(original,depth);this.owned.add(depth);}mesh.customDepthMaterial=depth;}
     restore.push(()=>{mesh.material=original;mesh.geometry.groups=oldGroups;mesh.castShadow=oldCast;mesh.receiveShadow=oldReceive;mesh.customDepthMaterial=oldDepth;});
    });
+   this.stage(frame);
    this.renderer.render(scene,camera);
   }finally{for(const fn of restore.reverse())fn();scene.remove(this.lights);scene.environment=previous.environment;this.renderer.toneMapping=previous.tone;this.renderer.toneMappingExposure=previous.exposure;this.renderer.shadowMap.enabled=previous.shadows;this.renderer.shadowMap.type=previous.type;}
  }

@@ -23,22 +23,35 @@ try{
  await page.goto(`http://127.0.0.1:${server.address().port}`,{waitUntil:'networkidle0'});
  await page.evaluate(setupPlatformFixture);
  await page.waitForFunction(()=>dashboard._platformController?.rows.length>10);
+ // Representative DEMONSTRATION data (synthetic SVGs labelled DEMO): room picture, cover art, avatars, evening sun.
+ await page.evaluate(()=>{const h=platformHass,pic=p=>'/scripts/demo-assets/'+p,s=h.states;
+  s['person.alex'].attributes={...s['person.alex'].attributes,entity_picture:pic('avatar-a.svg'),user_id:'fixture-user'};
+  s['person.sam']={entity_id:'person.sam',state:'home',attributes:{friendly_name:'Sam',entity_picture:pic('avatar-b.svg'),device_trackers:[]}};
+  s['media_player.music']={...s['media_player.music'],state:'playing',attributes:{...s['media_player.music'].attributes,entity_picture:pic('cover.svg'),media_title:'Golden Hour',media_artist:'Demo Ensemble',media_album_name:'Demo',media_position:102,media_duration:236,media_position_updated_at:new Date().toISOString()}};
+  s['sun.sun']={entity_id:'sun.sun',state:'below_horizon',attributes:{elevation:-14,azimuth:250}};
+  const ws=h.callWS;h.callWS=async a=>{if(a.type==='config/area_registry/list')return [{area_id:'room',name:'Living room',picture:pic('room-living.svg')}];const r=await ws(a);if(a.type==='config/entity_registry/list')return [...r,{entity_id:'person.sam',name:'Sam',original_name:'Sam',platform:'person',area_id:null,device_id:null}];return r;};
+  const lamp=nativePlan.floors[0].furniture.find(f=>f.id==='native-lamp');if(lamp)lamp.entity='light.desk';nativeRevision++;
+  dashboard.hass={...h};dashboard._loadRegistry(true);
+  const c=dashboard._platformController;c.patch('energy',{...c.preferences.energy,power:'sensor.power',total:'sensor.total',daily:'sensor.daily'});c.patch('waste',['sensor.waste','calendar.collection']);c.loadEnergy(14);c.loadCalendars(14,['calendar.collection']);
+ });
+ await page.evaluate(()=>{dashboard._navigate('Räume');dashboard._navigate('Início');});
+ await page.waitForFunction(()=>dashboard._platformController?.areas[0]?.picture&&dashboard._platformController.list(['person']).length===2,{timeout:20000});
  const ready=()=>page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-platform')?.shadowRoot.querySelector('aureon-home-plan')?.shadowRoot.querySelector('neonplan3d-card')?.shadowRoot.querySelector('fp3d-view3d')?.shadowRoot.querySelector('canvas'),{timeout:30000});
  await ready();
  const calls=()=>page.evaluate(()=>platformCalls.filter(x=>Array.isArray(x)&&x[0]!=='GET').length);
  const before=await calls();
  // Structure of the reference composition.
- const structure=await page.evaluate(()=>{const r=dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot;return {title:!!r.querySelector('.home-title h2'),weather:!!r.querySelector('.weather-pill'),scene:!!r.querySelector('.home-scene aureon-home-plan'),room:!!r.querySelector('.home-room'),tiles:[...r.querySelectorAll('.home-tile')].map(x=>x.dataset.tile),people:r.querySelectorAll('.person').length,mini:!!dashboard.shadowRoot.querySelector('aureon-platform > aureon-music-player[slot="mini-player"]'),stage:getComputedStyle(r.querySelector('aureon-home-plan').shadowRoot.querySelector('neonplan3d-card').shadowRoot.querySelector('fp3d-view3d').shadowRoot.querySelector('.fp3d-stage')).backgroundImage};});
+ const structure=await page.evaluate(()=>{const r=dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot;return {title:!!r.querySelector('.home-title h2'),weather:!!r.querySelector('.side-weather'),scene:!!r.querySelector('.home-scene aureon-home-plan'),room:!!r.querySelector('.side-room.has-photo img'),tiles:[...r.querySelectorAll('.side-tile')].map(x=>x.dataset.tile),people:r.querySelectorAll('.person').length,mini:!!dashboard.shadowRoot.querySelector('aureon-platform > aureon-music-player[slot="mini-player"]'),stage:getComputedStyle(r.querySelector('aureon-home-plan').shadowRoot.querySelector('neonplan3d-card').shadowRoot.querySelector('fp3d-view3d').shadowRoot.querySelector('.fp3d-stage')).backgroundImage};});
  assert.ok(structure.title&&structure.weather&&structure.scene&&structure.room&&structure.mini,JSON.stringify(structure));
- assert.deepEqual(structure.tiles,['camera','security','energy','heating']);
- assert.equal(structure.people,1);
+ assert.deepEqual(structure.tiles,['security','energy']);
+ assert.equal(structure.people,2);
  assert.equal(structure.stage,'none','native stage integrates into the AUREON background');
- checks.push('reference composition: header, weather, floating native plan, room card, four tiles, mini player, people');
+ checks.push('reference composition: greeting header, floating native plan, overlaid mini player, people, right panel with room picture, security/energy, weather');
  const sizes=[[1440,900],[1180,820],[820,1180],[390,844]];
  for(const [width,height] of sizes){await page.setViewport({width,height});await new Promise(r=>setTimeout(r,900));const w=await page.evaluate(()=>({doc:document.documentElement.scrollWidth,vw:innerWidth}));assert.ok(w.doc<=w.vw,JSON.stringify({width,...w}));await page.screenshot({path:`${out}/home-${width}x${height}.png`,fullPage:true});}
  checks.push('Startseite without horizontal overflow at 1440/1180/820/390');
  // Room panel: dimmed and blurred backdrop, native dialog, no service call by opening.
- for(const [width,height] of [[1440,900],[390,844]]){await page.setViewport({width,height});await new Promise(r=>setTimeout(r,500));await page.click(`${platform} >>> .room-head`);await page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog.room-panel')?.open);await new Promise(r=>setTimeout(r,400));await page.screenshot({path:`${out}/room-panel-${width}x${height}.png`});const backdrop=await page.evaluate(()=>getComputedStyle(dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog.room-panel'),'::backdrop').backdropFilter);assert.match(backdrop,/blur/);await page.keyboard.press('Escape');await page.waitForFunction(()=>!dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog'));}
+ for(const [width,height] of [[1440,900],[390,844]]){await page.setViewport({width,height});await new Promise(r=>setTimeout(r,500));await page.click(`${platform} >>> .side-room-head`);await page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog.room-panel')?.open);await new Promise(r=>setTimeout(r,400));await page.screenshot({path:`${out}/room-panel-${width}x${height}.png`});const backdrop=await page.evaluate(()=>getComputedStyle(dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog.room-panel'),'::backdrop').backdropFilter);assert.match(backdrop,/blur/);await page.keyboard.press('Escape');await page.waitForFunction(()=>!dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog'));}
  assert.equal(await calls(),before,'opening the room panel issues no service call');
  checks.push('room panel opens as native dialog over dimmed/blurred backdrop at desktop and phone, without commands');
  // Palettes and modes: each one renders the same composition with readable tokens.

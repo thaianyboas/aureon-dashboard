@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">
+<!-- Synthetic demonstration room picture for AUREON acceptance captures. Not a real home, not a product default. -->
+<defs>
+<linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1c14"/><stop offset="1" stop-color="#4a3122"/></linearGradient>
+<linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a3a22"/><stop offset="1" stop-color="#2b1a0f"/></linearGradient>
+<linearGradient id="win" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2a44"/><stop offset=".7" stop-color="#3a3350"/><stop offset="1" stop-color="#6b4a3a"/></linearGradient>
+<radialGradient id="lampglow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd38a" stop-opacity=".95"/><stop offset=".4" stop-color="#ffb35c" stop-opacity=".35"/><stop offset="1" stop-color="#ff9a3c" stop-opacity="0"/></radialGradient>
+<radialGradient id="pool" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffcf8a" stop-opacity=".35"/><stop offset="1" stop-color="#ffcf8a" stop-opacity="0"/></radialGradient>
+<linearGradient id="sofa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a1f24"/><stop offset="1" stop-color="#3e0e12"/></linearGradient>
+<linearGradient id="rug" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9b9a0"/><stop offset="1" stop-color="#8f8068"/></linearGradient>
+</defs>
+<rect width="960" height="420" fill="url(#wall)"/>
+<rect x="60" y="70" width="300" height="300" rx="4" fill="url(#win)"/>
+<g stroke="#140d09" stroke-width="10"><line x1="210" y1="70" x2="210" y2="370"/><line x1="60" y1="220" x2="360" y2="220"/></g>
+<g fill="#ffd9a0" opacity=".8"><circle cx="110" cy="300" r="2"/><circle cx="150" cy="320" r="2.5"/><circle cx="260" cy="310" r="2"/><circle cx="300" cy="330" r="3"/><circle cx="330" cy="295" r="2"/></g>
+<rect x="40" y="60" width="40" height="330" fill="#3b2418"/><rect x="340" y="60" width="40" height="330" fill="#3b2418"/>
+<rect y="420" width="960" height="220" fill="url(#floor)"/>
+<g stroke="#00000033" stroke-width="2"><line x1="0" y1="470" x2="960" y2="470"/><line x1="0" y1="530" x2="960" y2="530"/><line x1="0" y1="600" x2="960" y2="600"/></g>
+<ellipse cx="560" cy="560" rx="330" ry="70" fill="url(#rug)" opacity=".85"/>
+<ellipse cx="800" cy="300" rx="260" ry="260" fill="url(#lampglow)"/>
+<ellipse cx="760" cy="470" rx="240" ry="80" fill="url(#pool)"/>
+<rect x="790" y="250" width="8" height="240" fill="#2a1a10"/><path d="M745 180h100l-18 80h-64z" fill="#f2c27a"/><ellipse cx="795" cy="490" rx="40" ry="8" fill="#1a110a"/>
+<path d="M380 360h420a30 30 0 0 1 30 30v80H350v-80a30 30 0 0 1 30-30z" fill="url(#sofa)"/>
+<rect x="350" y="440" width="480" height="60" rx="18" fill="#5d151a"/>
+<g fill="#8e2a30"><rect x="390" y="380" width="120" height="70" rx="20"/><rect x="530" y="380" width="120" height="70" rx="20"/><rect x="670" y="380" width="120" height="70" rx="20"/></g>
+<g fill="#c9ad7f"><rect x="420" y="372" width="60" height="44" rx="12"/><rect x="700" y="372" width="60" height="44" rx="12"/></g>
+<ellipse cx="540" cy="560" rx="120" ry="26" fill="#d9cfbf"/><rect x="430" y="560" width="220" height="16" fill="#7a6a55" opacity=".6"/>
+<circle cx="520" cy="545" r="10" fill="#ffcf7a"/><ellipse cx="520" cy="545" rx="40" ry="20" fill="url(#lampglow)" opacity=".7"/>
+<g fill="#2f5a34"><path d="M900 420c-40-60-30-150 10-200-10 60 20 110 40 140z"/><path d="M880 430c-60-40-90-110-70-160 20 50 60 90 90 110z"/><path d="M915 430c10-70 50-120 40-180-20 60-40 100-55 140z"/></g>
+<rect x="870" y="420" width="60" height="70" rx="8" fill="#2a1d14"/>
+<rect x="18" y="600" width="128" height="26" rx="13" fill="#0009"/><text x="82" y="618" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#fff">DEMO</text>
+</svg>

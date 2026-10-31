@@ -21,6 +21,8 @@ export interface CardConfig {
   keep_view?: boolean;
   /** 3D lock: the angle stays fixed, a drag moves the view (a wall tablet with children around). */
   angle_lock?: boolean;
+  /** AUREON extension: framing of the fitted house view (1 = original bounding-sphere fit, smaller = closer). */
+  aureon_frame?: number;
   /** Pull floors apart in the house view (default true). */
   explode?: boolean;
   /** A "Cameras" button that opens the camera wall, every camera's live picture (Pro: camera cockpit). */
