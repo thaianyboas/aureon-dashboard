@@ -1,9 +1,9 @@
-export const defaults=()=>({schema:1,language:'auto',appearance:'auto',palette:'forest',density:'compact',hidden:[],widgets:{music:true,weather:true,people:true,energy:true,waste:true,security:true},energy:{power:'',total:'',daily:'',weekly:'',monthly:'',yearly:'',tariff:null,currency:'EUR'},waste:[],roomFloor:{},music:{entity:'',appearance:'auto',providers:{},spotcastTargets:[]}});
+export const defaults=()=>({schema:1,floorLook:'real',language:'auto',appearance:'auto',palette:'forest',density:'compact',hidden:[],widgets:{music:true,weather:true,people:true,energy:true,waste:true,security:true},energy:{power:'',total:'',daily:'',weekly:'',monthly:'',yearly:'',tariff:null,currency:'EUR'},waste:[],roomFloor:{},music:{entity:'',appearance:'auto',providers:{},spotcastTargets:[]}});
 const id=value=>typeof value==='string'&&/^[a-z_]+\.[a-z0-9_]+$/.test(value)?value:'';
 export function validatePreferences(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.schema!==1)throw new Error('Invalid configuration');
  const out=defaults();
- for(const [key,allowed] of Object.entries({language:['auto','en','de','pt'],appearance:['auto','dark','light','custom'],density:['compact','comfortable']}))if(allowed.includes(raw[key]))out[key]=raw[key];
+ for(const [key,allowed] of Object.entries({floorLook:['neon','blueprint','day','night','real'],language:['auto','en','de','pt'],appearance:['auto','dark','light','custom'],density:['compact','comfortable']}))if(allowed.includes(raw[key]))out[key]=raw[key];
  if(['black-gold-royal','black-bordeaux-royal','purple','blue','emerald','burgundy','rose-noir','gold','pearl','obsidian','sapphire','forest','terracotta','sand','ocean','amethyst','copper','sage','arctic','ruby','lavender','graphite'].includes(raw.palette))out.palette=raw.palette;
  if(Array.isArray(raw.hidden))out.hidden=[...new Set(raw.hidden.map(id).filter(Boolean))].slice(0,3000);
  if(raw.widgets)for(const key of Object.keys(out.widgets))if(typeof raw.widgets[key]==='boolean')out.widgets[key]=raw.widgets[key];

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MusicController, discoverPlayers, isSpotifyPlus, position, artworkUrl, connectDevices, mediaItems } from '../music/controller.mjs';
+import { relevantMedia, MusicController, discoverPlayers, isSpotifyPlus, position, artworkUrl, connectDevices, mediaItems } from '../music/controller.mjs';
 import { labels } from '../music/locales.mjs';
 const features=1|2|4|16|32|512|2048|16384|32768|262144;
 function fixture(){
@@ -79,4 +79,10 @@ test('categories page a bounded response locally and open category playlists thr
 });
 test('account changes clear pagination and category caches; invalid page/category payloads send nothing',async()=>{
  const {c,hass,calls}=fixture();assert.equal(await c.browse('category','',0,'invalid/id'),false);assert.equal(await c.browse('albums','',NaN),false);assert.equal(calls.length,0);c._categories=[{name:'Private'}];c.pageIndex=4;c.hasNext=true;c.categoryId='private';c.setHass({...hass,user:{id:'next'}});assert.deepEqual(c._categories,[]);assert.equal(c.pageIndex,0);assert.equal(c.hasNext,false);assert.equal(c.categoryId,'');
+});
+
+test('home mini visibility requires meaningful active media and never treats unavailable or idle as playback',()=>{
+ for(const state of ['playing','paused','buffering'])assert.equal(relevantMedia({state,attributes:{media_title:'Track'}}),true);
+ for(const state of ['idle','off','unavailable','unknown'])assert.equal(relevantMedia({state,attributes:{media_title:'Stale track'}}),false);
+ assert.equal(relevantMedia(null),false);assert.equal(relevantMedia({state:'playing',attributes:{}}),false);
 });

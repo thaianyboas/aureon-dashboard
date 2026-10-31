@@ -149,3 +149,5 @@ export class MusicController {
     return this.request('play-item',async()=>{await this.hass.callService('media_player','play_media',{entity_id:this.entityId,media_content_id:item.uri,media_content_type:track?'music':item.uri.split(':')[1]});return true;});
   }
 }
+
+export function relevantMedia(state){return !!(state&&['playing','paused','buffering'].includes(state.state)&&(state.attributes?.media_title||state.attributes?.media_artist||state.attributes?.media_content_id));}

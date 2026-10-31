@@ -4,9 +4,9 @@
   "zip_members_crc_verified": 615,
   "version": "2.0.7",
   "summary": {
-    "identical": 384,
+    "identical": 383,
     "missing": 164,
-    "modified": 28,
+    "modified": 29,
     "added": 14
   },
   "files": [
@@ -377,7 +377,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d.js",
       "original_sha256": "b11a1f23757966e7f6b505cd69934e880135c7c824e2773fa763e34c21838f3f",
-      "candidate_sha256": "9a192bfa5c553c5d8b96ac4c27dc703fd6734cd72af247e7adcf796348f52ba7",
+      "candidate_sha256": "85c7bc9371e2f9787f5ea5ec203a3acaa5ba6751611d0e84254db74407fc50e4",
       "bytes": 738832,
       "status": "modified"
     },
@@ -1903,9 +1903,9 @@
     {
       "path": "frontend/src/card.ts",
       "original_sha256": "b9ddce34205a64d2cb1b02943bae2f8519343353584233c104e93574ea18321c",
-      "candidate_sha256": "b9ddce34205a64d2cb1b02943bae2f8519343353584233c104e93574ea18321c",
+      "candidate_sha256": "a6f2e12ed5f86f317cc9a5b8befc87bd495e9ec5f58e0310efde99410c88fa7a",
       "bytes": 27046,
-      "status": "identical"
+      "status": "modified"
     },
     {
       "path": "frontend/src/components/editor.ts",
@@ -4104,7 +4104,7 @@
     },
     {
       "path": "tests/test_aureon_license_boundary.py",
-      "candidate_sha256": "0514be95eb29ef682afa7bd57b4d3102a98acad0cf8386d3bc9d36b26e89d008",
+      "candidate_sha256": "f5dfff3d9d0b94f137e6d22549d4cd66c9166ce5e00ee97713580963f48e2269",
       "status": "added"
     },
     {

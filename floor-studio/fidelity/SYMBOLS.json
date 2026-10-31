@@ -4,7 +4,7 @@
     "preserved": 2156,
     "missing": 18,
     "modified": 32,
-    "added": 16
+    "added": 17
   },
   "symbols": [
     {
@@ -720,7 +720,7 @@
     {
       "symbol": "card.ts::Floorplan3dCard.getCardSize",
       "original_line": 271,
-      "candidate_line": 271,
+      "candidate_line": 278,
       "original_sha256": "0aa63c86e702a5a1ea1211b60bd4292751d0b51ebed73a17342e1810edf7b2ef",
       "candidate_sha256": "0aa63c86e702a5a1ea1211b60bd4292751d0b51ebed73a17342e1810edf7b2ef",
       "status": "preserved"
@@ -728,7 +728,7 @@
     {
       "symbol": "card.ts::Floorplan3dCard.getGridOptions",
       "original_line": 275,
-      "candidate_line": 275,
+      "candidate_line": 282,
       "original_sha256": "42e9fa8b4b29f8e44d7cb4feb86046521edc57fc15b1dd9fd8c0b121de8e4074",
       "candidate_sha256": "42e9fa8b4b29f8e44d7cb4feb86046521edc57fc15b1dd9fd8c0b121de8e4074",
       "status": "preserved"
@@ -736,7 +736,7 @@
     {
       "symbol": "card.ts::Floorplan3dCard.willUpdate",
       "original_line": 279,
-      "candidate_line": 279,
+      "candidate_line": 286,
       "original_sha256": "671229314893ae5c7bda9f4ca53f88c994d27b2d50888229ca9237c7bd8a80dd",
       "candidate_sha256": "671229314893ae5c7bda9f4ca53f88c994d27b2d50888229ca9237c7bd8a80dd",
       "status": "preserved"
@@ -744,7 +744,7 @@
     {
       "symbol": "card.ts::Floorplan3dCard.canSwitch",
       "original_line": 292,
-      "candidate_line": 292,
+      "candidate_line": 299,
       "original_sha256": "fcfefa28c6b235a26436f15860206be652d757b48ac824f88ef291fb3883de8f",
       "candidate_sha256": "fcfefa28c6b235a26436f15860206be652d757b48ac824f88ef291fb3883de8f",
       "status": "preserved"
@@ -752,7 +752,7 @@
     {
       "symbol": "card.ts::Floorplan3dCard.thumbs",
       "original_line": 296,
-      "candidate_line": 296,
+      "candidate_line": 303,
       "original_sha256": "24c802ab17b781fc81062af5c9838338ae5c70818c4ec338ba2fe7432e1f8df7",
       "candidate_sha256": "24c802ab17b781fc81062af5c9838338ae5c70818c4ec338ba2fe7432e1f8df7",
       "status": "preserved"
@@ -760,7 +760,7 @@
     {
       "symbol": "card.ts::Floorplan3dCard.currentFloor",
       "original_line": 302,
-      "candidate_line": 302,
+      "candidate_line": 309,
       "original_sha256": "f373d7dcf29dcfe30ccda5f865959a523ddb0cbf2a033317aad3dd8477558952",
       "candidate_sha256": "f373d7dcf29dcfe30ccda5f865959a523ddb0cbf2a033317aad3dd8477558952",
       "status": "preserved"
@@ -768,7 +768,7 @@
     {
       "symbol": "card.ts::Floorplan3dCard.back",
       "original_line": 308,
-      "candidate_line": 308,
+      "candidate_line": 315,
       "original_sha256": "8fc4e4be32b561f50ede2352e569c5ee53a900deaebaeaaca1f53618e4ed5adb",
       "candidate_sha256": "8fc4e4be32b561f50ede2352e569c5ee53a900deaebaeaaca1f53618e4ed5adb",
       "status": "preserved"
@@ -776,7 +776,7 @@
     {
       "symbol": "card.ts::Floorplan3dCard.render",
       "original_line": 313,
-      "candidate_line": 313,
+      "candidate_line": 320,
       "original_sha256": "465957948ab630a38e182ebacaabc058b09e6d1151f13325f4c4d2effe0ad906",
       "candidate_sha256": "465957948ab630a38e182ebacaabc058b09e6d1151f13325f4c4d2effe0ad906",
       "status": "preserved"
@@ -17635,6 +17635,12 @@
       "symbol": "aureon-modules/approval.ts::setAureonModuleApproval",
       "candidate_line": 16,
       "candidate_sha256": "bf7e969379669be3bffef76a0e2b22e88c2e3e558e2fbfbbd39899fefa97de21",
+      "status": "added"
+    },
+    {
+      "symbol": "card.ts::Floorplan3dCard.setViewOptions",
+      "candidate_line": 272,
+      "candidate_sha256": "5c5b75649247fb9e8a2dec6d2ba050da72f4ebcebdf697a19c0dac26e5b9bd1a",
       "status": "added"
     },
     {

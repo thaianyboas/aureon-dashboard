@@ -59,3 +59,7 @@ The supplied image is the official visual reference: horizontal large cover left
 Implemented: native transport, volume, seek, shuffle/repeat, actual artwork/title/artist, player/account selection, SpotifyPlus favorites, device discovery/transfer, playlists/albums/favorite tracks and search. Missing capabilities are disabled. Optional Spotcast requires explicit compatible destination. Player/account/provider/appearance/optional destination settings persist through the scoped platform preferences. Categories and offset pagination are implemented; remaining provider edge cases need live acceptance.
 
 Browser checks use synthetic artwork and mocked HA services, including the actual dashboard container. Checks cover service payloads, synchronization, errors, injection, keyboard focus, cleanup and 1440/820/390 px layouts. This does not replace live backend validation or the user's final visual approval.
+
+## Startseite/Medien continuation — 2026-10-31
+
+`HOME_MEDIA_CHECKPOINT_2026-10-31.md` records the native central card, presentation-only five-look updates, right-hand summaries, bottom people, slotted secondary Compact player and internal shell-preserving navigation. Shared controller/destination and idle hiding have explicit browser assertions. Premium room imagery, uploaded-image privacy/storage and actual native room thumbnails remain unimplemented; no visual approval or A/B completion is claimed.

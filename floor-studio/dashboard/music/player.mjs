@@ -1,5 +1,5 @@
 import { LitElement, html, svg, nothing, unsafeCSS } from '../../neonplan3d-main/frontend/node_modules/lit/index.js';
-import { MusicController, artworkUrl, position, trackId } from './controller.mjs';
+import { MusicController, relevantMedia, artworkUrl, position, trackId } from './controller.mjs';
 import { labels } from './locales.mjs';
 import { styles } from './styles.mjs';
 const paths={home:'M3 10 12 3l9 7v11h-6v-7H9v7H3z',search:'M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',library:'M4 3v18M9 3v18M15 4l5 16M14 4l4-1 5 16-4 1z',heart:'M20.5 4.5C17 1 13 4 12 6c-1-2-5-5-8.5-1.5C-1 9 4 15 12 21c8-6 13-12 8.5-16.5z',play:'m8 4 13 8L8 20z',pause:'M7 5h3v14H7zM14 5h3v14h-3z',previous:'M5 4v16M20 4 7 12l13 8z',next:'M19 4v16M4 4l13 8L4 20z',shuffle:'M3 6h3c6 0 6 12 12 12h3m-4-4 4 4-4 4M3 18h3c2 0 3-2 4-4m4-4c1-2 2-4 4-4h3m-4-4 4 4-4 4',repeat:'m17 2 4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4m14-3v4a3 3 0 0 1-3 3H3',volume:'M3 9h4l5-5v16l-5-5H3zM16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14',settings:'M3 6h7m4 0h7M3 12h12m4 0h2M3 18h3m4 0h11M10 3v6m5 0v6M6 15v6',devices:'M14 21H4V3h16v8M8 17h1m7-3h6v9h-6zm2 6h1',expand:'M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5',close:'m5 5 14 14M19 5 5 19'};
@@ -26,17 +26,17 @@ export class AureonMusicPlayer extends LitElement {
   control(name,handler,{disabled=false,active=false,primary=false,extra=false}={}){
     return html`<button type="button" data-action=${name} aria-label=${this.t[name] || name} title=${this.t[name] || name} class=${`${active?'active ':''}${primary?'primary ':''}${extra?'extra':''}`} ?disabled=${disabled} aria-pressed=${['shuffle','repeat'].includes(name)?String(active):nothing} @click=${handler}>${icon(name)}</button>`;
   }
-  onExpand(){if(this.compact){this.dispatchEvent(new CustomEvent('aureon-music-open',{bubbles:true,composed:true}));return;}if(document.fullscreenElement===this)this.ownerDocument.exitFullscreen?.().catch(()=>{});else this.requestFullscreen?.().catch(()=>{});}
+  onExpand(){if(this.compact){this.controller.view='player';this.controller.emit();this.dispatchEvent(new CustomEvent('aureon-music-open',{bubbles:true,composed:true}));return;}if(document.fullscreenElement===this)this.ownerDocument.exitFullscreen?.().catch(()=>{});else this.requestFullscreen?.().catch(()=>{});}
   player(){
     const c=this.controller,t=this.t,state=c.state,a=state?.attributes || {},p=position(state),art=artworkUrl(a.entity_picture_local || a.entity_picture || a.sp_nowplaying_image_url,c.hass);
     const playing=state?.state==='playing',busy=c.pending.has('transport'),live=c.ready;
     const title=!state?t.none:!live?t.unavailable:a.media_title || t.idle;
     const favorite=c.advanced('check_track_favorites')&&c.advanced('save_track_favorites')&&c.advanced('remove_track_favorites')&&!!trackId(state);
     return html`<section class="stage" aria-label=${t.player}>
-      <div class="cover">${art?html`<img src=${art} alt=${t.artwork} referrerpolicy="no-referrer" @load=${e=>{e.target.hidden=false;}} @error=${e=>{e.target.hidden=true;}}>`:html`<span class="placeholder" aria-hidden="true">◇</span>`}</div>
+      <div class="cover">${this.compact?html`<button class="cover-open" aria-label=${t.expand} @click=${()=>this.onExpand()}></button>`:nothing}${art?html`<img src=${art} alt=${t.artwork} referrerpolicy="no-referrer" @load=${e=>{e.target.hidden=false;}} @error=${e=>{e.target.hidden=true;}}>`:html`<span class="placeholder" aria-hidden="true">◇</span>`}</div>
       <div class="panel">
         <div class="meta"><span class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>${a.media_album_name?`${t.playingFrom} · ${a.media_album_name}`:t.player}</span></div>
-        <div class="title-row"><div class="details"><h2 class="title">${title}</h2><p class="artist">${a.media_artist || (live?(a.source || a.friendly_name || ''):t.choose)}</p></div><button type="button" class=${`circle favorite ${c.favorite===true?'liked':''}`} data-action="favorite" title=${t.favoriteUnknown} aria-label=${t.favoriteUnknown} aria-pressed=${c.favorite===null?'mixed':String(c.favorite)} ?disabled=${!favorite || c.pending.has('favorite')} @click=${()=>c.toggleFavorite()}>${icon('heart')}</button></div>
+        <div class="title-row"><div class="details"><h2 class="title">${this.compact?html`<button class="track-open" @click=${()=>this.onExpand()}>${title}</button>`:title}</h2><p class="artist">${a.media_artist || (live?(a.source || a.friendly_name || ''):t.choose)}</p>${this.compact?html`<p class="destination">${a.source||a.sp_device_name||a.friendly_name||c.entityId} · ${t["state_"+state?.state]||state?.state||""}</p>`:nothing}</div><button type="button" class=${`circle favorite ${c.favorite===true?'liked':''}`} data-action="favorite" title=${t.favoriteUnknown} aria-label=${t.favoriteUnknown} aria-pressed=${c.favorite===null?'mixed':String(c.favorite)} ?disabled=${!favorite || c.pending.has('favorite')} @click=${()=>c.toggleFavorite()}>${icon('heart')}</button></div>
         <div class="progress"><input type="range" aria-label=${t.seek} min="0" max=${p.duration || 1} step="1" .value=${String(p.value)} style=${`--progress:${p.duration?p.value/p.duration*100:0}%`} ?disabled=${!c.can('seek') || !p.duration || busy} @change=${e=>c.command('seek',e.target.value)}><div class="times"><span>${time(p.value)}</span><span>${time(p.duration)}</span></div></div>
         <div class="transport">
           ${this.control('shuffle',()=>c.command('shuffle'),{disabled:!c.can('shuffle')||busy,active:!!a.shuffle,extra:true})}
@@ -45,6 +45,7 @@ export class AureonMusicPlayer extends LitElement {
           ${this.control('next',()=>c.command('next'),{disabled:!c.can('next')||busy})}
           ${this.control('repeat',()=>c.command('repeat'),{disabled:!c.can('repeat')||busy,active:['all','one'].includes(a.repeat),extra:true})}
         </div>
+        ${this.compact?html`<label class="mini-volume">${icon("volume")}<input type="range" aria-label=${t.volume} min="0" max="1" step=".01" .value=${String(Number(a.volume_level)||0)} ?disabled=${!c.can("volume")||busy} @change=${e=>c.command("volume",e.target.value)}></label>`:nothing}
         <div class="dock">${icon('volume')}<input type="range" aria-label=${t.volume} min="0" max="1" step=".01" .value=${String(Number(a.volume_level)||0)} ?disabled=${!c.can('volume')||busy} @change=${e=>c.command('volume',e.target.value)}>${this.control('settings',()=>this.navigate('settings'))}${this.control('devices',()=>c.loadDevices())}${this.control('expand',()=>this.onExpand())}</div>
       </div>
       ${this.compact?html`<button class="open-full" type="button" aria-label=${t.expand} @click=${()=>this.onExpand()}>${icon('expand')}</button>`:nothing}
@@ -70,7 +71,7 @@ export class AureonMusicPlayer extends LitElement {
       <div class="items">${c.results.map(item=>{const art=artworkUrl((item.images || item.icons || item.album?.images)?.[0]?.url || item.image_url,c.hass);return html`<button class="item" ?disabled=${c.pending.has('play-item')} @click=${()=>item.category?c.openCategory(item):c.playItem(item,{spotcastTarget:this._spotcastTarget})}>${art?html`<img loading="lazy" src=${art} alt="" referrerpolicy="no-referrer">`:nothing}<strong>${item.name}</strong><small>${item.artists?.map(a=>a.name).join(', ') || item.owner?.display_name || ''}</small></button>`;})}</div><div class="tabs" aria-label=${t.pages}><button class="chip" ?disabled=${loading||c.pageIndex===0} @click=${()=>c.changePage(-1)}>${t.previousPage}</button><span>${t.page} ${c.pageIndex+1}</span><button class="chip" ?disabled=${loading||!c.hasNext} @click=${()=>c.changePage(1)}>${t.nextPage}</button></div>
     </section>`;
   }
-  render(){const c=this.controller,t=this.t;if(!c)return html`<p>${t.loading}</p>`;const view=this.compact?'player':c.view;const art=artworkUrl(c.state?.attributes?.entity_picture_local || c.state?.attributes?.entity_picture || c.state?.attributes?.sp_nowplaying_image_url,c.hass);
+  render(){const c=this.controller,t=this.t;this.hidden=!!(this.compact&&!relevantMedia(c?.state));if(this.hidden)return nothing;if(!c)return html`<p>${t.loading}</p>`;const view=this.compact?'player':c.view;const art=artworkUrl(c.state?.attributes?.entity_picture_local || c.state?.attributes?.entity_picture || c.state?.attributes?.sp_nowplaying_image_url,c.hass);
     const mode=this.appearance==='auto'?(c.hass?.themes?.darkMode===false?'light':'dark'):this.appearance;
     return html`<div class=${`shell ${this.compact?'compact':''} ${mode}`}><div class="ambient" style=${art?`background-image:url(${JSON.stringify(art)})`:''}></div><div class="wash"></div>
       <header class="top"><span class="brand">AUREON MUSIC</span><select aria-label=${t.account} .value=${c.entityId} @change=${e=>this.selectPlayer(e.target.value)} ?disabled=${!c.players.length}>${this.options()}</select></header>

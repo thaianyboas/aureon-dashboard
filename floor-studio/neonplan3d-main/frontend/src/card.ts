@@ -268,6 +268,13 @@ clearTimeout(this.cleanTimer);
     this.armIdle();
   }
 
+  /** Presentation changes keep native floor selection, camera and building state intact. */
+  setViewOptions(options: Pick<CardConfig, "height" | "theme">): void {
+    if (options.height !== undefined && !(Number.isFinite(options.height) && options.height > 100)) throw new Error("Invalid view height");
+    if (options.theme !== undefined && !["neon", "blueprint", "day", "night", "real", "auto"].includes(options.theme)) throw new Error("Invalid view theme");
+    this._config = { ...this._config, ...options };
+  }
+
   getCardSize(): number {
     return Math.ceil((this._config?.height ?? 420) / 50);
   }
