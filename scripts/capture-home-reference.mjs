@@ -57,7 +57,7 @@ try{
  // Palettes and modes: each one renders the same composition with readable tokens.
  await page.setViewport({width:1440,height:900});
  const palettes=await page.evaluate(()=>[...dashboard.shadowRoot.querySelector('aureon-platform').palettes].map(p=>p.id));
- assert.equal(palettes.length,22);
+ assert.equal(palettes.length,23);assert.ok(palettes.includes("forest-botanical"));
  for(const [appearance,palette] of [['custom','forest'],['custom','black-gold-royal'],['custom','sapphire'],['custom','pearl'],['custom','terracotta'],['light','forest'],['dark','forest']]){
   await page.evaluate(([appearance,palette])=>{const c=dashboard._platformController;c.patch('appearance',appearance);c.patch('palette',palette);dashboard._theme={...dashboard._theme,mode:appearance,palette};dashboard._render();},[appearance,palette]);
   await ready();await new Promise(r=>setTimeout(r,900));
