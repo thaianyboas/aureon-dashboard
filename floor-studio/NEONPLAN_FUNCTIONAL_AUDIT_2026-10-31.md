@@ -22,7 +22,7 @@ Legenda: **validado** = fluxo executado de ponta a ponta com resultado conferido
 | Vista 3D ao lado / renderer | `fp3d-view3d`, `viewer3d.ts` | Original + 4 métodos com extensão revisada (enquadramento opcional, padrão = original) | fidelidade caso 08; renderer 9 checagens; captura 3D da planta privada no card original | **validado** | — |
 | Looks Neon/Blueprint/Day | `themes.ts`, `viewer/theme.ts` | Original | renderer: troca de looks sem recriar card/andar | **validado** | — |
 | Night (4º modo AUREON) | extensão AUREON | `viewer/theme.ts` | renderer + capturas `look-night` | **validado** | Aprovação visual sua |
-| Real/PBR (5º modo AUREON) | extensão AUREON | `viewer/real-pbr.ts`: sombra ajustada ao tamanho da casa (2048 px), dia/noite pelo `sun.sun`, lâmpadas acesas viram luzes quentes, brilhos aditivos sem manchas | testes Real (grain/shader/regressão) + captura `look-real` com lâmpada demo à noite | **parcial** | Materiais de modelos importados (GLB) e aprovação visual |
+| Real/PBR (5º modo AUREON) | extensão AUREON | `viewer/real-pbr.ts`: sombra ajustada ao tamanho da casa (2048 px), dia/noite pelo `sun.sun`, lâmpadas acesas viram luzes quentes (as 2 mais fortes com sombra em qualidade Alta), brilhos aditivos sem manchas, cada material de piso original com superfície física própria (parquet, deck, cerâmica, pedra, cimento, carpete), sem o reflexo de janela no chão inexistente | testes Real (grain/shader/regressão) + captura `look-real` com lâmpada demo à noite | **parcial** | Materiais de modelos importados (GLB) e aprovação visual |
 | Configurações | `renderSettingsMenu` | Original | fidelidade caso 09 | **parcial** | Persistência de cada opção individual |
 | Usuário não administrador | permissões do editor | Original | editor-browser: sem criar andar, móveis desabilitados | **validado** | — |
 | Vínculo a entidades/áreas | formulários + `bindings.py` | Original + gravação com revisão | testes de backend e de vínculo (fixture) | **parcial** | Teste com HA real |
@@ -40,6 +40,7 @@ Observação: durante a comparação, um recurso respondeu 403 no servidor local
 | --- | --- | --- |
 | `card.ts::Floorplan3dCard.render` | repassa `aureon_frame` ao 3D | 1 = enquadramento original |
 | `view3d.ts::Fp3dView3d.start` / `updated` | encaminham `frameScale` ao viewer | sem efeito em 1 |
-| `viewer3d.ts::FloorplanViewer.fit` | raio × `frameScale`; vista inicial salva continua prevalecendo | 1 = original |
+| `viewer3d.ts::FloorplanViewer.fit` | com `frameScale` ≠ 1: enquadramento pela caixa projetada da casa (preenche palcos largos e altos), `frameScale` = margem; vista inicial salva continua prevalecendo | 1 = esfera original |
+| `viewer3d.ts::FloorplanViewer.resize` | uma linha: se a câmera ainda mostra o enquadramento AUREON, um novo formato de palco reenquadra | 1 = original |
 
-Além disso, somente CSS: `--aureon-stage-background` e `--aureon-card-background` (vazios = fundo original). O gate de fidelidade passa a conferir esses 4 métodos pelo hash revisado. Qualquer nova mudança neles volta a falhar até ser revisada.
+Além disso, somente CSS: `--aureon-stage-background` e `--aureon-card-background` (vazios = fundo original). O gate de fidelidade passa a conferir esses 5 métodos pelo hash revisado. Qualquer nova mudança neles volta a falhar até ser revisada.

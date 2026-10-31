@@ -82,5 +82,5 @@ export const platformStyles=`
 /* <=1250: narrower side; <=1000: side below in two columns; phones: one column sequence. */
 @container (max-width:1180px){.home-grid{grid-template-columns:minmax(0,1fr) 260px}}
 @container (max-width:980px){.home-grid{grid-template-columns:1fr}.home-scene{height:clamp(360px,64cqi,560px);min-height:360px}.home-side{grid-template-columns:1fr 1fr;gap:12px}.home-side .room-feature{grid-column:1/-1}}
-@container (max-width:560px){.home-luxe{padding:4px 2px 8px}.home-top{flex-wrap:wrap;gap:10px;margin-bottom:14px}.home-title h1{font-size:34px}.subtitle{font-size:15px}.home-clock{justify-items:start;padding:0}.home-scene{height:clamp(310px,96cqi,400px);min-height:310px}.home-people{display:grid;grid-template-columns:1fr}.person{min-width:0}.home-side{grid-template-columns:1fr}.side-tiles{grid-template-columns:1fr 1fr}}
+@container (max-width:560px){.home-luxe{padding:4px 2px 8px}.home-top{flex-wrap:wrap;gap:10px;margin-bottom:14px}.home-title h1{font-size:34px}.subtitle{font-size:15px}.home-clock{justify-items:start;padding:0}.home-scene{height:clamp(270px,80cqi,350px);min-height:270px}.home-people{display:grid;grid-template-columns:1fr}.person{min-width:0}.home-side{grid-template-columns:1fr}.side-tiles{grid-template-columns:1fr 1fr}}
 `;

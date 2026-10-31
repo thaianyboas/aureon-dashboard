@@ -16387,8 +16387,9 @@
       "original_line": 2136,
       "candidate_line": 2143,
       "original_sha256": "2f43831b3cc3b52091fa8764511d829ad454f6c96111d8751f6743c1573a74ca",
-      "candidate_sha256": "2f43831b3cc3b52091fa8764511d829ad454f6c96111d8751f6743c1573a74ca",
-      "status": "preserved"
+      "candidate_sha256": "bf08bd584d742499b51ee0d1efc697f35822d788c4fa198ead2e05a1a0450e1f",
+      "status": "aureon_extension",
+      "note": "One added line: while the camera still shows the AUREON presentation fit (frameScale ≠ 1, radius unchanged), a new stage shape re-fits it. Original behaviour unchanged at frameScale = 1."
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.disposeRetired",
@@ -16675,9 +16676,9 @@
       "original_line": 4020,
       "candidate_line": 4035,
       "original_sha256": "f05fdb1ffaa701612329f0082906de8c06efdfcea4bb6b6af4ec75f430ce48b0",
-      "candidate_sha256": "f7e58900b67c6c9722d11ce9372e46d5e6317f30c3f572917a6c4778623597e4",
+      "candidate_sha256": "18a97290c6e64c64f829bfd12196f145f4ab5ae44fc7e82539ae9017bdffd667",
       "status": "aureon_extension",
-      "note": "Radius multiplied by frameScale (1 = original bounding-sphere fit); start views still win."
+      "note": "frameScale ≠ 1 (AUREON only): projected-box fit (projectedFit) with frameScale as margin, records aureonFitted; frameScale = 1 keeps the original bounding-sphere fit; start views still win."
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.placeGround",

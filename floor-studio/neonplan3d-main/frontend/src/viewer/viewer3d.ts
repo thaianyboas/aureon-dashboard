@@ -917,6 +917,10 @@ export class FloorplanViewer {
     const next = Number.isFinite(scale) ? Math.min(1.5, Math.max(0.5, scale)) : 1;
     if (next === this.frameScale) return;
     this.frameScale = next;
+    // the stage may have changed shape together with the frame: fit to its current aspect
+    const w = this.host.clientWidth || 1, h = this.host.clientHeight || 1;
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
     if (this.building) this.fit(350);
   }
   private frameScale = 1;
@@ -2157,8 +2161,13 @@ export class FloorplanViewer {
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    // AUREON presentation fit: while the camera still shows the fitted view, a new stage shape re-fits it
+    if (this.frameScale !== 1 && this.aureonFitted && Math.abs(this.controls.view.radius - this.aureonFitted) < 1e-3) this.fit(0);
     this.invalidate();
   }
+
+  /** AUREON: radius of the last presentation fit (null once nothing was fitted). */
+  private aureonFitted: number | null = null;
 
   /** Materials of a previous build, disposed after the next frame (see clear()). */
   private retired: Material[] = [];
@@ -2570,6 +2579,8 @@ export class FloorplanViewer {
       const spillMesh = new Mesh(new Geometry(), materials.cones);
       spillMesh.visible = false;
       spillMesh.renderOrder = 3;
+      // AUREON Real: no ground is drawn there, so the window spill on the ground would float in the void
+      spillMesh.userData.aureonHideInReal = true;
       const haloMesh = new Points(new Geometry(), materials.halos);
       haloMesh.visible = false;
       haloMesh.renderOrder = 7;
@@ -4083,7 +4094,46 @@ export class FloorplanViewer {
       this.controls.flyTo({ target: new Vector3(cur.target.x, center.y, cur.target.z), radius: cur.radius, phi: cur.phi, theta: cur.theta }, duration);
       return;
     }
+    // AUREON presentation (frameScale ≠ 1, never the original default): fit the projected building box to the
+    // stage instead of its bounding sphere, so elongated plans fill wide and tall stages; frameScale is the margin.
+    if (this.frameScale !== 1 && !useRadius) {
+      const phi = start ? start.phi : 0.85, theta = start ? start.theta : -0.6;
+      const tight = this.projectedFit(box, center, phi, theta);
+      this.aureonFitted = tight.radius * this.frameScale;
+      this.controls.flyTo({ target: tight.target, radius: this.aureonFitted, phi, theta }, duration, !!start);
+      return;
+    }
     this.controls.flyTo({ target: center, radius: useRadius ? start!.radius : radius, phi: start ? start.phi : 0.85, theta: start ? start.theta : -0.6 }, duration, !!start);
+  }
+
+  /** AUREON: the smallest orbit radius whose view contains all box corners, with the target re-centred on screen. */
+  private projectedFit(box: Box3, center: Vector3, phi: number, theta: number): { target: Vector3; radius: number } {
+    const cam = this.camera.clone();
+    const corners: Vector3[] = [];
+    for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) corners.push(new Vector3(x, y, z));
+    const target = center.clone();
+    const place = (r: number) => {
+      cam.position.set(target.x + r * Math.sin(phi) * Math.sin(theta), target.y + r * Math.cos(phi), target.z + r * Math.sin(phi) * Math.cos(theta));
+      cam.lookAt(target);
+      cam.updateMatrixWorld(true);
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (const c of corners) { const p = c.clone().project(cam); x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y); }
+      return { x0, x1, y0, y1 };
+    };
+    const solve = () => {
+      let lo = 0.5, hi = 400;
+      for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2, b = place(mid); if (b.x0 >= -1 && b.x1 <= 1 && b.y0 >= -1 && b.y1 <= 1) hi = mid; else lo = mid; }
+      return hi;
+    };
+    let radius = solve();
+    for (let pass = 0; pass < 3; pass++) {
+      const b = place(radius);
+      const dist = cam.position.distanceTo(target), halfH = dist * Math.tan((cam.fov * DEG) / 2), halfW = halfH * cam.aspect;
+      const right = new Vector3().setFromMatrixColumn(cam.matrixWorld, 0), up = new Vector3().setFromMatrixColumn(cam.matrixWorld, 1);
+      target.addScaledVector(right, ((b.x0 + b.x1) / 2) * halfW).addScaledVector(up, ((b.y0 + b.y1) / 2) * halfH);
+      radius = solve();
+    }
+    return { target, radius: Math.max(radius, 2) };
   }
 
   /** The ground grid lies under the lowest floor and reaches well beyond the building. */
