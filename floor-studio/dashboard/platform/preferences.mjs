@@ -1,6 +1,6 @@
 export const defaults=()=>({schema:1,floorLook:'real',language:'auto',appearance:'auto',palette:'forest',density:'compact',hidden:[],widgets:{music:true,weather:true,people:true,energy:true,waste:true,security:true},energy:{power:'',total:'',daily:'',weekly:'',monthly:'',yearly:'',tariff:null,currency:'EUR'},waste:[],roomFloor:{},roomImages:{},music:{entity:'',appearance:'auto',providers:{},spotcastTargets:[]}});
 // Room pictures: the owner's own files in Home Assistant (/local/…, media/image proxy) or an https address. Never embedded data.
-export function roomImageUrl(value){if(typeof value!=='string'||value.length>2048)return '';const v=value.trim();if(/^\/(local|media|api\/image\/serve)\/[^\s"'<>\\]+$/.test(v)&&!v.includes('..'))return v;try{const u=new URL(v);return u.protocol==='https:'&&!u.username&&!u.password?u.href:'';}catch{return '';}}
+export function roomImageUrl(value){if(typeof value!=='string'||value.length>2048)return '';const v=value.trim();if(v==='none'||/^preset:(living|kitchen|dining|bedroom|bathroom|hallway|balcony|entrance|controlroom)$/.test(v))return v;if(/^\/(local|media|api\/image\/serve)\/[^\s"'<>\\]+$/.test(v)&&!v.includes('..'))return v;try{const u=new URL(v);return u.protocol==='https:'&&!u.username&&!u.password?u.href:'';}catch{return '';}}
 const id=value=>typeof value==='string'&&/^[a-z_]+\.[a-z0-9_]+$/.test(value)?value:'';
 export function validatePreferences(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.schema!==1)throw new Error('Invalid configuration');

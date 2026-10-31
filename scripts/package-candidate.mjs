@@ -5,6 +5,7 @@ const base = 'build/floor-studio-candidate';
 rmSync(base, { recursive: true, force: true });
 mkdirSync(`${base}/dist`, { recursive: true });
 cpSync('build/dashboard/aureon-dashboard.js', `${base}/dist/aureon-dashboard.js`);
+cpSync('build/dashboard/aureon-assets', `${base}/dist/aureon-assets`, { recursive: true });
 cpSync('floor-studio/neonplan3d-main/custom_components', `${base}/custom_components`, { recursive: true, filter: p => !p.split(/[\\/]/).some(x => ['__pycache__', '.pytest_cache', 'node_modules'].includes(x)) && !p.endsWith('.pyc') });
 cpSync('floor-studio/neonplan3d-main/LICENSE', `${base}/NEONPLAN3D-LICENSE`);
 cpSync('build/dashboard/DASHBOARD_BUILD.json', `${base}/DASHBOARD_BUILD.json`);

@@ -72,4 +72,22 @@ export const styles=`
 @container (max-width:980px){.full .top{grid-template-columns:minmax(0,1fr) auto}.full .sources{grid-column:1/-1;grid-row:2;justify-self:stretch}.full .main{grid-template-columns:1fr}.full .now{grid-template-columns:minmax(220px,.9fr) minmax(0,1.1fr);column-gap:22px;align-items:center}.full .now .cover{grid-row:1/7}.full .lower{grid-template-columns:1fr 1fr}.full .lower>.box:first-child{grid-column:1/-1}.full .shelf-row{grid-auto-columns:clamp(110px,22cqi,150px)}}
 @container (max-width:600px){.full.shell{padding:12px}.full .top{gap:10px}.full .now{grid-template-columns:1fr}.full .now .cover{grid-row:auto;aspect-ratio:1/.9}.full .lower{grid-template-columns:1fr}.full .sources button span{display:none}.full .sources button.active span{display:inline}.full .shelf-row{grid-auto-columns:42%}.full .transport .primary{width:68px;height:68px}}
 .full.light .now,.full.light .box,.full.light .search,.full.light .sources{background:color-mix(in srgb,#fff 70%,transparent)}
+
+/* Compact v3 (design package): progress and duration always visible on their own row. */
+.compact .panel{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"meta transport volume" "progress progress progress";row-gap:6px;padding:10px 44px 10px 14px}
+.compact .title-row{grid-area:meta}.compact .transport{grid-area:transport}.compact .mini-volume{grid-area:volume}
+.compact .progress{grid-area:progress;display:flex!important;align-items:center;gap:10px;margin:0}.compact .progress input{flex:1;min-width:40px;order:1}.compact .times{display:contents;font-size:11px}.compact .times span:first-child{order:0}.compact .times span:last-child{order:2}
+.compact .title{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:16px;letter-spacing:0}
+.compact .cover{height:62px;width:62px;align-self:center}
+@container (max-width:600px){.compact .panel{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"meta transport" "progress progress"}.compact .mini-volume{display:none}.compact .title{white-space:normal;overflow-wrap:anywhere}}
+
+/* AUREON palette (custom) gets the same themed controls as dark; display serif per design package. */
+.shell.custom{--m-green:var(--au-accent,#40dc8e);--m-text:var(--au-text,#f8fafc);--m-muted:var(--au-muted,#d0d4df);--m-line:var(--au-border,rgba(213,230,255,.23))}
+.shell.custom input[type=range]{background:linear-gradient(90deg,color-mix(in srgb,var(--m-green) 55%,transparent) 0%,var(--m-green) var(--progress,0%),color-mix(in srgb,var(--m-muted) 30%,transparent) var(--progress,0%),color-mix(in srgb,var(--m-muted) 30%,transparent) 100%)}
+.shell.custom .transport .primary{background:color-mix(in srgb,var(--au-bg,#07131b) 55%,transparent);color:var(--m-green);border:2px solid var(--m-green);box-shadow:0 0 28px color-mix(in srgb,var(--m-green) 38%,transparent),inset 0 0 18px color-mix(in srgb,var(--m-green) 14%,transparent)}
+.shell.custom select,.shell.custom .pane{background:color-mix(in srgb,var(--au-surface,#122531) 88%,transparent);color:var(--m-text)}
+.shell.custom .mini-volume input{background:transparent}
+.full .title,.full .box h3,.full .shelf-head h3,.full .pane h2,.full .empty-shelves h2{font-family:Georgia,'Times New Roman',serif;font-weight:400}
+.full .title{font-size:clamp(19px,1.8cqi,24px)}
+@container (max-width:600px){.compact .track-open{white-space:normal;overflow:visible;text-overflow:clip}}
 `;
