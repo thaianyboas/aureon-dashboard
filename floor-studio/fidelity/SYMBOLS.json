@@ -1123,32 +1123,36 @@
       "original_line": 1481,
       "candidate_line": 1480,
       "original_sha256": "b83fc3358c0b048f9445183d21e5f22e73d8528cee029f3f85f642c0b192936f",
-      "candidate_sha256": "b83fc3358c0b048f9445183d21e5f22e73d8528cee029f3f85f642c0b192936f",
-      "status": "preserved"
+      "candidate_sha256": "840ef4d02efc4420f5739216fe89c16fc9d8275a76be2fb1c05401ada9f65046",
+      "status": "aureon_extension",
+      "note": "One added drag kind: an AUREON wall drag (\"roomedge\") is guarded like a vertex or room drag (fixed/locked plan stays untouched)."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.pointerDown",
       "original_line": 1498,
       "candidate_line": 1497,
       "original_sha256": "0db0e67702fba99bb95f33039b3fc69e1d9cd288996a39a03886af5b3c0fc387",
-      "candidate_sha256": "0db0e67702fba99bb95f33039b3fc69e1d9cd288996a39a03886af5b3c0fc387",
-      "status": "preserved"
+      "candidate_sha256": "863c24a70edf309ecfe0ad0a796fa1f112bf32f30fcd998808116cec7cd3eacf",
+      "status": "aureon_extension",
+      "note": "Added before the room fallback, only for admins with the Select tool: a tap within 7 px of a room outline edge picks that wall (plans made of rooms only — e.g. imported — have no free walls). The drag collects every corner on that straight wall line (all collinear touching room edges; Shift: this segment only). Original order for handles, openings, furniture, free walls and rooms before it is unchanged."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.onPointerMove",
       "original_line": 1888,
       "candidate_line": 1887,
       "original_sha256": "e85b8d92682692793012722393b81640141aeba006a9da0529677090eb235fe6",
-      "candidate_sha256": "e85b8d92682692793012722393b81640141aeba006a9da0529677090eb235fe6",
-      "status": "preserved"
+      "candidate_sha256": "1454f0ee8e59ecde838c52091f041e160bc54b923a8af64dd95422c8d45d9298",
+      "status": "aureon_extension",
+      "note": "Two AUREON parts: new \"roomedge\" case moves the collected corners across the wall (grid snap, Alt free) and keeps doors/windows in place; the \"vertex\" case moves coincident corners of other rooms along (Shift: original single-room behaviour) and snaps against the corners as they were before the drag. Other cases unchanged."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.onPointerUp",
       "original_line": 2431,
       "candidate_line": 2430,
       "original_sha256": "2f5b4e7982d8ae4740ae6ca58c947d6e80ccab53f359f46202d30cc102a71d0d",
-      "candidate_sha256": "2f5b4e7982d8ae4740ae6ca58c947d6e80ccab53f359f46202d30cc102a71d0d",
-      "status": "preserved"
+      "candidate_sha256": "e6c62c0d8eb5823371ed63b0871ad59f9fbd2edaf7d6c99f9aa5d45824fed75d",
+      "status": "aureon_extension",
+      "note": "One added case label: \"roomedge\" records history exactly like \"vertex\"/\"room\" (one undo step per drag)."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.onWheel",
@@ -1363,8 +1367,9 @@
       "original_line": 2875,
       "candidate_line": 2874,
       "original_sha256": "143939e406d46a2e8f79b43fbd0c2a343b38bd0536d58d2e71261de45d57022e",
-      "candidate_sha256": "143939e406d46a2e8f79b43fbd0c2a343b38bd0536d58d2e71261de45d57022e",
-      "status": "preserved"
+      "candidate_sha256": "8c7b317b5e50e81c6a55bbd58ef7fb6d1252afd48bf76b17c0cf840e6096ddd7",
+      "status": "aureon_extension",
+      "note": "Delete/Backspace with a picked wall removes only that divider (wall height 0 on both sides), never the room; an outer wall is kept with a notice. All other keys unchanged."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.nudge",
@@ -1939,8 +1944,9 @@
       "original_line": 4581,
       "candidate_line": 4566,
       "original_sha256": "b5a2f13a2da01a1fa15b20c335950a088332cdd9067bbc8893eb3eb9b233cac9",
-      "candidate_sha256": "b5a2f13a2da01a1fa15b20c335950a088332cdd9067bbc8893eb3eb9b233cac9",
-      "status": "preserved"
+      "candidate_sha256": "4e7c2aaf813ca9c94bafc186b6fa47ff58c97057f55703ea862d74808f556985",
+      "status": "aureon_extension",
+      "note": "One added line: any new selection clears the picked AUREON wall."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.opening",
@@ -3505,8 +3511,9 @@
       "original_line": 9848,
       "candidate_line": 9789,
       "original_sha256": "9ba005f534c573b7bff3e3bc7795bfddda700604a7e3a7816ec4d418b3910049",
-      "candidate_sha256": "9ba005f534c573b7bff3e3bc7795bfddda700604a7e3a7816ec4d418b3910049",
-      "status": "preserved"
+      "candidate_sha256": "41eee9122c92164ff984bcd0773cce72d966db5ee4430411f32947f1bbc75c1e",
+      "status": "aureon_extension",
+      "note": "One added call: renderAureonWallLine() draws the picked wall highlight (pointer-events none)."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderEdgeHighlight",
@@ -3753,8 +3760,9 @@
       "original_line": 10575,
       "candidate_line": 10516,
       "original_sha256": "51a456520342ebe0cb894a85260f5aa201c69b13d338b3c2744c27d66fcc164b",
-      "candidate_sha256": "51a456520342ebe0cb894a85260f5aa201c69b13d338b3c2744c27d66fcc164b",
-      "status": "preserved"
+      "candidate_sha256": "676b0d84c117f88140bfcee621aaf1e5ef3c5bb6f908801b058e22f4f6f3eed8",
+      "status": "aureon_extension",
+      "note": "One added call at the top of the room form: renderAureonWall(room) — the picked wall panel (length, shared rooms, Straighten, Remove/restore divider)."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.applyPackage",

@@ -687,7 +687,7 @@ export class Fp3dRoomPanel extends LitElement {
         height: 28px;
         border-radius: 50%;
         color: var(--fp3d-muted);
-        background: rgba(91, 124, 255, 0.12);
+        background: rgba(var(--fp3d-soft-rgb), 0.12);
       }
       .fp3d-rp-on {
         color: #2a1a00;
@@ -812,7 +812,7 @@ export class Fp3dRoomPanel extends LitElement {
         padding: 4px 10px;
         border: 1px solid var(--fp3d-line);
         border-radius: 999px;
-        background: rgba(7, 11, 20, 0.8);
+        background: rgba(var(--aureon-ui-panel-rgb, 7, 11, 20), 0.8);
         color: var(--fp3d-accent);
         font: inherit;
         font-size: 12px;
@@ -825,7 +825,7 @@ export class Fp3dRoomPanel extends LitElement {
         bottom: 6px;
         padding: 2px 8px;
         border-radius: 8px;
-        background: rgba(7, 11, 20, 0.75);
+        background: rgba(var(--aureon-ui-panel-rgb, 7, 11, 20), 0.75);
         color: var(--fp3d-text);
         font-size: 12px;
         font-weight: 600;

@@ -375,7 +375,7 @@ export class Extensions extends LitElement {
         margin: 4px 0 8px;
         padding: 10px 12px;
         border-radius: 12px;
-        border: 1px solid var(--fp3d-line, rgba(120, 190, 255, 0.22));
+        border: 1px solid var(--fp3d-line, rgba(var(--aureon-ui-line-rgb, 120, 190, 255), 0.22));
         background: rgba(4, 8, 18, 0.35);
         color: inherit;
         font: inherit;
@@ -388,7 +388,7 @@ export class Extensions extends LitElement {
         height: 8px;
         border-radius: 999px;
         overflow: hidden;
-        background: rgba(120, 190, 255, 0.12);
+        background: rgba(var(--aureon-ui-line-rgb, 120, 190, 255), 0.12);
       }
       .fp3d-sum-bar i {
         display: block;
@@ -490,7 +490,7 @@ export class Extensions extends LitElement {
       .fp3d-pet-row select {
         padding: 6px 10px;
         border-radius: 10px;
-        border: 1px solid var(--fp3d-line, rgba(120, 190, 255, 0.25));
+        border: 1px solid var(--fp3d-line, rgba(var(--aureon-ui-line-rgb, 120, 190, 255), 0.25));
         background: rgba(4, 8, 18, 0.6);
         color: inherit;
         font: inherit;

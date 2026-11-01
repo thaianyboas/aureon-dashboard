@@ -7,4 +7,4 @@ test('approval interface uses Home Assistant language',()=>assert.match(panel,/t
 test('approval warnings are translated to three languages',()=>{for(const word of ['Ative apenas módulos confiáveis','Aktivieren Sie nur vertrauenswürdige Module','Enable only trusted modules'])assert.ok(panel.includes(word));});
 test('approval is still admin-only',()=>assert.match(panel,/this\.isAdmin && this\._aureonApprovalOpen/));
 test('module approval remains explicit',()=>assert.match(panel,/@click=\$\{\(\) => this\.toggleAureonModule\(id\)\}/));
-test('stale async mount errors cannot replace editor',()=>assert.match(dashboard,/const explain=\(message\)=>\{\s*if\(token!==this\._floorMountToken/));
+test('stale async mount errors cannot replace editor',()=>assert.match(dashboard,/const explain=\(message\)=>\{\s*if\(!alive\(\)\)return;/));

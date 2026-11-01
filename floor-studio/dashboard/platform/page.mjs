@@ -22,6 +22,8 @@ export class AureonPlatform extends LitElement{
  get controller(){return this._controller;}
  get c(){return this.controller;}
  get t(){return platformLabels(this.c?.language);}
+ // a page kept alive but hidden (the home page while another page is open) skips its renders until shown again
+ shouldUpdate(){return this.style.display!=='none';}
  connectedCallback(){super.connectedCallback();if(this.c&&!this._unsubscribe)this._unsubscribe=this.c.subscribe(()=>this.changed());let ticks=0;this._timer=setInterval(()=>{if(document.hidden)return;this.requestUpdate();if(++ticks%10===0&&['home','calendar'].includes(this.page)&&this.c?.preferences.waste.length)this.c.loadCalendars(this._period);},30000);}
  disconnectedCallback(){super.disconnectedCallback();this._unsubscribe?.();this._unsubscribe=null;clearInterval(this._timer);this._timer=null;this._nativeEpoch++;this._nativeCard=null;}
  updated(){const dialog=this.renderRoot.querySelector('dialog');if(dialog&&!dialog.open)dialog.showModal();if(this._nativeCard)this._nativeCard.hass=this.c?.hass;}

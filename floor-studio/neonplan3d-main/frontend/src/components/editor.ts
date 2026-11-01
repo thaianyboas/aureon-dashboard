@@ -162,6 +162,8 @@ type Tool = "select" | "rect" | "polygon" | "measure" | "opening" | "furniture" 
 type Drag =
   | { kind: "pan"; last: [number, number] }
   | { kind: "vertex"; roomId: string; index: number; base: Building; moved: boolean }
+  /** AUREON: a room wall (outline edge) dragged across itself; every corner of any room on that wall moves with it. */
+  | { kind: "roomedge"; roomId: string; index: number; start: Vec2; startScreen: [number, number]; base: Building; moved: boolean; normal: Vec2; moves: { roomId: string; index: number; at: Vec2 }[] }
   | { kind: "device"; entityId: string; start: Vec2; startScreen: [number, number]; base: Building; moved: boolean }
   | { kind: "opening"; id: string; startScreen: [number, number]; base: Building; moved: boolean }
   | { kind: "furniture"; id: string; start: Vec2; startScreen: [number, number]; base: Building; moved: boolean }
@@ -395,6 +397,7 @@ export class Fp3dEditor extends LitElement {
     _outdoorId: { state: true },
     _wallId: { state: true },
     _edgeHi: { state: true },
+    _aureonWall: { state: true },
     _wallView: { state: true },
     _wallSel: { state: true },
     _wallMulti: { state: true },
@@ -529,6 +532,8 @@ export class Fp3dEditor extends LitElement {
   /** Selected room wall (id from generateWalls), to set its height. */
   /** Edge of the selected room highlighted from the wall height list. */
   private declare _edgeHi: number | null;
+  /** AUREON: the room wall (outline edge) picked in the plan; it can be moved, straightened or removed as a divider. */
+  private declare _aureonWall: { roomId: string; index: number } | null;
   /** The wall view: a room's wall seen from the front (what stands and hangs on it), and the piece chosen in it. */
   private declare _wallView: { roomId: string; edge: number } | null;
   private declare _wallSel: string | null;
@@ -715,6 +720,7 @@ export class Fp3dEditor extends LitElement {
     this._spots = null;
     this._outdoorId = null;
     this._wallId = null;
+    this._aureonWall = null;
     this._edgeHi = null;
     this._wallView = null;
     this._techMode = false;
@@ -1331,6 +1337,131 @@ export class Fp3dEditor extends LitElement {
     return [p[0] * scale + ox, p[1] * scale + oy];
   }
 
+  /** AUREON: the other rooms sharing a room wall (empty for an outer wall). */
+  private aureonWallInfo(room: Room, index: number): { shared: string[]; height: number | null; length: number; straight: boolean } {
+    const floor = this.floor!;
+    const s = this._doc.settings;
+    const walls = generateWalls(floor.rooms, { exterior: s.wall_exterior, interior: s.wall_interior }, floor.walls ?? []).walls;
+    const shared = [
+      ...new Set(walls.filter((w) => w.sources.some((x) => x.room_id === room.id && x.edge === index)).flatMap((w) => w.sources.map((x) => x.room_id)).filter((id) => id !== room.id)),
+    ];
+    const entry = room.wall_heights?.[index] ?? null;
+    const height = Array.isArray(entry) ? (entry.every((h) => h === 0) ? 0 : (entry[0] ?? null)) : entry;
+    const a = room.points[index], b = room.points[(index + 1) % room.points.length];
+    const dx = b[0] - a[0], dz = b[1] - a[1];
+    return { shared, height, length: Math.hypot(dx, dz), straight: Math.min(Math.abs(dx), Math.abs(dz)) < 0.002 };
+  }
+
+  /** AUREON: the picked wall: what it is and what can be done with it (move by dragging, straighten, remove). */
+  private renderAureonWall(room: Room) {
+    const w = this._aureonWall;
+    if (!w || w.roomId !== room.id || w.index >= room.points.length || !this.isAdmin) return nothing;
+    const info = this.aureonWallInfo(room, w.index);
+    const names = info.shared.map((id) => this.floor!.rooms.find((r) => r.id === id)?.name ?? id).join(", ");
+    return html`<div class="fp3d-aureon-wall" role="group" aria-label=${this.t("aureon_wall_title")}>
+      <div class="fp3d-h3row"><h3>${this.t("aureon_wall_title")}</h3><span class="fp3d-muted">${this.m(info.length, 2)}</span></div>
+      <p class="fp3d-muted">${info.shared.length ? this.t("aureon_wall_shared", { rooms: names }) : this.t("aureon_wall_outer")}${info.height === 0 ? ` · ${this.t("wall_none")}` : ""}</p>
+      <div class="fp3d-aureon-wall-actions">
+        <button class="fp3d-btn" ?disabled=${info.straight} @click=${() => this.aureonStraighten()}>⟂ ${this.t("aureon_wall_straighten")}</button>
+        ${info.shared.length
+          ? info.height === 0
+            ? html`<button class="fp3d-btn" @click=${() => this.aureonRemoveDivider(false)}>↺ ${this.t("aureon_wall_restore")}</button>`
+            : html`<button class="fp3d-btn fp3d-aureon-danger" @click=${() => this.aureonRemoveDivider(true)}>✕ ${this.t("aureon_wall_remove")}</button>`
+          : nothing}
+      </div>
+      <p class="fp3d-muted fp3d-aureon-wall-hint">${this.t("aureon_wall_hint")}</p>
+    </div>`;
+  }
+
+  private renderAureonWallLine() {
+    const w = this._aureonWall;
+    const r = w ? this.floor?.rooms.find((x) => x.id === w.roomId) : undefined;
+    if (!w || !r || w.index >= r.points.length) return nothing;
+    const [x1, y1] = this.toScreen(r.points[w.index]);
+    const [x2, y2] = this.toScreen(r.points[(w.index + 1) % r.points.length]);
+    return svg`<line class="fp3d-aureon-wall-sel" pointer-events="none" x1=${x1} y1=${y1} x2=${x2} y2=${y2} />`;
+  }
+
+  /** AUREON: removes (or restores) a divider between rooms: the wall gets no height, both rooms stay as they are. */
+  private aureonRemoveDivider(remove: boolean): void {
+    const w = this._aureonWall;
+    const room = w ? this.floor?.rooms.find((r) => r.id === w.roomId) : undefined;
+    if (!w || !room || !this.isAdmin) return;
+    if (!this.aureonWallInfo(room, w.index).shared.length) {
+      // an outer wall is never removed by the Delete key; the room stays
+      this._notice = this.t("aureon_wall_outer_keep");
+      return;
+    }
+    this.setEdgeHeight(room, w.index, remove ? 0 : null);
+  }
+
+  /** AUREON: turns a crooked wall straight (horizontal or vertical, whichever is closer); joined corners follow. */
+  private aureonStraighten(): void {
+    const w = this._aureonWall;
+    const floor = this.floor;
+    const room = w ? floor?.rooms.find((r) => r.id === w.roomId) : undefined;
+    if (!w || !floor || !room || !this.isAdmin) return;
+    const a = room.points[w.index], b = room.points[(w.index + 1) % room.points.length];
+    const horizontal = Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]);
+    const axis = horizontal ? 1 : 0;
+    const target = round((a[axis] + b[axis]) / 2);
+    const ends = [a, b].map((p) => [p[0], p[1]] as Vec2);
+    const base = this._doc;
+    const baseFloor = base.floors.find((f) => f.id === this._floorId);
+    this.change((_, f) => {
+      for (const r of f.rooms)
+        r.points.forEach((p, i) => {
+          if (ends.some((e) => Math.hypot(p[0] - e[0], p[1] - e[1]) < 0.01)) {
+            const next: Vec2 = [p[0], p[1]];
+            next[axis] = target;
+            r.points[i] = next;
+          }
+        });
+      this.aureonKeepOpenings(baseFloor, f);
+    });
+  }
+
+  /** AUREON: doors and windows on room walls whose corners moved keep their place in the world (offset re-measured). */
+  private aureonKeepOpenings(baseFloor: Floor | undefined, floor: Floor): void {
+    for (const o of floor.openings) {
+      if (o.wall) continue;
+      const before = baseFloor?.rooms.find((x) => x.id === o.room_id), after = floor.rooms.find((x) => x.id === o.room_id);
+      const src = baseFloor?.openings.find((x) => x.id === o.id);
+      if (!before || !after || !src) continue;
+      const s0 = before.points[o.edge], e0 = before.points[(o.edge + 1) % before.points.length];
+      const s1 = after.points[o.edge], e1 = after.points[(o.edge + 1) % after.points.length];
+      if (!s0 || !e0 || !s1 || !e1 || (s0[0] === s1[0] && s0[1] === s1[1] && e0[0] === e1[0] && e0[1] === e1[1])) continue;
+      const l0 = Math.hypot(e0[0] - s0[0], e0[1] - s0[1]) || 1, l1 = Math.hypot(e1[0] - s1[0], e1[1] - s1[1]) || 1;
+      const c: Vec2 = [s0[0] + ((e0[0] - s0[0]) / l0) * src.offset, s0[1] + ((e0[1] - s0[1]) / l0) * src.offset];
+      const along = ((c[0] - s1[0]) * (e1[0] - s1[0]) + (c[1] - s1[1]) * (e1[1] - s1[1])) / l1;
+      o.offset = round(Math.min(Math.max(along, o.width / 2), Math.max(o.width / 2, l1 - o.width / 2)));
+    }
+  }
+
+  /** AUREON: the room outline edge (wall) within a few pixels of a screen point, nearest first. */
+  private aureonEdgeAt(local: [number, number]): { roomId: string; index: number } | null {
+    const floor = this.floor;
+    if (!floor) return null;
+    let best: { roomId: string; index: number } | null = null;
+    let bestD = 7;
+    for (const r of floor.rooms) {
+      if (this.isFixedItem("room", r.id)) continue;
+      r.points.forEach((p, i) => {
+        const [ax, ay] = this.toScreen(p), [bx, by] = this.toScreen(r.points[(i + 1) % r.points.length]);
+        const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+        if (l2 < 64) return;
+        const t = ((local[0] - ax) * dx + (local[1] - ay) * dy) / l2;
+        if (t < 0.08 || t > 0.92) return;
+        const d = Math.hypot(local[0] - (ax + t * dx), local[1] - (ay + t * dy));
+        if (d < bestD) {
+          bestD = d;
+          best = { roomId: r.id, index: i };
+        }
+      });
+    }
+    return best;
+  }
+
   private toWorld(sx: number, sy: number): Vec2 {
     const { scale, ox, oy } = this._view;
     return [(sx - ox) / scale, (sy - oy) / scale];
@@ -1481,7 +1612,7 @@ export class Fp3dEditor extends LitElement {
     const d = this.drag;
     if (!d) return;
     let target: [FixKind, string] | null = null;
-    if (d.kind === "vertex" || d.kind === "room") target = ["room", d.roomId];
+    if (d.kind === "vertex" || d.kind === "room" || d.kind === "roomedge") target = ["room", d.roomId];
     else if (d.kind === "device" || d.kind === "aim") target = ["device", d.entityId];
     else if (d.kind === "opening") target = ["opening", d.id];
     else if (d.kind === "furniture" || d.kind === "rotate" || d.kind === "resize") target = ["furniture", d.id];
@@ -1870,6 +2001,49 @@ export class Fp3dEditor extends LitElement {
       this.drag = this.isAdmin ? { kind: "outdoor", id, start: world, startScreen: local, base: this._doc, moved: false } : { kind: "pan", last: local };
       return;
     }
+    // AUREON: a tap on a room's wall line selects that wall and lets it move across (plans made of rooms only,
+    // e.g. imported ones, have no free walls to pick). The whole straight wall line moves — shared walls and the
+    // corners of the neighbours go along, so no gap or overlap opens; with Shift only this room's segment moves.
+    const edge = this.isAdmin && this._tool === "select" ? this.aureonEdgeAt(local) : null;
+    if (edge) {
+      const base = this._doc;
+      const floor = base.floors.find((f) => f.id === this._floorId);
+      const room = floor?.rooms.find((r) => r.id === edge.roomId);
+      if (floor && room) {
+        const a = room.points[edge.index], b = room.points[(edge.index + 1) % room.points.length];
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, u: Vec2 = [(b[0] - a[0]) / len, (b[1] - a[1]) / len];
+        const along = (p: Vec2) => (p[0] - a[0]) * u[0] + (p[1] - a[1]) * u[1];
+        const off = (p: Vec2) => Math.abs((p[0] - a[0]) * u[1] - (p[1] - a[1]) * u[0]);
+        let lo = 0, hi = len;
+        if (!e.shiftKey) {
+          // grow the interval over every collinear room edge that touches it
+          const spans: [number, number][] = [];
+          for (const r of floor.rooms)
+            r.points.forEach((p, i) => {
+              const q = r.points[(i + 1) % r.points.length];
+              if (off(p) < 0.01 && off(q) < 0.01) spans.push([Math.min(along(p), along(q)), Math.max(along(p), along(q))]);
+            });
+          for (let grown = true; grown; ) {
+            grown = false;
+            for (const [s0, s1] of spans)
+              if (s0 <= hi + 0.01 && s1 >= lo - 0.01 && (s0 < lo - 1e-6 || s1 > hi + 1e-6)) {
+                lo = Math.min(lo, s0);
+                hi = Math.max(hi, s1);
+                grown = true;
+              }
+          }
+        }
+        const moves: { roomId: string; index: number; at: Vec2 }[] = [];
+        for (const r of floor.rooms)
+          r.points.forEach((p, i) => {
+            if (off(p) < 0.01 && along(p) > lo - 0.01 && along(p) < hi + 0.01) moves.push({ roomId: r.id, index: i, at: [p[0], p[1]] });
+          });
+        this.selectItem("room", edge.roomId);
+        this._aureonWall = { roomId: edge.roomId, index: edge.index };
+        this.drag = { kind: "roomedge", roomId: edge.roomId, index: edge.index, start: world, startScreen: local, base, moved: false, normal: [-u[1], u[0]], moves };
+        return;
+      }
+    }
     const roomId = target.closest("[data-room]")?.getAttribute("data-room") ?? this.roomAt(world);
     if (roomId) {
       if (roomId !== this._roomId) this._vertex = null;
@@ -1956,12 +2130,46 @@ export class Fp3dEditor extends LitElement {
         this.change((_, floor) => Object.assign((floor.walls ?? []).find((q) => q.id === drag.id)!, next), drag.base, false);
         break;
       }
+      case "roomedge": {
+        if (!drag.moved && Math.hypot(local[0] - drag.startScreen[0], local[1] - drag.startScreen[1]) < 5) return;
+        drag.moved = true;
+        const g = e.altKey ? 0.01 : this._doc.settings.grid;
+        const raw = (world[0] - drag.start[0]) * drag.normal[0] + (world[1] - drag.start[1]) * drag.normal[1];
+        const dist = Math.round(raw / g) * g;
+        const baseFloor = drag.base.floors.find((f) => f.id === this._floorId);
+        this.change(
+          (_, floor) => {
+            for (const m of drag.moves) {
+              const r = floor.rooms.find((x) => x.id === m.roomId);
+              if (r) r.points[m.index] = [round(m.at[0] + drag.normal[0] * dist), round(m.at[1] + drag.normal[1] * dist)];
+            }
+            this.aureonKeepOpenings(baseFloor, floor);
+          },
+          drag.base,
+          false,
+        );
+        break;
+      }
       case "vertex": {
+        // AUREON: corners of other rooms at the same spot move along, so shared walls stay closed (Shift: this room
+        // alone); doors and windows keep their place. Snapping looks at the corners as they were before the drag.
+        const baseFloor = drag.base.floors.find((f) => f.id === this._floorId);
+        const at = baseFloor?.rooms.find((r) => r.id === drag.roomId)?.points[drag.index];
+        const linked =
+          at && !e.shiftKey
+            ? baseFloor!.rooms.flatMap((r) => (r.id === drag.roomId ? [] : r.points.flatMap((q, i) => (Math.hypot(q[0] - at[0], q[1] - at[1]) < 0.01 ? [{ roomId: r.id, index: i }] : []))))
+            : [];
+        if (linked.length) this._doc = drag.base;
         const p = this.snap(world, { roomId: drag.roomId, index: drag.index }, e.altKey);
         drag.moved = true;
         this.change(
           (_, floor) => {
             floor.rooms.find((r) => r.id === drag.roomId)!.points[drag.index] = p;
+            for (const l of linked) {
+              const r = floor.rooms.find((x) => x.id === l.roomId);
+              if (r) r.points[l.index] = [p[0], p[1]];
+            }
+            if (linked.length) this.aureonKeepOpenings(baseFloor, floor);
           },
           drag.base,
           false,
@@ -2531,6 +2739,7 @@ export class Fp3dEditor extends LitElement {
         break;
       case "vertex":
       case "room":
+      case "roomedge":
         // the drag already changed the document without history; record the state before the drag
         if (drag.moved) this.pushHistory(drag.base);
         this._guides = {};
@@ -2898,6 +3107,7 @@ export class Fp3dEditor extends LitElement {
       else if (this._openingId) this.deleteOpening();
       else if (this._furnitureId) this.deleteFurniture();
       else if (this._vertex !== null) this.deleteVertex(this._vertex);
+      else if (this._aureonWall && this._aureonWall.roomId === this._roomId) this.aureonRemoveDivider(true);
       else this.deleteRoom();
     } else if (e.key.toLowerCase() === "l" && !mod && this._tool === "roof" && this.roofSection && !this._doc.settings.lock_plan) {
       this.updateRoofSection({ locked: !this.roofSection.locked });
@@ -4570,6 +4780,7 @@ export class Fp3dEditor extends LitElement {
     this._outdoorId = kind === "outdoor" ? id : null;
     this._wallId = kind === "wall" ? id : null;
     this._edgeHi = null;
+    this._aureonWall = null;
     if (kind === "outdoor" || kind === "wall") this._roomId = null;
     if (kind !== "room" || id !== this._roomId) this._vertex = null;
     this._roomId = kind === "room" ? id : this._roomId;
@@ -9792,7 +10003,7 @@ export class Fp3dEditor extends LitElement {
         const pts = r.points.map((p) => this.toScreen(p).join(",")).join(" ");
         return svg`<polygon data-room=${r.id} class=${r.id === this._roomId ? "fp3d-room fp3d-room-sel" : "fp3d-room"} points=${pts} />`;
       })}</g>
-      ${this.renderEdgeHighlight()}
+      ${this.renderEdgeHighlight()} ${this.renderAureonWallLine()}
       <g pointer-events="none">${floor.rooms.map((r) => {
         const [cx, cy] = this.toScreen(centroid(r.points));
         return svg`<text class="fp3d-room-name" x=${cx} y=${cy - 2}>${r.name}</text>
@@ -10518,6 +10729,7 @@ export class Fp3dEditor extends LitElement {
     const rect = isAxisRect(room.points);
     const b = bounds(room.points);
     return html`<section>
+      ${this.renderAureonWall(room)}
       <div class="fp3d-h3row"><h3>${this.t("room")}</h3>${this.fixButton("room", room.id)}</div>
       <button class="fp3d-btn fp3d-wv-open" title=${this.t("wall_view_open")} @click=${() => this.openRoomWalls(room)}>▦ ${this.t("wall_view_room")}</button>
       <div class="fp3d-form">
@@ -13456,7 +13668,7 @@ export class Fp3dEditor extends LitElement {
         color: var(--fp3d-accent-text);
         font-weight: 700;
         font-size: 13px;
-        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), 0 0 16px rgba(55, 224, 255, 0.45);
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), 0 0 16px rgba(var(--fp3d-accent-rgb), 0.45);
         cursor: pointer;
         animation: fp3d-tip-in 0.18s ease-out;
       }
@@ -13666,39 +13878,39 @@ export class Fp3dEditor extends LitElement {
         cursor: crosshair;
       }
       .fp3d-grid-minor {
-        stroke: rgba(55, 224, 255, 0.05);
+        stroke: rgba(var(--fp3d-accent-rgb), 0.05);
         stroke-width: 1;
       }
       .fp3d-grid-major {
-        stroke: rgba(91, 124, 255, 0.16);
+        stroke: rgba(var(--fp3d-soft-rgb), 0.16);
         stroke-width: 1;
       }
       .fp3d-origin {
-        fill: rgba(91, 124, 255, 0.5);
+        fill: rgba(var(--fp3d-soft-rgb), 0.5);
       }
       .fp3d-ghost {
         fill: none;
-        stroke: rgba(138, 155, 184, 0.35);
+        stroke: rgba(var(--aureon-ui-muted-rgb, 138, 155, 184), 0.35);
         stroke-dasharray: 4 4;
       }
       .fp3d-wall {
-        fill: #1b2a47;
+        fill: var(--aureon-ui-wall, #1b2a47);
       }
       .fp3d-wall-ext {
-        fill: #22345a;
+        fill: var(--aureon-ui-wall-ext, #22345a);
       }
       .fp3d-room {
-        fill: rgba(55, 224, 255, 0.05);
-        stroke: rgba(55, 224, 255, 0.75);
+        fill: rgba(var(--fp3d-accent-rgb), 0.05);
+        stroke: rgba(var(--fp3d-accent-rgb), 0.75);
         stroke-width: 1.5;
         stroke-linejoin: round;
         cursor: pointer;
       }
       .fp3d-room:hover {
-        fill: rgba(55, 224, 255, 0.09);
+        fill: rgba(var(--fp3d-accent-rgb), 0.09);
       }
       .fp3d-room-sel {
-        fill: rgba(55, 224, 255, 0.14);
+        fill: rgba(var(--fp3d-accent-rgb), 0.14);
         stroke: var(--fp3d-accent);
         stroke-width: 2.5;
       }
@@ -13738,7 +13950,7 @@ export class Fp3dEditor extends LitElement {
         fill: transparent;
       }
       .fp3d-mid circle:not(.fp3d-hit) {
-        fill: rgba(91, 124, 255, 0.35);
+        fill: rgba(var(--fp3d-soft-rgb), 0.35);
         stroke: var(--fp3d-soft);
       }
       .fp3d-mid path {
@@ -13795,7 +14007,7 @@ export class Fp3dEditor extends LitElement {
         z-index: 2;
       }
       .fp3d-side-grip:hover {
-        background: linear-gradient(90deg, rgba(55, 224, 255, 0.35), transparent);
+        background: linear-gradient(90deg, rgba(var(--fp3d-accent-rgb), 0.35), transparent);
       }
       .fp3d-side {
         border-left: 1px solid var(--fp3d-line);
@@ -13963,8 +14175,8 @@ export class Fp3dEditor extends LitElement {
         cursor: nwse-resize;
       }
       .fp3d-furn-body {
-        fill: rgba(91, 124, 255, 0.1);
-        stroke: rgba(91, 124, 255, 0.55);
+        fill: rgba(var(--fp3d-soft-rgb), 0.1);
+        stroke: rgba(var(--fp3d-soft-rgb), 0.55);
         stroke-width: 1.2;
         vector-effect: non-scaling-stroke;
         cursor: grab;
@@ -13977,15 +14189,15 @@ export class Fp3dEditor extends LitElement {
         pointer-events: none;
       }
       .fp3d-furn-sym .fp3d-sym-fill {
-        fill: rgba(91, 124, 255, 0.28);
+        fill: rgba(var(--fp3d-soft-rgb), 0.28);
       }
       .fp3d-furn-sym .fp3d-sym-strong {
         stroke: var(--fp3d-accent);
         stroke-width: 2;
       }
       .fp3d-out polygon {
-        fill: rgba(91, 124, 255, 0.06);
-        stroke: rgba(91, 124, 255, 0.4);
+        fill: rgba(var(--fp3d-soft-rgb), 0.06);
+        stroke: rgba(var(--fp3d-soft-rgb), 0.4);
         stroke-width: 1;
         stroke-dasharray: 4 3;
         cursor: grab;
@@ -13998,7 +14210,7 @@ export class Fp3dEditor extends LitElement {
         stroke: rgba(61, 224, 160, 0.5);
       }
       .fp3d-out-pool polygon {
-        fill: rgba(55, 224, 255, 0.18);
+        fill: rgba(var(--fp3d-accent-rgb), 0.18);
         stroke: var(--fp3d-accent);
       }
       .fp3d-out-terrace polygon {
@@ -14080,7 +14292,7 @@ export class Fp3dEditor extends LitElement {
         pointer-events: none;
       }
       .fp3d-wv-node circle {
-        fill: rgba(55, 224, 255, 0.12);
+        fill: rgba(var(--fp3d-accent-rgb), 0.12);
         stroke: var(--fp3d-accent);
         stroke-width: 0.012;
         stroke-dasharray: 0.03 0.02;
@@ -14092,7 +14304,7 @@ export class Fp3dEditor extends LitElement {
         text-anchor: middle;
       }
       .fp3d-wv-hole-mark circle {
-        fill: #0b1220;
+        fill: var(--aureon-ui-bg, #0b1220);
         stroke: var(--fp3d-warm);
         stroke-dasharray: none;
         stroke-width: 0.02;
@@ -14146,7 +14358,7 @@ export class Fp3dEditor extends LitElement {
       .fp3d-pc-draw {
         width: 100%;
         border-radius: 12px;
-        background: rgba(120, 170, 255, 0.05);
+        background: rgba(var(--aureon-ui-line-rgb, 120, 170, 255), 0.05);
         border: 1px solid var(--fp3d-line);
       }
       .fp3d-pc-body-shape {
@@ -14161,7 +14373,7 @@ export class Fp3dEditor extends LitElement {
         stroke-dasharray: 6 4;
       }
       .fp3d-pc-wall {
-        fill: rgba(120, 170, 255, 0.18);
+        fill: rgba(var(--aureon-ui-line-rgb, 120, 170, 255), 0.18);
         stroke: var(--fp3d-line);
       }
       .fp3d-pc-side {
@@ -14175,7 +14387,7 @@ export class Fp3dEditor extends LitElement {
         stroke-dasharray: 6 4;
       }
       .fp3d-pc-stub circle {
-        fill: #0b1220;
+        fill: var(--aureon-ui-bg, #0b1220);
         stroke: var(--fp3d-warm);
         stroke-width: 2;
         stroke-dasharray: 3 2;
@@ -14212,7 +14424,7 @@ export class Fp3dEditor extends LitElement {
       }
       .fp3d-pc-row.fp3d-on {
         border-style: solid;
-        border-color: rgba(55, 224, 255, 0.45);
+        border-color: rgba(var(--fp3d-accent-rgb), 0.45);
       }
       .fp3d-pc-conns,
       .fp3d-pc-join {
@@ -14282,12 +14494,12 @@ export class Fp3dEditor extends LitElement {
         border-top: 1px solid var(--fp3d-line);
       }
       .fp3d-pc-target {
-        border-color: rgba(55, 224, 255, 0.45);
+        border-color: rgba(var(--fp3d-accent-rgb), 0.45);
       }
       .fp3d-pc-join {
         padding: 10px;
         border-radius: 10px;
-        background: rgba(120, 170, 255, 0.05);
+        background: rgba(var(--aureon-ui-line-rgb, 120, 170, 255), 0.05);
       }
       .fp3d-pc-step {
         font-size: 11px;
@@ -14542,7 +14754,7 @@ export class Fp3dEditor extends LitElement {
         margin-bottom: 6px;
         border: 1px solid var(--fp3d-accent);
         border-radius: 8px;
-        background: rgba(91, 124, 255, 0.08);
+        background: rgba(var(--fp3d-soft-rgb), 0.08);
       }
       .fp3d-tech-ask b {
         font-size: 12.5px;
@@ -14574,7 +14786,7 @@ export class Fp3dEditor extends LitElement {
         font-family: var(--fp3d-font);
       }
       .fp3d-wv-wall {
-        fill: rgba(120, 170, 255, 0.06);
+        fill: rgba(var(--aureon-ui-line-rgb, 120, 170, 255), 0.06);
         stroke: var(--fp3d-soft);
         stroke-width: 0.015;
       }
@@ -14598,13 +14810,13 @@ export class Fp3dEditor extends LitElement {
         stroke-dasharray: 0.04 0.03;
       }
       .fp3d-wv-window {
-        fill: rgba(55, 224, 255, 0.12);
+        fill: rgba(var(--fp3d-accent-rgb), 0.12);
       }
       .fp3d-wv-item {
         cursor: grab;
       }
       .fp3d-wv-item rect {
-        fill: rgba(91, 124, 255, 0.28);
+        fill: rgba(var(--fp3d-soft-rgb), 0.28);
         stroke: var(--fp3d-soft);
         stroke-width: 0.012;
       }
@@ -14652,12 +14864,12 @@ export class Fp3dEditor extends LitElement {
         color: var(--fp3d-accent-text);
         font-size: 24px;
         font-weight: 800;
-        box-shadow: 0 0 18px rgba(55, 224, 255, 0.55);
+        box-shadow: 0 0 18px rgba(var(--fp3d-accent-rgb), 0.55);
       }
       .fp3d-wv-lift b {
         font-size: 12px;
         color: var(--fp3d-warm);
-        background: rgba(7, 11, 20, 0.85);
+        background: rgba(var(--aureon-ui-panel-rgb, 7, 11, 20), 0.85);
         padding: 1px 6px;
         border-radius: 8px;
       }
@@ -14711,7 +14923,7 @@ export class Fp3dEditor extends LitElement {
         gap: 6px;
         padding: 6px 8px;
         border-radius: 10px;
-        border: 1px solid var(--fp3d-line, rgba(91, 124, 255, 0.25));
+        border: 1px solid var(--fp3d-line, rgba(var(--fp3d-soft-rgb), 0.25));
         background: rgba(255, 255, 255, 0.03);
         color: var(--fp3d-text, #d6ecff);
         font: inherit;
@@ -14728,7 +14940,7 @@ export class Fp3dEditor extends LitElement {
       }
       .fp3d-wv-cat.fp3d-on {
         border-color: var(--fp3d-accent);
-        background: rgba(55, 224, 255, 0.14);
+        background: rgba(var(--fp3d-accent-rgb), 0.14);
         color: #fff;
       }
       .fp3d-wv-tiles {
@@ -14743,7 +14955,7 @@ export class Fp3dEditor extends LitElement {
         gap: 2px;
         padding: 6px 4px;
         border-radius: 12px;
-        border: 1px solid var(--fp3d-line, rgba(91, 124, 255, 0.25));
+        border: 1px solid var(--fp3d-line, rgba(var(--fp3d-soft-rgb), 0.25));
         background: rgba(255, 255, 255, 0.03);
         color: var(--fp3d-text, #d6ecff);
         font: inherit;
@@ -14752,7 +14964,7 @@ export class Fp3dEditor extends LitElement {
       }
       .fp3d-wv-tile:hover {
         border-color: var(--fp3d-accent);
-        background: rgba(55, 224, 255, 0.08);
+        background: rgba(var(--fp3d-accent-rgb), 0.08);
       }
       .fp3d-wv-tile-pic {
         width: 72px;
@@ -14826,7 +15038,7 @@ export class Fp3dEditor extends LitElement {
         fill: #ffb547;
       }
       .fp3d-wv-gap rect {
-        fill: rgba(55, 224, 255, 0.1);
+        fill: rgba(var(--fp3d-accent-rgb), 0.1);
         stroke: var(--fp3d-accent);
         stroke-width: 0.01;
         stroke-dasharray: 0.04 0.03;
@@ -14868,7 +15080,7 @@ export class Fp3dEditor extends LitElement {
         padding: 3px 5px;
       }
       .fp3d-wv-marquee {
-        fill: rgba(55, 224, 255, 0.08);
+        fill: rgba(var(--fp3d-accent-rgb), 0.08);
         stroke: var(--fp3d-accent);
         stroke-width: 0.008;
         stroke-dasharray: 0.03 0.02;
@@ -14937,7 +15149,7 @@ export class Fp3dEditor extends LitElement {
         display: grid;
         place-items: center;
         padding: 16px;
-        background: rgba(2, 6, 14, 0.55);
+        background: rgba(var(--aureon-ui-panel-rgb, 2, 6, 14), 0.55);
       }
       .fp3d-dialog {
         width: min(640px, 100%);
@@ -14996,7 +15208,7 @@ export class Fp3dEditor extends LitElement {
         border-radius: 14px;
         background: var(--fp3d-chrome-solid, #0d1628);
         box-shadow: var(--fp3d-shadow);
-        border: 1px solid var(--fp3d-line, rgba(120, 190, 255, 0.22));
+        border: 1px solid var(--fp3d-line, rgba(var(--aureon-ui-line-rgb, 120, 190, 255), 0.22));
       }
       .fp3d-menu-right {
         left: auto;
@@ -15016,7 +15228,7 @@ export class Fp3dEditor extends LitElement {
         background: none;
       }
       .fp3d-seg .fp3d-menu .fp3d-menu-item:hover {
-        background: rgba(120, 190, 255, 0.12);
+        background: rgba(var(--aureon-ui-line-rgb, 120, 190, 255), 0.12);
       }
       .fp3d-seg .fp3d-menu .fp3d-menu-on {
         color: var(--fp3d-accent);
@@ -15041,7 +15253,7 @@ export class Fp3dEditor extends LitElement {
       .fp3d-menu-sep {
         height: 1px;
         margin: 4px 6px;
-        background: var(--fp3d-line, rgba(120, 190, 255, 0.22));
+        background: var(--fp3d-line, rgba(var(--aureon-ui-line-rgb, 120, 190, 255), 0.22));
       }
       .fp3d-menu-sub {
         display: flex;
@@ -15065,7 +15277,7 @@ export class Fp3dEditor extends LitElement {
         display: grid;
         place-items: center;
         padding: 16px;
-        background: rgba(2, 6, 14, 0.55);
+        background: rgba(var(--aureon-ui-panel-rgb, 2, 6, 14), 0.55);
       }
       .fp3d-news {
         max-width: 420px;
@@ -15117,7 +15329,7 @@ export class Fp3dEditor extends LitElement {
         padding: 10px 0;
         border-radius: 14px;
         border: 1px solid var(--fp3d-line);
-        background: rgba(14, 21, 38, 0.82);
+        background: rgba(var(--aureon-ui-panel-rgb, 14, 21, 38), 0.82);
         color: var(--fp3d-accent);
         font-size: 30px;
         line-height: 1;
@@ -15137,12 +15349,12 @@ export class Fp3dEditor extends LitElement {
         right: 0;
       }
       .fp3d-wv-sel rect {
-        fill: rgba(55, 224, 255, 0.3);
+        fill: rgba(var(--fp3d-accent-rgb), 0.3);
         stroke: var(--fp3d-accent);
         stroke-width: 0.02;
       }
       .fp3d-wv-pic.fp3d-wv-sel rect {
-        fill: rgba(55, 224, 255, 0.08);
+        fill: rgba(var(--fp3d-accent-rgb), 0.08);
         stroke: var(--fp3d-accent);
       }
       .fp3d-wv-dims line {
@@ -15375,7 +15587,7 @@ export class Fp3dEditor extends LitElement {
         font-weight: 700;
         letter-spacing: 0.06em;
         text-transform: uppercase;
-        color: #0b1426;
+        color: var(--aureon-ui-accent-text, #0b1426);
         background: #ffd75a;
         border-radius: 999px;
         padding: 2px 8px;
@@ -15601,11 +15813,11 @@ export class Fp3dEditor extends LitElement {
       }
       .fp3d-pool-node circle:not(.fp3d-hit) {
         fill: #0b1a2e;
-        stroke: #37e0ff;
+        stroke: var(--aureon-ui-accent, #37e0ff);
         stroke-width: 2;
       }
       .fp3d-pool-node.fp3d-pool-dev circle:not(.fp3d-hit) {
-        stroke: #5b7cff;
+        stroke: var(--fp3d-soft, #5b7cff);
       }
       .fp3d-pool-node.fp3d-pool-closed circle:not(.fp3d-hit) {
         stroke: #ff4d40;
@@ -15638,7 +15850,7 @@ export class Fp3dEditor extends LitElement {
         text-align: left;
       }
       .fp3d-pool-row-sel {
-        background: rgba(55, 224, 255, 0.1);
+        background: rgba(var(--fp3d-accent-rgb), 0.1);
         border-radius: 8px;
         box-shadow: inset 3px 0 0 var(--fp3d-accent);
         padding-left: 6px;
@@ -15704,6 +15916,35 @@ export class Fp3dEditor extends LitElement {
       .fp3d-ctx-danger {
         color: var(--fp3d-danger, #ff6b7a) !important;
       }
+      .fp3d-aureon-wall-sel {
+        stroke: var(--fp3d-accent);
+        stroke-width: 7;
+        stroke-linecap: round;
+        stroke-opacity: 0.9;
+        filter: drop-shadow(0 0 5px rgba(var(--fp3d-accent-rgb), 0.8));
+      }
+      .fp3d-aureon-wall {
+        margin: 0 0 14px;
+        padding: 12px;
+        border: 1px solid var(--fp3d-accent);
+        border-radius: 12px;
+        background: rgba(var(--fp3d-accent-rgb), 0.08);
+      }
+      .fp3d-aureon-wall p {
+        margin: 6px 0;
+      }
+      .fp3d-aureon-wall-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 8px 0 4px;
+      }
+      .fp3d-aureon-wall .fp3d-aureon-danger {
+        color: var(--fp3d-danger);
+      }
+      .fp3d-aureon-wall-hint {
+        font-size: 12px;
+      }
       .fp3d-edge-hi {
         stroke: var(--fp3d-accent);
         stroke-width: 6;
@@ -15761,7 +16002,7 @@ export class Fp3dEditor extends LitElement {
         width: 180px;
         padding: 8px 8px 10px;
         border-radius: 16px;
-        background: radial-gradient(circle at 50% 40%, #1d2c4d, #0b1222 75%);
+        background: radial-gradient(circle at 50% 40%, var(--aureon-ui-bg2, #1d2c4d), #0b1222 75%);
         box-shadow: var(--fp3d-shadow), 0 0 0 1px var(--fp3d-line);
         text-align: center;
         pointer-events: none;
@@ -15792,7 +16033,7 @@ export class Fp3dEditor extends LitElement {
       }
       .fp3d-lib-badge {
         margin-left: 4px;
-        color: #37e0ff;
+        color: var(--aureon-ui-accent, #37e0ff);
         vertical-align: -2px;
       }
       .fp3d-ext-teaser {
@@ -15802,7 +16043,7 @@ export class Fp3dEditor extends LitElement {
         padding: 12px;
         border: 1px solid var(--fp3d-accent);
         border-radius: 12px;
-        background: linear-gradient(135deg, rgba(55, 224, 255, 0.08), rgba(91, 124, 255, 0.08));
+        background: linear-gradient(135deg, rgba(var(--fp3d-accent-rgb), 0.08), rgba(var(--fp3d-soft-rgb), 0.08));
       }
       .fp3d-pin {
         border: 0;
@@ -15830,7 +16071,7 @@ export class Fp3dEditor extends LitElement {
       }
       .fp3d-resize rect {
         fill: var(--fp3d-accent);
-        stroke: #0b1222;
+        stroke: var(--aureon-ui-bg, #0b1222);
         stroke-width: 1.5;
       }
       .fp3d-code {
@@ -15864,7 +16105,7 @@ export class Fp3dEditor extends LitElement {
         pointer-events: none;
       }
       .fp3d-split-mark {
-        stroke: rgba(55, 224, 255, 0.9);
+        stroke: rgba(var(--fp3d-accent-rgb), 0.9);
         stroke-width: 2;
         pointer-events: none;
       }
@@ -15904,7 +16145,7 @@ export class Fp3dEditor extends LitElement {
         stroke-dasharray: 3 3;
       }
       .fp3d-rotate circle:not(.fp3d-hit) {
-        fill: #0b1222;
+        fill: var(--aureon-ui-bg, #0b1222);
         stroke: var(--fp3d-accent);
         stroke-width: 2;
       }
@@ -15962,7 +16203,7 @@ export class Fp3dEditor extends LitElement {
         pointer-events: none;
       }
       .fp3d-furn-sel .fp3d-furn-body {
-        fill: rgba(55, 224, 255, 0.16);
+        fill: rgba(var(--fp3d-accent-rgb), 0.16);
         stroke: var(--fp3d-accent);
         stroke-width: 2;
       }
@@ -15987,7 +16228,7 @@ export class Fp3dEditor extends LitElement {
         fill: #ffb547;
       }
       .fp3d-marquee {
-        fill: rgba(55, 224, 255, 0.08);
+        fill: rgba(var(--fp3d-accent-rgb), 0.08);
         stroke: var(--fp3d-accent);
         stroke-width: 1;
         stroke-dasharray: 4 3;
@@ -16012,7 +16253,7 @@ export class Fp3dEditor extends LitElement {
         cursor: grab;
       }
       .fp3d-open-gap {
-        fill: #0b1222;
+        fill: var(--aureon-ui-bg, #0b1222);
         stroke: none;
       }
       .fp3d-open path,
@@ -16049,7 +16290,7 @@ export class Fp3dEditor extends LitElement {
         stroke-width: 2;
       }
       .fp3d-open-sel .fp3d-open-gap {
-        fill: rgba(55, 224, 255, 0.25);
+        fill: rgba(var(--fp3d-accent-rgb), 0.25);
       }
       .fp3d-open-sel path,
       .fp3d-open-sel line {
@@ -16194,21 +16435,21 @@ export class Fp3dEditor extends LitElement {
       }
       .fp3d-wedge path,
       .fp3d-wedge circle:not(.fp3d-hit) {
-        fill: rgba(55, 224, 255, 0.12);
-        stroke: rgba(55, 224, 255, 0.45);
+        fill: rgba(var(--fp3d-accent-rgb), 0.12);
+        stroke: rgba(var(--fp3d-accent-rgb), 0.45);
         stroke-width: 1;
         pointer-events: none;
       }
       .fp3d-wedge-sel path,
       .fp3d-wedge-sel > circle {
-        fill: rgba(55, 224, 255, 0.2);
+        fill: rgba(var(--fp3d-accent-rgb), 0.2);
         stroke: var(--fp3d-accent);
       }
       .fp3d-wedge .fp3d-rotate circle {
         pointer-events: auto;
       }
       .fp3d-device circle:not(.fp3d-hit) {
-        fill: #111a2e;
+        fill: var(--aureon-ui-chrome-solid, #111a2e);
         stroke: var(--fp3d-soft);
         stroke-width: 1.5;
         vector-effect: non-scaling-stroke;

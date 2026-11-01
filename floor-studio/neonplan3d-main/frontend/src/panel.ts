@@ -54,11 +54,14 @@ const prefs = {
 };
 
 export class Floorplan3dPanel extends LitElement {
+  /** AUREON: this build can be placed directly inside the AUREON dashboard (no iframe, no second HA shell). */
+  static readonly aureonEmbed = 1;
   static properties = {
     hass: { attribute: false },
     narrow: { type: Boolean },
     route: { attribute: false },
     panel: { attribute: false },
+    aureonEmbedded: { type: Boolean, attribute: "aureon-embedded", reflect: true },
     _mode: { state: true },
     _showOpen: { state: true },
     _editorReady: { state: true },
@@ -100,6 +103,7 @@ export class Floorplan3dPanel extends LitElement {
 
   declare hass: HomeAssistant;
   declare narrow: boolean;
+  declare aureonEmbedded: boolean;
   declare route: unknown;
   declare panel: unknown;
   private _aureonApprovalOpen = false;
@@ -180,6 +184,7 @@ export class Floorplan3dPanel extends LitElement {
   constructor() {
     super();
     this.narrow = false;
+    this.aureonEmbedded = false;
     this._mode = "view";
     this._showOpen = false;
     this._editorReady = !!customElements.get("fp3d-editor");
@@ -591,8 +596,8 @@ export class Floorplan3dPanel extends LitElement {
           </section>` : nothing}
         ${this._micProbe && this.hass ? html`<fp3d-mic-probe .hass=${this.hass} .building=${b} @close=${() => ((this._micProbe = false), micProbeDone())}></fp3d-mic-probe>` : nothing}
         ${this._clean && this._mode === "view" ? nothing : html`<header class="fp3d-header">
-          <ha-menu-button .hass=${this.hass} .narrow=${this.narrow}></ha-menu-button>
-          <h1>NeonPlan 3D</h1>
+          ${this.aureonEmbedded ? nothing : html`<ha-menu-button .hass=${this.hass} .narrow=${this.narrow}></ha-menu-button>`}
+          ${this.aureonEmbedded ? nothing : html`<h1>AUREON Floor Studio</h1>`}
           ${this.isAdmin
             ? html`<div class="fp3d-seg" role="tablist">
                 <button role="tab" aria-pressed=${this._mode === "view"} @click=${() => this.setMode("view")}>${this.t("view")}</button>
@@ -1154,7 +1159,7 @@ export class Floorplan3dPanel extends LitElement {
         display: grid;
         place-items: center;
         padding: 16px;
-        background: rgba(2, 6, 14, 0.55);
+        background: rgba(var(--aureon-ui-panel-rgb, 2, 6, 14), 0.55);
       }
       .fp3d-gift {
         max-width: 440px;
@@ -1219,6 +1224,15 @@ export class Floorplan3dPanel extends LitElement {
         :host {
           height: calc(100dvh - var(--safe-area-inset-top, 0px) - var(--safe-area-inset-bottom, 0px));
         }
+      }
+      /* AUREON: inside the dashboard the page gives the height; the HA header and sidebar are already around it */
+      :host([aureon-embedded]) {
+        height: var(--aureon-floor-height, 100%);
+        border-radius: var(--aureon-floor-radius, 0);
+        overflow: hidden;
+      }
+      :host([aureon-embedded]) .fp3d-header {
+        padding-left: 14px;
       }
       .fp3d-app {
         display: flex;
@@ -1590,7 +1604,7 @@ export class Floorplan3dPanel extends LitElement {
         padding: 10px;
         border-radius: 16px;
         background: var(--fp3d-chrome-solid, #0d1628);
-        border: 1px solid var(--fp3d-line, rgba(120, 190, 255, 0.22));
+        border: 1px solid var(--fp3d-line, rgba(var(--aureon-ui-line-rgb, 120, 190, 255), 0.22));
         box-shadow: var(--fp3d-shadow);
       }
       .fp3d-show-panel > .fp3d-seg {

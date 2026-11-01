@@ -786,7 +786,7 @@ export class Fp3dTimeBar extends LitElement {
       height: 32px;
       padding: 0 11px;
       border-radius: 999px;
-      border: 1px solid var(--fp3d-line, rgba(120, 170, 255, 0.16));
+      border: 1px solid var(--fp3d-line, rgba(var(--aureon-ui-line-rgb, 120, 170, 255), 0.16));
       background: transparent;
       font-size: 13px;
       font-weight: 600;
@@ -971,7 +971,7 @@ export class Fp3dTimeBar extends LitElement {
       display: flex;
       gap: 4px;
       padding: 8px 8px 6px;
-      border-bottom: 1px solid var(--fp3d-line, rgba(120, 170, 255, 0.16));
+      border-bottom: 1px solid var(--fp3d-line, rgba(var(--aureon-ui-line-rgb, 120, 170, 255), 0.16));
     }
     .tab {
       flex: 1 1 auto;
@@ -1012,7 +1012,7 @@ export class Fp3dTimeBar extends LitElement {
     .fchip {
       padding: 4px 10px;
       border-radius: 999px;
-      border: 1px solid var(--fp3d-line, rgba(120, 170, 255, 0.16));
+      border: 1px solid var(--fp3d-line, rgba(var(--aureon-ui-line-rgb, 120, 170, 255), 0.16));
       background: transparent;
       font-size: 12px;
     }
@@ -1025,7 +1025,7 @@ export class Fp3dTimeBar extends LitElement {
       font-size: 12px;
       color: inherit;
       background: transparent;
-      border: 1px solid var(--fp3d-line, rgba(120, 170, 255, 0.16));
+      border: 1px solid var(--fp3d-line, rgba(var(--aureon-ui-line-rgb, 120, 170, 255), 0.16));
       border-radius: 999px;
       padding: 3px 8px;
       color-scheme: dark;
@@ -1106,7 +1106,7 @@ export class Fp3dTimeBar extends LitElement {
       color: var(--fp3d-muted, #8a9bb8);
     }
     tbody tr:not(.before) {
-      border-top: 1px solid var(--fp3d-line, rgba(120, 170, 255, 0.16));
+      border-top: 1px solid var(--fp3d-line, rgba(var(--aureon-ui-line-rgb, 120, 170, 255), 0.16));
     }
     .before {
       color: var(--fp3d-muted, #8a9bb8);
@@ -1122,7 +1122,7 @@ export class Fp3dTimeBar extends LitElement {
       gap: 4px 12px;
       margin-top: 12px;
       padding-top: 8px;
-      border-top: 1px solid var(--fp3d-line, rgba(120, 170, 255, 0.16));
+      border-top: 1px solid var(--fp3d-line, rgba(var(--aureon-ui-line-rgb, 120, 170, 255), 0.16));
       font-variant-numeric: tabular-nums;
     }
     .energy b {

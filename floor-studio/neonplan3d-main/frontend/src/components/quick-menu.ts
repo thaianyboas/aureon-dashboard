@@ -519,7 +519,7 @@ export class Fp3dQuickMenu extends LitElement {
         background: var(--fp3d-accent);
         color: var(--fp3d-accent-text);
         border-color: transparent;
-        box-shadow: 0 0 14px rgba(55, 224, 255, 0.45);
+        box-shadow: 0 0 14px rgba(var(--fp3d-accent-rgb), 0.45);
       }
       /* the blind: its closed part covers the circle from the top, the open part glows like daylight */
       .qm-blind.qm-on {

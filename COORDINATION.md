@@ -110,3 +110,44 @@ Distribution: dist rebuilt (0.29.0-test.1, hash updated); integration repackaged
 batch's dashboard commit (renderer/backend changed).
 Next: owner moves models + runs device diagnostics on the iSG; Claude: SEC-01 security fixes, ASSET-01;
 Codex: MEDIA-01 on request.
+
+## Claude batch — 2026-11-01c (embedded editor, wall editing, editor theme, speed)
+
+Base: origin/master = beddb4a (no newer commits; Codex 6df065a preserved).
+Owner requests: (1) editor embedded without iframe, (2) visible name "AUREON Floor Studio", (3) walls of the
+imported plan selectable/movable/removable, (4) frontend 2.0.9 vs backend 2.0.7 warning, (5) editor follows the
+AUREON theme live, (6) speed.
+
+Changed:
+- `aureon-dashboard.js`: Floor Studio page mounts `neonplan3d-panel` directly (attribute `aureon-embedded`;
+  no iframe, no second HA header/sidebar, same element/store as /neonplan3d and the Startseite; removed on leave →
+  WebGL disposed). Height fitted below the AUREON header. Non-AUREON (official) panel bundle → visible warning,
+  never hidden. Editor gets `--aureon-ui-*` tokens from the resolved AUREON theme, re-applied on palette/appearance
+  /HA dark-mode change without reload. Home page kept alive (hidden) while other pages are open — no WebGL
+  rebuild, model reload or shader recompile when returning to Início; hidden page skips renders.
+- `panel.ts`: `aureonEmbedded` (hides ha-menu-button/h1 only), `static aureonEmbed = 1` marker, title
+  "AUREON Floor Studio". `const.py` PANEL_TITLE "AUREON Floor Studio" (url/domain/storage stay neonplan3d).
+  i18n: app-name strings → AUREON Floor Studio; upstream service/Pro/diagnostics/credits keep NeonPlan.
+- `styles.ts` + editor/panel/view3d CSS: colours read `--aureon-ui-*` with the original values as fallback;
+  device/warning colours kept.
+- `editor.ts` (recorded as aureon_extension in SYMBOLS.json: guardFixed, pointerDown, onPointerMove, onPointerUp,
+  onKey, selectItem, renderRooms, renderRoomForm): tap a room outline edge → wall picked + panel (Straighten,
+  Remove/restore divider = wall height 0 on both sides, rooms kept); drag moves the whole straight wall line
+  (Shift: one segment); corner drag moves coincident corners of neighbours (Shift: original); doors/windows keep
+  their world position; Delete on a picked wall removes only the divider.
+- Tests: iframe-specific source tests replaced by `floor-embedded.test.mjs`; i18n test updated.
+
+Tests actually run: npm test (92 dashboard + 520 NeonPlan unit + fidelity gate), test:browser (music, platform,
+floor, editor), fidelity browser (10 scenarios, original vs candidate), capture-home-reference (incl. iSG cases),
+capture-media-reference, validate; pytest 139 + ruff. Disposable HA 2026.2.3 (NOT owner HA) with the owner's
+private plan v5: no-iframe/one-shell assertions; iSG-sized emulations 1280×800 sidebar open/collapsed and
+1024×640 (emulation, not the device); shared wall move, undo/redo, remove/restore divider, straighten,
+contour move, shared corner, autosave, reload/reopen, Startseite, editor removal on leave, live theme switch
+(Forest Luxe Botanical / Sage / Sapphire) without editor rebuild and persistence after reopening.
+Speed (disposable HA, SwiftShader software GL — absolute numbers not representative of the iSG): back to Início
+13.3 s → 1.9 s; Räume 1.7 → 0.7 s; Geräte 1.8 → 0.3 s; idle main-thread work 1.4 s → 0.2 s per 10 s.
+First 3D load is dominated by shader compilation in software GL; must be measured on the iSG (ISG-01).
+Version warning: our integration and frontend are both 2.0.7; a 2.0.9 frontend can only come from the official
+NeonPlan 3D repository in HACS writing the same folder. Owner steps in OWNER_TEST doc / chat.
+Distribution: dist 0.29.0-test.2 (hash updated); integration repackaged, SOURCE_COMMIT advanced.
+Not done: owner HA, physical iSG, non-admin second user test of the embedded panel.

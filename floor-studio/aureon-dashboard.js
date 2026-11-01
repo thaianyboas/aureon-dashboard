@@ -1,8 +1,8 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.29.0-test.1';
-  const BUILD_ID = 'AUREON-OWNER-TEST-20261101';
+  const VERSION = '0.29.0-test.2';
+  const BUILD_ID = 'AUREON-OWNER-TEST-20261101B';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "forest-botanical": {"name": "Forest Luxe · Botanical", "accent": "#d5bd8c", "background": "#0b1511", "surface": "#162419", "text": "#f4f0e6", "muted": "#b9c0ae", "border": "#e2dbb738", "sage": "#b6cba0", "ambient": true}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}};
   const DEFAULT_THEME = 'forest';
@@ -94,7 +94,7 @@
     ['▤','Agenda'],['↻','Automationen'],['▱','Planta'],['⚙','Einstellungen']
   ];
   const MODULES = [
-    ['▱','Floor Studio','Planta','NeonPlan3D original integrado'],
+    ['▱','AUREON Floor Studio','Planta','Editor de planta integrado'],
     ['✧','JARVIS AI','JARVIS','IA e ferramentas protegidas em preparação'],
     ['◇','Segurança','Sicherheit','Controles e permissões em preparação'],
     ['ϟ','Energia','Energie','Consumo e custos em preparação'],
@@ -165,7 +165,7 @@
       const studioKey=this._studioStorageKey();
       if(this._studioLoadedKey!==studioKey){this._studioLoadedKey=studioKey;this._studioCards=this._studioRead();if(this._configured&&this._page==='Início')this._render();}
       for (const card of this._studioRendered) { try { card.hass=value; } catch(error) { console.warn('[AUREON] Card state update failed',error); } }
-      if (this._configured && oldMode !== value?.themes?.darkMode) this._render();
+      if (this._configured && oldMode !== value?.themes?.darkMode) { if(this._page==='Planta'&&this._floorCard)requestAnimationFrame(()=>this._applyThemeTokens()); else this._render(); }
       // Registry references are exposed by newer HA frontends; older versions use the WS fallback.
       // Debounce registry refreshes, never refetch on every sensor state update.
       const signature = [value?.entities, value?.devices, value?.areas].map(x => x && typeof x==='object' ? Object.keys(x).length : '-').join(':');
@@ -229,14 +229,21 @@
       const main=this.shadowRoot.querySelector('main'),wrap=this.shadowRoot.querySelector('.wrap');
       if (!main||!wrap) { this._render();return; }
       ++this._floorMountToken;this._floorCard=null;this._studioRendered=[];
-      const header=main.querySelector(':scope>header');main.replaceChildren(...(header?[header]:[]));
+      // The home page (with its 3D plan) is kept alive while other pages are open: going back to Início shows it at
+      // once instead of rebuilding the WebGL view, reloading the furniture models and recompiling shaders.
+      const header=main.querySelector(':scope>header'),keep=this._homeKeep?.parentNode===main?this._homeKeep:null;
+      if(keep&&name!=='Início')keep.style.display='none';
+      // remove the other children one by one: moving the kept page would disconnect it (and dispose its 3D view)
+      for(const child of [...main.childNodes])if(child!==header&&child!==keep)child.remove();
       wrap.classList.toggle('au-home',name==='Início'||name==='Medien');wrap.classList.toggle('au-media',name==='Medien');
       const Page=customElements.get('aureon-platform'),labels=Page?.labels(this._platformController?.language||this._hass?.language||'en');
       if(header&&labels){header.querySelector('h1').textContent=labels[Page.routeNames[name]]||name;}
       [...this.shadowRoot.querySelectorAll('nav .au-nav-button')].forEach((button,i)=>{const active=PAGES[i]?.[1]===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
       const make=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
-      if(this._platformSection(main,make))return;
-      if(name==='Medien')this._musicSection(main,make,false);else if(name==='Planta')this._floorSection(main,make);
+      if(keep&&name==='Início'){keep.style.display='';keep.requestUpdate?.();return;}
+      if(!this._platformSection(main,make)){if(name==='Medien')this._musicSection(main,make,false);else if(name==='Planta')this._floorSection(main,make);}
+      // the active page comes before the hidden home page in the document (focus order, first match)
+      if(keep)for(const child of [...main.childNodes])if(child!==header&&child!==keep&&keep.compareDocumentPosition(child)&Node.DOCUMENT_POSITION_FOLLOWING)main.insertBefore(child,keep);
     }
     _platformSection(target, make) {
       const Page=customElements.get('aureon-platform');
@@ -247,7 +254,7 @@
       const page=make('aureon-platform');page.page=route;page.controller=this._platformController;page.palettes=Object.entries(PALETTES).map(([id,p])=>({id,name:p.name}));
       page.addEventListener('aureon-platform-navigate',e=>this._navigate(e.detail));
       page.addEventListener('aureon-preferences-changed',e=>{this._theme={...this._theme,mode:e.detail.appearance,palette:e.detail.palette};this._render();});
-      target.append(page);if(route==='home'&&this._platformController.preferences.widgets.music)this._musicSection(page,make,true);return true;
+      target.append(page);if(route==='home')this._homeKeep=page;if(route==='home'&&this._platformController.preferences.widgets.music)this._musicSection(page,make,true);return true;
     }
     _musicSection(target, make, compact = false) {
       const Player = customElements.get('aureon-music-player');
@@ -1339,25 +1346,61 @@
     }
     getCardSize() { return 9; }
     static getStubConfig() { return { type: 'custom:aureon-dashboard' }; }
-    // Floor Studio translations follow the Home Assistant UI language.
+    // The editor follows the AUREON theme: the resolved --au-* tokens (fixed palette, custom colours or the HA theme
+    // in automatic mode) are handed to the editor as --aureon-ui-* tokens, light or dark. Re-applied whenever the
+    // AUREON appearance, the palette or HA's dark mode change — no reload and no editor rebuild.
+    _floorTheme(){
+      const host=this.shadowRoot?.querySelector('[data-aureon-floor-studio]');
+      if(!host)return;
+      const probe=document.createElement('span');probe.style.display='none';this.shadowRoot.append(probe);
+      const rgb=token=>{probe.style.color='';probe.style.color=`var(${token})`;const m=(getComputedStyle(probe).color.match(/[\d.]+/g)||['0','0','0']).map(Number);return m.slice(0,3);};
+      const bg=rgb('--au-bg'),surface=rgb('--au-surface'),text=rgb('--au-surface-text'),muted=rgb('--au-muted'),accent=rgb('--au-accent'),accentText=rgb('--au-accent-text'),sage=rgb('--au-sage');
+      probe.remove();
+      const lum=c=>{const v=c.map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;});return .2126*v[0]+.7152*v[1]+.0722*v[2];};
+      const mix=(a,b,t)=>a.map((x,i)=>Math.round(x+(b[i]-x)*t));
+      const hex=c=>'#'+c.map(x=>x.toString(16).padStart(2,'0')).join('');
+      const trip=c=>c.join(', ');
+      const dark=lum(bg)<.35;
+      // keep the accent readable on the editor surfaces (a pale accent on a light theme gets darker, and vice versa)
+      let ui=accent;for(let i=0;i<8&&Math.abs(lum(ui)-lum(surface))<.18;i++)ui=mix(ui,dark?[255,255,255]:[0,0,0],.18);
+      const tokens={
+        '--aureon-ui-bg':hex(dark?mix(bg,surface,.25):mix(bg,surface,.4)),'--aureon-ui-bg2':hex(dark?surface:mix(surface,bg,.25)),
+        '--aureon-ui-chrome':`rgba(${trip(surface)}, ${dark?.86:.9})`,'--aureon-ui-chrome-solid':hex(mix(surface,bg,dark?.35:.15)),
+        '--aureon-ui-line':`rgba(${trip(text)}, ${dark?.14:.16})`,'--aureon-ui-text':hex(text),'--aureon-ui-muted':hex(muted),
+        '--aureon-ui-accent':hex(ui),'--aureon-ui-accent-text':hex(lum(ui)>.4?mix(bg,[0,0,0],.6):accentText),'--aureon-ui-soft':hex(sage),
+        '--aureon-ui-accent-rgb':trip(ui),'--aureon-ui-soft-rgb':trip(sage),'--aureon-ui-line-rgb':trip(text),'--aureon-ui-muted-rgb':trip(muted),'--aureon-ui-panel-rgb':trip(bg),
+        '--aureon-ui-wall':hex(mix(surface,text,dark?.24:.5)),'--aureon-ui-wall-ext':hex(mix(surface,text,dark?.34:.62)),
+        '--aureon-ui-shadow':dark?'0 8px 30px rgba(0, 0, 0, 0.45)':'0 6px 22px rgba(20, 30, 20, 0.14)','--aureon-ui-scheme':dark?'dark':'light'
+      };
+      for(const [key,value] of Object.entries(tokens))host.style.setProperty(key,value);
+      host.dataset.aureonScheme=dark?'dark':'light';
+    }
+    _applyThemeTokens(){
+      for (const [key,value] of Object.entries(themeTokens(this._theme,this._hass))) this.style.setProperty(key,value);
+      this._floorTheme();
+    }
+    // AUREON Floor Studio translations follow the Home Assistant UI language.
     _floorText(key){
       const language=String(this._hass?.language||'en').toLowerCase().split('-')[0];
       const labels={
-        pt:{loading:'Carregando NeonPlan3D…',retry:'Tentar novamente',missing:'Cartão NeonPlan3D não encontrado. Instale a integração original e atualize os recursos do Home Assistant.',helpers:'API de cartões do Home Assistant indisponível',mountError:'Não foi possível abrir o NeonPlan3D',title:'Floor Studio · NeonPlan3D',description:'Visualize sua planta ou use o editor original completo. Os projetos e configurações permanecem no NeonPlan3D.',view:'Visualização 3D',editor:'Editor completo',reload:'Recarregar editor',fullscreen:'Abrir em tela cheia',note:'O editor exige a integração NeonPlan3D e permissões de administrador. Se a incorporação for bloqueada, abra em tela cheia.',adminOnly:'Apenas administradores podem abrir o editor',viewerOnly:'Visualização disponível. O editor é reservado aos administradores do Home Assistant.',frameError:'Não foi possível carregar o editor incorporado. Recarregue ou abra em tela cheia.',reopening:'Reabrindo o editor original NeonPlan3D…'},
-        de:{loading:'NeonPlan3D wird geladen…',retry:'Erneut versuchen',missing:'NeonPlan3D-Karte nicht gefunden. Installiere die Originalintegration und aktualisiere die Home-Assistant-Ressourcen.',helpers:'Home-Assistant-Karten-API nicht verfügbar',mountError:'NeonPlan3D konnte nicht geöffnet werden',title:'Floor Studio · NeonPlan3D',description:'Grundriss ansehen oder den vollständigen Originaleditor verwenden. Projekte und Einstellungen bleiben in NeonPlan3D.',view:'3D-Ansicht',editor:'Vollständiger Editor',reload:'Editor neu laden',fullscreen:'Im Vollbild öffnen',note:'Der Editor erfordert NeonPlan3D und Administratorrechte. Falls die Einbettung blockiert wird, im Vollbild öffnen.',adminOnly:'Nur Administratoren dürfen den Editor öffnen',viewerOnly:'Die Ansicht ist verfügbar. Der Editor ist Home-Assistant-Administratoren vorbehalten.',frameError:'Der eingebettete Editor konnte nicht geladen werden. Neu laden oder im Vollbild öffnen.',reopening:'NeonPlan3D-Editor wird neu geöffnet…'},
-        en:{loading:'Loading NeonPlan3D…',retry:'Try again',missing:'NeonPlan3D card not found. Install the original integration and refresh Home Assistant resources.',helpers:'Home Assistant card API unavailable',mountError:'Could not open NeonPlan3D',title:'Floor Studio · NeonPlan3D',description:'View your floor plan or use the complete original editor. Projects and settings remain in NeonPlan3D.',view:'3D view',editor:'Full editor',reload:'Reload editor',fullscreen:'Open full screen',note:'The editor requires NeonPlan3D and administrator permissions. If embedding is blocked, open full screen.',adminOnly:'Only administrators can open the editor',viewerOnly:'Viewing is available. Editing is restricted to Home Assistant administrators.',frameError:'Could not load the embedded editor. Reload or open full screen.',reopening:'Reopening the original NeonPlan3D editor…'}
+        pt:{loading:'Carregando o AUREON Floor Studio…',retry:'Tentar novamente',missing:'O AUREON Floor Studio não foi encontrado. Verifique se a integração AUREON (neonplan3d) está instalada e reinicie o Home Assistant.',mountError:'Não foi possível abrir o AUREON Floor Studio',title:'AUREON Floor Studio',region:'Editor e visualização da planta',foreign:'Atenção: o editor carregado não é a versão AUREON (provavelmente a integração NeonPlan 3D oficial do HACS substituiu os arquivos). Salvar pode falhar e os modelos próprios não carregam. Siga as instruções de atualização antes de editar.'},
+        de:{loading:'AUREON Floor Studio wird geladen…',retry:'Erneut versuchen',missing:'AUREON Floor Studio wurde nicht gefunden. Prüfe, ob die AUREON-Integration (neonplan3d) installiert ist, und starte Home Assistant neu.',mountError:'AUREON Floor Studio konnte nicht geöffnet werden',title:'AUREON Floor Studio',region:'Grundriss-Editor und -Ansicht',foreign:'Achtung: Der geladene Editor ist nicht die AUREON-Version (vermutlich hat die offizielle NeonPlan-3D-Integration aus HACS die Dateien ersetzt). Speichern kann fehlschlagen, eigene Modelle laden nicht. Vor dem Bearbeiten die Update-Anleitung befolgen.'},
+        en:{loading:'Loading AUREON Floor Studio…',retry:'Try again',missing:'AUREON Floor Studio was not found. Check that the AUREON integration (neonplan3d) is installed and restart Home Assistant.',mountError:'Could not open AUREON Floor Studio',title:'AUREON Floor Studio',region:'Floor plan editor and view',foreign:'Warning: the loaded editor is not the AUREON build (the official NeonPlan 3D integration from HACS has probably replaced the files). Saving may fail and own models do not load. Follow the update steps before editing.'}
       };
       return (labels[language]||labels.en)[key]||key;
     }
-    // AUREON Floor Studio: use the original NeonPlan3D card and its own editor/backend.
-    // No duplicate floor data model, no localStorage-based floor editor.
-    async _mountNeonPlan(){
-      // Only mount the upstream card. The upstream integration owns editing, settings and storage.
-      const host=this.shadowRoot?.querySelector('[data-aureon-neonplan]');
+    // AUREON Floor Studio: the complete original editor (view, editor, extensions; import/export, undo/redo,
+    // furniture, materials, looks) placed directly in this page — no iframe, so Home Assistant's header and
+    // sidebar appear only once. It is the same element and the same backend store as /neonplan3d and the
+    // Startseite. Permissions stay with the editor and the backend (non-admins only get the view).
+    async _mountFloorStudio(){
+      const host=this.shadowRoot?.querySelector('[data-aureon-floor-studio]');
+      const status=this.shadowRoot?.querySelector('[data-aureon-floor-status]');
       const token=++this._floorMountToken;
-      if(!host || !host.isConnected || host.hidden || this._page!=='Planta')return;
+      const alive=()=>token===this._floorMountToken && host?.isConnected && this._page==='Planta';
+      if(!alive())return;
       const explain=(message)=>{
-        if(token!==this._floorMountToken || !host.isConnected || host.hidden || this._page!=='Planta')return;
+        if(!alive())return;
         const note=document.createElement('p');
         note.className='muted';
         note.setAttribute('role','status');
@@ -1366,164 +1409,58 @@
         retry.type='button';
         retry.className='au-floor-retry';
         retry.textContent=this._floorText('retry');
-        retry.addEventListener('click',()=>{
-          if(token!==this._floorMountToken || !host.isConnected || host.hidden || this._page!=='Planta')return;
-          host.textContent=this._floorText('loading');
-          void this._mountNeonPlan();
-        });
+        retry.addEventListener('click',()=>{if(!alive())return;host.textContent=this._floorText('loading');void this._mountFloorStudio();});
         host.replaceChildren(note,retry);
       };
-      if(!customElements.get('neonplan3d-card')){
-        // HA may register the custom card after the dashboard renders. Wait
-        // briefly for the *native* resource instead of immediately failing.
-        // A timeout leaves the existing manual retry available for offline HA.
-        await Promise.race([
-          customElements.whenDefined('neonplan3d-card'),
-          new Promise(resolve=>setTimeout(resolve,6000))
-        ]);
-        if(token!==this._floorMountToken || !host.isConnected || host.hidden || this._page!=='Planta')return;
-        if(!customElements.get('neonplan3d-card')){
-          explain(this._floorText('missing'));
-          return;
-        }
+      if(!customElements.get('neonplan3d-panel')){
+        // The integration adds its bundle to every HA page; it may arrive after the dashboard.
+        await Promise.race([customElements.whenDefined('neonplan3d-panel'),new Promise(resolve=>setTimeout(resolve,8000))]);
+        if(!alive())return;
+        if(!customElements.get('neonplan3d-panel')){explain(this._floorText('missing'));return;}
       }
       try{
-        const helpers=await window.loadCardHelpers?.();
-        if(!helpers?.createCardElement)throw new Error(this._floorText('helpers'));
-        // The user may have switched pages while card helpers were loading.
-        if(token!==this._floorMountToken || !host.isConnected || host.hidden || this._page!=='Planta' || this.shadowRoot?.querySelector('[data-aureon-neonplan]')!==host)return;
-        const card=helpers.createCardElement({type:'custom:neonplan3d-card',fill:true,quality:'auto',controls:true,fullscreen_button:true,room_panel:true,markers:'important'});
-        host.replaceChildren(card);
-        card.hass=this._hass;
-        if(this._floorCard){
-          this._studioRendered=this._studioRendered.filter(item=>item!==this._floorCard);
-        }
-        this._floorCard=card;
-        this._studioRendered.push(card);
+        const Panel=customElements.get('neonplan3d-panel');
+        const panel=document.createElement('neonplan3d-panel');
+        panel.setAttribute('aureon-embedded','');
+        panel.aureonEmbedded=true;
+        panel.narrow=window.matchMedia?.('(max-width: 870px)')?.matches||false;
+        panel.route={prefix:'/neonplan3d',path:''};
+        panel.panel={config:{}};
+        panel.hass=this._hass;
+        this._floorTheme();
+        host.replaceChildren(panel);
+        // Fill the visible height below the AUREON header (HA header, sidebar and safe areas are already outside).
+        const fit=()=>{
+          if(!host.isConnected){window.removeEventListener('resize',fit);return;}
+          const top=host.getBoundingClientRect().top,height=window.visualViewport?.height||window.innerHeight;
+          host.style.setProperty('--aureon-floor-height',Math.max(360,Math.round(height-Math.max(0,top)-12))+'px');
+        };
+        fit();window.addEventListener('resize',fit);
+        this._floorCard=panel;
+        this._studioRendered.push(panel);
+        // Never hide a version problem: a panel without the AUREON marker is a foreign (official) bundle.
+        if(status){status.hidden=!!Panel.aureonEmbed;status.textContent=Panel.aureonEmbed?'':this._floorText('foreign');}
       }catch(error){
-        console.warn('[AUREON] NeonPlan3D mount failed',error);
+        console.warn('[AUREON] Floor Studio mount failed',error);
         explain(this._floorText('mountError')+': '+(error?.message||String(error)));
       }
     }
     _floorSection(main,make){
-      const section=make('section','au-floor');
-      section.append(make('h2','',this._floorText('title')));
-      section.append(make('p','muted',this._floorText('description')));
-      const controls=make('div','au-floor-controls');
-      controls.setAttribute('role','group');
-      controls.setAttribute('aria-label','Modos do Floor Studio');
-      const viewButton=make('button','au-floor-mode',this._floorText('view'));
-      const editButton=make('button','au-floor-mode',this._floorText('editor'));
-      viewButton.type='button'; editButton.type='button';
-      const editorRetry=make('button','au-floor-editor-retry',this._floorText('reload'));
-      editorRetry.type='button';
-      editorRetry.hidden=true;
-      const editorLink=make('a','au-floor-native-editor',this._floorText('fullscreen'));
-      editorLink.href='/neonplan3d';
-      editorLink.target='_blank';
-      editorLink.rel='noopener noreferrer';
-      editorLink.setAttribute('aria-label','Abrir painel original NeonPlan3D em nova aba');
-      controls.append(viewButton,editButton,editorRetry,editorLink);
-      section.append(controls);
-      const notice=make('p','muted au-floor-note',this._floorText('note'));
-      section.append(notice);
-      const host=make('div','au-neonplan-host');
-      host.setAttribute('data-aureon-neonplan','');
-      const editorHost=make('div','au-neonplan-editor-host');
-      editorHost.setAttribute('data-aureon-neonplan-editor','');
-      editorHost.hidden=true;
-      // Only HA administrators can access editing controls. The native panel
-      // remains the ultimate authority for permissions; this is an extra UI gate.
-      const canEdit=Boolean(this._hass?.user?.is_admin);
-      editButton.disabled=!canEdit;
-      if(!canEdit){
-        editButton.title=this._floorText('adminOnly');
-        editorLink.hidden=true;
-        editorRetry.hidden=true;
-        notice.textContent=this._floorText('viewerOnly');
-      }
-      let editorLoadTimer=null;
-      const clearEditorTimer=()=>{if(editorLoadTimer!==null){clearTimeout(editorLoadTimer);editorLoadTimer=null;}};
-      const show=(mode)=>{
-        const editor=mode==='editor' && canEdit;
-        const wasEditor=!editorHost.hidden;
-        host.hidden=editor;
-        editorHost.hidden=!editor;
-        viewButton.setAttribute('aria-pressed',String(!editor));
-        editButton.setAttribute('aria-pressed',String(editor));
-        editorRetry.hidden=!editor;
-        if(!editor){
-          clearEditorTimer();
-          // Dispose the native editor's WebGL context when returning to the card.
-          editorHost.replaceChildren();
-          if(wasEditor){
-            host.textContent=this._floorText('loading');
-            queueMicrotask(()=>this._mountNeonPlan());
-          }
-          return;
-        }
-        // Invalidate any pending async viewer mount before disconnecting.
-        ++this._floorMountToken;
-        if(this._floorCard){
-          this._studioRendered=this._studioRendered.filter(item=>item!==this._floorCard);
-          this._floorCard=null;
-        }
-        // Disconnect the viewer while the full editor is active: merely hiding
-        // a WebGL canvas does not stop its render loop or free GPU memory.
-        host.replaceChildren();
-        if(!editorHost.firstChild){
-          const frame=document.createElement('iframe');
-          frame.className='au-neonplan-editor-frame';
-          frame.title='Editor original NeonPlan3D';
-          frame.src='/neonplan3d';
-          frame.loading='eager';
-          frame.referrerPolicy='same-origin';
-          frame.setAttribute('aria-label','Painel de edição original NeonPlan3D');
-          frame.addEventListener('load',()=>{
-            clearEditorTimer();
-            // The load event does not guarantee that HA permits iframe rendering.
-            // Keep the full-page fallback visible in all cases.
-            if(!editorHost.hidden && editorHost.contains(frame))notice.textContent=this._floorText('note');
-          });
-          frame.addEventListener('error',()=>{
-            clearEditorTimer();
-            if(!editorHost.hidden && editorHost.contains(frame)){
-              notice.setAttribute('role','status');
-              notice.textContent=this._floorText('frameError');
-            }
-          });
-          // Frame load alone cannot prove that HA permits embedding. Always
-          // retain the full-screen link as the supported fallback.
-          editorHost.append(frame);
-          clearEditorTimer();
-          editorLoadTimer=setTimeout(()=>{
-            editorLoadTimer=null;
-            if(!editorHost.hidden && editorHost.contains(frame) && this._page==='Planta'){
-              notice.setAttribute('role','status');
-              notice.textContent=this._floorText('frameError');
-            }
-          },12000);
-        }
-      };
-      editorRetry.addEventListener('click',()=>{
-        if(!canEdit || editorHost.hidden || this._page!=='Planta')return;
-        // Recreate the iframe rather than reloading the whole HA dashboard.
-        clearEditorTimer();
-        editorHost.replaceChildren();
-        notice.textContent=this._floorText('reopening');
-        show('editor');
-      });
-      viewButton.addEventListener('click',()=>show('view'));
-      editButton.addEventListener('click',()=>show('editor'));
-      host.textContent=this._floorText('loading');
-      section.append(host,editorHost);main.append(section);
-      show('view');
-      // Exactly one initial mount; subsequent mounts occur on editor → viewer transitions.
-      queueMicrotask(()=>this._mountNeonPlan());
+      const section=make('section','au-floor au-floor-studio');
+      section.setAttribute('aria-label',this._floorText('region'));
+      const status=make('p','au-floor-warning');
+      status.setAttribute('role','alert');
+      status.setAttribute('data-aureon-floor-status','');
+      status.hidden=true;
+      const host=make('div','au-floor-studio-host',this._floorText('loading'));
+      host.setAttribute('data-aureon-floor-studio','');
+      section.append(status,host);main.append(section);
+      // Leaving the page removes the element: the editor and the 3D view free their WebGL resources on disconnect.
+      queueMicrotask(()=>this._mountFloorStudio());
     }
     _render() {
       const Platform=customElements.get('aureon-platform');
-      if(Platform?.createController){if(!this._platformController)this._platformController=Platform.createController();this._platformController.update(this._hass,this._registry);this._theme={...this._theme,mode:this._platformController.preferences.appearance,palette:this._platformController.preferences.palette};}
+      if(Platform?.createController){if(!this._platformController){this._platformController=Platform.createController();this._platformController.subscribe?.(()=>{const p=this._platformController.preferences;if(p.appearance!==this._theme.mode||p.palette!==this._theme.palette){this._theme={...this._theme,mode:p.appearance,palette:p.palette};this._applyThemeTokens();}});}this._platformController.update(this._hass,this._registry);this._theme={...this._theme,mode:this._platformController.preferences.appearance,palette:this._platformController.preferences.palette};}
 
       if (!this._configured) return;
       const root = this.shadowRoot;
@@ -1569,6 +1506,7 @@
       @container (max-width:380px){.au-studio-editor-v27 .au-studio-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}.au-studio-editor-v27 .au-studio-actions{position:static}}
       `;
       filterStyle.textContent += `.au-floor-native-editor{display:inline-flex;align-items:center;justify-content:center;margin:12px 0 18px;padding:11px 16px;border-radius:10px;background:var(--au-accent);color:var(--au-bg);font-weight:700;text-decoration:none}.au-floor-native-editor:focus-visible{outline:3px solid var(--au-text);outline-offset:3px}`;
+      filterStyle.textContent += `.au-floor.au-floor-studio{margin-top:8px}.au-floor-studio-host{position:relative;min-width:0;height:var(--aureon-floor-height);min-height:360px;border:1px solid var(--au-border);border-radius:16px;overflow:hidden;background:var(--au-surface)}.au-floor-studio-host>neonplan3d-panel{display:block;width:100%;--aureon-floor-height:100%;--aureon-floor-radius:16px}.au-floor-studio{--aureon-floor-height:max(440px,calc(100vh - var(--header-height,56px) - var(--aureon-floor-chrome,128px)))}@supports(height:100dvh){.au-floor-studio{--aureon-floor-height:max(440px,calc(100dvh - var(--header-height,56px) - var(--aureon-floor-chrome,128px)))}}.au-floor-warning{margin:0 0 10px;padding:10px 14px;border-radius:12px;border:1px solid #d9a441;background:rgba(217,164,65,.14);color:var(--au-text);font-size:13px;line-height:1.45}.au-floor [hidden]{display:none!important}`;
       filterStyle.textContent += `.au-neonplan-host{min-height:420px;min-width:0;overflow:hidden}.au-neonplan-host>*{display:block;width:100%;max-width:100%}.au-floor{margin-top:24px}.au-floor-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,1fr);gap:16px;margin-top:16px}.au-floor-map{position:relative;aspect-ratio:1.3;background:var(--au-surface);border:2px solid var(--au-accent);border-radius:12px;overflow:hidden;min-height:280px}.au-floor-room{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;overflow:hidden;padding:4px;border:1px solid var(--au-border);border-radius:6px;background:var(--au-card);font-size:clamp(9px,1.2vw,13px)}.au-floor-room strong,.au-floor-room span{max-width:100%;overflow:hidden;text-overflow:ellipsis}.au-floor-room span{font-size:10px;opacity:.75}.au-floor-room.is-on{border-color:var(--au-accent);box-shadow:inset 0 0 16px var(--au-hover)}.au-floor-form{display:grid;align-content:start;gap:12px;padding:16px;background:var(--au-surface);border:1px solid var(--au-border);border-radius:12px}.au-floor-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.au-floor-form label{display:grid;gap:5px;font-size:12px}.au-floor-form input,.au-floor-form select{width:100%;min-width:0;padding:9px;border-radius:7px;background:var(--au-bg);color:var(--au-text);border:1px solid var(--au-border)}@media(max-width:850px){.au-floor-layout{grid-template-columns:minmax(0,1fr)}}`;
       root.append(filterStyle);
       for (const [key,value] of Object.entries(themeTokens(this._theme,this._hass))) this.style.setProperty(key,value);

@@ -138,7 +138,7 @@ function copyFonts() {
 // AUREON: explicit four-module approval UI and five visual themes add code.
 // Main: 752 KiB. Viewer: 880 KiB allows bounded headroom over the 859.9 KiB
 // physically based renderer (physical material shaders, maps and PMREM environment).
-const BUDGET = { "neonplan3d.js": 752 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 896 * 1024 /* AUREON: +16 KB for own .glb furniture and room finishes (was 880) */, "neonplan3d-editor.js": 944 * 1024, "neonplan3d-card-editor.js": 273 * 1024 };
+const BUDGET = { "neonplan3d.js": 752 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 896 * 1024 /* AUREON: +16 KB for own .glb furniture and room finishes (was 880) */, "neonplan3d-editor.js": 944 * 1024, "neonplan3d-card-editor.js": 276 * 1024 /* AUREON: +3 KB for the AUREON theme tokens and product name (was 273) */ };
 
 copyFonts();
 if (watch) {

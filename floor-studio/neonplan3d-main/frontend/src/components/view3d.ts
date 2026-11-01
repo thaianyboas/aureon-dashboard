@@ -5681,7 +5681,7 @@ export class Fp3dView3d extends LitElement {
       }
       .fp3d-gang-menu .fp3d-gang-on {
         border-color: var(--fp3d-accent, #37e0ff);
-        box-shadow: 0 0 10px rgba(55, 224, 255, 0.35);
+        box-shadow: 0 0 10px rgba(var(--fp3d-accent-rgb), 0.35);
       }
       .fp3d-gang-menu small {
         opacity: 0.7;
@@ -5944,7 +5944,7 @@ export class Fp3dView3d extends LitElement {
         background: var(--fp3d-accent);
         color: var(--fp3d-accent-text);
         border-color: transparent;
-        box-shadow: 0 0 22px rgba(55, 224, 255, 0.28);
+        box-shadow: 0 0 22px rgba(var(--fp3d-accent-rgb), 0.28);
       }
       .fp3d-pin-floor b {
         font: 700 15px var(--fp3d-title-font);
@@ -5983,7 +5983,7 @@ export class Fp3dView3d extends LitElement {
         width: calc(24px * var(--fp3d-pin-k, 1));
         height: calc(24px * var(--fp3d-pin-k, 1));
         border-radius: 50%;
-        background: rgba(91, 124, 255, 0.14);
+        background: rgba(var(--fp3d-soft-rgb), 0.14);
       }
       .fp3d-dev-icon svg {
         width: calc(18px * var(--fp3d-pin-k, 1));
@@ -5992,10 +5992,10 @@ export class Fp3dView3d extends LitElement {
       .fp3d-dev[data-entity^="trail:"] {
         padding: 2px 4px 2px 2px;
         font-size: 11px;
-        border-color: rgba(55, 224, 255, 0.5);
+        border-color: rgba(var(--fp3d-accent-rgb), 0.5);
       }
       .fp3d-dev[data-entity^="trail:"] .fp3d-dev-icon {
-        color: #37e0ff;
+        color: var(--aureon-ui-accent, #37e0ff);
       }
       .fp3d-dev[data-entity^="trail:"] .fp3d-dev-text {
         display: inline;
@@ -6014,7 +6014,7 @@ export class Fp3dView3d extends LitElement {
       }
       .fp3d-dev-watt {
         padding: 1px 6px 1px 0;
-        color: #37e0ff;
+        color: var(--aureon-ui-accent, #37e0ff);
         font-variant-numeric: tabular-nums;
         font-weight: 700;
       }
@@ -6149,7 +6149,7 @@ export class Fp3dView3d extends LitElement {
       }
       .fp3d-thumb[aria-pressed="true"] {
         border-color: var(--fp3d-accent);
-        box-shadow: var(--fp3d-shadow), 0 0 0 1px var(--fp3d-accent), 0 0 18px rgba(55, 224, 255, 0.25);
+        box-shadow: var(--fp3d-shadow), 0 0 0 1px var(--fp3d-accent), 0 0 18px rgba(var(--fp3d-accent-rgb), 0.25);
       }
       .fp3d-thumb img {
         display: block;
@@ -6213,7 +6213,7 @@ export class Fp3dView3d extends LitElement {
         font: inherit;
         font-weight: 700;
         font-size: 14px;
-        border: 1px solid rgba(55, 224, 255, 0.45);
+        border: 1px solid rgba(var(--fp3d-accent-rgb), 0.45);
         border-radius: 13px;
         background: var(--fp3d-chrome);
         color: var(--fp3d-text);
@@ -6275,7 +6275,7 @@ export class Fp3dView3d extends LitElement {
         width: 112px;
         height: 112px;
         border-radius: 50%;
-        background: rgba(14, 21, 38, 0.55);
+        background: rgba(var(--aureon-ui-panel-rgb, 14, 21, 38), 0.55);
         border: 1px solid var(--fp3d-line);
         display: grid;
         place-items: center;
@@ -6286,7 +6286,7 @@ export class Fp3dView3d extends LitElement {
         height: 46px;
         border-radius: 50%;
         background: var(--fp3d-accent);
-        box-shadow: 0 0 16px rgba(55, 224, 255, 0.5);
+        box-shadow: 0 0 16px rgba(var(--fp3d-accent-rgb), 0.5);
         pointer-events: none;
       }
       /* with a mouse the stick is not needed */
@@ -6859,7 +6859,7 @@ export class Fp3dView3d extends LitElement {
         border-radius: 16px;
         background: rgba(8, 16, 34, 0.86);
         border: 1px solid rgba(160, 240, 255, 0.4);
-        box-shadow: 0 0 28px rgba(55, 224, 255, 0.25);
+        box-shadow: 0 0 28px rgba(var(--fp3d-accent-rgb), 0.25);
         overflow: auto;
       }
       .fp3d-wall-head {
@@ -7111,10 +7111,10 @@ export class Fp3dView3d extends LitElement {
         -webkit-backdrop-filter: blur(7px) saturate(150%);
         border: 1px solid rgba(160, 240, 255, 0.55);
         box-shadow:
-          0 0 28px rgba(55, 224, 255, 0.35),
+          0 0 28px rgba(var(--fp3d-accent-rgb), 0.35),
           0 0 2px rgba(200, 250, 255, 0.9),
           inset 0 1px 0 rgba(255, 255, 255, 0.45),
-          inset 0 0 36px rgba(55, 224, 255, 0.14);
+          inset 0 0 36px rgba(var(--fp3d-accent-rgb), 0.14);
         color: #e6fbff;
         font-size: 12px;
         line-height: 1.35;
@@ -7143,13 +7143,13 @@ export class Fp3dView3d extends LitElement {
         border-radius: 8px;
         object-fit: cover;
         flex: none;
-        box-shadow: 0 0 12px rgba(55, 224, 255, 0.35);
+        box-shadow: 0 0 12px rgba(var(--fp3d-accent-rgb), 0.35);
       }
       .fp3d-holo-cover-none {
         display: grid;
         place-items: center;
         font-size: 22px;
-        background: rgba(55, 224, 255, 0.15);
+        background: rgba(var(--fp3d-accent-rgb), 0.15);
         color: #a8f0ff;
       }
       .fp3d-holo-titles {
@@ -7279,7 +7279,7 @@ export class Fp3dView3d extends LitElement {
       .fp3d-holo-ping {
         box-shadow:
           0 0 0 2px var(--fp3d-accent, #37e0ff),
-          0 0 26px rgba(55, 224, 255, 0.55);
+          0 0 26px rgba(var(--fp3d-accent-rgb), 0.55);
       }
       .fp3d-holo-status {
         display: flex;
@@ -7421,7 +7421,7 @@ export class Fp3dView3d extends LitElement {
         font-size: 11.5px;
         color: inherit;
         background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(91, 124, 255, 0.35);
+        border: 1px solid rgba(var(--fp3d-soft-rgb), 0.35);
         border-radius: 8px;
         padding: 4px 8px;
         cursor: pointer;
@@ -7484,13 +7484,13 @@ export class Fp3dView3d extends LitElement {
       .fp3d-holo-link line {
         stroke: rgba(160, 240, 255, 0.75);
         stroke-width: 1.2;
-        filter: drop-shadow(0 0 3px rgba(55, 224, 255, 0.8));
+        filter: drop-shadow(0 0 3px rgba(var(--fp3d-accent-rgb), 0.8));
       }
       .fp3d-holo-link circle {
         fill: #cffaff;
-        stroke: rgba(55, 224, 255, 0.8);
+        stroke: rgba(var(--fp3d-accent-rgb), 0.8);
         stroke-width: 2;
-        filter: drop-shadow(0 0 4px rgba(55, 224, 255, 0.9));
+        filter: drop-shadow(0 0 4px rgba(var(--fp3d-accent-rgb), 0.9));
       }
       .fp3d-holo-min {
         width: 150px;
@@ -7652,7 +7652,7 @@ export class Fp3dView3d extends LitElement {
         border-left-color: #6fd8ff;
       }
       .fp3d-energy-grid {
-        border-left-color: #37e0ff;
+        border-left-color: var(--aureon-ui-accent, #37e0ff);
       }
       .fp3d-energy-export,
       .fp3d-energy-solar {
@@ -7789,7 +7789,7 @@ export class Fp3dView3d extends LitElement {
         background: var(--fp3d-accent);
         color: var(--fp3d-accent-text);
         border-color: transparent;
-        box-shadow: 0 0 18px rgba(55, 224, 255, 0.45);
+        box-shadow: 0 0 18px rgba(var(--fp3d-accent-rgb), 0.45);
       }
       .fp3d-stats b {
         color: var(--fp3d-accent);

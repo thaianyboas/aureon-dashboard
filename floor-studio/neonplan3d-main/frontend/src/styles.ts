@@ -2,23 +2,29 @@ import { css } from "lit";
 
 /** Neon design tokens shared by panel, card and editor. */
 export const tokens = css`
+  /* AUREON: each token can be supplied from outside (--aureon-ui-*), so the embedded editor follows the AUREON
+     theme; without those variables the original NeonPlan values apply unchanged. The *-rgb triplets feed the
+     translucent tints (rgba(var(--fp3d-accent-rgb), a)). */
   :host {
-    --fp3d-bg: #070b14;
-    --fp3d-bg2: #0d1424;
-    --fp3d-chrome: rgba(14, 21, 38, 0.86);
-    --fp3d-chrome-solid: #0f1729;
-    --fp3d-line: rgba(120, 170, 255, 0.16);
-    --fp3d-text: #e6eefc;
-    --fp3d-muted: #8a9bb8;
-    --fp3d-accent: #37e0ff;
-    --fp3d-accent-text: #041018;
-    --fp3d-soft: #5b7cff;
+    --fp3d-bg: var(--aureon-ui-bg, #070b14);
+    --fp3d-bg2: var(--aureon-ui-bg2, #0d1424);
+    --fp3d-chrome: var(--aureon-ui-chrome, rgba(14, 21, 38, 0.86));
+    --fp3d-chrome-solid: var(--aureon-ui-chrome-solid, #0f1729);
+    --fp3d-line: var(--aureon-ui-line, rgba(120, 170, 255, 0.16));
+    --fp3d-text: var(--aureon-ui-text, #e6eefc);
+    --fp3d-muted: var(--aureon-ui-muted, #8a9bb8);
+    --fp3d-accent: var(--aureon-ui-accent, #37e0ff);
+    --fp3d-accent-text: var(--aureon-ui-accent-text, #041018);
+    --fp3d-soft: var(--aureon-ui-soft, #5b7cff);
+    --fp3d-accent-rgb: var(--aureon-ui-accent-rgb, 55, 224, 255);
+    --fp3d-soft-rgb: var(--aureon-ui-soft-rgb, 91, 124, 255);
+    --fp3d-line-rgb: var(--aureon-ui-line-rgb, 120, 170, 255);
     --fp3d-warm: #ffb547;
     --fp3d-danger: #ff6b8b;
-    --fp3d-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    --fp3d-shadow: var(--aureon-ui-shadow, 0 8px 30px rgba(0, 0, 0, 0.5));
     --fp3d-font: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --fp3d-title-font: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
-    color-scheme: dark;
+    color-scheme: var(--aureon-ui-scheme, dark);
     font-family: var(--fp3d-font);
     color: var(--fp3d-text);
   }
