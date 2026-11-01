@@ -2,8 +2,8 @@
 import {AddEquation, AdditiveBlending, CustomBlending, OneFactor, SrcAlphaFactor, ZeroFactor, ACESFilmicToneMapping, AmbientLight, Box3, Color, PointLight, Vector3, DataTexture, DirectionalLight, DoubleSide, Float32BufferAttribute, Group, HemisphereLight, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshPhysicalMaterial, NoColorSpace, NormalBlending, PCFSoftShadowMap, PMREMGenerator, RepeatWrapping, RGBADepthPacking, RGBAFormat, SRGBColorSpace, UnsignedByteType, type BufferGeometry, type Camera, type Material, type Scene, type Texture, type WebGLRenderer} from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {makeFoldable, type FoldMasks, type FoldRole} from './fold.ts';
-export type PbrKind='architecture'|'wood'|'fabric'|'metal'|'glass'|'stone'|'tile'|'concrete'|'deck'|'parquet';
-export const PBR_KINDS: readonly PbrKind[]=['architecture','wood','fabric','metal','glass','stone','tile','concrete','deck','parquet'];
+export type PbrKind='architecture'|'wood'|'fabric'|'metal'|'glass'|'stone'|'tile'|'concrete'|'deck'|'parquet'|'paint';
+export const PBR_KINDS: readonly PbrKind[]=['architecture','wood','fabric','metal','glass','stone','tile','concrete','deck','parquet','paint'];
 export function furniturePbrKind(type:string):PbrKind {
  if(/glass|window|shower|mirror/.test(type))return 'glass';
  if(/metal|sink|oven|fridge|refrigerator|stove|radiator|tap|steel/.test(type))return 'metal';
@@ -19,6 +19,8 @@ export function pbrHeight(kind:PbrKind,x:number,y:number):number {
  if(kind==='fabric')return .5+.22*Math.sin(x*Math.PI/2)*Math.sin(y*Math.PI/2);
  if(kind==='stone'){const gx=((x%64)+64)%64,gy=((y%32)+32)%32;return gx<1.2||gy<1.2?.18:.5+.1*Math.sin(x*.31+y*.17)*Math.cos(y*.28-x*.13);}
  // tile: 0.5 m ceramic squares with grout; concrete: fine speckle; deck: 8 boards per metre with seams
+ // paint: white lacquered doors and frames, almost smooth
+ if(kind==='paint')return .5+.015*Math.sin(x*.9+y*.4);
  if(kind==='tile'){const gx=((x%64)+64)%64,gy=((y%64)+64)%64;return gx<1.4||gy<1.4?.15:.56+.03*Math.sin(x*.9+y*1.3);}
  if(kind==='concrete')return .5+.06*Math.sin(x*1.7+y*.9)*Math.sin(y*2.3-x*.7)+.04*Math.sin(x*5.1+y*4.3);
  if(kind==='deck'){const gy=((y%16)+16)%16;return gy<1.1?.12:.52+.16*Math.sin(x*.37+Math.sin(y*.21)*2)+.05*Math.sin(x*2.1);}
@@ -28,8 +30,8 @@ export function pbrHeight(kind:PbrKind,x:number,y:number):number {
 export interface PbrMaps { color:DataTexture;roughness:DataTexture;metalness:DataTexture;normal:DataTexture; }
 export function makePbrMaps(kind:PbrKind,size=128):PbrMaps {
  const n=Math.max(16,Math.min(256,Math.round(size))),c=new Uint8Array(n*n*4),r=new Uint8Array(c.length),m=new Uint8Array(c.length),normal=new Uint8Array(c.length);
- const base:Record<PbrKind,[number,number,number]>={architecture:[216,209,197],parquet:[182,124,72],wood:[150,104,66],fabric:[158,160,156],metal:[194,199,203],glass:[233,245,247],stone:[176,184,190],tile:[226,214,184],concrete:[186,184,178],deck:[132,118,102]};
- const rough:Record<PbrKind,number>={architecture:.86,parquet:.5,wood:.55,fabric:.94,metal:.27,glass:.08,stone:.62,tile:.38,concrete:.8,deck:.74};
+ const base:Record<PbrKind,[number,number,number]>={paint:[238,236,230],architecture:[216,209,197],parquet:[182,124,72],wood:[150,104,66],fabric:[158,160,156],metal:[194,199,203],glass:[233,245,247],stone:[176,184,190],tile:[226,214,184],concrete:[186,184,178],deck:[132,118,102]};
+ const rough:Record<PbrKind,number>={paint:.42,architecture:.86,parquet:.5,wood:.55,fabric:.94,metal:.27,glass:.08,stone:.62,tile:.38,concrete:.8,deck:.74};
  for(let y=0;y<n;y++)for(let x=0;x<n;x++){const i=(y*n+x)*4,h=pbrHeight(kind,x*128/n,y*128/n),dx=pbrHeight(kind,(x+1)*128/n,y*128/n)-pbrHeight(kind,(x-1)*128/n,y*128/n),dy=pbrHeight(kind,x*128/n,(y+1)*128/n)-pbrHeight(kind,x*128/n,(y-1)*128/n);const length=Math.hypot(dx,dy,1);
   for(let k=0;k<3;k++){c[i+k]=Math.round(Math.min(255,Math.max(0,base[kind][k]*(.9+h*.2)*(h<.2?.74:1))));r[i+k]=Math.round(Math.max(.03,Math.min(1,rough[kind]+(h-.5)*.12))*255);m[i+k]=kind==='metal'?235:0;}
   normal[i]=Math.round((-.5*dx/length+.5)*255);normal[i+1]=Math.round((-.5*dy/length+.5)*255);normal[i+2]=Math.round((.5/length+.5)*255);c[i+3]=r[i+3]=m[i+3]=normal[i+3]=255;

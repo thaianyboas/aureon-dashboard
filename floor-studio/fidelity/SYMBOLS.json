@@ -16389,7 +16389,7 @@
       "original_sha256": "2f43831b3cc3b52091fa8764511d829ad454f6c96111d8751f6743c1573a74ca",
       "candidate_sha256": "bf08bd584d742499b51ee0d1efc697f35822d788c4fa198ead2e05a1a0450e1f",
       "status": "aureon_extension",
-      "note": "One added line: while the camera still shows the AUREON presentation fit (frameScale ≠ 1, radius unchanged), a new stage shape re-fits it. Original behaviour unchanged at frameScale = 1."
+      "note": "One added line: while the camera still shows the AUREON presentation fit (frameScale ≠ 1, radius unchanged), a new stage shape re-fits it."
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.disposeRetired",
@@ -16564,8 +16564,9 @@
       "original_line": 3118,
       "candidate_line": 3133,
       "original_sha256": "70ee361adf476004f689ed936cf083f46e48fd33a04c73676b10c1bdaab2105a",
-      "candidate_sha256": "70ee361adf476004f689ed936cf083f46e48fd33a04c73676b10c1bdaab2105a",
-      "status": "preserved"
+      "candidate_sha256": "2f2cf242fe18f910ca2dec83b8b76317c55ed34aac9ea999360fa574f01771c4",
+      "status": "aureon_extension",
+      "note": "One added filter: a lamp drawn by its own AUREON .glb model (furniture.aureon_model, loaded) leaves out the built-in shade; its light, glow and entity stay. Without aureon_model the method is unchanged."
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildSun",
@@ -16676,9 +16677,9 @@
       "original_line": 4020,
       "candidate_line": 4035,
       "original_sha256": "f05fdb1ffaa701612329f0082906de8c06efdfcea4bb6b6af4ec75f430ce48b0",
-      "candidate_sha256": "18a97290c6e64c64f829bfd12196f145f4ab5ae44fc7e82539ae9017bdffd667",
+      "candidate_sha256": "ff62ab5448140955db9daec9e4eea2c811c68d4d920410f8f1de20cd3f9b64ce",
       "status": "aureon_extension",
-      "note": "frameScale ≠ 1 (AUREON only): projected-box fit (projectedFit) with frameScale as margin, records aureonFitted; frameScale = 1 keeps the original bounding-sphere fit; start views still win."
+      "note": "frameScale ≠ 1 (AUREON only): projected-box fit including the exterior walls, best of four camera quarters (original side unless >6 % larger), frameScale as margin; frameScale = 1 keeps the original bounding-sphere fit; start views still win."
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.placeGround",

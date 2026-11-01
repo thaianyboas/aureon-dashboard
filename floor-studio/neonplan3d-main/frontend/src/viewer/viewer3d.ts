@@ -46,6 +46,8 @@ import {
   type BufferGeometry,
   type Material,
 } from "three";
+import {AureonModels} from './aureon-models.ts';
+import {buildFinishes} from './aureon-finishes.ts';
 import {RealPbrRenderer,furniturePbrKind,floorPbrKind,type PbrGroup,type PbrKind,type PbrLamp} from './real-pbr.ts';
 import type { Building, Floor, Furniture, Room, StartView } from "../model.ts";
 import { recolorLamps, SHADE_SENTINEL, shadeFactors } from "./lamp-colors.ts";
@@ -550,6 +552,9 @@ export function isLowEnd(): boolean {
 
 export class FloorplanViewer {
   private realPbr: RealPbrRenderer | null = null;
+  /** AUREON: own .glb furniture models (see aureon-models.ts). */
+  private aureonModels: AureonModels | null = null;
+  private aureonModelTimer = 0;
   private readonly host: HTMLElement;
   private readonly options: ViewerOptions;
   private renderer: WebGLRenderer;
@@ -2058,6 +2063,7 @@ export class FloorplanViewer {
 
   dispose(): void {
     this.realPbr?.dispose();this.realPbr=null;
+    clearTimeout(this.aureonModelTimer);this.aureonModels?.dispose();this.aureonModels=null;
     this.projections.dispose();
     this.disposed = true;
     cancelAnimationFrame(this.frame);
@@ -2555,7 +2561,20 @@ export class FloorplanViewer {
             return y === null ? null : y - floor.elevation;
           }
         : undefined;
-      const geo = buildFloorGeometry(withVehicles(floor, this.parked), b.settings.wall_exterior, b.settings.wall_interior, stairHoleParts(b.floors, floor), garden, roofUnder);
+      // AUREON: items with a loaded own model leave their built-in shape out; the model is placed after the group
+      this.aureonModels ??= new AureonModels(() => {
+        clearTimeout(this.aureonModelTimer);
+        // one rebuild once every model has arrived (or failed), not one per file
+        this.aureonModelTimer = window.setTimeout(() => {
+          if (this.disposed || !this.building || this.aureonModels?.loading) return;
+          this.rebuild();
+          this.invalidate();
+        }, 120);
+      });
+      this.aureonModels.request(floor.furniture);
+      const aureonModelled = this.aureonModels.modelled(floor.furniture);
+      const withParked = withVehicles(floor, this.parked);
+      const geo = buildFloorGeometry(aureonModelled.size ? { ...withParked, furniture: withParked.furniture.filter((f) => !aureonModelled.has(f.id)) } : withParked, b.settings.wall_exterior, b.settings.wall_interior, stairHoleParts(b.floors, floor), garden, roofUnder);
       const mask: FoldMasks = { standing: { value: 0xffff }, glass: { value: 0 } };
       const materials = this.makeMaterials(mask);
       const group = new Group();
@@ -2631,7 +2650,7 @@ export class FloorplanViewer {
       floorMesh.userData.aureonPbrGroups=grouped(geo.floor.getAttribute('position').count/3,geo.roomTris.map(r=>({start:r.start,end:r.end,kind:floorPbrKind(floor.rooms.find(room=>room.id===r.roomId)?.floor_material||'')})),'stone');
       wallMesh.userData.aureonPbrKind='architecture';
       wallMesh.userData.aureonPbrGroups=grouped(geo.walls.getAttribute('position').count/3,geo.furnitureTris.map(r=>({start:r.start,end:r.end,kind:furniturePbrKind(floor.furniture.find(f=>f.id===r.id)?.type||'')})),'architecture');
-      framesMesh.userData.aureonPbrKind='wood';blindsMesh.userData.aureonPbrKind='fabric';glassMesh.userData.aureonPbrKind='glass';
+      framesMesh.userData.aureonPbrKind=(b.settings as {aureon_frames?:string}).aureon_frames==='white'?'paint':'wood';blindsMesh.userData.aureonPbrKind='fabric';glassMesh.userData.aureonPbrKind='glass';
       glassWalls.renderOrder = 6;
       // pool water after the basin, see-through
       const waterMesh = new Mesh(geo.water, materials.water);
@@ -2674,6 +2693,7 @@ export class FloorplanViewer {
         ...earthParts,
       );
       this.root.add(group);
+      this.aureonModels.place(floor.id, floor.furniture.filter((f) => aureonModelled.has(f.id)), this.root, buildFinishes(floor, b.settings.wall_interior));
 
       const label = document.createElement("button");
       label.className = "fp3d-pin fp3d-pin-floor";
@@ -3160,7 +3180,9 @@ export class FloorplanViewer {
       const k = left > FLASH_MS ? 0.5 + 0.5 * Math.sin(left / 140) : left / FLASH_MS;
       return Math.round(k * 10) / 10;
     };
-    const lamps = this.devices.filter((d) => d.floorId === fv.floor.id && (d.lamp || d.model));
+    // AUREON: a lamp drawn by its own model keeps its light, not the built-in shade
+    const modelled = this.aureonModels?.modelled(fv.floor.furniture) ?? new Set<string>();
+    const lamps = this.devices.filter((d) => d.floorId === fv.floor.id && (d.lamp || d.model) && !(d.furnitureId && modelled.has(d.furnitureId)));
     const shapeSig =
       this.wallMode +
       (this.lowQuality ? "L" : this.highQuality ? "H" : "M") +
@@ -4097,8 +4119,14 @@ export class FloorplanViewer {
     // AUREON presentation (frameScale ≠ 1, never the original default): fit the projected building box to the
     // stage instead of its bounding sphere, so elongated plans fill wide and tall stages; frameScale is the margin.
     if (this.frameScale !== 1 && !useRadius) {
-      const phi = start ? start.phi : 0.85, theta = start ? start.theta : -0.6;
-      const tight = this.projectedFit(box, center, phi, theta);
+      const phi = start ? start.phi : 0.85, base = start ? start.theta : -0.6;
+      // the presentation may turn the camera (never the building) to the quarter that fills the stage best;
+      // the original side wins unless another one is clearly larger (>6 %)
+      let theta = base, tight = this.projectedFit(box, center, phi, base);
+      if (!start) for (const k of [1, 2, 3]) {
+        const t = base + (k * Math.PI) / 2, f = this.projectedFit(box, center, phi, t);
+        if (f.radius < tight.radius * 0.94) { theta = t; tight = f; }
+      }
       this.aureonFitted = tight.radius * this.frameScale;
       this.controls.flyTo({ target: tight.target, radius: this.aureonFitted, phi, theta }, duration, !!start);
       return;
@@ -4110,6 +4138,10 @@ export class FloorplanViewer {
   private projectedFit(box: Box3, center: Vector3, phi: number, theta: number): { target: Vector3; radius: number } {
     const cam = this.camera.clone();
     const corners: Vector3[] = [];
+    // rooms end at the inner face of exterior walls: the walls themselves (up to ~0.5 m) stand outside the box
+    const pad = Math.max(0.3, Math.min(0.6, (this.building?.settings.wall_exterior ?? 0.3) * 2));
+    box = box.clone();
+    box.min.x -= pad; box.min.z -= pad; box.max.x += pad; box.max.z += pad;
     for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) corners.push(new Vector3(x, y, z));
     const target = center.clone();
     const place = (r: number) => {
@@ -4971,6 +5003,10 @@ export class FloorplanViewer {
   }
 
   private renderScene(camera: CameraForPbr): void {
+    if (this.aureonModels) {
+      this.renderer.localClippingEnabled = true;
+      this.aureonModels.sync(new Map(this.floors.map((fv) => [fv.floor.id, { group: fv.group, cut: this.wallMode === "cut" ? Math.min(fv.floor.cut_height, fv.floor.height) : null }])), this.theme, this.nightFactor());
+    }
     if(this.theme==='real'){this.realPbr??=new RealPbrRenderer(this.renderer,this.lowQuality);this.realPbr.render(this.scene,camera,{night:this.nightFactor(),lamps:this.realLamps()});}
     else this.renderer.render(this.scene,camera);
   }
