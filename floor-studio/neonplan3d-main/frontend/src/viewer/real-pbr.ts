@@ -1,6 +1,9 @@
 /** Real-only physical rendering. Original materials/geometry ownership and non-Real looks are preserved. */
 import {CanvasTexture, Sprite, SpriteMaterial, AddEquation, AdditiveBlending, CustomBlending, OneFactor, SrcAlphaFactor, ZeroFactor, ACESFilmicToneMapping, AmbientLight, Box3, Color, PointLight, Vector3, DataTexture, DirectionalLight, DoubleSide, Float32BufferAttribute, Group, HemisphereLight, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshPhysicalMaterial, NoColorSpace, NormalBlending, PCFSoftShadowMap, PMREMGenerator, RepeatWrapping, RGBADepthPacking, RGBAFormat, SRGBColorSpace, UnsignedByteType, type BufferGeometry, type Camera, type Material, type Scene, type Texture, type WebGLRenderer} from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+import {GTAOPass} from 'three/addons/postprocessing/GTAOPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+import {DepthTexture, HalfFloatType, Vector2, WebGLRenderTarget} from 'three';
 import {makeFoldable, type FoldMasks, type FoldRole} from './fold.ts';
 export type PbrKind='architecture'|'wood'|'fabric'|'metal'|'glass'|'stone'|'tile'|'concrete'|'deck'|'parquet'|'paint';
 export const PBR_KINDS: readonly PbrKind[]=['architecture','wood','fabric','metal','glass','stone','tile','concrete','deck','parquet','paint'];
@@ -75,8 +78,12 @@ export class RealPbrRenderer {
  private static DAY=new Color(0xfff0dc);private static MOON=new Color(0x9fb3e6);
  private renderer:WebGLRenderer;
  private low:boolean;
- constructor(renderer:WebGLRenderer,low=false){
-  this.renderer=renderer;this.low=low;
+ /** AUREON: ambient occlusion in the live picture (corners, contact with the floor, between cushions) – quality "High" only. */
+ private ao:boolean;
+ static AO=true;
+ private aoTarget:WebGLRenderTarget|null=null;private aoOut:WebGLRenderTarget|null=null;private gtao:GTAOPass|null=null;private output:OutputPass|null=null;private aoSize=new Vector2();
+ constructor(renderer:WebGLRenderer,low=false,ao=false){
+  this.renderer=renderer;this.low=low;this.ao=ao&&!low;
   this.sun.position.set(7,12,8);this.sun.castShadow=!low;this.sun.shadow.mapSize.set(low?512:2048,low?512:2048);this.sun.shadow.camera.left=-25;this.sun.shadow.camera.right=25;this.sun.shadow.camera.top=25;this.sun.shadow.camera.bottom=-25;this.sun.shadow.camera.near=.1;this.sun.shadow.camera.far=70;this.sun.shadow.normalBias=.025;this.sun.shadow.bias=-.0002;this.sun.shadow.radius=3;
   this.lights.add(this.sun,this.sun.target,this.sky,this.ambient);
   this.lights.add(this.warmFill);
@@ -125,7 +132,29 @@ export class RealPbrRenderer {
   for(let i=lamps.length;i<this.glows.length;i++)if(this.glows[i])this.glows[i].visible=false;
   const lit=Math.min(1,lamps.reduce((a,l)=>a+l.level,0)/3);this.warmFill.intensity=.16*night*lit;
  }
- render(scene:Scene,camera:Camera,frame:PbrFrame={}):void {this.run(scene,camera,frame,()=>this.renderer.render(scene,camera));}
+ render(scene:Scene,camera:Camera,frame:PbrFrame={}):void {this.run(scene,camera,frame,()=>this.ao&&RealPbrRenderer.AO?this.drawAo(scene,camera):this.renderer.render(scene,camera));}
+ /**
+  * AUREON: the scene once into a target with its depth, ambient occlusion from that depth (so cut walls and clipped
+  * models are seen exactly as drawn), then tone mapping to the canvas. The canvas stays transparent around the house.
+  */
+ private drawAo(scene:Scene,camera:Camera):void {
+  const r=this.renderer,size=r.getDrawingBufferSize(new Vector2());
+  // a new size (rotated tablet, resized panel): the targets are made again (the pass cannot resize a given depth buffer)
+  if(this.aoTarget&&!size.equals(this.aoSize)){this.aoTarget.depthTexture?.dispose();this.aoTarget.dispose();this.aoOut?.dispose();this.gtao?.dispose();this.output?.dispose();this.aoTarget=this.aoOut=null;this.gtao=null;this.output=null;}
+  if(!this.aoTarget){const depth=new DepthTexture(size.x,size.y);this.aoTarget=new WebGLRenderTarget(size.x,size.y,{type:HalfFloatType,depthTexture:depth,samples:4});this.aoOut=new WebGLRenderTarget(size.x,size.y,{type:HalfFloatType});
+   this.gtao=new GTAOPass(scene,camera,size.x,size.y);this.gtao.setGBuffer(depth); // made without, then given our depth (three's constructor path reads a missing target)
+   this.gtao.blendIntensity=.85;
+   this.gtao.updateGtaoMaterial({radius:.45,distanceExponent:1.4,thickness:1.2,scale:1.15,samples:12,distanceFallOff:1,screenSpaceRadius:false});
+   this.gtao.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:6,rings:2,samples:12});
+   this.output=new OutputPass();this.aoSize.copy(size);}
+  const g=this.gtao!;g.scene=scene;g.camera=camera;
+  const prev=r.getRenderTarget(),prevClear=r.getClearAlpha();
+  try{
+   r.setRenderTarget(this.aoTarget);r.setClearAlpha(0);r.clear();r.render(scene,camera);
+   g.render(r,this.aoOut!,this.aoTarget!,0,false);
+   this.output!.renderToScreen=true;this.output!.render(r,null as unknown as WebGLRenderTarget,this.aoOut!,0,false);
+  }finally{r.setRenderTarget(prev);r.setClearAlpha(prevClear);}
+ }
  /** AUREON: runs `fn` with the Real look staged (materials, lights, environment, tone) – the photo refinement collects and draws in it. */
  staged(scene:Scene,camera:Camera,frame:PbrFrame,fn:()=>void):void {this.run(scene,camera,frame,fn);}
  private run(scene:Scene,_camera:Camera,frame:PbrFrame,draw:()=>void):void {
@@ -156,5 +185,5 @@ export class RealPbrRenderer {
    draw();
   }finally{for(const fn of restore.reverse())fn();scene.remove(this.lights);scene.environment=previous.environment;this.renderer.toneMapping=previous.tone;this.renderer.toneMappingExposure=previous.exposure;this.renderer.shadowMap.enabled=previous.shadows;this.renderer.shadowMap.type=previous.type;}
  }
- dispose():void {for(const g of this.glows)g?.material.dispose();this.glows=[];this.glowTexture?.dispose();this.glowTexture=null;for(const [original,listener] of this.subscriptions)original.removeEventListener('dispose',listener);this.subscriptions.clear();for(const material of this.owned)material.dispose();this.owned.clear();for(const maps of this.maps.values())for(const texture of Object.values(maps))texture.dispose();this.maps.clear();this.sun.shadow.map?.dispose();this.environmentTarget?.dispose();this.pmrem?.dispose();this.environment=null;}
+ dispose():void {this.aoTarget?.depthTexture?.dispose();this.aoTarget?.dispose();this.aoOut?.dispose();this.gtao?.dispose();this.output?.dispose();this.aoTarget=this.aoOut=null;this.gtao=null;this.output=null;for(const g of this.glows)g?.material.dispose();this.glows=[];this.glowTexture?.dispose();this.glowTexture=null;for(const [original,listener] of this.subscriptions)original.removeEventListener('dispose',listener);this.subscriptions.clear();for(const material of this.owned)material.dispose();this.owned.clear();for(const maps of this.maps.values())for(const texture of Object.values(maps))texture.dispose();this.maps.clear();this.sun.shadow.map?.dispose();this.environmentTarget?.dispose();this.pmrem?.dispose();this.environment=null;}
 }

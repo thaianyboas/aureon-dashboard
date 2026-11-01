@@ -5077,7 +5077,7 @@ export class FloorplanViewer {
       trace.load(() => this.aureonTraceStep());
       return;
     }
-    this.realPbr ??= new RealPbrRenderer(this.renderer, this.lowQuality);
+    this.realPbr ??= new RealPbrRenderer(this.renderer, this.lowQuality, this.highQuality);
     const pbr = this.realPbr, camera = this.camera, frame = { night: this.nightFactor(), lamps: this.realLamps(), photo: true };
     const lightSig = `${frame.night.toFixed(2)}|${frame.lamps.map((l) => `${l.x.toFixed(2)},${l.z.toFixed(2)},${l.level.toFixed(2)},${l.color.map((c) => c.toFixed(2)).join("/")}`).join(";")}`;
     const more = trace.step(this.scene, camera, (fn) => pbr.staged(this.scene, camera, frame, fn), () => this.renderer.render(this.scene, camera), lightSig, frame.night);
@@ -5098,7 +5098,7 @@ export class FloorplanViewer {
       this.aureonModels.sync(new Map(this.floors.map((fv) => [fv.floor.id, { group: fv.group, cut: this.wallMode === "cut" ? Math.min(fv.floor.cut_height, fv.floor.height) : null }])), this.theme, this.nightFactor());
     }
     if(this.theme==='real'){
-      this.realPbr??=new RealPbrRenderer(this.renderer,this.lowQuality);
+      this.realPbr??=new RealPbrRenderer(this.renderer,this.lowQuality,this.highQuality);
       const frame={night:this.nightFactor(),lamps:this.realLamps()};
       // AUREON: a resting view keeps refining (the tracer redraws it); a moving one shows the live picture and waits
       const resting=!this.lastFrame&&!this.controls.busy;

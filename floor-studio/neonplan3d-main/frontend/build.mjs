@@ -164,7 +164,7 @@ function copyFonts() {
 // AUREON: explicit four-module approval UI and five visual themes add code.
 // Main: 752 KiB. Viewer: 880 KiB allows bounded headroom over the 859.9 KiB
 // physically based renderer (physical material shaders, maps and PMREM environment).
-const BUDGET = { "neonplan3d-pathtrace.js": 240 * 1024 /* AUREON: photo refinement of the Real look, loaded only on "High" */, "neonplan3d.js": 752 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 904 * 1024 /* AUREON: +16 KB for own .glb furniture and room finishes (was 880); +8 KB for the Real look photo refinement (lent three.js classes, its loader) */, "neonplan3d-editor.js": 944 * 1024, "neonplan3d-card-editor.js": 276 * 1024 /* AUREON: +3 KB for the AUREON theme tokens and product name (was 273) */ };
+const BUDGET = { "neonplan3d-pathtrace.js": 240 * 1024 /* AUREON: photo refinement of the Real look, loaded only on "High" */, "neonplan3d.js": 752 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 944 * 1024 /* AUREON: +16 KB for own .glb furniture and room finishes (was 880); +8 KB for the Real look photo refinement (lent three.js classes, its loader); +40 KB for ambient occlusion in the live Real look (GTAO + output pass, High only) */, "neonplan3d-editor.js": 944 * 1024, "neonplan3d-card-editor.js": 276 * 1024 /* AUREON: +3 KB for the AUREON theme tokens and product name (was 273) */ };
 
 copyFonts();
 if (watch) {

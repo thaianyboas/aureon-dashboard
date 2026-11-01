@@ -264,3 +264,22 @@ B. Recommended next: baked bounce light (lightmaps) per light for walls/floors/s
 C. Assets: real product models (owner's photos → careful modelling, or manufacturer 3D files kept private) and
    scanned CC0 materials with sheen/clearcoat parsing. Largest visible gain, independent of A/B.
 D. Not as main path: offline renders (Blender/Cycles on another machine) — reference quality but no interaction.
+
+VIS-REAL-01 step 4 (Claude, 2026-11-01 evening; owner: "keep going, realistic like professional programs"; all
+furniture must stay editable — it does: every model is an ordinary plan item with `aureon_model`, moved/turned/
+resized/deleted in the editor; still NOT approved):
+- Live Real look, quality "High" only: ambient occlusion (three.js GTAO from the depth of the drawn picture, so cut
+  walls/clipped models are respected; denoised; transparent canvas kept) → contact darkening under sofa/chairs/
+  table, corners and between cushions while moving, at any angle. Cost: one extra full-screen pass set; 3D bundle
+  +40 KB (budget 944 KB). Known difference: the painted window light patch (additive glow) is not drawn when AO is
+  on. Auto/Low unchanged (no AO) until a device is measured.
+- Private assets rebuilt from the owner's product photos (not in git): JÄTTEBO 310 (modules, base + seat cushions,
+  piping, corduroy), BESTÅ/HEDEVIKEN chevron 3 doors on the floor, JYSK ADSLEV tub armchairs (channelled back,
+  splayed oak legs), TARSELE (thick oak top, black U legs), LG OLED83B59LA on the wall, SINNERLIG (three woven
+  bamboo drums, cut-out), two BÖJA on a walnut sofa console with inset socket, oak/felt acoustic panel, 3D wooden
+  world map behind the sofa, large light-beige plush rug, DYTÅG linen white + beige on a double ceiling track on
+  both sides of the window, corduroy cushions; private plan v7 updated (sofa 21 cm off the wall for the console).
+- Evidence (private harness = repo renderer + private plan, Chromium/SwiftShader, not HA/iSG/phone): day/night,
+  isometric and interior captures, orbit video, comparison with the owner's references. Remaining gap vs the
+  references: bounce light (still no GI while moving), image treatment (glow/exposure, TV reflections), chair leg
+  joints, curtains seen from inside; platform browser test flaked once under load (passed on rerun).
