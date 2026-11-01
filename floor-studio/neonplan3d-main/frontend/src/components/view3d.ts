@@ -6082,6 +6082,12 @@ export class Fp3dView3d extends LitElement {
       .fp3d-no-room-names .fp3d-pin {
         display: none !important;
       }
+      /* AUREON presentation: room names may be set smaller and lighter by the embedding page (defaults = original) */
+      .fp3d-stage .fp3d-pin {
+        font-size: var(--aureon-pin-font-size, 12.5px);
+        padding: var(--aureon-pin-padding, 5px 10px);
+        opacity: var(--aureon-pin-opacity, 1);
+      }
       /* tablet level: blur over the canvas and glowing shadows are expensive on weak GPUs */
       .fp3d-stage.fp3d-low {
         transition: none;

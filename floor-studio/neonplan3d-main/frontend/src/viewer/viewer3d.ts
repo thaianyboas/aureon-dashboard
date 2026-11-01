@@ -7,6 +7,11 @@
 
 import {
   AdditiveBlending,
+  AddEquation,
+  CustomBlending,
+  OneFactor,
+  SrcAlphaFactor,
+  ZeroFactor,
   RingGeometry,
   FogExp2,
   CircleGeometry,
@@ -5008,7 +5013,23 @@ export class FloorplanViewer {
       this.aureonModels.sync(new Map(this.floors.map((fv) => [fv.floor.id, { group: fv.group, cut: this.wallMode === "cut" ? Math.min(fv.floor.cut_height, fv.floor.height) : null }])), this.theme, this.nightFactor());
     }
     if(this.theme==='real'){this.realPbr??=new RealPbrRenderer(this.renderer,this.lowQuality);this.realPbr.render(this.scene,camera,{night:this.nightFactor(),lamps:this.realLamps()});}
-    else this.renderer.render(this.scene,camera);
+    else {
+      // AUREON stage (transparent canvas over the page): Day draws no ground either, so the window light on the ground
+      // floats outside the walls; additive glows must add colour without writing alpha (else dark patches show)
+      const restore: (() => void)[] = [];
+      if (this.frameScale !== 1) {
+        this.scene.traverse((o) => {
+          if (this.theme === "day" && o.userData.aureonHideInReal && o.visible) { o.visible = false; restore.push(() => { o.visible = true; }); }
+          const m = (o as Mesh).material as Material | undefined;
+          if (!(o as Mesh).isMesh && !(o as Points).isPoints) return;
+          if (!m || Array.isArray(m) || m.blending !== AdditiveBlending) return;
+          const prev = { blending: m.blending, src: m.blendSrc, dst: m.blendDst, eq: m.blendEquation, srcA: m.blendSrcAlpha, dstA: m.blendDstAlpha };
+          m.blending = CustomBlending; m.blendEquation = AddEquation; m.blendSrc = SrcAlphaFactor; m.blendDst = OneFactor; m.blendSrcAlpha = ZeroFactor; m.blendDstAlpha = OneFactor;
+          restore.push(() => { m.blending = prev.blending; m.blendSrc = prev.src; m.blendDst = prev.dst; m.blendEquation = prev.eq; m.blendSrcAlpha = prev.srcA; m.blendDstAlpha = prev.dstA; });
+        });
+      }
+      try { this.renderer.render(this.scene,camera); } finally { for (const fn of restore.reverse()) fn(); }
+    }
   }
 
   private render(now: number): void {

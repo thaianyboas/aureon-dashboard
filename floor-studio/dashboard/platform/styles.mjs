@@ -18,7 +18,7 @@ export const platformStyles=`
 .look-select select{min-height:36px;padding:6px 30px 6px 12px;border-radius:10px;background:color-mix(in srgb,var(--p-surface) 70%,transparent);border:1px solid var(--line);font-size:12px}
 .studio-btn{min-height:42px;padding:8px 16px;border-radius:12px;border:1px solid var(--p-accent);background:color-mix(in srgb,var(--p-surface) 40%,transparent);font-size:13px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-.home-scene{position:relative;height:clamp(440px,calc(100dvh - 420px),760px);min-height:440px;border-radius:20px;--aureon-stage-background:transparent;--aureon-card-background:transparent;--ha-card-background:transparent;--ha-card-border-width:0;--ha-card-box-shadow:none;--ha-card-border-radius:0}
+.home-scene{position:relative;height:clamp(440px,calc(100dvh - 420px),760px);min-height:440px;border-radius:20px;--aureon-stage-background:transparent;--aureon-card-background:transparent;--aureon-pin-font-size:10.5px;--aureon-pin-padding:3px 8px;--aureon-pin-opacity:.84;--ha-card-background:transparent;--ha-card-border-width:0;--ha-card-box-shadow:none;--ha-card-border-radius:0}
 .home-scene:before{content:'';position:absolute;inset:8% 6%;background:radial-gradient(ellipse 55% 45% at 50% 55%,var(--glow),transparent 72%);filter:blur(36px);opacity:.6;pointer-events:none}
 .home-scene aureon-home-plan{position:absolute;inset:0;height:auto}
 .home-mini ::slotted(*){display:block;margin:0!important}
@@ -117,4 +117,5 @@ export const platformStyles=`
  .home-toolbar button,.home-toolbar select,.room-feature-open,
  .room-feature-stats button,.person-add{min-height:44px}
 }
+.device-diag .diag-out{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 ui-monospace,Menlo,Consolas,monospace;background:color-mix(in srgb,var(--p-surface) 70%,transparent);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:12px;max-width:100%}
 `;

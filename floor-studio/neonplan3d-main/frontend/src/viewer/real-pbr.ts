@@ -69,7 +69,7 @@ export class RealPbrRenderer {
   this.renderer=renderer;this.low=low;
   this.sun.position.set(7,12,8);this.sun.castShadow=!low;this.sun.shadow.mapSize.set(low?512:2048,low?512:2048);this.sun.shadow.camera.left=-25;this.sun.shadow.camera.right=25;this.sun.shadow.camera.top=25;this.sun.shadow.camera.bottom=-25;this.sun.shadow.camera.near=.1;this.sun.shadow.camera.far=70;this.sun.shadow.normalBias=.025;this.sun.shadow.bias=-.0002;this.sun.shadow.radius=3;
   this.lights.add(this.sun,this.sun.target,this.sky,this.ambient);
-  for(let i=0;i<(low?3:MAX_LAMPS);i++){const lamp=new PointLight(0xffd6a0,0,7.5,2);lamp.visible=false;if(!low&&i<2){lamp.castShadow=true;lamp.shadow.mapSize.set(512,512);lamp.shadow.bias=-.004;lamp.shadow.radius=4;lamp.shadow.camera.near=.08;lamp.shadow.camera.far=8;}this.lamps.push(lamp);this.lights.add(lamp);}
+  for(let i=0;i<(low?3:MAX_LAMPS);i++){const lamp=new PointLight(0xffd6a0,0,7.5,2);lamp.visible=false;if(!low&&i<2){lamp.castShadow=true;lamp.shadow.mapSize.set(512,512);lamp.shadow.bias=-.004;lamp.shadow.radius=6;lamp.shadow.camera.near=.08;lamp.shadow.camera.far=8;}this.lamps.push(lamp);this.lights.add(lamp);}
  }
  private textureSet(kind:PbrKind):PbrMaps {let maps=this.maps.get(kind);if(!maps){maps=makePbrMaps(kind,this.low?64:128);this.maps.set(kind,maps);}return maps;}
  private physical(original:MeshBasicMaterial,kind:PbrKind):MeshPhysicalMaterial {
@@ -100,7 +100,7 @@ export class RealPbrRenderer {
   this.sun.color.copy(RealPbrRenderer.DAY).lerp(RealPbrRenderer.MOON,night);this.sun.intensity=3.4*(1-night)+.35*night;
   this.sky.intensity=.7*(1-.8*night);this.ambient.intensity=.06*(1-.5*night);
   const lamps=(frame.lamps??[]).filter(l=>l.level>0).sort((a,b)=>b.level-a.level);
-  this.lamps.forEach((light,i)=>{const l=lamps[i];light.visible=!!l;if(!l)return;light.position.set(l.x,l.y,l.z);light.color.setRGB(Math.min(1,l.color[0]),Math.min(1,l.color[1]),Math.min(1,l.color[2]));light.intensity=l.level*(2.2+5.2*night);});
+  this.lamps.forEach((light,i)=>{const l=lamps[i];light.visible=!!l;if(!l)return;light.position.set(l.x,l.y,l.z);light.color.setRGB(Math.min(1,l.color[0]),Math.min(1,l.color[1]),Math.min(1,l.color[2]));light.intensity=l.level*(1.3+3.1*night);});
  }
  render(scene:Scene,camera:Camera,frame:PbrFrame={}):void {
   if(!this.environment){const room=new RoomEnvironment();this.pmrem=new PMREMGenerator(this.renderer);this.environmentTarget=this.pmrem.fromScene(room,.04,.1,100);this.environment=this.environmentTarget.texture;room.dispose();}
@@ -110,7 +110,7 @@ export class RealPbrRenderer {
    const night=Math.min(1,Math.max(0,frame.night??0)),previousIntensity=(scene as Scene&{environmentIntensity?:number}).environmentIntensity;
    restore.push(()=>{(scene as Scene&{environmentIntensity?:number}).environmentIntensity=previousIntensity;});
    (scene as Scene&{environmentIntensity?:number}).environmentIntensity=.42-.3*night;
-   scene.environment=this.environment;scene.add(this.lights);this.renderer.toneMapping=ACESFilmicToneMapping;this.renderer.toneMappingExposure=1-.08*night;
+   scene.environment=this.environment;scene.add(this.lights);this.renderer.toneMapping=ACESFilmicToneMapping;this.renderer.toneMappingExposure=1-.14*night;
    this.bounds.makeEmpty();this.renderer.shadowMap.enabled=!this.low;this.renderer.shadowMap.type=PCFSoftShadowMap;
    // Additive glows (window spill, light cones) add colour but must not write alpha into the transparent canvas,
    // otherwise they show as dark patches over a host page behind the stage.

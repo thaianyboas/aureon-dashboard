@@ -238,7 +238,10 @@ export class AureonModels {
 
   private async load(url: string): Promise<void> {
     try {
-      const res = await fetch(url, { credentials: "same-origin" });
+      // the integration serves own models only to signed-in users (/api/neonplan3d/aureon_models/…): use the HA
+      // session's authenticated fetch; older plans may still point at /local/… (served without login)
+      const hass = (globalThis.document?.querySelector("home-assistant") as unknown as { hass?: { fetchWithAuth?: (p: string, i?: RequestInit) => Promise<Response> } } | null)?.hass;
+      const res = url.startsWith("/api/") && hass?.fetchWithAuth ? await hass.fetchWithAuth(url, { credentials: "same-origin" }) : await fetch(url, { credentials: "same-origin" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const size = Number(res.headers.get("content-length") ?? 0);
       if (size > MAX_BYTES) throw new Error("file too large");

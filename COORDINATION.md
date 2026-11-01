@@ -57,13 +57,13 @@ Do not force High quality globally to imitate screenshots or invent an FPS pass.
 
 | ID | Priority | Next owner | Status / concrete completion evidence |
 | --- | --- | --- | --- |
-| PRIV-01 | High | Claude | Personal GLBs served through /local are unauthenticated. Unguessable is not authenticated. Design an authenticated asset route and authorized loading; test unauthenticated and other-user requests. Do not rename current storage as fully private. |
-| VIS-01 | High | Claude | Investigate dark planes outside the apartment in the owner's supplied Day mobile capture. Identify geometry/material cause; do not hide it by cropping. Show Day/Real before/after in a synthetic regression plus private owner validation. |
-| VIS-02 | High | Claude | Tune lighting: avoid blown-out tabletop and unintended strong room color casts. Respect actual entity colors; distinguish preview lighting from live states. Test automatic quality as well as explicitly forced High. |
-| VIS-03 | High | Claude | Improve plan framing and label clutter, particularly interior views; preserve geometry and interaction. Review at the actual iSG content viewport. |
+| PRIV-01 | High | Claude → owner | Done in source (Claude batch 2026-11-01b): integration view `/api/neonplan3d/aureon_models/<name>.glb`, `requires_auth`, files only from `<config>/aureon_models/` (outside www), plain `.glb` names, 24 MB cap, `Cache-Control: private`. Viewer loads `/api/` model URLs with HA `fetchWithAuth`. Policy: any signed-in HA user (same as reading the building). Tests: pytest 401 anonymous / 200 signed-in / traversal 400–404 / not under /local; disposable HA curl: 401, 200, 400, 404. Not yet run: non-admin second user on owner HA. Owner must move GLBs from www/aureon-moveis to /config/aureon_models and delete the old folder. |
+| VIS-01 | High | Claude → owner | Cause: original window-light spill on the ground (additive) in looks without a ground plane, plus additive glows writing alpha into the transparent AUREON stage → dark/teal planes outside the walls. Fix (AUREON stage only, frameScale ≠ 1): spill hidden in Day as already in Real; additive materials blend without alpha writes in all looks. Synthetic night Day capture shows no planes (build/home-reference/look-day.png). Owner-plan night Day capture still to be taken. |
+| VIS-02 | High | Claude | Real lamp intensity lowered (≈ −40 %), softer lamp shadows, night exposure −14 %. Colour casts in earlier captures came from demo light entities linked only in the test copy (bed_light colour); Real keeps actual entity colours by design. Checked with automatic quality and forced High (labelled). Further tuning needs owner-device captures. |
+| VIS-03 | High | Claude | Room-name pins on the Startseite smaller/lighter via new CSS hooks (`--aureon-pin-*`, original defaults unchanged); presentation fit picks the best camera quarter and includes exterior walls. Interior-view label clutter remains; actual iSG viewport not yet measured. |
 | ASSET-01 | Medium | Claude | Furniture/curtains/decor fidelity still approximate. Some source models supplied by Codex were simplified. Do not claim exact product replicas or solve inaccurate geometry with lighting. |
-| DOC-01 | Medium | Claude | Private v4 PROVISORIO.md still lists obsolete floors and suggestion furniture while MOVEIS.md describes current finishes. Reconcile private documents outside public git. |
-| ISG-01 | High | Claude + owner | Obtain real iSG viewport/browser and physical touch/performance validation. Synthetic layout checks are only the first stage. |
+| DOC-01 | Medium | Claude | Done privately (outside git): PROVISORIO.md v5 and MOVEIS.md v5 reconciled with current finishes, furniture and authenticated model storage. |
+| ISG-01 | High | Owner + Claude | New Settings card "Gerätediagnose / Diagnóstico do aparelho": measures viewport, visualViewport, AUREON area, DPR, pointer, WebGL renderer, 5 s frame rate, plan size; local only, copy button. Owner runs it on the iSG and sends the text. No hardware validation claimed. |
 | MEDIA-01 | High | Codex, next requested review | Review current Medien against approved layout and actual SpotifyPlus data, then implement a bounded follow-up. Not started in this batch; no background work implied. |
 | SEC-01 | High | Claude | Earlier security report fixes remain open; CI success is not security approval. |
 | DATA-01 | Medium | Claude | Energy discovery and wider language coverage remain open. Do not replace missing live data with unlabeled demo values. |
@@ -92,3 +92,21 @@ Private screenshots and apartment details stay outside this public file.
   SOURCE_COMMIT advance is needed for this dashboard-only batch.
 - Screenshots use invented fixtures and software WebGL; these do NOT validate
   owner's apartment, hardware frame rate, actual WebView, privacy or live HA.
+
+## Claude batch — 2026-11-01b (privacy, dark planes, lighting, labels, iSG diagnostics)
+
+Base: pulled 6df065a (Codex) first; Codex changes preserved (styles, locales, player, iSG captures).
+Files: integration `aureon_models.py` (+ registration in `__init__.py`), `tests/test_aureon_models.py`;
+viewer `aureon-models.ts` (authenticated fetch), `viewer3d.ts::renderScene` (AUREON stage blending/spill),
+`real-pbr.ts` (lamp intensity/exposure), `components/view3d.ts` (pin CSS hooks, defaults original);
+platform `page.mjs`/`locales.mjs`/`styles.mjs` (device diagnostics card, pin variables).
+Tests actually run: npm test (dashboard + 515 NeonPlan unit + fidelity gate), test:browser (music, platform,
+floor, editor), fidelity browser (10 scenarios), capture-home-reference (incl. Codex iSG cases),
+capture-media-reference, validate, migration contract; pytest 139 (incl. 3 new) and ruff on the integration;
+disposable HA: curl auth checks; owner plan import → editor reopen → Startseite load/reload with 20 own models via
+the authenticated route; Startseite captures 1440/1280×800/820/390 with automatic quality (private, not in git).
+Not done: owner HA, physical iSG, non-admin second user, night capture of the owner plan in Day.
+Distribution: dist rebuilt (0.29.0-test.1, hash updated); integration repackaged and SOURCE_COMMIT advanced to this
+batch's dashboard commit (renderer/backend changed).
+Next: owner moves models + runs device diagnostics on the iSG; Claude: SEC-01 security fixes, ASSET-01;
+Codex: MEDIA-01 on request.
