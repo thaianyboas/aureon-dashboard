@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { aureonModelUrl, parseGlb } from "./aureon-models.ts";
 
 /** A synthetic .glb: a 2 x 1 x 0.5 m box-ish quad pair under a translated node, with one material. */
-function makeGlb(opts: { external?: boolean; translate?: number[] } = {}): ArrayBuffer {
+function makeGlb(opts: { external?: boolean; translate?: number[]; material?: Record<string, unknown> } = {}): ArrayBuffer {
   const pos = new Float32Array([-1, 0, -0.25, 1, 0, -0.25, 1, 1, 0.25, -1, 1, 0.25]);
   const idx = new Uint16Array([0, 1, 2, 0, 2, 3]);
   const bin = new Uint8Array(pos.byteLength + idx.byteLength);
@@ -15,7 +15,7 @@ function makeGlb(opts: { external?: boolean; translate?: number[] } = {}): Array
     scenes: [{ nodes: [0] }],
     nodes: [{ mesh: 0, translation: opts.translate ?? [0, 0, 0] }],
     meshes: [{ primitives: [{ attributes: { POSITION: 0 }, indices: 1, material: 0 }] }],
-    materials: [{ pbrMetallicRoughness: { baseColorFactor: [0.5, 0.25, 1, 1], metallicFactor: 0, roughnessFactor: 0.7 }, doubleSided: true }],
+    materials: [{ pbrMetallicRoughness: { baseColorFactor: [0.5, 0.25, 1, 1], metallicFactor: 0, roughnessFactor: 0.7 }, doubleSided: true, ...(opts.material ?? {}) }],
     buffers: [{ byteLength: bin.byteLength, ...(opts.external ? { uri: "x.bin" } : {}) }],
     bufferViews: [
       { buffer: 0, byteOffset: 0, byteLength: pos.byteLength },
@@ -70,4 +70,14 @@ test("own furniture models: a .glb is read in metres with node transforms, merge
 test("own furniture models: external buffers and non-glb data are rejected", async () => {
   await assert.rejects(parseGlb(makeGlb({ external: true }), async () => null), /external/);
   await assert.rejects(parseGlb(new ArrayBuffer(32), async () => null), /glTF/);
+});
+
+test("own furniture models: emission (lamp shades) and MASK cut-outs (leaves) are read", async () => {
+  const model = await parseGlb(makeGlb({ material: { alphaMode: "MASK", alphaCutoff: 0.4, emissiveFactor: [1, 0.8, 0.5] } }), async () => null);
+  const m = model.parts[0].material;
+  assert.equal(m.alphaTest, 0.4);
+  assert.deepEqual([m.emissive.r, m.emissive.g, m.emissive.b].map((v) => +v.toFixed(2)), [1, 0.8, 0.5]);
+  const plain = await parseGlb(makeGlb(), async () => null);
+  assert.equal(plain.parts[0].material.alphaTest, 0);
+  assert.equal(plain.parts[0].material.emissive.getHex(), 0);
 });

@@ -185,3 +185,14 @@ two point lights — no lamp glow/bloom, no soft area light, hot spot on the din
 contact shadows; (5) walls/ceiling plain, no skirting/trim; (6) labels over the stage. Proposal sent to owner
 for approval before any apartment-wide work (detailed models + CC0 PBR textures, warm light rig with bloom,
 contact shadows/AO with a quality tier for the iSG, decor set). Status: open, awaiting owner decision.
+
+VIS-REAL-01 step 2 (Claude, owner said "do what is needed"; still NOT approved):
+- Renderer (public code): `aureon-models.ts` reads normal, metallic-roughness and emissive textures, MASK cut-outs
+  and sampler wrapping (repeat) from own .glb files; soft contact shadow under floor-standing models (Real/Day);
+  `real-pbr.ts`: glow around lit lamps (alpha-safe blending), warm night fill, softer per-lamp intensity.
+- Private assets (not in git): material sets per model (512 px colour/normal/roughness, real-scale box UVs);
+  new detailed JÄTTEBO (rounded seat/back cushions, arm, throw pillows; same footprint); decor models (tropical
+  plants from the owner's renders, wool rug and walnut coffee table on the existing suggestions); plan v6.
+- Proof in the disposable HA (SwiftShader): visibly better (cushioned sofa, wood grain, rug, plants, contact
+  shadows) but still short of the reference: walls/trim, further models (BESTÅ, chairs, TV wall), more warm light
+  sources, AO. Scene cost now ~746 draw calls / ~458k triangles at High — needs the iSG tier (Low/Auto) measured.

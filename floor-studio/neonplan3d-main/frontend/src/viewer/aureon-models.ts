@@ -3,12 +3,19 @@
  * The item keeps an original built-in `type`, so the original editor lists, selects, moves, turns and resizes it as
  * before; only the 3D viewer draws the model instead of the built-in shape once the file has loaded (and falls back
  * to the built-in shape when it cannot). No glTF library: a small reader for self-contained .glb files (triangles,
- * POSITION/NORMAL/TEXCOORD_0, indices, node transforms, metallic-roughness materials, embedded PNG/JPEG textures).
+ * POSITION/NORMAL/TEXCOORD_0, indices, node transforms, metallic-roughness materials with base colour, normal,
+ * metallic-roughness and emissive textures, MASK cut-outs and sampler wrapping, embedded PNG/JPEG images).
  * Primitives are merged per material, so a model costs one draw call per material.
  */
 import {
   BufferAttribute,
+  ClampToEdgeWrapping,
+  MirroredRepeatWrapping,
+  NoColorSpace,
+  RepeatWrapping,
   BufferGeometry,
+  CanvasTexture,
+  PlaneGeometry,
   Color,
   DoubleSide,
   FrontSide,
@@ -132,10 +139,25 @@ export async function parseGlb(buffer: ArrayBuffer, makeImage: (blob: Blob) => P
     return t;
   });
   const loaded = await Promise.all(images);
+  // a texture image used as colour (sRGB) and as data (linear) needs two Texture objects
+  const used = new Map<string, Texture>();
   const textureOf = (info: any, srgb: boolean): Texture | null => {
     const tex = info ? json.textures?.[info.index] : null;
-    const t = tex ? (loaded[tex.source] ?? null) : null;
-    if (t && srgb) t.colorSpace = SRGBColorSpace;
+    const base = tex ? (loaded[tex.source] ?? null) : null;
+    if (!base) return null;
+    const key = `${tex.source}|${srgb}|${tex.sampler ?? -1}`;
+    let t = used.get(key);
+    if (!t) {
+      t = used.size ? base.clone() : base;
+      if (used.size) t.needsUpdate = true;
+      // glTF samplers repeat unless told otherwise (fabric and wood textures tile at real scale)
+      const sampler = typeof tex.sampler === "number" ? json.samplers?.[tex.sampler] : undefined;
+      const wrap = (w: unknown) => (w === 33071 ? ClampToEdgeWrapping : w === 33648 ? MirroredRepeatWrapping : RepeatWrapping);
+      t.wrapS = wrap(sampler?.wrapS);
+      t.wrapT = wrap(sampler?.wrapT);
+      t.colorSpace = srgb ? SRGBColorSpace : NoColorSpace;
+      used.set(key, t);
+    }
     return t;
   };
   const materials: MeshStandardMaterial[] = (json.materials ?? []).map((m: any) => {
@@ -150,6 +172,26 @@ export async function parseGlb(buffer: ArrayBuffer, makeImage: (blob: Blob) => P
       side: m.doubleSided ? DoubleSide : FrontSide,
     });
     mat.map = textureOf(pbr.baseColorTexture, true);
+    // detail for Real: normal map (weave, grain), roughness/metalness map, emission (lamp shades), cut-out leaves
+    const normal = textureOf(m.normalTexture, false);
+    if (normal) {
+      mat.normalMap = normal;
+      const k = typeof m.normalTexture.scale === "number" ? m.normalTexture.scale : 1;
+      mat.normalScale.set(k, -k);
+    }
+    const rm = textureOf(pbr.metallicRoughnessTexture, false);
+    if (rm) {
+      mat.roughnessMap = rm;
+      mat.metalnessMap = rm;
+    }
+    const e = m.emissiveFactor;
+    if (Array.isArray(e) && e.length >= 3 && e.some((x: number) => x > 0)) {
+      mat.emissive.setRGB(e[0], e[1], e[2]);
+      mat.emissiveMap = textureOf(m.emissiveTexture, true);
+      const strength = m.extensions?.KHR_materials_emissive_strength?.emissiveStrength;
+      if (typeof strength === "number") mat.emissiveIntensity = Math.min(20, Math.max(0, strength));
+    }
+    if (m.alphaMode === "MASK") mat.alphaTest = typeof m.alphaCutoff === "number" ? m.alphaCutoff : 0.5;
     mat.name = typeof m.name === "string" ? m.name : "";
     return mat;
   });
@@ -224,7 +266,39 @@ export class AureonModels {
   private groups = new Map<string, Group>();
   private basic = new Map<Material, MeshBasicMaterial>();
   private look = "";
+  private contactMaterial: MeshBasicMaterial | null = null;
+  private readonly contactGeometry = new PlaneGeometry(1, 1);
   private readonly onReady: () => void;
+
+  /** Shared material of the contact shadows: a soft rounded-rectangle falloff (none without a document). */
+  private contact(): MeshBasicMaterial | null {
+    if (this.contactMaterial) return this.contactMaterial;
+    const doc = globalThis.document;
+    if (!doc?.createElement) return null;
+    const size = 128,
+      canvas = doc.createElement("canvas");
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    const img = ctx.createImageData(size, size);
+    for (let y = 0; y < size; y++)
+      for (let x = 0; x < size; x++) {
+        // distance outside an inner rectangle (the footprint), normalised: dark under the piece, fading at the rim
+        const u = Math.abs((x + 0.5) / size - 0.5) * 2,
+          v = Math.abs((y + 0.5) / size - 0.5) * 2;
+        const dx = Math.max(0, u - 0.72) / 0.28,
+          dy = Math.max(0, v - 0.72) / 0.28;
+        const d = Math.min(1, Math.hypot(dx, dy));
+        const a = Math.pow(1 - d, 1.8) * (0.85 - 0.25 * Math.max(u, v) * Math.max(u, v));
+        const i = (y * size + x) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = 0;
+        img.data[i + 3] = Math.round(255 * Math.max(0, a));
+      }
+    ctx.putImageData(img, 0, 0);
+    const tex = new CanvasTexture(canvas);
+    this.contactMaterial = new MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: 0.55, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    return this.contactMaterial;
+  }
   constructor(onReady: () => void) {
     this.onReady = onReady;
   }
@@ -321,6 +395,17 @@ export class AureonModels {
         inner.add(mesh);
       }
       item.add(inner);
+      // a soft contact shadow under furniture standing on the floor (Real and Day): it sits on the floor, not floats
+      const contact = this.contact();
+      if (contact && (f.mount_y ?? 0) < 0.05 && !f.type.startsWith("lamp_") && !/curtain|rug|carpet/.test(f.type) && f.w * f.d > 0.01) {
+        const shadow = new Mesh(this.contactGeometry, contact);
+        shadow.scale.set(f.w + 0.16, f.d + 0.16, 1);
+        shadow.rotation.x = -Math.PI / 2;
+        shadow.position.y = 0.006;
+        shadow.renderOrder = 1;
+        shadow.userData.aureonContact = true;
+        item.add(shadow);
+      }
       item.rotation.y = -f.rotation * DEG + Math.PI;
       item.position.set(f.x, Math.max(0, f.mount_y ?? 0), f.z);
       group.add(item);
@@ -361,6 +446,8 @@ export class AureonModels {
     const key = `${look}|${look === "real" ? 0 : Math.round(night * 10)}`;
     if (key === this.look) return;
     this.look = key;
+    const grounded = look === "real" || look === "day";
+    for (const g of this.groups.values()) g.traverse((o) => { if (o.userData.aureonContact) o.visible = grounded; });
     // the other looks have no lights: an unlit copy of each material, dimmer in the dark looks
     const dim = look === "day" ? 1 : look === "real" ? 1 : look === "night" ? 0.55 : 0.42;
     for (const g of this.groups.values())
@@ -374,7 +461,7 @@ export class AureonModels {
         }
         let b = this.basic.get(original);
         if (!b) {
-          b = new MeshBasicMaterial({ map: original.map, transparent: original.transparent, opacity: original.opacity, side: original.side, polygonOffset: original.polygonOffset, polygonOffsetFactor: original.polygonOffsetFactor, polygonOffsetUnits: original.polygonOffsetUnits });
+          b = new MeshBasicMaterial({ map: original.map, alphaTest: original.alphaTest, transparent: original.transparent, opacity: original.opacity, side: original.side, polygonOffset: original.polygonOffset, polygonOffsetFactor: original.polygonOffsetFactor, polygonOffsetUnits: original.polygonOffsetUnits });
           this.basic.set(original, b);
         }
         b.color.copy(original.color).multiplyScalar(dim);
@@ -389,11 +476,15 @@ export class AureonModels {
       if (e.state === "ready")
         for (const p of e.model.parts) {
           p.geometry.dispose();
-          p.material.map?.dispose();
+          for (const t of [p.material.map, p.material.normalMap, p.material.roughnessMap, p.material.emissiveMap]) t?.dispose();
           p.material.dispose();
         }
     for (const m of this.basic.values()) m.dispose();
     this.basic.clear();
     this.entries.clear();
+    this.contactMaterial?.map?.dispose();
+    this.contactMaterial?.dispose();
+    this.contactMaterial = null;
+    this.contactGeometry.dispose();
   }
 }

@@ -1,5 +1,5 @@
 /** Real-only physical rendering. Original materials/geometry ownership and non-Real looks are preserved. */
-import {AddEquation, AdditiveBlending, CustomBlending, OneFactor, SrcAlphaFactor, ZeroFactor, ACESFilmicToneMapping, AmbientLight, Box3, Color, PointLight, Vector3, DataTexture, DirectionalLight, DoubleSide, Float32BufferAttribute, Group, HemisphereLight, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshPhysicalMaterial, NoColorSpace, NormalBlending, PCFSoftShadowMap, PMREMGenerator, RepeatWrapping, RGBADepthPacking, RGBAFormat, SRGBColorSpace, UnsignedByteType, type BufferGeometry, type Camera, type Material, type Scene, type Texture, type WebGLRenderer} from 'three';
+import {CanvasTexture, Sprite, SpriteMaterial, AddEquation, AdditiveBlending, CustomBlending, OneFactor, SrcAlphaFactor, ZeroFactor, ACESFilmicToneMapping, AmbientLight, Box3, Color, PointLight, Vector3, DataTexture, DirectionalLight, DoubleSide, Float32BufferAttribute, Group, HemisphereLight, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshPhysicalMaterial, NoColorSpace, NormalBlending, PCFSoftShadowMap, PMREMGenerator, RepeatWrapping, RGBADepthPacking, RGBAFormat, SRGBColorSpace, UnsignedByteType, type BufferGeometry, type Camera, type Material, type Scene, type Texture, type WebGLRenderer} from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {makeFoldable, type FoldMasks, type FoldRole} from './fold.ts';
 export type PbrKind='architecture'|'wood'|'fabric'|'metal'|'glass'|'stone'|'tile'|'concrete'|'deck'|'parquet'|'paint';
@@ -60,6 +60,11 @@ export class RealPbrRenderer {
  readonly sun=new DirectionalLight(0xfff0dc,3.2);
  private sky=new HemisphereLight(0xdce9ff,0x68604c,1.25);
  private lamps:PointLight[]=[];
+ /** AUREON: a soft glow around each lit lamp (the shade lit from inside), blended without touching the canvas alpha. */
+ private glows:Sprite[]=[];
+ private glowTexture:CanvasTexture|null=null;
+ /** AUREON: warm fill by night, so a lit room reads as lit beyond the lamp's pool (no black corners, no hot spot alone). */
+ private warmFill=new HemisphereLight(0xffcf9a,0x3b2a1d,0);
  private ambient=new AmbientLight(0xffffff,.06);
  private bounds=new Box3();
  private static DAY=new Color(0xfff0dc);private static MOON=new Color(0x9fb3e6);
@@ -69,7 +74,14 @@ export class RealPbrRenderer {
   this.renderer=renderer;this.low=low;
   this.sun.position.set(7,12,8);this.sun.castShadow=!low;this.sun.shadow.mapSize.set(low?512:2048,low?512:2048);this.sun.shadow.camera.left=-25;this.sun.shadow.camera.right=25;this.sun.shadow.camera.top=25;this.sun.shadow.camera.bottom=-25;this.sun.shadow.camera.near=.1;this.sun.shadow.camera.far=70;this.sun.shadow.normalBias=.025;this.sun.shadow.bias=-.0002;this.sun.shadow.radius=3;
   this.lights.add(this.sun,this.sun.target,this.sky,this.ambient);
+  this.lights.add(this.warmFill);
   for(let i=0;i<(low?3:MAX_LAMPS);i++){const lamp=new PointLight(0xffd6a0,0,7.5,2);lamp.visible=false;if(!low&&i<2){lamp.castShadow=true;lamp.shadow.mapSize.set(512,512);lamp.shadow.bias=-.004;lamp.shadow.radius=6;lamp.shadow.camera.near=.08;lamp.shadow.camera.far=8;}this.lamps.push(lamp);this.lights.add(lamp);}
+ }
+ private glow(i:number):Sprite|null {
+  if(this.glows[i])return this.glows[i];
+  if(!this.glowTexture){const doc=globalThis.document;if(!doc?.createElement)return null;const c=doc.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');if(!x)return null;const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,0.9)');g.addColorStop(0.18,'rgba(255,255,255,0.55)');g.addColorStop(0.5,'rgba(255,255,255,0.14)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);this.glowTexture=new CanvasTexture(c);}
+  const m=new SpriteMaterial({map:this.glowTexture,transparent:true,depthWrite:false,blending:CustomBlending});m.blendEquation=AddEquation;m.blendSrc=SrcAlphaFactor;m.blendDst=OneFactor;m.blendSrcAlpha=ZeroFactor;m.blendDstAlpha=OneFactor;
+  const s=new Sprite(m);s.visible=false;s.renderOrder=5;this.glows[i]=s;this.lights.add(s);return s;
  }
  private textureSet(kind:PbrKind):PbrMaps {let maps=this.maps.get(kind);if(!maps){maps=makePbrMaps(kind,this.low?64:128);this.maps.set(kind,maps);}return maps;}
  private physical(original:MeshBasicMaterial,kind:PbrKind):MeshPhysicalMaterial {
@@ -100,7 +112,11 @@ export class RealPbrRenderer {
   this.sun.color.copy(RealPbrRenderer.DAY).lerp(RealPbrRenderer.MOON,night);this.sun.intensity=3.4*(1-night)+.35*night;
   this.sky.intensity=.7*(1-.8*night);this.ambient.intensity=.06*(1-.5*night);
   const lamps=(frame.lamps??[]).filter(l=>l.level>0).sort((a,b)=>b.level-a.level);
-  this.lamps.forEach((light,i)=>{const l=lamps[i];light.visible=!!l;if(!l)return;light.position.set(l.x,l.y,l.z);light.color.setRGB(Math.min(1,l.color[0]),Math.min(1,l.color[1]),Math.min(1,l.color[2]));light.intensity=l.level*(1.3+3.1*night);});
+  // AUREON balance: a little softer per lamp (no hot spot right under a pendant), a warm fill by night instead
+  this.lamps.forEach((light,i)=>{const l=lamps[i];light.visible=!!l;const glow=this.low?null:this.glow(i);if(glow)glow.visible=!!l;if(!l)return;light.position.set(l.x,l.y,l.z);light.color.setRGB(Math.min(1,l.color[0]),Math.min(1,l.color[1]),Math.min(1,l.color[2]));light.intensity=l.level*(.95+1.75*night);light.distance=9;
+   if(glow){glow.position.set(l.x,l.y,l.z);const k=Math.min(1.2,l.level);glow.scale.setScalar(.45+.55*k);glow.material.color.setRGB(Math.min(1,l.color[0]),Math.min(1,l.color[1])*.92,Math.min(1,l.color[2])*.78);glow.material.opacity=(.18+.42*night)*k;}});
+  for(let i=lamps.length;i<this.glows.length;i++)if(this.glows[i])this.glows[i].visible=false;
+  const lit=Math.min(1,lamps.reduce((a,l)=>a+l.level,0)/3);this.warmFill.intensity=.16*night*lit;
  }
  render(scene:Scene,camera:Camera,frame:PbrFrame={}):void {
   if(!this.environment){const room=new RoomEnvironment();this.pmrem=new PMREMGenerator(this.renderer);this.environmentTarget=this.pmrem.fromScene(room,.04,.1,100);this.environment=this.environmentTarget.texture;room.dispose();}
@@ -109,7 +125,7 @@ export class RealPbrRenderer {
   try{
    const night=Math.min(1,Math.max(0,frame.night??0)),previousIntensity=(scene as Scene&{environmentIntensity?:number}).environmentIntensity;
    restore.push(()=>{(scene as Scene&{environmentIntensity?:number}).environmentIntensity=previousIntensity;});
-   (scene as Scene&{environmentIntensity?:number}).environmentIntensity=.42-.3*night;
+   (scene as Scene&{environmentIntensity?:number}).environmentIntensity=.42-.34*night;
    scene.environment=this.environment;scene.add(this.lights);this.renderer.toneMapping=ACESFilmicToneMapping;this.renderer.toneMappingExposure=1-.14*night;
    this.bounds.makeEmpty();this.renderer.shadowMap.enabled=!this.low;this.renderer.shadowMap.type=PCFSoftShadowMap;
    // Additive glows (window spill, light cones) add colour but must not write alpha into the transparent canvas,
@@ -129,5 +145,5 @@ export class RealPbrRenderer {
    this.renderer.render(scene,camera);
   }finally{for(const fn of restore.reverse())fn();scene.remove(this.lights);scene.environment=previous.environment;this.renderer.toneMapping=previous.tone;this.renderer.toneMappingExposure=previous.exposure;this.renderer.shadowMap.enabled=previous.shadows;this.renderer.shadowMap.type=previous.type;}
  }
- dispose():void {for(const [original,listener] of this.subscriptions)original.removeEventListener('dispose',listener);this.subscriptions.clear();for(const material of this.owned)material.dispose();this.owned.clear();for(const maps of this.maps.values())for(const texture of Object.values(maps))texture.dispose();this.maps.clear();this.sun.shadow.map?.dispose();this.environmentTarget?.dispose();this.pmrem?.dispose();this.environment=null;}
+ dispose():void {for(const g of this.glows)g?.material.dispose();this.glows=[];this.glowTexture?.dispose();this.glowTexture=null;for(const [original,listener] of this.subscriptions)original.removeEventListener('dispose',listener);this.subscriptions.clear();for(const material of this.owned)material.dispose();this.owned.clear();for(const maps of this.maps.values())for(const texture of Object.values(maps))texture.dispose();this.maps.clear();this.sun.shadow.map?.dispose();this.environmentTarget?.dispose();this.pmrem?.dispose();this.environment=null;}
 }
