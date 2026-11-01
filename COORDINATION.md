@@ -175,3 +175,13 @@ fabric textures at real scale, balanced warm lighting without blown highlights, 
 room in the project's real renderer (interactive 3D, not a static/generated image), with capture + video compared
 to the reference, settings and performance (test browser vs physical iSG kept separate). If the renderer cannot
 reach the target, list missing features and propose the solution first. Owner HA interaction must be preserved.
+
+VIS-REAL-01 first proof (Claude, 2026-11-01, disposable HA, SwiftShader — not the iSG): Sala in Real, High forced,
+evening simulated (sun −8°), 2 Sala lamps linked to demo lights at 2700 K in a test copy only. Result: does NOT
+reach the reference. Measured: 700 draw calls, 325k triangles, 39 shader programs, 2 lamp shadow maps + sun shadow.
+Gaps: (1) furniture models are simplified parametric reconstructions with 256 px textures (no upholstery detail,
+no fabric/wood normal maps); (2) no decor set (rug, plants, cushions, table/floor lamps, candles); (3) lighting is
+two point lights — no lamp glow/bloom, no soft area light, hot spot on the dining table; (4) no ambient occlusion /
+contact shadows; (5) walls/ceiling plain, no skirting/trim; (6) labels over the stage. Proposal sent to owner
+for approval before any apartment-wide work (detailed models + CC0 PBR textures, warm light rig with bloom,
+contact shadows/AO with a quality tier for the iSG, decor set). Status: open, awaiting owner decision.
