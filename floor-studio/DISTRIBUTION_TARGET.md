@@ -2,8 +2,8 @@
 
 Confirmed by the user on 2026-10-30:
 
-- `thaianyboas/aureon-dashboard/master` is the authoritative source and existing HACS Dashboard repository. Its stable v0.28.0 distribution in `dist/` stays unchanged until final acceptance.
-- `thaianyboas/aureon-integration/master` builds the separate Home Assistant integration candidate from the exact dashboard commit in `SOURCE_COMMIT`. It runs validation and uploads a review artifact, without publishing `custom_components` on the branch or installing anything.
+- `thaianyboas/aureon-dashboard/master` is the authoritative source and existing HACS Dashboard repository. Update 2026-10-31 (owner): `dist/` may carry the current build for testing in the owner's own Home Assistant (0.29.0-test.1); v0.28.0 is kept in `rollback/v0.28.0/`. This is not final acceptance.
+- `thaianyboas/aureon-integration/master` builds the separate Home Assistant integration candidate from the exact dashboard commit in `SOURCE_COMMIT`. Update 2026-10-31 (owner): the generated `custom_components/neonplan3d` package is published there for the owner's test installation through HACS; nothing is installed automatically.
 - The temporary `thaianyboas/neonplan3d` fork is not a distribution destination. Production Home Assistant is not changed by these source publications.
 
 The integration keeps domain `neonplan3d`, storage keys, `/neonplan3d_static` and panel path `neonplan3d` for compatibility. It cannot run alongside another integration using the same domain. Storage compatibility checks are not runtime migration or rollback acceptance.

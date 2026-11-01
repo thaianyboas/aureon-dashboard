@@ -1,6 +1,6 @@
 # AUREON Dashboard
 
-The stable HACS dashboard distribution remains unchanged in `dist/aureon-dashboard.js` (v0.28.0 line). Do not update expecting Floor Studio yet.
+**Owner test build 0.29.0-test.1 (2026-11-01).** At the owner's request the HACS distribution in `dist/` now carries the current AUREON platform build for testing in her own Home Assistant. It is not a visual approval or a finished release. It needs the matching NeonPlan3D AUREON integration from `thaianyboas/aureon-integration` (same `neonplan3d` domain; replaces the official integration, keeps its storage). The previous stable v0.28.0 file is kept in `rollback/v0.28.0/`. See [OWNER_TEST_2026-11-01.md](OWNER_TEST_2026-11-01.md).
 
 ## Floor Studio source integration
 

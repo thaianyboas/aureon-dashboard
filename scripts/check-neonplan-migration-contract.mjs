@@ -24,5 +24,6 @@ for (const [name, suffix] of Object.entries({
 }
 assert.match(storage, /async_migrate_legacy_stores/, 'Legacy migration missing');
 assert.match(storage, /if await Store\[dict\[str, Any\]\]\(hass, STORAGE_VERSION, key\)\.async_load\(\) is not None:/, 'Existing stores must not be overwritten');
-assert.match(stable, /0\.28\.0/, 'Stable dashboard version unexpectedly changed');
+assert.match(stable, /0\.29\.0-test\.1/, 'Dashboard distribution version unexpectedly changed (owner test build)');
+assert.match(readFileSync('rollback/v0.28.0/aureon-dashboard.js', 'utf8'), /const VERSION = '0\.28\.0'/, 'Rollback copy of v0.28.0 missing');
 console.log('PASS: upstream integration identity, storage compatibility, legacy migration and stable dashboard version. Runtime migration remains untested.');
