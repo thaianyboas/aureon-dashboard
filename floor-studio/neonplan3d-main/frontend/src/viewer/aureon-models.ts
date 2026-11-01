@@ -215,6 +215,9 @@ export async function parseGlb(buffer: ArrayBuffer, makeImage: (blob: Blob) => P
 
 const DEG = Math.PI / 180;
 
+/** Downloaded model files of this page, by URL (bytes only: each viewer parses its own copy for its renderer). */
+const BYTES = new Map<string, Promise<ArrayBuffer>>();
+
 /** Loads, caches and places the models; one Group per floor id, kept outside the floor groups. */
 export class AureonModels {
   private entries = new Map<string, Entry>();
@@ -238,6 +241,20 @@ export class AureonModels {
 
   private async load(url: string): Promise<void> {
     try {
+      // speed: one download per model and page, shared by the Startseite and Floor Studio viewers
+      const buf = await (BYTES.get(url) ?? AureonModels.download(url));
+      const model = await parseGlb(buf, async (blob) => (typeof createImageBitmap === "function" ? createImageBitmap(blob) : null));
+      this.entries.set(url, { state: "ready", model });
+    } catch (err) {
+      BYTES.delete(url);
+      console.warn("AUREON model not loaded:", url, err);
+      this.entries.set(url, { state: "error", error: String((err as Error)?.message ?? err) });
+    }
+    this.onReady();
+  }
+
+  private static download(url: string): Promise<ArrayBuffer> {
+    const job = (async () => {
       // the integration serves own models only to signed-in users (/api/neonplan3d/aureon_models/…): use the HA
       // session's authenticated fetch; older plans may still point at /local/… (served without login)
       const hass = (globalThis.document?.querySelector("home-assistant") as unknown as { hass?: { fetchWithAuth?: (p: string, i?: RequestInit) => Promise<Response> } } | null)?.hass;
@@ -247,13 +264,10 @@ export class AureonModels {
       if (size > MAX_BYTES) throw new Error("file too large");
       const buf = await res.arrayBuffer();
       if (buf.byteLength > MAX_BYTES) throw new Error("file too large");
-      const model = await parseGlb(buf, async (blob) => (typeof createImageBitmap === "function" ? createImageBitmap(blob) : null));
-      this.entries.set(url, { state: "ready", model });
-    } catch (err) {
-      console.warn("AUREON model not loaded:", url, err);
-      this.entries.set(url, { state: "error", error: String((err as Error)?.message ?? err) });
-    }
-    this.onReady();
+      return buf;
+    })();
+    BYTES.set(url, job);
+    return job;
   }
 
   /** Ids of the items drawn by a model (their built-in shape is left out of the floor geometry). */

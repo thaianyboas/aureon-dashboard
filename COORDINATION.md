@@ -151,3 +151,27 @@ Version warning: our integration and frontend are both 2.0.7; a 2.0.9 frontend c
 NeonPlan 3D repository in HACS writing the same folder. Owner steps in OWNER_TEST doc / chat.
 Distribution: dist 0.29.0-test.2 (hash updated); integration repackaged, SOURCE_COMMIT advanced.
 Not done: owner HA, physical iSG, non-admin second user test of the embedded panel.
+
+## Claude batch — 2026-11-01d (speed) and owner requirement for Real
+
+Speed (follow-up of 01c):
+- platform `controller.mjs`: the row index (filter/sort of all entities) is rebuilt only when the registry, the
+  hidden list, the scope or the number of entities changes — not on every state change.
+- platform `page.mjs`: a single change renders at once; bursts of state changes render once per frame.
+- shell: runtime-entity check uses the entity count instead of a sorted join of all ids per update; home
+  overview rows filtered once per registry.
+- `aureon-models.ts`: one download per model file and page, shared by the Startseite and Floor Studio viewers.
+- Private (not in git): owner models optimized (dedup/join/weld/light simplify, same size/centre/textures,
+  verified in the disposable HA for 20 items): total 5.2 MB → 3.3 MB; SINNERLIG 2.4 MB → 1.2 MB.
+Measured in the disposable HA (116 entities, SwiftShader): command tap → HA event ≈ 13–19 ms → UI updated ≈ 20 ms
+on Geräte. Per-update script cost is negligible at 116 entities before and after; the index change matters for
+installations with many entities (owner HA not measured). 3D frame cost dominates on the Startseite and is
+not representative in software GL — iSG measurement (ISG-01) still required.
+
+### Owner requirement — VIS-REAL-01 (open, not approved)
+The owner supplied a reference image (warm, furnished 3D apartment: detailed sofa/rug/plants/lamps, wood and
+fabric textures at real scale, balanced warm lighting without blown highlights, contact shadows, framing).
+"Real" by name is NOT visual approval. Before applying finishes to the whole apartment: a proof of the living
+room in the project's real renderer (interactive 3D, not a static/generated image), with capture + video compared
+to the reference, settings and performance (test browser vs physical iSG kept separate). If the renderer cannot
+reach the target, list missing features and propose the solution first. Owner HA interaction must be preserved.

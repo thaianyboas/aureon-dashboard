@@ -11,7 +11,12 @@ export class PlatformController{
  subscribe(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
  emit(){for(const fn of this.listeners)fn();}
  update(hass,registry){const key=scopeKey(hass);if(key!==this.scope||hass?.connection!==this.connection){const changed=key!==this.scope;this.scope=key;this.connection=hass?.connection;this.epoch++;this.events={};this.series=[];this.history={};this.floors=[];this.nativeRevision=null;this.answer='';this.conversationId=null;this._confirmation=null;this.busy.clear();this.errors={};if(changed)this.preferences=loadPreferences(this.storage,key);}
- this.hass=hass;this.registry=registry;this.reindex();this.emit();}
+ this.hass=hass;this.registry=registry;
+ // speed: the row index only depends on the registry, the hidden list and which entities exist — not on every
+ // state change (HA sends one hass object per change, often several per second)
+ const states=hass?.states,count=states?Object.keys(states).length:0,ik=this._indexKey;
+ if(!ik||ik[0]!==registry||ik[1]!==registry?.entityRows||ik[2]!==registry?.entityRows?.length||ik[3]!==this.preferences.hidden||ik[4]!==count||ik[5]!==this.scope){this._indexKey=[registry,registry?.entityRows,registry?.entityRows?.length,this.preferences.hidden,count,this.scope];this.reindex();}
+ this.emit();}
  get language(){return this.preferences.language==='auto'?(this.hass?.locale?.language||this.hass?.language||'en'):this.preferences.language;}
  reindex(){const hidden=new Set(this.preferences.hidden);this._allRows=this.registry?.entityRows?.filter(r=>this.hass?.states?.[r.id]&&!r.disabled&&!r.hidden)||[];this._rows=this._allRows.filter(r=>!hidden.has(r.id));this._byId=new Map(this._rows.map(r=>[r.id,r]));const signature=this._rows.map(r=>r.id).sort().join('\n');if(signature!==this._visibility){this._visibility=signature;this.epoch++;this.answer='';this.conversationId=null;this.events={};this.history={};this.series=[];this._confirmation=null;this.busy.clear();this.errors={};}}
  get rows(){return this._rows;}
@@ -19,7 +24,7 @@ export class PlatformController{
  state(id){return this._byId.has(id)?this.hass?.states?.[id]:null;}
  list(domains){return this.rows.filter(r=>domains.includes(r.domain));}
  get areas(){return this.registry?.rows||[];}
- save(value){const before=this.preferences.energy.total;try{this.preferences=savePreferences(this.storage,this.scope,value);this.storageError=false;}catch{this.preferences=validatePreferences(value);this.storageError=true;}this.reindex();if(before!==this.preferences.energy.total)this.series=[];this.emit();}
+ save(value){this._indexKey=null;const before=this.preferences.energy.total;try{this.preferences=savePreferences(this.storage,this.scope,value);this.storageError=false;}catch{this.preferences=validatePreferences(value);this.storageError=true;}this.reindex();if(before!==this.preferences.energy.total)this.series=[];this.emit();}
  patch(key,value){this.save({...this.preferences,[key]:value});}
  import(text){this.save(importPreferences(text));}
  export(){return JSON.stringify(validatePreferences(this.preferences),null,2);}

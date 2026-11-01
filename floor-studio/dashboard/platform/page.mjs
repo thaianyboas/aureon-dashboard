@@ -18,7 +18,8 @@ export class AureonPlatform extends LitElement{
  static createController(){return new PlatformController();}
  constructor(){super();this.page='home';this._bindingFloor='';this._bindingKind='room';this.palettes=[];this._limit=100;this._controller=null;this._unsubscribe=null;this._timer=null;this._revision=0;this._search='';this._area='';this._domain='';this._category='';this._modal=null;this._native=null;this._nativeError='';this._notice='';this._period=14;this._question='';this._agent='';this._nativeCard=null;this._nativeEpoch=0;}
  set controller(c){if(c===this._controller)return;this._unsubscribe?.();this._controller=c;this._seenEpoch=c?.epoch;this._unsubscribe=this.isConnected?c?.subscribe(()=>this.changed()):null;this.requestUpdate();}
- changed(){if(this._seenEpoch!==this.c?.epoch){this._seenEpoch=this.c?.epoch;this.closeModal();this._question='';this._search='';this._notice='';}if(this._native&&!this.c.state(this._native.id))this.closeModal();if(this._modal?.row&&!this.c.state(this._modal.row.id))this.closeModal();this.requestUpdate();}
+ changed(){if(this._seenEpoch!==this.c?.epoch){this._seenEpoch=this.c?.epoch;this.closeModal();this._question='';this._search='';this._notice='';}if(this._native&&!this.c.state(this._native.id))this.closeModal();if(this._modal?.row&&!this.c.state(this._modal.row.id))this.closeModal();// speed: a single change renders at once; a burst of state changes (several in one frame) renders once per frame
+const now=performance.now();if(now-(this._lastChange||0)>40){this._lastChange=now;this.requestUpdate();}else if(!this._frame){this._frame=requestAnimationFrame(()=>{this._frame=0;this._lastChange=performance.now();this.requestUpdate();});}}
  get controller(){return this._controller;}
  get c(){return this.controller;}
  get t(){return platformLabels(this.c?.language);}

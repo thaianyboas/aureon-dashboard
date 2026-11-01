@@ -177,8 +177,9 @@
       // Runtime entities can appear/disappear without a registry change. Reconcile the
       // small runtime-only subset without issuing a WebSocket registry request.
       if (this._registry && value?.states) {
+        // speed: only when entities appear or disappear (count), not a sorted join of all ids on every state change
         const currentIds=Object.keys(value.states);
-        const signature=currentIds.slice().sort().join('\n');
+        const signature=currentIds.length;
         if(signature!==this._lastRuntimeEntitySignature){
           this._lastRuntimeEntitySignature=signature;
           const registered=new Set(this._registry.registeredEntityIds||[]);
@@ -209,12 +210,12 @@
         }
       }
       if (this._configured && this._page === 'Início' && this._registry && value?.states) {
-        const tracked = this._registry.entityRows.filter(r=>r.domain==='person'||r.domain==='weather');
-        const signature = tracked.map(r=>{
+        // speed: the tracked rows are filtered once per registry, not on every state change
+        if(this._homeTrackedFor!==this._registry.entityRows){this._homeTrackedFor=this._registry.entityRows;this._homeTracked=this._registry.entityRows.filter(r=>r.domain==='person'||r.domain==='weather');this._homeBatteries=this._registry.entityRows.filter(r=>r.domain==='sensor'&&r.deviceClass==='battery');}
+        const signature = this._homeTracked.map(r=>{
           const st=value.states[r.id];
           return [r.id,st?.state,st?.attributes?.temperature,st?.attributes?.humidity,st?.attributes?.entity_picture].join(':');
-        }).join('|')+'|'+this._registry.entityRows.filter(r=>r.domain==='sensor'&&r.deviceClass==='battery')
-          .map(r=>r.id+':'+value.states[r.id]?.state).join('|');
+        }).join('|')+'|'+this._homeBatteries.map(r=>r.id+':'+value.states[r.id]?.state).join('|');
         if (signature !== this._homeStateSignature) {
           this._homeStateSignature=signature;
           try { this._updateHomeOverview(); }
