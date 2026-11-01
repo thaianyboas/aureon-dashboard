@@ -5017,7 +5017,7 @@ export class FloorplanViewer {
 
   /** AUREON: refinement is for the Real look on "High", on screen. */
   private traceWanted(): boolean {
-    return this.theme === "real" && !this.lowQuality && (this.highQuality || !this.softwareGl()) && !this.disposed && !document.hidden && this.onScreen;
+    return AureonPathTrace.enabled && this.theme === "real" && !this.lowQuality && (this.highQuality || !this.softwareGl()) && !this.disposed && !document.hidden && this.onScreen;
   }
   private softwareGlCache: boolean | null = null;
   /** No graphics chip (software WebGL): "Auto" keeps the live picture only, "High" still refines (slowly). */

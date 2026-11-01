@@ -5,7 +5,7 @@
  * (neonplan3d-pathtrace.js) that borrows three.js from this bundle. Nothing here calls Home Assistant.
  */
 import type { Camera, Material, Mesh, Object3D, Scene, WebGLRenderer } from "three";
-import { Color, MeshPhysicalMaterial, type MeshStandardMaterial } from "three";
+import { BufferAttribute, BufferGeometry, Color, MeshPhysicalMaterial, Vector3, type MeshStandardMaterial, type Plane } from "three";
 import type * as TraceBundle from "../pathtrace/entry.ts";
 import { AUREON_THREE_LEND } from "./aureon-three-lend.ts";
 
@@ -43,6 +43,70 @@ export function traceable(object: Object3D): boolean {
   return list.length > 0 && list.every((x) => !!x && (x as Material & { isMeshStandardMaterial?: boolean }).isMeshStandardMaterial === true && x.visible);
 }
 
+
+interface FoldInfo {
+  masks: { standing: { value: number }; glass: { value: number } };
+  role: "plain" | "solid" | "glass";
+}
+/** The fold shader's choice for one vertex (see fold.ts), done on the CPU for the tracer. */
+export function foldShows(fold: number, standing: number, glass: number, role: FoldInfo["role"]): boolean {
+  let show = role !== "glass";
+  if (fold > -0.5) {
+    const f = Math.round(fold), kind = Math.floor(f / 16), bucket = f - kind * 16;
+    const isStanding = ((standing >> bucket) & 1) === 1, isGlass = ((glass >> bucket) & 1) === 1;
+    show = kind === 0 || kind === 4 ? isStanding : kind === 1 || kind === 3 ? !isStanding : true;
+    const wall = kind === 0 || kind === 2;
+    if (role === "solid" && isGlass && wall) show = false;
+    if (role === "glass") show = show && isGlass && wall;
+  }
+  return show;
+}
+
+/**
+ * The live picture cuts walls on the GPU (fold shader) and clips models at the cut height (clipping planes); the
+ * tracer reads raw geometry, so it gets a copy with only the triangles the live picture shows. Null: draw as is.
+ */
+export function visibleGeometry(mesh: Mesh): BufferGeometry | null {
+  const g = mesh.geometry, mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+  const foldAttr = g.getAttribute("fold");
+  const fd = mats[0]?.userData?.fp3dFold as FoldInfo | undefined;
+  const planes = (mats[0]?.clippingPlanes ?? null) as Plane[] | null;
+  const useFold = !!foldAttr && !!fd, usePlanes = !!planes && planes.length > 0;
+  if (!useFold && !usePlanes) return null;
+  const pos = g.getAttribute("position");
+  if (!pos) return null;
+  const n = pos.count, show = new Uint8Array(n);
+  const v = new Vector3();
+  for (let i = 0; i < n; i++) {
+    let ok = true;
+    if (useFold) ok = foldShows(foldAttr.getX(i), fd!.masks.standing.value, fd!.masks.glass.value, fd!.role);
+    if (ok && usePlanes) {
+      v.fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
+      for (const p of planes!) if (p.distanceToPoint(v) < 0) ok = false;
+    }
+    show[i] = ok ? 1 : 0;
+  }
+  const index = g.index;
+  const at = (k: number) => (index ? index.getX(k) : k);
+  const total = index ? index.count : n;
+  const groups = g.groups.length ? g.groups : [{ start: 0, count: total, materialIndex: 0 }];
+  const out: number[] = [];
+  const copy = new BufferGeometry();
+  for (const grp of groups) {
+    const start = out.length;
+    const end = Math.min(total, grp.start + grp.count);
+    for (let k = grp.start; k + 2 < end; k += 3) {
+      const a = at(k), b = at(k + 1), c = at(k + 2);
+      // a triangle stays when the live picture draws it (all corners shown; clipped models keep cut faces)
+      if (useFold ? show[a] && show[b] && show[c] : show[a] || show[b] || show[c]) out.push(a, b, c);
+    }
+    if (g.groups.length) copy.addGroup(start, out.length - start, grp.materialIndex ?? 0);
+  }
+  for (const [name, attr] of Object.entries(g.attributes)) copy.setAttribute(name, attr);
+  copy.setIndex(new BufferAttribute(n > 65535 ? new Uint32Array(out) : new Uint16Array(out), 1));
+  return copy;
+}
+
 /** Signature of what the tracer has collected: solid meshes, their geometry and place. */
 export function sceneSignature(scene: Scene): string {
   let n = 0,
@@ -71,6 +135,13 @@ type Tracer = TraceBundle.AureonTracer;
 export type Staged = (fn: () => void) => void;
 
 export class AureonPathTrace {
+  /** Diagnostics (tests only): leave out the cut/clip copies or the lamp-shade swap. */
+  static debug = { copies: true, shades: true };
+  /**
+   * Off until its proof passes: in the disposable HA some own models came out wrong in the traced picture
+   * (VIS-REAL-01 step 3), so the refinement only runs when switched on explicitly (tests, diagnostics).
+   */
+  static enabled = false;
   private tracer: Tracer | null = null;
   private failed = false;
   private sceneSig = "";
@@ -138,6 +209,7 @@ export class AureonPathTrace {
         prevIntensity = (scene as Scene & { environmentIntensity?: number }).environmentIntensity;
       const hidden: Object3D[] = [];
       const swapped: [Mesh, Material][] = [];
+      const geoms: [Mesh, BufferGeometry][] = [];
       try {
         const sig = sceneSignature(scene);
         if (sig !== this.sceneSig) {
@@ -162,12 +234,25 @@ export class AureonPathTrace {
           // a lamp's own shade lets its light through (linen, paper, bamboo): translucent in the photo, as it is lit
           scene.traverseVisible((o) => {
             const mesh = o as Mesh;
-            if (!traceable(o) || mesh.castShadow || !o.userData.aureonModelMaterial || Array.isArray(mesh.material) || !SHADE.test((mesh.material as Material).name)) return;
+            if (!AureonPathTrace.debug.shades || !traceable(o) || mesh.castShadow || !o.userData.aureonModelMaterial || Array.isArray(mesh.material) || !SHADE.test((mesh.material as Material).name)) return;
             const before = mesh.material as MeshStandardMaterial;
             swapped.push([mesh, before]);
             mesh.material = this.shade(before);
           });
+          // walls cut at the cut height and models clipped there, as in the live picture
+          scene.traverseVisible((o) => {
+            const mesh = o as Mesh;
+            if (!traceable(o) || !AureonPathTrace.debug.copies) return;
+            const copy = visibleGeometry(mesh);
+            if (!copy) return;
+            geoms.push([mesh, mesh.geometry]);
+            mesh.geometry = copy;
+          });
+          for (const old of this.copies) old.dispose();
+          this.copies = geoms.map(([mesh]) => mesh.geometry);
           t.build(scene, camera);
+          for (const [mesh, before] of geoms) mesh.geometry = before;
+          geoms.length = 0;
           for (const [mesh, before] of swapped) mesh.material = before;
           swapped.length = 0;
           for (const o of hidden) o.visible = true;
@@ -200,12 +285,14 @@ export class AureonPathTrace {
       } finally {
         for (const o of hidden) o.visible = true;
         for (const [mesh, before] of swapped) mesh.material = before;
+        for (const [mesh, before] of geoms) mesh.geometry = before;
         scene.environment = prevEnv;
         (scene as Scene & { environmentIntensity?: number }).environmentIntensity = prevIntensity;
       }
     });
     return more;
   }
+  private copies: BufferGeometry[] = [];
   private shades = new Map<Material, MeshPhysicalMaterial>();
   private shade(m: MeshStandardMaterial): MeshPhysicalMaterial {
     let s = this.shades.get(m);
@@ -216,6 +303,8 @@ export class AureonPathTrace {
     return s;
   }
   dispose(): void {
+    for (const c of this.copies) c.dispose();
+    this.copies = [];
     for (const s of this.shades.values()) s.dispose();
     this.shades.clear();
     this.disposed = true;

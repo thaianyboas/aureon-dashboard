@@ -206,7 +206,7 @@ white and smooth, wall paint in the editor, "image quality all the time, any ang
   (`viewer/aureon-three-lend.ts`; build.mjs fails if the tracer needs an unlent class). Runs on Real when the
   quality is not the low tier: High always, Auto only with a graphics chip (software WebGL such as SwiftShader /
   llvmpipe is excluded); the low tier keeps the live picture only. Whether the iSG gets it on Auto is unmeasured. Lamps in candela for the photo, lamp shades translucent, glows/lines/contact planes excluded,
-  ≤1 MP, 2×2 tiles per frame, 160 samples then it stops; a changing scene (models arriving) pauses 15 s, a lasting
+  ≤1 MP, 2×2 tiles per frame, 160 samples then it stops (now OFF by default, see below); a changing scene (models arriving) pauses 15 s, a lasting
   error turns it off for that view. No HA calls.
 - Several lit lamps share the light budget (no hot spots when three lamps are on).
 - Wall paint (public code): room form "Cor da parede" — 8 matt paints + free colour, stored in
@@ -218,3 +218,49 @@ white and smooth, wall paint in the editor, "image quality all the time, any ang
   "Sugestão" + white smooth paint in all rooms except bathroom tiles / balcony brick.
 - Test browser is SwiftShader (no GPU): one full path-traced sample of the Sala view (784×440) takes ~100 s
   there; on a real GPU it is expected in tens of ms — NOT measured on the iSG (ISG-01 still open).
+- Follow-up the same evening: tracer sees walls cut and models clipped like the live picture (CPU copy of the fold
+  shader rules), edge-preserving denoise for young pictures. Proofs (disposable HA + a private standalone harness
+  with the repo renderer, all SwiftShader): night isometric converged to 32 samples at half resolution with soft
+  bounce light, but the DAY proof showed wrong results for some own models (sofa/chairs nearly invisible, plant
+  flat green) and some runs stalled at 0 samples — cause not found yet (models render correctly in an isolated
+  three.js path-trace test with the same files and parser). Therefore the refinement is now OFF by default
+  (`AureonPathTrace.enabled = false`), shipped code only; no user sees it until the proof passes.
+
+### VIS-REAL-01 — owner brief of 2026-11-01 19:10 (quality references) and plan
+Owner: references define the finish (well-modelled furniture with curves/seams/thickness, real-scale wood/fabric/
+ceramic/metal, coherent glass, balanced natural+artificial light, soft and contact shadows, depth, no blocks/plastic/
+blown lights, in isometric AND interior views). Not "recolour or brighter lights". Full Sala proof first with the
+private plan and models, compare, name what blocks the target. Validate separately: (1) browser quality,
+(2) iSG Display Max fluidity/stability, (3) phone. Best sustainable quality per device, never High forced
+everywhere without measuring; no desktop capture as iSG proof. Capture + video of the real renderer with settings
+and measurements. If the technology cannot reach the target: explain the limit and propose a concrete architecture
+change with costs/effects on editing, interaction and performance. Owner later: "focus on quality, not the iSG";
+she supplied product photos (JÄTTEBO, SINNERLIG, BÖJA, BLIDVÄDER, LINDBYN, TARSELE, BESTÅ/HEDEVIKEN chevron
+doors 180×42×64 wall-mounted, ADSLEV armchairs from JYSK, corduroy cushion) — private, not in git.
+
+Gaps found (Sala, live picture and refinement):
+1. Geometry: own models are code-built approximations (boxes with rounding). Chairs, lamps, BESTÅ doors, table
+   edge/legs, curtains miss the curves, seams and thickness of the references. JÄTTEBO rebuilt from the owner's
+   photos/dimensions (modules, base + seat cushions, piping, corduroy, recessed feet) — others pending.
+2. Materials: 512–1024 px procedural textures; no sheen (velvet/corduroy), clearcoat, subsurface; the parser reads
+   base/normal/MR/emissive/alpha only. Wood grain wavy and too saturated on TARSELE.
+3. Light: the live picture has direct lights + painted light pools, no bounce light and no ambient occlusion — the
+   main reason it looks flat ("blocks"). Path tracing fixes this at rest but needs a GPU and is not yet correct.
+4. Image treatment: ACES only; no bloom/glare on shades, no exposure adaptation, labels over the picture.
+5. Phone (EMULATION 390×844@3x, SwiftShader): Auto chose the low tier (correct for an unmeasured device), but it
+   renders at pixel ratio 1 on a 3× screen (soft/pixelated), and the 3D card is crowded by the look menu, Passeio
+   and Floor Studio buttons; a tap on the Sala opened the room sheet over the 3D. Physical phone not tested.
+6. iSG: not tested (no access); its tier stays Auto with the refinement off.
+
+Architecture proposal (not started, needs owner OK):
+A. Keep: live raster + (once fixed) path-traced refinement at rest — always coherent with edits and HA states
+   because it is rebuilt from the live scene; cost: GPU time, off on low tier.
+B. Recommended next: baked bounce light (lightmaps) per light for walls/floors/static furniture, computed with the
+   same tracer in a capable browser and stored in HA per plan revision; live view = raster + lightmaps (+ SSAO).
+   Gives GI/AO while moving at almost no runtime cost (iSG/phone friendly). Limits: rebake after moving walls or
+   furniture (until then the current look), one lightmap set per lamp so on/off/dim/colour stay coherent
+   (linear), moving things (people, robot, opened doors) get no baked light; costs: xatlas UV unwrap (~200 KB wasm,
+   lazy), ~4–16 MB textures per floor per lamp, bake seconds–minutes on a GPU, storage in /config.
+C. Assets: real product models (owner's photos → careful modelling, or manufacturer 3D files kept private) and
+   scanned CC0 materials with sheen/clearcoat parsing. Largest visible gain, independent of A/B.
+D. Not as main path: offline renders (Blender/Cycles on another machine) — reference quality but no interaction.

@@ -63,3 +63,32 @@ test("the lent three.js classes are real classes and constants", () => {
   for (const [name, value] of Object.entries(AUREON_THREE_LEND)) assert.notEqual(value, undefined, name);
   assert.equal(AUREON_THREE_LEND.Mesh, Mesh);
 });
+
+test("the tracer sees walls cut like the live picture (fold rules on the CPU)", async () => {
+  const { foldShows, visibleGeometry } = await import("./aureon-pathtrace.ts");
+  const { BufferAttribute, BufferGeometry, Mesh, MeshStandardMaterial, Plane, Vector3 } = await import("three");
+  // bucket 2: upper part (kind 0) shows only while the bucket stands; cap at the cut (kind 3) only when cut
+  assert.equal(foldShows(0 * 16 + 2, 0b100, 0, "solid"), true);
+  assert.equal(foldShows(0 * 16 + 2, 0, 0, "solid"), false);
+  assert.equal(foldShows(3 * 16 + 2, 0, 0, "solid"), true);
+  assert.equal(foldShows(2 * 16 + 2, 0, 0b100, "solid"), false);
+  assert.equal(foldShows(-1, 0, 0, "solid"), true);
+  // two triangles: the lower one (kind 2) stays, the upper one (kind 0, bucket cut) goes
+  const g = new BufferGeometry();
+  g.setAttribute("position", new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 2, 0]), 3));
+  g.setAttribute("fold", new BufferAttribute(new Float32Array([32, 32, 32, 0, 0, 0]), 1));
+  const m = new MeshStandardMaterial();
+  m.userData.fp3dFold = { masks: { standing: { value: 0 }, glass: { value: 0 } }, role: "solid" };
+  const copy = visibleGeometry(new Mesh(g, m));
+  assert.ok(copy);
+  assert.deepEqual([...copy!.index!.array], [0, 1, 2]);
+  // a model clipped at 1.5 m keeps triangles with a corner below the plane, drops those wholly above
+  const box = new BufferGeometry();
+  box.setAttribute("position", new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1.8, 0, 1, 1.8, 0, 0, 2.2, 0]), 3));
+  const cm = new MeshStandardMaterial();
+  cm.clippingPlanes = [new Plane(new Vector3(0, -1, 0), 1.5)];
+  const mesh = new Mesh(box, cm);
+  mesh.updateMatrixWorld();
+  assert.deepEqual([...visibleGeometry(mesh)!.index!.array], [0, 1, 2]);
+  assert.equal(visibleGeometry(new Mesh(box, new MeshStandardMaterial())), null);
+});

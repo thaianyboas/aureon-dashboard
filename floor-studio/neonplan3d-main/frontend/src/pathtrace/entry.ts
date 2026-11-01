@@ -4,6 +4,7 @@
 // three-gpu-pathtracer and three-mesh-bvh: MIT licence (Garrett Johnson), see THIRD_PARTY_PATHTRACE.txt next to the bundle.
 import { WebGLPathTracer } from "three-gpu-pathtracer/src/core/WebGLPathTracer.js";
 import { GradientEquirectTexture } from "three-gpu-pathtracer/src/textures/GradientEquirectTexture.js";
+import { DenoiseMaterial } from "three-gpu-pathtracer/src/materials/fullscreen/DenoiseMaterial.js";
 import type { Camera, Color, Scene, Texture, WebGLRenderer } from "three";
 
 export interface AureonTracer {
@@ -23,6 +24,9 @@ export interface AureonTracer {
   dispose(): void;
 }
 
+/** Samples up to which the young picture is denoised. */
+export const DENOISE_UNTIL = 96;
+
 export function createTracer(renderer: WebGLRenderer, opts: { scale: number; tiles: number; bounces: number }): AureonTracer {
   const pt = new WebGLPathTracer(renderer);
   pt.renderScale = opts.scale;
@@ -39,6 +43,26 @@ export function createTracer(renderer: WebGLRenderer, opts: { scale: number; til
   const gradient = new GradientEquirectTexture(32);
   let fallback: () => void = () => {};
   pt.rasterizeSceneCallback = () => fallback();
+  // an edge-preserving denoise while the picture is young (few samples): smooth surfaces at once, sharp edges kept;
+  // it fades out as the samples add up (the converged picture is shown as traced)
+  const denoise = new DenoiseMaterial({ premultipliedAlpha: renderer.getContextAttributes()?.premultipliedAlpha ?? true });
+  pt.renderToCanvasCallback = (target, r, quad) => {
+    const auto = r.autoClear;
+    r.autoClear = false;
+    const s = pt.samples;
+    if (s < DENOISE_UNTIL && quad.material.opacity >= 1) {
+      const k = 1 - s / DENOISE_UNTIL;
+      denoise.uniforms.map.value = target.texture;
+      denoise.uniforms.sigma.value = 1.5 + 3.5 * k;
+      denoise.uniforms.threshold.value = 0.08 + 0.12 * k;
+      denoise.uniforms.opacity.value = 1;
+      const m = quad.material;
+      quad.material = denoise;
+      quad.render(r);
+      quad.material = m;
+    } else quad.render(r);
+    r.autoClear = auto;
+  };
   return {
     build(scene, camera) {
       pt.setScene(scene, camera);
@@ -76,6 +100,7 @@ export function createTracer(renderer: WebGLRenderer, opts: { scale: number; til
     },
     dispose() {
       gradient.dispose();
+      denoise.dispose();
       pt.dispose();
     },
   };
