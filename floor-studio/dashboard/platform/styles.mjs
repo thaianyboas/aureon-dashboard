@@ -83,4 +83,38 @@ export const platformStyles=`
 @container (max-width:1180px){.home-grid{grid-template-columns:minmax(0,1fr) 260px}}
 @container (max-width:980px){.home-grid{grid-template-columns:1fr}.home-scene{height:clamp(360px,64cqi,560px);min-height:360px}.home-side{grid-template-columns:1fr 1fr;gap:12px}.home-side .room-feature{grid-column:1/-1}}
 @container (max-width:560px){.home-luxe{padding:4px 2px 8px}.home-top{flex-wrap:wrap;gap:10px;margin-bottom:14px}.home-title h1{font-size:34px}.subtitle{font-size:15px}.home-clock{justify-items:start;padding:0}.home-toolbar{position:relative;z-index:3;margin-bottom:-46px}.home-scene{height:clamp(300px,92cqi,390px);min-height:300px}.home-people{display:grid;grid-template-columns:1fr}.person{min-width:0}.home-side{grid-template-columns:1fr}.side-tiles{grid-template-columns:1fr 1fr}}
+/* Short landscape displays (including iSG Display Max). Use available HA content
+   width, not device pixels or user-agent detection; retain portrait/phone flow. */
+@media (min-aspect-ratio:6/5) and (max-height:900px){
+ @container (min-width:760px){
+  .home-luxe{padding:4px 6px 8px}
+  .home-top{gap:14px;margin-bottom:12px}
+  .home-title h1{font-size:clamp(30px,3.8cqi,46px)}
+  .home-grid{grid-template-columns:minmax(0,1fr) 220px;gap:14px}
+  .home-main{gap:10px}
+  .home-scene{height:clamp(340px,calc(100dvh - 360px),500px);min-height:340px}
+  .home-side{grid-template-columns:minmax(0,1fr);gap:10px}
+  .home-side .room-feature{grid-column:auto;min-height:240px}
+  .room-feature-open{padding:14px 12px 6px}
+  .room-feature-text strong{font-size:25px}
+  .room-feature-stats{padding:6px 6px 10px}
+  .room-feature-stats button{min-width:0;align-content:start}
+  .stat-label{max-width:100%;font-size:12px;line-height:1.25;overflow-wrap:anywhere}
+  .side-tiles{gap:8px}
+  .side-tile{min-height:104px;padding:12px}
+  .side-tile .tile-label{font-size:18px;margin-top:6px}
+  .weather-card{min-height:96px;padding:12px}
+  .weather-card strong{font-size:36px}
+  .weather-art .hi{width:48px;height:48px}
+  .agenda-card{padding:12px;gap:10px}
+  .home-people{gap:8px}
+  .person{flex:1 1 180px;min-width:0;padding:10px;gap:10px}
+  .person-add{flex:0 0 48px;min-height:64px}
+ }
+}
+/* Coarse pointers need generous targets even when the layout is compact. */
+@media (pointer:coarse){
+ .home-toolbar button,.home-toolbar select,.room-feature-open,
+ .room-feature-stats button,.person-add{min-height:44px}
+}
 `;

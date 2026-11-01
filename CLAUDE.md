@@ -1,5 +1,7 @@
 # AUREON development rules
 
+- Before starting, read `AGENTS.md` and `COORDINATION.md`; update the shared handoff after each batch.
+
 - Home Assistant is the primary platform; install and update frontend through HACS.
 - Preserve existing features and compatibility; inspect dependencies before modifying.
 - Never put tokens, passwords, API keys, personal location or private Home Assistant data in the public repository.

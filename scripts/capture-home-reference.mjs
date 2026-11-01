@@ -19,7 +19,7 @@ try{
  const executablePath=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr/bin/chromium'].find(existsSync);if(!executablePath)throw Error('Set CHROME_BIN');
  browser=await puppeteer.launch({executablePath,headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.setViewport({width:1440,height:900});
+ await page.setViewport({width:1440,height:900,hasTouch:true});
  await page.goto(`http://127.0.0.1:${server.address().port}`,{waitUntil:'networkidle0'});
  await page.evaluate(setupPlatformFixture);
  await page.waitForFunction(()=>dashboard._platformController?.rows.length>10);
@@ -48,14 +48,36 @@ try{
  assert.equal(structure.stage,'none','native stage integrates into the AUREON background');
  checks.push('reference composition: greeting header, floating native plan, overlaid mini player, people, right panel with room picture, security/energy, weather');
  const sizes=[[1440,900],[1180,820],[820,1180],[390,844]];
- for(const [width,height] of sizes){await page.setViewport({width,height});await new Promise(r=>setTimeout(r,900));const w=await page.evaluate(()=>({doc:document.documentElement.scrollWidth,vw:innerWidth}));assert.ok(w.doc<=w.vw,JSON.stringify({width,...w}));await page.screenshot({path:`${out}/home-${width}x${height}.png`,fullPage:true});}
+ for(const [width,height] of sizes){await page.setViewport({width,height,hasTouch:true});await new Promise(r=>setTimeout(r,900));const w=await page.evaluate(()=>({doc:document.documentElement.scrollWidth,vw:innerWidth}));assert.ok(w.doc<=w.vw,JSON.stringify({width,...w}));await page.screenshot({path:`${out}/home-${width}x${height}.png`,fullPage:true});}
  checks.push('Startseite without horizontal overflow at 1440/1180/820/390');
+ // iSG Display Max: native 1280x800 is not necessarily the CSS viewport.
+ // Reserve HA header/sidebar space and cover a scaled viewport independently.
+ for(const [width,height,sidebar] of [[1280,800,0],[1280,744,256],[1024,640,0]]){
+  await page.setViewport({width,height,hasTouch:true,deviceScaleFactor:1});
+  await page.evaluate(sidebar=>{document.body.style.marginLeft=sidebar+'px';},sidebar);
+  await new Promise(r=>setTimeout(r,900));
+  const layout=await page.evaluate(()=>{
+   const r=dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot;
+   const grid=r.querySelector('.home-grid'),scene=r.querySelector('.home-scene');
+   const main=r.querySelector('.home-main').getBoundingClientRect(),side=r.querySelector('.home-side').getBoundingClientRect();
+   return {overflow:document.documentElement.scrollWidth>innerWidth,columns:getComputedStyle(grid).gridTemplateColumns.split(' ').length,sideBySide:side.left>=main.right,sceneHeight:scene.getBoundingClientRect().height,controls:[...r.querySelectorAll('.home-toolbar button,.home-toolbar select,.room-feature-stats button')].map(e=>e.getBoundingClientRect().height)};
+  });
+  assert.equal(layout.overflow,false,JSON.stringify({width,height,sidebar,...layout}));
+  assert.equal(layout.columns,2,JSON.stringify({width,height,sidebar,...layout}));
+  assert.ok(layout.sideBySide&&layout.sceneHeight>=340,JSON.stringify(layout));
+  assert.ok(layout.controls.every(h=>h>=44),JSON.stringify(layout));
+  await page.screenshot({path:`${out}/isg-${width}x${height}-sidebar-${sidebar}.png`,fullPage:true});
+ }
+ await page.evaluate(()=>{document.body.style.marginLeft='0px';});
+ await page.setViewport({width:1440,height:900,hasTouch:true});
+ checks.push('iSG landscape CSS simulation: 1280x800, 1280x744 with HA sidebar, 1024x640; two columns, no horizontal overflow, touch targets >=44px (not physical-device validation)');
+
  // Room panel: dimmed and blurred backdrop, native dialog, no service call by opening.
- for(const [width,height] of [[1440,900],[390,844]]){await page.setViewport({width,height});await new Promise(r=>setTimeout(r,500));await page.click(`${platform} >>> .room-feature-open`);await page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog.room-panel')?.open);await new Promise(r=>setTimeout(r,400));await page.screenshot({path:`${out}/room-panel-${width}x${height}.png`});const backdrop=await page.evaluate(()=>getComputedStyle(dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog.room-panel'),'::backdrop').backdropFilter);assert.match(backdrop,/blur/);await page.keyboard.press('Escape');await page.waitForFunction(()=>!dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog'));}
+ for(const [width,height] of [[1440,900],[390,844]]){await page.setViewport({width,height,hasTouch:true});await new Promise(r=>setTimeout(r,500));await page.click(`${platform} >>> .room-feature-open`);await page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog.room-panel')?.open);await new Promise(r=>setTimeout(r,400));await page.screenshot({path:`${out}/room-panel-${width}x${height}.png`});const backdrop=await page.evaluate(()=>getComputedStyle(dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog.room-panel'),'::backdrop').backdropFilter);assert.match(backdrop,/blur/);await page.keyboard.press('Escape');await page.waitForFunction(()=>!dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('dialog'));}
  assert.equal(await calls(),before,'opening the room panel issues no service call');
  checks.push('room panel opens as native dialog over dimmed/blurred backdrop at desktop and phone, without commands');
  // Palettes and modes: each one renders the same composition with readable tokens.
- await page.setViewport({width:1440,height:900});
+ await page.setViewport({width:1440,height:900,hasTouch:true});
  const palettes=await page.evaluate(()=>[...dashboard.shadowRoot.querySelector('aureon-platform').palettes].map(p=>p.id));
  assert.equal(palettes.length,23);assert.ok(palettes.includes("forest-botanical"));
  for(const [appearance,palette] of [['custom','forest'],['custom','black-gold-royal'],['custom','sapphire'],['custom','pearl'],['custom','terracotta'],['light','forest'],['dark','forest']]){
