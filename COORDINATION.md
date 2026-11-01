@@ -196,3 +196,25 @@ VIS-REAL-01 step 2 (Claude, owner said "do what is needed"; still NOT approved):
 - Proof in the disposable HA (SwiftShader): visibly better (cushioned sofa, wood grain, rug, plants, contact
   shadows) but still short of the reference: walls/trim, further models (BESTÅ, chairs, TV wall), more warm light
   sources, AO. Scene cost now ~746 draw calls / ~458k triangles at High — needs the iSG tier (Low/Auto) measured.
+
+VIS-REAL-01 step 3 (Claude, 2026-11-01; owner: "do what is needed … like professional render programs", walls are
+white and smooth, wall paint in the editor, "image quality all the time, any angle"; still NOT approved):
+- Photo refinement of the Real look (public code): while the view rests, the picture is path traced
+  (three-gpu-pathtracer 0.0.27 + three-mesh-bvh 0.9.17, MIT, notice in `frontend/THIRD_PARTY_PATHTRACE.txt`) and
+  fades in over the live picture; any camera move shows the live picture at once and starts over after 0.4 s.
+  Own lazy bundle `neonplan3d-pathtrace.js` (215 KB, budget 240 KB) that borrows three.js from the 3D bundle
+  (`viewer/aureon-three-lend.ts`; build.mjs fails if the tracer needs an unlent class). Runs on Real when the
+  quality is not the low tier: High always, Auto only with a graphics chip (software WebGL such as SwiftShader /
+  llvmpipe is excluded); the low tier keeps the live picture only. Whether the iSG gets it on Auto is unmeasured. Lamps in candela for the photo, lamp shades translucent, glows/lines/contact planes excluded,
+  ≤1 MP, 2×2 tiles per frame, 160 samples then it stops; a changing scene (models arriving) pauses 15 s, a lasting
+  error turns it off for that view. No HA calls.
+- Several lit lamps share the light budget (no hot spots when three lamps are on).
+- Wall paint (public code): room form "Cor da parede" — 8 matt paints + free colour, stored in
+  `room.aureon_finish.walls = {material:"paint", color}` (backend passes extra fields through), undo/redo,
+  shown on the room's inner walls in 3D. Disposable HA test (`ha-paint.mjs`, private): pick, undo, redo, free
+  colour, reload persistence — pass. Fidelity: renderRoomForm extension note updated.
+- Private (not in git): detailed BESTÅ/HEDEVIKEN (6 fronts, 3 mm joints), ADSLEV-like chair (curved padded back,
+  tapered oak legs), gathered DYTÅG curtain, floor lamp; plan v7 = v6 + table lamp and floor lamp as
+  "Sugestão" + white smooth paint in all rooms except bathroom tiles / balcony brick.
+- Test browser is SwiftShader (no GPU): one full path-traced sample of the Sala view (784×440) takes ~100 s
+  there; on a real GPU it is expected in tens of ms — NOT measured on the iSG (ISG-01 still open).

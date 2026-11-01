@@ -12,7 +12,7 @@ const manifest = JSON.parse(readFileSync(join(source, 'manifest.json'), 'utf8'))
 if (manifest.domain !== 'neonplan3d' || !manifest.version || !manifest.config_flow) {
   throw new Error('Unexpected NeonPlan3D integration manifest');
 }
-for (const required of ['__init__.py', 'manifest.json', 'frontend/neonplan3d.js', 'frontend/neonplan3d-3d.js', 'frontend/neonplan3d-editor.js']) {
+for (const required of ['__init__.py', 'manifest.json', 'frontend/neonplan3d.js', 'frontend/neonplan3d-3d.js', 'frontend/neonplan3d-editor.js', 'frontend/neonplan3d-pathtrace.js', 'frontend/THIRD_PARTY_PATHTRACE.txt']) {
   if (!existsSync(join(source, required))) throw new Error('Missing integration file: ' + required);
 }
 rmSync(output, { recursive: true, force: true });

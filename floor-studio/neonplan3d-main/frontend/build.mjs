@@ -19,7 +19,33 @@ const common = {
   logLevel: "info",
 };
 
-const viewerConfig = { ...common, entryPoints: ["src/viewer/viewer3d.ts"], outfile: `${out}/neonplan3d-3d.js` };
+const viewerConfig = { ...common, entryPoints: ["src/viewer/viewer3d.ts"], outfile: `${out}/neonplan3d-3d.js`, define: { __FP3D_PATHTRACE_HASH__: JSON.stringify("dev") } };
+// AUREON: the Real look's photo refinement (path tracing) loads only on "High" when the view rests. It borrows
+// three.js from the 3D bundle (src/viewer/aureon-three-lend.ts): "three" resolves to the lent classes.
+const LEND_FILE = "src/viewer/aureon-three-lend.ts";
+const lentNames = () => [...readFileSync(LEND_FILE, "utf8").split("export const")[0].matchAll(/^\s+([A-Za-z0-9_]+),$/gm)].map((m) => m[1]);
+const threeLent = {
+  name: "aureon-three-lent",
+  setup(b) {
+    b.onResolve({ filter: /^three$/ }, () => ({ path: "three", namespace: "aureon-three-lent" }));
+    b.onLoad({ filter: /.*/, namespace: "aureon-three-lent" }, () => ({
+      loader: "js",
+      // every name three.js has may be imported by some module; only the lent ones are used (checkLent proves it)
+      contents: `const T=globalThis.__AUREON_THREE__;if(!T)throw new Error("AUREON: three.js is not lent");\n${THREE_NAMES.map((n) => `export const ${n}=T.${n};`).join("\n")}`,
+    }));
+  },
+};
+const THREE_NAMES = Object.keys(await import("three")).filter((n) => /^[A-Za-z_$][\w$]*$/.test(n) && n !== "default");
+const pathtraceConfig = { ...common, entryPoints: ["src/pathtrace/entry.ts"], outfile: `${out}/neonplan3d-pathtrace.js`, plugins: [threeLent] };
+/** The three.js names the path tracer imports must all be lent (else it would fail only on a device, at runtime). */
+async function checkLent() {
+  const external = { name: "three-external", setup: (b) => b.onResolve({ filter: /^three$/ }, () => ({ path: "three", external: true })) };
+  const r = await build({ ...common, entryPoints: ["src/pathtrace/entry.ts"], write: false, minify: false, logLevel: "warning", plugins: [external] });
+  const text = r.outputFiles[0].text, need = new Set();
+  for (const m of text.matchAll(/import\s*\{([^}]*)\}\s*from\s*"three"/g)) for (const p of m[1].split(",")) if (p.trim()) need.add(p.trim().split(/\s+as\s+/)[0]);
+  const lent = new Set(lentNames()), missing = [...need].filter((n) => !lent.has(n));
+  if (missing.length) throw new Error(`${LEND_FILE} lacks what the path tracer needs: ${missing.join(", ")}`);
+}
 // the card's visual editor only loads in the dashboard's card dialog
 // the language files (lang/*.json) are fetched with a hash of their content, so a new text is never stale
 const LANGS = ["fr", "es", "nl", "it", "hu", "da", "sv", "nb", "nn", "fi", "cs", "pl", "ro", "sl", "zh", "pt"];
@@ -138,13 +164,17 @@ function copyFonts() {
 // AUREON: explicit four-module approval UI and five visual themes add code.
 // Main: 752 KiB. Viewer: 880 KiB allows bounded headroom over the 859.9 KiB
 // physically based renderer (physical material shaders, maps and PMREM environment).
-const BUDGET = { "neonplan3d.js": 752 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 896 * 1024 /* AUREON: +16 KB for own .glb furniture and room finishes (was 880) */, "neonplan3d-editor.js": 944 * 1024, "neonplan3d-card-editor.js": 276 * 1024 /* AUREON: +3 KB for the AUREON theme tokens and product name (was 273) */ };
+const BUDGET = { "neonplan3d-pathtrace.js": 240 * 1024 /* AUREON: photo refinement of the Real look, loaded only on "High" */, "neonplan3d.js": 752 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 904 * 1024 /* AUREON: +16 KB for own .glb furniture and room finishes (was 880); +8 KB for the Real look photo refinement (lent three.js classes, its loader) */, "neonplan3d-editor.js": 944 * 1024, "neonplan3d-card-editor.js": 276 * 1024 /* AUREON: +3 KB for the AUREON theme tokens and product name (was 273) */ };
 
 copyFonts();
 if (watch) {
   // in watch mode the hash is not tracked; a dev reload fetches the bundle anyway
-  for (const c of [viewerConfig, editorConfig("dev", "dev"), cardEditorConfig, timeTravelConfig, funConfig, voiceConfig, locateConfig, mainConfig("dev", "dev", "dev", "dev", "dev", "dev", "dev")]) await (await context(c)).watch();
+  for (const c of [pathtraceConfig, viewerConfig, editorConfig("dev", "dev"), cardEditorConfig, timeTravelConfig, funConfig, voiceConfig, locateConfig, mainConfig("dev", "dev", "dev", "dev", "dev", "dev", "dev")]) await (await context(c)).watch();
 } else {
+  await checkLent();
+  await build(pathtraceConfig);
+  viewerConfig.define.__FP3D_PATHTRACE_HASH__ = JSON.stringify(hashOf(pathtraceConfig.outfile));
+  copyFileSync("THIRD_PARTY_PATHTRACE.txt", `${out}/THIRD_PARTY_PATHTRACE.txt`);
   await build(viewerConfig);
   await build(locateConfig);
   const editor = editorConfig(hashOf(viewerConfig.outfile), hashOf(locateConfig.outfile));

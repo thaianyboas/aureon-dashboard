@@ -3760,9 +3760,9 @@
       "original_line": 10575,
       "candidate_line": 10516,
       "original_sha256": "51a456520342ebe0cb894a85260f5aa201c69b13d338b3c2744c27d66fcc164b",
-      "candidate_sha256": "676b0d84c117f88140bfcee621aaf1e5ef3c5bb6f908801b058e22f4f6f3eed8",
+      "candidate_sha256": "ce10d77d7c07ab2121e10cf8dbecbc03f06f687d6db78b6b2ed0981cacf9cc4a",
       "status": "aureon_extension",
-      "note": "One added call at the top of the room form: renderAureonWall(room) — the picked wall panel (length, shared rooms, Straighten, Remove/restore divider)."
+      "note": "Two added calls: renderAureonWall(room) at the top of the room form (picked wall panel: length, shared rooms, Straighten, Remove/restore divider) and renderAureonPaint(room) before the wall heights (wall colour of the room: swatches, free colour, remove; stored in room.aureon_finish.walls, undo like any room change)."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.applyPackage",

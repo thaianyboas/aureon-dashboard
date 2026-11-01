@@ -42,7 +42,8 @@ export function makePbrMaps(kind:PbrKind,size=128):PbrMaps {
 export interface PbrGroup {start:number;end:number;kind:PbrKind;}
 /** Lit lamps of the active floors in world coordinates (linear colour 0..1, level 0..1). */
 export interface PbrLamp {x:number;y:number;z:number;color:[number,number,number];level:number;}
-export interface PbrFrame {night?:number;lamps?:readonly PbrLamp[];}
+/** `photo`: the path-traced refinement – lamps in physical units (candela), as the tracer has no painted light pools. */
+export interface PbrFrame {night?:number;lamps?:readonly PbrLamp[];photo?:boolean;}
 const MAX_LAMPS=8;
 interface FoldData {masks:FoldMasks;role:FoldRole;}
 interface CacheEntry {kind:PbrKind;material:MeshPhysicalMaterial;}
@@ -67,6 +68,10 @@ export class RealPbrRenderer {
  private warmFill=new HemisphereLight(0xffcf9a,0x3b2a1d,0);
  private ambient=new AmbientLight(0xffffff,.06);
  private bounds=new Box3();
+ /** AUREON photo refinement: a lit lamp at full level (a warm ~700 lm bulb) and the exposure of the traced picture. */
+ static PHOTO_CD=120;static PHOTO_EXPOSURE=1.2;
+ /** AUREON: the live picture lit like the photo (physical lamps, no painted light pools), so moving and resting match. */
+ static LIVE_PHYSICAL=false;
  private static DAY=new Color(0xfff0dc);private static MOON=new Color(0x9fb3e6);
  private renderer:WebGLRenderer;
  private low:boolean;
@@ -113,12 +118,17 @@ export class RealPbrRenderer {
   this.sky.intensity=.7*(1-.8*night);this.ambient.intensity=.06*(1-.5*night);
   const lamps=(frame.lamps??[]).filter(l=>l.level>0).sort((a,b)=>b.level-a.level);
   // AUREON balance: a little softer per lamp (no hot spot right under a pendant), a warm fill by night instead
-  this.lamps.forEach((light,i)=>{const l=lamps[i];light.visible=!!l;const glow=this.low?null:this.glow(i);if(glow)glow.visible=!!l;if(!l)return;light.position.set(l.x,l.y,l.z);light.color.setRGB(Math.min(1,l.color[0]),Math.min(1,l.color[1]),Math.min(1,l.color[2]));light.intensity=l.level*(.95+1.75*night);light.distance=9;
+  // several lamps in one room share the budget (three lit lamps must not triple the light into hot spots)
+  const share=2/(1+Math.min(this.lamps.length,lamps.length));
+  this.lamps.forEach((light,i)=>{const l=lamps[i];light.visible=!!l;const glow=this.low?null:this.glow(i);if(glow)glow.visible=!!l;if(!l)return;light.position.set(l.x,l.y,l.z);light.color.setRGB(Math.min(1,l.color[0]),Math.min(1,l.color[1]),Math.min(1,l.color[2]));light.intensity=frame.photo||RealPbrRenderer.LIVE_PHYSICAL?l.level*RealPbrRenderer.PHOTO_CD*share:l.level*(.95+1.75*night)*share;light.distance=frame.photo||RealPbrRenderer.LIVE_PHYSICAL?0:9;
    if(glow){glow.position.set(l.x,l.y,l.z);const k=Math.min(1.2,l.level);glow.scale.setScalar(.45+.55*k);glow.material.color.setRGB(Math.min(1,l.color[0]),Math.min(1,l.color[1])*.92,Math.min(1,l.color[2])*.78);glow.material.opacity=(.18+.42*night)*k;}});
   for(let i=lamps.length;i<this.glows.length;i++)if(this.glows[i])this.glows[i].visible=false;
   const lit=Math.min(1,lamps.reduce((a,l)=>a+l.level,0)/3);this.warmFill.intensity=.16*night*lit;
  }
- render(scene:Scene,camera:Camera,frame:PbrFrame={}):void {
+ render(scene:Scene,camera:Camera,frame:PbrFrame={}):void {this.run(scene,camera,frame,()=>this.renderer.render(scene,camera));}
+ /** AUREON: runs `fn` with the Real look staged (materials, lights, environment, tone) – the photo refinement collects and draws in it. */
+ staged(scene:Scene,camera:Camera,frame:PbrFrame,fn:()=>void):void {this.run(scene,camera,frame,fn);}
+ private run(scene:Scene,_camera:Camera,frame:PbrFrame,draw:()=>void):void {
   if(!this.environment){const room=new RoomEnvironment();this.pmrem=new PMREMGenerator(this.renderer);this.environmentTarget=this.pmrem.fromScene(room,.04,.1,100);this.environment=this.environmentTarget.texture;room.dispose();}
   const previous={environment:scene.environment,tone:this.renderer.toneMapping,exposure:this.renderer.toneMappingExposure,shadows:this.renderer.shadowMap.enabled,type:this.renderer.shadowMap.type};
   const restore:(()=>void)[]=[];
@@ -126,12 +136,13 @@ export class RealPbrRenderer {
    const night=Math.min(1,Math.max(0,frame.night??0)),previousIntensity=(scene as Scene&{environmentIntensity?:number}).environmentIntensity;
    restore.push(()=>{(scene as Scene&{environmentIntensity?:number}).environmentIntensity=previousIntensity;});
    (scene as Scene&{environmentIntensity?:number}).environmentIntensity=.42-.34*night;
-   scene.environment=this.environment;scene.add(this.lights);this.renderer.toneMapping=ACESFilmicToneMapping;this.renderer.toneMappingExposure=1-.14*night;
+   scene.environment=this.environment;scene.add(this.lights);this.renderer.toneMapping=ACESFilmicToneMapping;this.renderer.toneMappingExposure=frame.photo?RealPbrRenderer.PHOTO_EXPOSURE:1-.14*night;
    this.bounds.makeEmpty();this.renderer.shadowMap.enabled=!this.low;this.renderer.shadowMap.type=PCFSoftShadowMap;
    // Additive glows (window spill, light cones) add colour but must not write alpha into the transparent canvas,
    // otherwise they show as dark patches over a host page behind the stage.
    scene.traverse(object=>{const mesh=object as Mesh,m=mesh.material as Material|undefined;if(!mesh.isMesh||!m||Array.isArray(m)||m.blending!==AdditiveBlending)return;const prev={blending:m.blending,src:m.blendSrc,dst:m.blendDst,eq:m.blendEquation,srcA:m.blendSrcAlpha,dstA:m.blendDstAlpha};m.blending=CustomBlending;m.blendEquation=AddEquation;m.blendSrc=SrcAlphaFactor;m.blendDst=OneFactor;m.blendSrcAlpha=ZeroFactor;m.blendDstAlpha=OneFactor;restore.push(()=>{m.blending=prev.blending;m.blendSrc=prev.src;m.blendDst=prev.dst;m.blendEquation=prev.eq;m.blendSrcAlpha=prev.srcA;m.blendDstAlpha=prev.dstA;});});
    scene.traverse(object=>{if(object.userData.aureonHideInReal&&object.visible){object.visible=false;restore.push(()=>{object.visible=true;});}});
+   if(frame.photo||RealPbrRenderer.LIVE_PHYSICAL)scene.traverse(object=>{const mesh=object as Mesh,m=mesh.material as Material|undefined;if(!mesh.isMesh||!m||Array.isArray(m)||!mesh.visible||(m.blending!==CustomBlending&&m.blending!==AdditiveBlending))return;mesh.visible=false;restore.push(()=>{mesh.visible=true;});});
    scene.traverse(object=>{const mesh=object as Mesh;if(!mesh.isMesh||!mesh.userData.aureonPbrKind||Array.isArray(mesh.material)||!(mesh.material as MeshBasicMaterial).isMeshBasicMaterial)return;
     const original=mesh.material as MeshBasicMaterial,kind=mesh.userData.aureonPbrKind as PbrKind;if(!PBR_KINDS.includes(kind))return;this.prepareGeometry(mesh.geometry);
     if(original.visible&&kind!=='glass'){if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();const b=mesh.geometry.boundingBox;if(b&&!b.isEmpty())this.bounds.union(b.clone().applyMatrix4(mesh.matrixWorld));}
@@ -142,7 +153,7 @@ export class RealPbrRenderer {
     restore.push(()=>{mesh.material=original;mesh.geometry.groups=oldGroups;mesh.castShadow=oldCast;mesh.receiveShadow=oldReceive;mesh.customDepthMaterial=oldDepth;});
    });
    this.stage(frame);
-   this.renderer.render(scene,camera);
+   draw();
   }finally{for(const fn of restore.reverse())fn();scene.remove(this.lights);scene.environment=previous.environment;this.renderer.toneMapping=previous.tone;this.renderer.toneMappingExposure=previous.exposure;this.renderer.shadowMap.enabled=previous.shadows;this.renderer.shadowMap.type=previous.type;}
  }
  dispose():void {for(const g of this.glows)g?.material.dispose();this.glows=[];this.glowTexture?.dispose();this.glowTexture=null;for(const [original,listener] of this.subscriptions)original.removeEventListener('dispose',listener);this.subscriptions.clear();for(const material of this.owned)material.dispose();this.owned.clear();for(const maps of this.maps.values())for(const texture of Object.values(maps))texture.dispose();this.maps.clear();this.sun.shadow.map?.dispose();this.environmentTarget?.dispose();this.pmrem?.dispose();this.environment=null;}

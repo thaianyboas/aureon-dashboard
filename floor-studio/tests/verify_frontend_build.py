@@ -12,7 +12,7 @@ for cmd in (['npm','run','typecheck'],['npm','run','build']):
  try: p=subprocess.run(cmd,cwd=front,check=False)
  except OSError as e: print('FAILED:',e,file=sys.stderr);sys.exit(1)
  if p.returncode: print('FAILED:',cmd,'exit',p.returncode,file=sys.stderr);sys.exit(p.returncode)
-files=['neonplan3d.js','neonplan3d-3d.js','neonplan3d-editor.js','neonplan3d-card-editor.js']
+files=['neonplan3d.js','neonplan3d-3d.js','neonplan3d-editor.js','neonplan3d-card-editor.js','neonplan3d-pathtrace.js']
 if any(not (comp/x).is_file() for x in files):
  print('FAILED: required bundles missing',file=sys.stderr);sys.exit(1)
 def digest(p):return hashlib.sha256(p.read_bytes()).hexdigest()

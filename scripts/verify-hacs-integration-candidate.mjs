@@ -28,7 +28,7 @@ for (const item of index.files) {
   assert.ok(!/\.fp3dpack$|apartment[-_ ]preset|private[-_ ]floorplan/i.test(item.path), 'Private/paid asset path');
   assert.ok(!/__pycache__|\.pyc$/i.test(item.path), 'Python bytecode must not be distributed');
 }
-for (const required of ['__init__.py', 'manifest.json', 'frontend/neonplan3d.js', 'frontend/neonplan3d-3d.js', 'frontend/neonplan3d-editor.js']) {
+for (const required of ['__init__.py', 'manifest.json', 'frontend/neonplan3d.js', 'frontend/neonplan3d-3d.js', 'frontend/neonplan3d-editor.js', 'frontend/neonplan3d-pathtrace.js', 'frontend/THIRD_PARTY_PATHTRACE.txt']) {
   assert.ok(names.has('custom_components/neonplan3d/' + required), 'Missing ' + required);
 }
 const licenseBaseline=JSON.parse(readFileSync('floor-studio/fidelity/FILES.json','utf8')).files.find(f=>f.path==='custom_components/neonplan3d/license.py');

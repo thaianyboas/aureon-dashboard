@@ -20,3 +20,14 @@ test("own finishes: the catalogue holds the owner's floors and walls; unknown id
   const g = buildFinishes({ height: 2.5, rooms: [{ ...room("a", 0, 4), aureon_finish: { floor: { material: "marble_unknown" } } }], openings: [] }, 0.24);
   assert.equal(g.children.length, 0);
 });
+
+test("wall paint: a smooth matt finish with the room's colour, only valid colours", async () => {
+  const { FINISHES: F } = await import("./aureon-finishes.ts");
+  const { AUREON_WALL_PAINTS, paintColor } = await import("../aureon-paints.ts");
+  assert.ok(F.paint, "paint finish exists");
+  assert.ok(F.paint.roughness >= 0.8, "matt");
+  assert.equal(paintColor("#F4F3EF"), "#f4f3ef");
+  for (const bad of ["red", "#fff", "#12345g", null, 3, "url(x)"]) assert.equal(paintColor(bad), null);
+  assert.equal(AUREON_WALL_PAINTS[0].id, "white");
+  assert.ok(AUREON_WALL_PAINTS.every((p) => paintColor(p.color) === p.color));
+});

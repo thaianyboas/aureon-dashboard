@@ -149,6 +149,7 @@ import { basicTypes, buildIndex, roomKindOf, type LibraryEntry } from "../librar
 import { packsVersion as libPacksVersion } from "../packs.ts";
 import type { WallMode } from "../viewer/viewer3d.ts";
 import { furnitureName } from "../furniture-names.ts";
+import { AUREON_WALL_PAINTS, paintColor } from "../aureon-paints.ts";
 import { furnitureSize, isElectric, isPackHeater, isPackSensor, isPackType, isRobotVacuum, mountBase, packDisplay, packItem, packItemName, packMotion, packName, packType, setPacks, type FurniturePack } from "../packs.ts";
 
 /** Items that can be fixed against moving. */
@@ -10724,6 +10725,41 @@ export class Fp3dEditor extends LitElement {
     </details>`;
   }
 
+  /** AUREON: the room's wall paint (inner faces, matt and smooth), with undo like any other change. */
+  private renderAureonPaint(room: Room) {
+    type Finish = { floor?: unknown; walls?: { material: string; color?: string | null; edges?: number[] | null } | null };
+    const finish = ((room as Room & { aureon_finish?: Finish | null }).aureon_finish ?? null) as Finish | null;
+    const current = finish?.walls?.material === "paint" ? (paintColor(finish.walls.color) ?? AUREON_WALL_PAINTS[0].color) : null;
+    const set = (color: string | null) => {
+      if (!this.isAdmin) return;
+      const next: Finish = { ...(finish ?? {}) };
+      if (color) next.walls = { material: "paint", color };
+      else delete next.walls;
+      this.updateRoom({ aureon_finish: Object.keys(next).length ? next : null } as Partial<Room>);
+    };
+    return html`<div class="fp3d-aureon-paint">
+      <h3>${this.t("aureon_paint_title")}</h3>
+      <div class="fp3d-aureon-swatches" role="radiogroup" aria-label=${this.t("aureon_paint_title")}>
+        ${AUREON_WALL_PAINTS.map(
+          (p) => html`<button
+            class="fp3d-aureon-swatch ${current === p.color ? "fp3d-aureon-swatch-on" : ""}"
+            role="radio"
+            aria-checked=${current === p.color ? "true" : "false"}
+            title=${this.t(`aureon_paint_${p.id}` as I18nKey)}
+            style="background:${p.color}"
+            ?disabled=${!this.isAdmin}
+            @click=${() => set(p.color)}
+          ></button>`,
+        )}
+        <label class="fp3d-aureon-swatch fp3d-aureon-swatch-free" title=${this.t("aureon_paint_custom")}
+          >+<input type="color" .value=${current ?? AUREON_WALL_PAINTS[0].color} ?disabled=${!this.isAdmin} @change=${(e: Event) => set(paintColor((e.target as HTMLInputElement).value))}
+        /></label>
+      </div>
+      <p class="fp3d-sub">${current ? this.t("aureon_paint_hint") : this.t("aureon_paint_none")}</p>
+      ${current ? html`<button class="fp3d-btn" ?disabled=${!this.isAdmin} @click=${() => set(null)}>${this.t("aureon_paint_clear")}</button>` : nothing}
+    </div>`;
+  }
+
   private renderRoomForm(room: Room, areas: { area_id: string; name: string }[]) {
     const admin = this.isAdmin;
     const rect = isAxisRect(room.points);
@@ -10784,6 +10820,7 @@ export class Fp3dEditor extends LitElement {
       </div>
       <p class="fp3d-sub" title=${this.t("room_area_net_hint")}>${this.t("room_area_net", { a: this.area(polygonArea(room.points)), n: this.area(netRoomArea(room, this.floor!, { exterior: this._doc.settings.wall_exterior, interior: this._doc.settings.wall_interior })) })}</p>
       <p class="fp3d-sub fp3d-room-id">${this.t("room_id")} <code title=${this.t("license_copy")} @click=${() => void navigator.clipboard?.writeText(room.id).catch(() => undefined)}>${room.id}</code></p>
+      ${this.renderAureonPaint(room)}
       ${this.renderEdgeHeights(room)} ${this.renderRoomClimate(room)} ${this.renderRoomOpenings(room)}
       <details class="fp3d-points" ?open=${!rect}>
         <summary>${this.t("points")} (${room.points.length})</summary>
@@ -15915,6 +15952,39 @@ export class Fp3dEditor extends LitElement {
       }
       .fp3d-ctx-danger {
         color: var(--fp3d-danger, #ff6b7a) !important;
+      }
+      .fp3d-aureon-paint {
+        margin: 12px 0;
+      }
+      .fp3d-aureon-swatches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 6px 0;
+      }
+      .fp3d-aureon-swatch {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 50%;
+        border: 1px solid rgba(var(--aureon-ui-line-rgb, 128, 128, 128), 0.45);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        font-weight: 600;
+        color: var(--fp3d-text, inherit);
+        background: var(--fp3d-surface, transparent);
+      }
+      .fp3d-aureon-swatch-on {
+        outline: 3px solid var(--fp3d-accent);
+        outline-offset: 2px;
+      }
+      .fp3d-aureon-swatch-free input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
       }
       .fp3d-aureon-wall-sel {
         stroke: var(--fp3d-accent);

@@ -6,12 +6,15 @@
  */
 import { BufferAttribute, BufferGeometry, CanvasTexture, FrontSide, Group, Mesh, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from "three";
 import { triangulate } from "./geo.ts";
+import { AUREON_WALL_PAINTS, paintColor } from "../aureon-paints.ts";
 
 type Vec2 = [number, number];
 export interface AureonFinishRef {
   material: string;
   /** Pattern direction in degrees (0 = along x). */
   rotation?: number | null;
+  /** Paint colour ("#rrggbb") of the plain `paint` finish. */
+  color?: string | null;
 }
 export interface AureonRoomFinish {
   floor?: AureonFinishRef | null;
@@ -85,6 +88,8 @@ function oakPlank(ctx: CanvasRenderingContext2D, x: number, y: number, w: number
 }
 
 export const FINISHES: Record<string, FinishDef> = {
+  // plain matt wall paint, smooth (no pattern): the colour comes from the room's choice
+  paint: { period: [1, 1], roughness: 0.9, ppm: 4, draw: (ctx, W, H) => { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H); } },
   // herringbone, planks 9 x 54 cm (ratio 1:6), warm natural oak, fine joints; drawn axis-aligned and turned 45°
   oak_herringbone: {
     period: [1.08, 1.08],
@@ -212,10 +217,11 @@ function whiteTiles(ctx: CanvasRenderingContext2D, W: number, H: number, cols: n
 
 const textures = new Map<string, CanvasTexture>();
 const materials = new Map<string, MeshStandardMaterial>();
-function material(id: string, floor: boolean): MeshStandardMaterial | null {
+function material(id: string, floor: boolean, color: string | null = null): MeshStandardMaterial | null {
   const def = FINISHES[id];
   if (!def || typeof document === "undefined") return null;
-  let m = materials.get(id);
+  const key = id === "paint" ? `paint|${color ?? AUREON_WALL_PAINTS[0].color}` : id;
+  let m = materials.get(key);
   if (m) return m;
   let tex = textures.get(id);
   if (!tex) {
@@ -230,7 +236,11 @@ function material(id: string, floor: boolean): MeshStandardMaterial | null {
     textures.set(id, tex);
   }
   m = new MeshStandardMaterial({ map: tex, roughness: def.roughness, metalness: 0, side: FrontSide, polygonOffset: true, polygonOffsetFactor: floor ? -2 : -1, polygonOffsetUnits: floor ? -4 : -2 });
-  materials.set(id, m);
+  if (id === "paint") {
+    m.color.set(color ?? AUREON_WALL_PAINTS[0].color);
+    m.name = "paint";
+  }
+  materials.set(key, m);
   return m;
 }
 
@@ -292,7 +302,7 @@ export function buildFinishes(floor: FloorLike, interior: number): Group {
       if (mat) group.add(floorMesh(room.points, f.floor, mat));
     }
     if (f.walls && FINISHES[f.walls.material]) {
-      const mat = material(f.walls.material, false);
+      const mat = material(f.walls.material, false, paintColor(f.walls.color));
       if (mat) {
         const g = wallMesh(room, floor, f.walls, interior, mat);
         if (g) group.add(g);

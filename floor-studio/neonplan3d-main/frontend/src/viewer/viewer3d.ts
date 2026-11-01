@@ -53,6 +53,7 @@ import {
 } from "three";
 import {AureonModels} from './aureon-models.ts';
 import {buildFinishes} from './aureon-finishes.ts';
+import {AureonPathTrace,TRACE_IDLE_MS} from './aureon-pathtrace.ts';
 import {RealPbrRenderer,furniturePbrKind,floorPbrKind,type PbrGroup,type PbrKind,type PbrLamp} from './real-pbr.ts';
 import type { Building, Floor, Furniture, Room, StartView } from "../model.ts";
 import { recolorLamps, SHADE_SENTINEL, shadeFactors } from "./lamp-colors.ts";
@@ -557,6 +558,10 @@ export function isLowEnd(): boolean {
 
 export class FloorplanViewer {
   private realPbr: RealPbrRenderer | null = null;
+  /** AUREON: path-traced refinement of the Real look while the view rests (quality "High" only). */
+  private aureonTrace: AureonPathTrace | null = null;
+  private aureonTraceTimer: ReturnType<typeof setTimeout> | undefined;
+  private aureonTraceRaf = 0;
   /** AUREON: own .glb furniture models (see aureon-models.ts). */
   private aureonModels: AureonModels | null = null;
   private aureonModelTimer = 0;
@@ -886,6 +891,8 @@ export class FloorplanViewer {
     this.applyTierFlags();
     canvas.replaceWith(next.domElement);
     this.realPbr?.dispose();this.realPbr=null;
+    this.stopAureonTrace();
+    this.softwareGlCache = null;
     this.renderer.dispose();
     this.renderer.forceContextLoss();
     this.renderer = next;
@@ -2068,6 +2075,7 @@ export class FloorplanViewer {
 
   dispose(): void {
     this.realPbr?.dispose();this.realPbr=null;
+    this.stopAureonTrace();
     clearTimeout(this.aureonModelTimer);this.aureonModels?.dispose();this.aureonModels=null;
     this.projections.dispose();
     this.disposed = true;
@@ -5007,12 +5015,98 @@ export class FloorplanViewer {
     return out;
   }
 
+  /** AUREON: refinement is for the Real look on "High", on screen. */
+  private traceWanted(): boolean {
+    return this.theme === "real" && !this.lowQuality && (this.highQuality || !this.softwareGl()) && !this.disposed && !document.hidden && this.onScreen;
+  }
+  private softwareGlCache: boolean | null = null;
+  /** No graphics chip (software WebGL): "Auto" keeps the live picture only, "High" still refines (slowly). */
+  private softwareGl(): boolean {
+    if (this.softwareGlCache === null) {
+      let name = "";
+      try {
+        const gl = this.renderer.getContext();
+        const info = gl.getExtension("WEBGL_debug_renderer_info");
+        name = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER) ?? "");
+      } catch {
+        name = "";
+      }
+      this.softwareGlCache = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(name);
+    }
+    return this.softwareGlCache;
+  }
+  private armAureonTrace(moving: boolean): void {
+    if (!this.traceWanted() || this.aureonTrace?.off) return;
+    if (!moving && (this.aureonTraceTimer !== undefined || this.aureonTraceRaf)) return;
+    this.aureonTrace?.touch();
+    clearTimeout(this.aureonTraceTimer);
+    cancelAnimationFrame(this.aureonTraceRaf);
+    this.aureonTraceRaf = 0;
+    this.aureonTraceTimer = setTimeout(() => {
+      this.aureonTraceTimer = undefined;
+      this.aureonTraceStep();
+    }, TRACE_IDLE_MS);
+  }
+  private aureonTraceStep(): void {
+    cancelAnimationFrame(this.aureonTraceRaf);
+    this.aureonTraceRaf = 0;
+    if (!this.traceWanted()) return;
+    if (this.frame || this.lastFrame || this.controls.busy) {
+      // a live frame is due (or the view still moves): look again a little later
+      clearTimeout(this.aureonTraceTimer);
+      this.aureonTraceTimer = setTimeout(() => {
+        this.aureonTraceTimer = undefined;
+        this.aureonTraceStep();
+      }, TRACE_IDLE_MS / 2);
+      return;
+    }
+    this.aureonTrace ??= new AureonPathTrace(this.renderer);
+    const trace = this.aureonTrace;
+    if (trace.off) return;
+    const wait = trace.pausedUntil - performance.now();
+    // models still arriving: the scene settles first
+    if (wait > 0 || this.aureonModels?.loading) {
+      clearTimeout(this.aureonTraceTimer);
+      this.aureonTraceTimer = setTimeout(() => {
+        this.aureonTraceTimer = undefined;
+        this.aureonTraceStep();
+      }, Math.max(wait, TRACE_IDLE_MS));
+      return;
+    }
+    if (!trace.ready) {
+      trace.load(() => this.aureonTraceStep());
+      return;
+    }
+    this.realPbr ??= new RealPbrRenderer(this.renderer, this.lowQuality);
+    const pbr = this.realPbr, camera = this.camera, frame = { night: this.nightFactor(), lamps: this.realLamps(), photo: true };
+    const lightSig = `${frame.night.toFixed(2)}|${frame.lamps.map((l) => `${l.x.toFixed(2)},${l.z.toFixed(2)},${l.level.toFixed(2)},${l.color.map((c) => c.toFixed(2)).join("/")}`).join(";")}`;
+    const more = trace.step(this.scene, camera, (fn) => pbr.staged(this.scene, camera, frame, fn), () => this.renderer.render(this.scene, camera), lightSig, frame.night);
+    if (more) this.aureonTraceRaf = requestAnimationFrame(() => this.aureonTraceStep());
+  }
+  private stopAureonTrace(): void {
+    clearTimeout(this.aureonTraceTimer);
+    this.aureonTraceTimer = undefined;
+    cancelAnimationFrame(this.aureonTraceRaf);
+    this.aureonTraceRaf = 0;
+    this.aureonTrace?.dispose();
+    this.aureonTrace = null;
+  }
+
   private renderScene(camera: CameraForPbr): void {
     if (this.aureonModels) {
       this.renderer.localClippingEnabled = true;
       this.aureonModels.sync(new Map(this.floors.map((fv) => [fv.floor.id, { group: fv.group, cut: this.wallMode === "cut" ? Math.min(fv.floor.cut_height, fv.floor.height) : null }])), this.theme, this.nightFactor());
     }
-    if(this.theme==='real'){this.realPbr??=new RealPbrRenderer(this.renderer,this.lowQuality);this.realPbr.render(this.scene,camera,{night:this.nightFactor(),lamps:this.realLamps()});}
+    if(this.theme==='real'){
+      this.realPbr??=new RealPbrRenderer(this.renderer,this.lowQuality);
+      const frame={night:this.nightFactor(),lamps:this.realLamps()};
+      // AUREON: a resting view keeps refining (the tracer redraws it); a moving one shows the live picture and waits
+      const resting=!this.lastFrame&&!this.controls.busy;
+      if(resting&&camera===this.camera&&this.aureonTrace?.ready&&this.aureonTrace.samples>0&&this.traceWanted()){this.aureonTraceStep();return;}
+      this.realPbr.render(this.scene,camera,frame);
+      // a moving view starts the wait over; a resting one (a sensor update redraws it) keeps the pending start
+      this.armAureonTrace(!resting);
+    }
     else {
       // AUREON stage (transparent canvas over the page): Day draws no ground either, so the window light on the ground
       // floats outside the walls; additive glows must add colour without writing alpha (else dark patches show)
