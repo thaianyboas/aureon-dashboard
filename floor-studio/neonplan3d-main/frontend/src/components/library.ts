@@ -380,7 +380,7 @@ export class FurnitureLibrary extends LitElement {
       }
       .fp3d-chip.on {
         background: var(--fp3d-accent);
-        color: #041018;
+        color: var(--fp3d-accent-text);
         border-color: var(--fp3d-accent);
         font-weight: 600;
       }

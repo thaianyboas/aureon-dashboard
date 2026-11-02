@@ -1,5 +1,6 @@
 // 2D editor: floors, rooms (rectangles and free shapes), snapping, undo, background template.
 
+import { studioEditorStyles, studioIcon } from "../aureon-workspace.ts";
 import { css, html, LitElement, nothing, svg, type PropertyValues, type TemplateResult } from "lit";
 import { linesField } from "./lines-field.ts";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
@@ -412,6 +413,10 @@ export class Fp3dEditor extends LitElement {
     _aureonWall: { state: true },
     _aureonOwn: { state: true },
     _aureonContour: { state: true },
+    _studioLibrary: { state: true },
+    _studioDetails: { state: true },
+    _studio3d: { state: true },
+    _studioLook: { state: true },
     _wallView: { state: true },
     _wallSel: { state: true },
     _wallMulti: { state: true },
@@ -548,6 +553,10 @@ export class Fp3dEditor extends LitElement {
   private declare _edgeHi: number | null;
   /** AUREON: the room wall (outline edge) picked in the plan; it can be moved, straightened or removed as a divider. */
   private declare _aureonContour: boolean;
+  private declare _studioLibrary: boolean;
+  private declare _studioDetails: boolean;
+  private declare _studio3d: boolean;
+  private declare _studioLook: "neon"|"blueprint"|"day"|"night"|"real";
   private declare _aureonWall: { roomId: string; index: number } | null;
   /** AUREON: the owner's own models ("My furniture"), listed from <config>/aureon_models; null = not loaded yet. */
   private declare _aureonOwn: AureonOwnModel[] | null | "error";
@@ -743,6 +752,10 @@ export class Fp3dEditor extends LitElement {
     this._aureonWall = null;
     this._aureonOwn = null;
     this._aureonContour = false;
+    this._studioLibrary = false;
+    this._studioDetails = false;
+    this._studio3d = false;
+    this._studioLook = "real";
     this._edgeHi = null;
     this._wallView = null;
     this._techMode = false;
@@ -1596,7 +1609,7 @@ export class Fp3dEditor extends LitElement {
   }
 
   private localPoint(e: PointerEvent | WheelEvent): [number, number] {
-    const rect = (this.renderRoot.querySelector("svg") as SVGSVGElement).getBoundingClientRect();
+    const rect = (this.renderRoot.querySelector("svg.fp3d-plan") as SVGSVGElement).getBoundingClientRect();
     return [e.clientX - rect.left, e.clientY - rect.top];
   }
 
@@ -4858,6 +4871,7 @@ export class Fp3dEditor extends LitElement {
 
   /** Select a room, an opening or a furniture item (only one at a time). */
   private selectItem(kind: "room" | "opening" | "furniture" | "device" | "outdoor" | "wall", id: string | null): void {
+    if (id) this._studioDetails = true;
     this._notice = null;
     // a selection made in the plan (or by a tool) opens the folded sidebar
     if (id) this._sideOpen = true;
@@ -5681,6 +5695,8 @@ export class Fp3dEditor extends LitElement {
   private setTool(tool: Tool): void {
     const floor = this.floor;
     this._tool = tool;
+    this._studioLibrary = tool === "furniture";
+    const menu=this.renderRoot.querySelector<HTMLDetailsElement>(".studio-menu");if(menu)menu.open=false;
     this._draft = [];
     this._cursor = null;
     this._pipeMode = false;
@@ -5991,16 +6007,44 @@ export class Fp3dEditor extends LitElement {
     this._moduleMsg = { ok: failed.length === 0, text: [...done, ...failed].join(" · ") };
   }
 
+  private renderStudioRail() {
+    const tools: {key: string; label: I18nKey; icon: string; pick: () => void; on: boolean}[] = [
+      {key:"select",label:"tool_select",icon:"M5 3l14 10-7 1-3 7z",pick:()=>this.setTool("select"),on:this._tool==="select"&&!this._aureonContour},
+      {key:"contour",label:"aureon_contour_edit",icon:"M4 4h16v16H4z M2 2h4v4H2z M18 18h4v4h-4z",pick:()=>{this.setTool("select");this._aureonContour=true;this._studioDetails=true;},on:this._aureonContour&&this._tool==="select"},
+      {key:"wall",label:"tool_wall",icon:"M3 7l13-4 5 3-13 5z M3 7v12l5 3V11 M8 22l13-4V6",pick:()=>this.setTool("wall"),on:this._tool==="wall"},
+      {key:"door",label:"preset_door",icon:"M5 21V3h14v18 M8 21V6l8-2v17 M11 13h1",pick:()=>{this.setTool("opening");this._openingPreset="door";},on:this._tool==="opening"&&this._openingPreset==="door"},
+      {key:"window",label:"preset_window",icon:"M4 4h16v16H4z M12 4v16 M4 12h16",pick:()=>{this.setTool("opening");this._openingPreset="window";},on:this._tool==="opening"&&this._openingPreset==="window"},
+      {key:"furniture",label:"tool_furniture",icon:"M4 11V7a2 2 0 012-2h12a2 2 0 012 2v4 M3 10h3v7h12v-7h3v10H3z M5 20v2 M19 20v2",pick:()=>{const open=this._studioLibrary;this.setTool("furniture");this._studioLibrary=!open;},on:this._studioLibrary},
+      {key:"materials",label:"studio_materials",icon:"M4 5h16v14H4z M8 5v14 M12 5v14 M16 5v14",pick:()=>{this.setTool("select");if(this.room||this.floor?.rooms[0])this.selectItem("room",this.room?.id??this.floor!.rooms[0].id);this._studioDetails=true;},on:false},
+      {key:"measure",label:"tool_measure",icon:"M3 17L17 3l4 4L7 21z M7 13l3 3 M11 9l3 3 M15 5l3 3",pick:()=>this.setTool("measure"),on:this._tool==="measure"},
+      {key:"outdoor",label:"tool_group_outside",icon:"M3 11l9-8 9 8 M5 10v11h14V10 M9 21v-7h6v7",pick:()=>this.setTool("outdoor"),on:this._tool==="outdoor"},
+      {key:"energy",label:"tool_energy",icon:"M13 2L4 14h7l-1 8 10-12h-8z",pick:()=>this.setTool("energy"),on:this._tool==="energy"},
+    ];
+    return html`<nav class="studio-rail" aria-label=${this.t("studio_tools")}>${tools.map(x=>html`<button data-studio-tool=${x.key} title=${this.t(x.label)} aria-pressed=${x.on} ?disabled=${!this.floor||(x.key!=="select"&&!this.isAdmin)} @click=${()=>{if(x.key!=="contour")this._aureonContour=false;x.pick();}}>${studioIcon(x.icon)}<span>${this.t(x.label)}</span></button>`)}</nav>`;
+  }
+
+  private renderStudioHeader() {
+    const view=(mode:"2d"|"3d"|"split")=>{this._studio3d=mode==="3d";const split=mode!=="2d";if(this._split!==split)this.toggleSplit();};
+    return html`<header class="studio-header"><div class="studio-name"><span class="studio-monogram">A</span><div><strong>Floor Studio</strong><small>${this.floor?.name||this.t("floors")}</small></div></div><div class="studio-history"><button class="fp3d-btn" aria-label=${this.t("undo")} title=${this.t("undo")} ?disabled=${!this._canUndo} @click=${()=>this.undo()}>↶</button><button class="fp3d-btn" aria-label=${this.t("redo")} title=${this.t("redo")} ?disabled=${!this._canRedo} @click=${()=>this.redo()}>↷</button></div><div class="studio-views" role="group" aria-label=${this.t("view")}><button data-studio-view="2d" aria-pressed=${!this._split} @click=${()=>view("2d")}>2D</button><button data-studio-view="3d" aria-pressed=${this._studio3d} @click=${()=>view("3d")}>3D</button><button data-studio-view="split" aria-pressed=${this._split&&!this._studio3d} @click=${()=>view("split")}>${this.t("studio_split")}</button></div><select class="studio-look" data-studio-look aria-label=${this.t("theme")} @change=${(e:Event)=>{const v=(e.target as HTMLSelectElement).value;if(["neon","blueprint","day","night","real"].includes(v))this._studioLook=v as typeof this._studioLook;}}>${(["real"] as const).map(v=>html`<option value=${v} ?selected=${this._studioLook===v}>${this.t(`theme_${v}` as I18nKey)}</option>`)}</select><button class="fp3d-btn" data-studio-properties aria-label=${this.t("side_details")} @click=${()=>{this._studioDetails=!this._studioDetails;this.setSideFolded(false);}}>${this.t("side_details")}</button></header>`;
+  }
+
+  private renderStudioDock() {
+    const more=()=>{const d=this.renderRoot.querySelector<HTMLDetailsElement>(".studio-menu");if(d)d.open=!d.open;};
+    return html`<nav class="studio-mobile-dock" aria-label=${this.t("studio_tools")}><button aria-pressed=${this._tool==="select"} @click=${()=>{this._aureonContour=false;this.setTool("select");}}>${studioIcon("M5 3l14 10-7 1-3 7z")}${this.t("tool_select")}</button><button ?disabled=${!this.floor||!this.isAdmin} @click=${()=>{this.setTool("rect");this._studioDetails=true;}}>${studioIcon("M3 11l9-8 9 8 M5 10v11h14V10")}${this.t("tool_group_build")}</button><button ?disabled=${!this.floor||!this.isAdmin} aria-pressed=${this._studioLibrary} @click=${()=>{const open=this._studioLibrary;this.setTool("furniture");this._studioLibrary=!open;}}>${studioIcon("M4 8h16v12H4z M7 4h10v4 M7 20v2 M17 20v2")}${this.t("tool_furniture")}</button><button @click=${more}>${studioIcon("M4 12h1 M11 12h1 M18 12h1")}${this.t("studio_tools")}</button></nav>`;
+  }
+
   protected render(): TemplateResult {
     const floor = this.floor;
     const walls = floor ? generateWalls(floor.rooms, { exterior: this._doc.settings.wall_exterior, interior: this._doc.settings.wall_interior }, floor.walls ?? []) : null;
     return html`
       ${this.renderPreview()} ${this.renderWallView()} ${this.renderPartCard()} ${this.renderDiagnosticsView()}  ${this.renderSettingsDialog()}
-      <div class="fp3d-editor ${this.narrow ? "fp3d-narrow" : ""}" style=${`--fp3d-side-w:${this._sideWidth}px`}>
+      <div class="fp3d-editor ${this.narrow ? "fp3d-narrow" : ""} ${this._studioLibrary ? "studio-has-library" : ""} ${this._studioDetails ? "studio-details-open" : ""} ${this._studio3d ? "studio-view3d" : ""}" style=${`--fp3d-side-w:${this._sideWidth}px`}>
+        ${this.renderStudioHeader()} ${this.renderStudioRail()}
+        <div class="studio-library">${this._studioLibrary&&floor&&this.isAdmin?html`<div class="studio-library-head"><h2>${this.t("studio_library")}</h2><button class="fp3d-btn" aria-label=${this.t("close")} @click=${()=>{this._studioLibrary=false;}}>✕</button></div>${this.renderFurnitureLibrary()}`:nothing}</div>
         <div class="fp3d-main">
           <div class="fp3d-toolbar">
             ${this._wallPick ? html`<div class="fp3d-pick-tip" style=${`left:${this.wallPickTip[0]}px;top:${this.wallPickTip[1]}px`} @click=${() => (this._wallPick = false)}>${this.t("hint_wall_pick")}</div>` : nothing}
-            ${this.renderFloorMenu()} ${this.renderToolBar(floor)}
+            ${this.renderFloorMenu()} <details class="studio-menu"><summary>${this.t("studio_tools")} ▾</summary><div class="studio-originaltools">${this.renderToolBar(floor)}</div></details>
             ${walls?.warnings.length ? html`<span class="fp3d-warn">${this.t("overlap_warning")}</span>` : nothing}
           </div>
           <div class="fp3d-stage-pair ${this._split ? "fp3d-split" : ""}" style=${this._split && !this.narrow ? `--fp3d-split:${Math.round(this._splitRatio * 100)}%` : ""}>
@@ -6075,7 +6119,7 @@ export class Fp3dEditor extends LitElement {
           ${this._split ? this.render3d() : nothing}
           </div>
         </div>
-        ${this.renderAside(floor)}
+        <div class="studio-inspector"><div class="studio-inspector-head"><strong>${this.t("side_details")}</strong><button class="fp3d-btn" aria-label=${this.t("close")} @click=${()=>{this._studioDetails=false;if(!this.narrow)this.setSideFolded(true);}}>✕</button></div>${this.renderAside(floor)}</div>${this.renderStudioDock()}
       </div>
     `;
   }
@@ -10644,7 +10688,7 @@ export class Fp3dEditor extends LitElement {
     if (this._tool === "pool") return this.renderPoolPanel(floor);
     // furnishing: the library and the selected item come first
     if (this._tool === "furniture" && floor && admin) {
-      return html`${this.furnitureItem ? this.renderFurnitureForm(this.furnitureItem) : nothing} ${this.renderFurnitureLibrary()}`;
+      return html`${this.furnitureItem ? this.renderFurnitureForm(this.furnitureItem) : html`<p class="fp3d-sub">${this.t("studio_library")}</p>`}`;
     }
     // a selected item shows only its own form, with a way back to the floor and room
     const item =
@@ -16893,6 +16937,7 @@ export class Fp3dEditor extends LitElement {
         color: var(--fp3d-warm);
       }
     `,
+    studioEditorStyles,
   ];
 }
 

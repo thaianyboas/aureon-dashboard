@@ -1,0 +1,76 @@
+import assert from 'node:assert/strict';import {createServer} from 'node:http';import {readFileSync,existsSync,mkdirSync,writeFileSync} from 'node:fs';import {resolve,sep} from 'node:path';
+import puppeteer from '../floor-studio/neonplan3d-main/frontend/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';
+import {build} from '../floor-studio/neonplan3d-main/frontend/node_modules/esbuild/lib/main.js';
+import {setupPlatformFixture} from './platform-fixture.mjs';
+const root=resolve('.'),out=resolve('build/balance-preview');mkdirSync(out,{recursive:true});
+await build({stdin:{contents:`import {emptyBuilding,newFloor} from './floor-studio/neonplan3d-main/frontend/src/model.ts';window.nativeFixtureBuilding=()=>{const b=emptyBuilding(),f=newFloor('floor','Synthetic apartment',0);f.rooms=[{id:'native-room',name:'Living room',area_id:null,points:[[0,0],[5,0],[5,5],[0,5]],floor_material:'wood'},{id:'bedroom',name:'Bedroom',points:[[5,0],[9,0],[9,3],[5,3]],floor_material:'wood'},{id:'kitchen',name:'Kitchen',points:[[5,3],[9,3],[9,5],[5,5]],floor_material:'tiles'}];const item=(id,type,x,z,w,d,h,rotation=0)=>({id,type,x,z,w,d,h,rotation,variant:null});f.furniture=[{...item('native-lamp','lamp_floor',.6,.7,.4,.4,1.7),name:'Lamp model',entity:null},item('sofa','sofa',1.7,1.1,2.4,.9,.8),item('table','table',2,2.8,1.6,.8,.75),item('bed','bed',7,1.4,1.8,2,.7),item('plant','plant',.6,4.3,.6,.6,1.2)];f.openings=[{id:'window',room_id:'native-room',edge:0,offset:2.5,width:1.8,type:'window',sill:.8,height:1.3,hinge:'left',leaves:2,swing:'in',contact2:null,contact:null,cover:null,tilt:null}];b.floors=[f];return b;};`,resolveDir:root},bundle:true,outfile:out+'/model.js'});
+const server=createServer((req,res)=>{const pathname=new URL(req.url,'http://local').pathname;if(pathname==='/'){res.writeHead(200,{'content-type':'text/html'}).end('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{background:#151015;margin:0}body>footer{color:#b3c4b9;font:12px system-ui;padding:20px}</style><script src="/build/atelier-preview/model.js"></script><script type="module" src="/floor-studio/neonplan3d-main/custom_components/neonplan3d/frontend/neonplan3d.js"></script><script src="/build/dashboard/aureon-dashboard.js"></script>');return;}const file=resolve(root,'.'+pathname);if(!file.startsWith(root+sep)||!existsSync(file)){res.writeHead(404).end();return;}res.writeHead(200,{'content-type':file.endsWith('.woff2')?'font/woff2':file.endsWith('.json')?'application/json':file.endsWith('.webp')?'image/webp':file.endsWith('.svg')?'image/svg+xml':'text/javascript; charset=utf-8'}).end(readFileSync(file));});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;const checks=[];
+
+try{
+ browser=await puppeteer.launch({executablePath:process.env.CHROME_BIN||'/tmp/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+ const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.setViewport({width:1440,height:1000});
+ await page.goto(`http://127.0.0.1:${server.address().port}`,{waitUntil:'networkidle0'});await page.evaluate(setupPlatformFixture);
+ await page.evaluate(()=>{
+  platformHass.language='pt';platformHass.locale={language:'pt'};platformHass.user.name='Alex';platformHass.states['person.robin']={entity_id:'person.robin',state:'Trabalho',attributes:{friendly_name:'Robin'}};platformHass.states['weather.home'].attributes.friendly_name='Cidade de exemplo';platformHass.states['weather.home'].state='clear-night';platformHass.states['sensor.waste'].attributes.Papel=new Date(Date.now()+86400000).toISOString().slice(0,10);
+  const names={'light.desk':'Luminária da sala','switch.socket':'Tomada da mesa','cover.blind':'Persianas','climate.heating':'Aquecimento','lock.front':'Porta de entrada','alarm_control_panel.home':'Alarme da casa','camera.entrance':'Câmera da entrada','automation.evening':'Iluminação ao anoitecer','script.clean':'Limpeza da casa','scene.rest':'Relaxar','sensor.power':'Potência da casa','sensor.daily':'Consumo de hoje','binary_sensor.window':'Janela da cozinha','binary_sensor.motion':'Presença na sala','calendar.collection':'Agenda de exemplo'};
+  for(const [id,name] of Object.entries(names)){platformHass.states[id].attributes.friendly_name=name;platformHass.entities[id].name=name;}
+  platformHass.states['sensor.power'].attributes.friendly_name='Monitor de potência com um nome muito longo para verificar a leitura no cartão';platformHass.entities['sensor.power'].name=platformHass.states['sensor.power'].attributes.friendly_name;
+  const oldWS=platformHass.callWS;platformHass.callWS=async p=>{
+   if(p.type==='config/area_registry/list')return [{area_id:'room',name:'Sala de estar'},{area_id:'sleep',name:'Quarto'},{area_id:'bath',name:'Banheiro'},{area_id:'kitchen',name:'Cozinha'},{area_id:'balcony',name:'Varanda'},{area_id:'entry',name:'Entrada'}];
+   if(p.type==='config/entity_registry/list'){const rows=await oldWS(p);return rows.map(r=>({...r,name:platformHass.states[r.entity_id]?.attributes?.friendly_name||r.name}));}
+   return oldWS(p);
+  };
+  platformHass.areas={room:{name:'Sala de estar'},sleep:{name:'Quarto'},bath:{name:'Banheiro'},kitchen:{name:'Cozinha'},balcony:{name:'Varanda'},entry:{name:'Entrada'}};
+  nativePlan=nativeFixtureBuilding();nativePlan.floors[0].name='Apartamento de exemplo';nativePlan.floors[0].rooms[0].name='Sala';nativePlan.floors[0].rooms[1].name='Quarto';nativePlan.floors[0].rooms[2].name='Cozinha';
+ });
+ await page.waitForFunction(()=>dashboard._platformController?.rows.length>10);await page.evaluate(async()=>{await dashboard._registryPromise;dashboard.hass={...platformHass};await dashboard._loadRegistry(true);dashboard._render();});await page.evaluate(()=>{const c=dashboard._platformController;c.patch('appearance','custom');c.patch('palette','aubergine-balance');c.patch('language','pt');c.patch('waste',['sensor.waste']);c.patch('energy',{...c.preferences.energy,power:'sensor.power',total:'sensor.total',daily:'sensor.daily',tariff:.35});});
+ const navigate=async(route,key)=>{await page.evaluate(r=>dashboard._navigate(r),route);await page.waitForFunction(k=>dashboard.shadowRoot.querySelector('aureon-platform')?.shadowRoot.querySelector('[data-platform-page="'+k+'"]'),{},key);await page.evaluate(()=>{window.scrollTo(0,0);});};
+
+ await page.evaluate(async()=>{const extras=[['light.ceiling','Luz do teto','on'],['light.reading','Luz de leitura','off'],['light.bedroom','Luz do quarto','off']];for(const [id,name,state] of extras)platformHass.states[id]={entity_id:id,state,attributes:{friendly_name:name,brightness:state==='on'?180:0,supported_color_modes:['brightness']}};const old=platformHass.callWS;platformHass.callWS=async p=>{if(p.type==='config/label_registry/list')return [{label_id:'daily',name:'Uso diário'},{label_id:'technical',name:'Infraestrutura'},{label_id:'sockets',name:'steckdosen_dashboard'}];if(p.type==='config/entity_registry/list'){const rows=[...await old(p),...extras.map(([id,name])=>({entity_id:id,name,device_id:'room-device'}))];return rows.map(r=>({...r,entity_category:r.entity_id==='sensor.total'?'diagnostic':r.entity_category,labels:r.entity_id==='sensor.total'?['technical']:r.entity_id==='switch.socket'?['daily','sockets']:['daily']}));}return old(p);};dashboard.hass={...platformHass};await dashboard._loadRegistry(true);dashboard._render();});
+ await navigate('Geräte','devices');await page.evaluate(()=>{window.ui=dashboard.shadowRoot.querySelector('aureon-platform');});await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
+ assert.ok(await page.$('#platform-dashboard >>> aureon-platform >>> .balance-kind-outlet [data-entity="switch.socket"]'));
+ assert.ok(await page.$('#platform-dashboard >>> aureon-platform >>> .balance-kind-light [data-entity="light.desk"]'));
+ assert.equal(await page.evaluate(()=>ui.shadowRoot.querySelector('.balance-kind-technical')),null);assert.equal(await page.evaluate(()=>ui.shadowRoot.querySelector('.balance-other').open),false);await page.evaluate(()=>{ui._equipment='technical';});await page.evaluate(()=>ui.updateComplete);assert.equal(await page.evaluate(()=>ui.shadowRoot.querySelector('.balance-kind-technical details').open),true);await page.evaluate(()=>{ui._equipment='';});await page.evaluate(()=>ui.updateComplete);
+ await page.click('#platform-dashboard >>> aureon-platform >>> .equipment-filter-panel summary');
+ await page.select('#platform-dashboard >>> aureon-platform >>> select[aria-label="Equipamentos"]','outlet');await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
+ assert.equal(await page.evaluate(()=>ui.shadowRoot.querySelectorAll('[data-entity]').length),1);
+ await page.select('#platform-dashboard >>> aureon-platform >>> select[aria-label="Disponibilidade"]','unavailable');await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
+ assert.equal(await page.evaluate(()=>ui.shadowRoot.querySelectorAll('[data-entity]').length),0);
+ await page.evaluate(()=>{ui._equipment='';ui._availability='';ui._label='';});await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
+ await page.click('#platform-dashboard >>> aureon-platform >>> .equipment-filter-panel summary');
+ await page.screenshot({path:out+'/equipamentos-computador.png',fullPage:true});
+ await navigate('Einstellungen','settings');await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
+ await page.click('#platform-dashboard >>> aureon-platform >>> input[data-label-rule="exclude"][value="daily"]');await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
+ assert.equal(await page.evaluate(()=>dashboard._platformController.rows.some(r=>r.id==='switch.socket')),false);
+ assert.equal(await page.evaluate(()=>dashboard._platformController.state('switch.socket')),null);
+ await page.click('#platform-dashboard >>> aureon-platform >>> input[data-label-rule="exclude"][value="daily"]');await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
+ await page.evaluate(()=>ui.shadowRoot.querySelector('.label-settings').scrollIntoView({block:'start'}));await page.screenshot({path:out+'/labels-computador.png',fullPage:false});
+ await page.setViewport({width:390,height:844});await navigate('Geräte','devices');await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:out+'/equipamentos-celular.png',fullPage:false});
+
+ // Personal layouts must not call HA services while their editing controls are used.
+ await page.setViewport({width:1440,height:1000});
+ await page.evaluate(()=>{window.layoutCalls=0;const old=platformHass.callService;platformHass.callService=(...args)=>{layoutCalls++;return old(...args);};ui._layoutEditing=true;});await page.evaluate(()=>ui.updateComplete);
+ assert.ok(await page.evaluate(()=>ui.shadowRoot.querySelector('.balance-kind-light>.card-tools')));
+ await page.evaluate(()=>ui.shadowRoot.querySelector('.balance-kind-light>.card-tools button').click());await page.evaluate(()=>ui.updateComplete);
+ await page.waitForFunction(()=>ui.shadowRoot.querySelector('.layout-dialog')?.open);
+ await page.evaluate(()=>{const f=ui.shadowRoot.querySelector('.layout-dialog form');f.elements.title.value='Luzes favoritas';f.elements.size.value='wide';f.requestSubmit();});await page.evaluate(()=>ui.updateComplete);
+ assert.equal(await page.evaluate(()=>ui.shadowRoot.querySelector('.balance-kind-light>.card-alias').textContent),'Luzes favoritas');
+ await navigate('Räume','rooms');await navigate('Geräte','devices');await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});assert.equal(await page.evaluate(()=>ui.shadowRoot.querySelector('.balance-kind-light>.card-alias').textContent),'Luzes favoritas');await page.evaluate(()=>{ui._layoutEditing=true;});await page.evaluate(()=>ui.updateComplete);
+ await page.evaluate(()=>ui.shadowRoot.querySelector('.balance-kind-light>.card-tools button:last-child').click());await page.evaluate(()=>ui.updateComplete);
+ await page.evaluate(()=>{ui._layoutEditing=false;});await page.evaluate(()=>ui.updateComplete);
+ assert.equal(await page.evaluate(()=>getComputedStyle(ui.shadowRoot.querySelector('.balance-kind-light')).display),'none');
+ await page.evaluate(()=>{ui._layoutEditing=true;ui._layoutAdding=true;});await page.evaluate(()=>ui.updateComplete);
+ await page.evaluate(()=>{const buttons=[...ui.shadowRoot.querySelectorAll('.layout-add button')];buttons.find(b=>b.textContent.includes('Iluminação')).click();});await page.evaluate(()=>ui.updateComplete);
+ assert.notEqual(await page.evaluate(()=>getComputedStyle(ui.shadowRoot.querySelector('.balance-kind-light')).display),'none');
+ await page.evaluate(()=>{ui._layoutEntity='switch.socket';});await page.evaluate(()=>ui.updateComplete);
+ await page.evaluate(()=>ui.shadowRoot.querySelector('.layout-add>button').click());await page.evaluate(()=>ui.updateComplete);
+ assert.equal(await page.evaluate(()=>ui.shadowRoot.querySelectorAll('.layout-added .card-tools').length),1);
+ await page.evaluate(()=>ui.shadowRoot.querySelector('.balance-kind-light>.card-tools button:nth-child(3)').click());await page.evaluate(()=>ui.updateComplete);
+ assert.equal(await page.evaluate(()=>ui.c.preferences.cardLayouts.devices.order.filter(x=>x.startsWith('group:'))[0]),'group:climate');
+ assert.equal(await page.evaluate(()=>layoutCalls),0);
+ await page.setViewport({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+ await page.evaluate(()=>{ui._layoutEditing=false;ui.save('cardLayouts',{});});await page.evaluate(()=>ui.updateComplete);
+ assert.deepEqual(errors,[]);console.log('PASS: native classification, technical disclosure, combined availability filters, label hide/restore, state denial, desktop/mobile no overflow, card edit/remove/restore/add/reorder without HA service calls; synthetic HA fixture only');
+}finally{await browser?.close();server.close();}

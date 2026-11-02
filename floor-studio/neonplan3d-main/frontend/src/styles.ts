@@ -3,27 +3,28 @@ import { css } from "lit";
 /** Neon design tokens shared by panel, card and editor. */
 export const tokens = css`
   /* AUREON: each token can be supplied from outside (--aureon-ui-*), so the embedded editor follows the AUREON
-     theme; without those variables the original NeonPlan values apply unchanged. The *-rgb triplets feed the
+     theme; without those variables the AUREON Forest palette is the standalone fallback. The *-rgb triplets feed the
      translucent tints (rgba(var(--fp3d-accent-rgb), a)). */
   :host {
-    --fp3d-bg: var(--aureon-ui-bg, #070b14);
-    --fp3d-bg2: var(--aureon-ui-bg2, #0d1424);
-    --fp3d-chrome: var(--aureon-ui-chrome, rgba(14, 21, 38, 0.86));
-    --fp3d-chrome-solid: var(--aureon-ui-chrome-solid, #0f1729);
-    --fp3d-line: var(--aureon-ui-line, rgba(120, 170, 255, 0.16));
-    --fp3d-text: var(--aureon-ui-text, #e6eefc);
-    --fp3d-muted: var(--aureon-ui-muted, #8a9bb8);
-    --fp3d-accent: var(--aureon-ui-accent, #37e0ff);
-    --fp3d-accent-text: var(--aureon-ui-accent-text, #041018);
-    --fp3d-soft: var(--aureon-ui-soft, #5b7cff);
-    --fp3d-accent-rgb: var(--aureon-ui-accent-rgb, 55, 224, 255);
-    --fp3d-soft-rgb: var(--aureon-ui-soft-rgb, 91, 124, 255);
-    --fp3d-line-rgb: var(--aureon-ui-line-rgb, 120, 170, 255);
+    --fp3d-bg: var(--aureon-ui-bg, #101713);
+    --fp3d-bg2: var(--aureon-ui-bg2, #17221c);
+    --fp3d-chrome: var(--aureon-ui-chrome, rgba(22, 31, 25, 0.94));
+    --fp3d-panel:var(--fp3d-chrome-solid);
+    --fp3d-chrome-solid: var(--aureon-ui-chrome-solid, #1c2921);
+    --fp3d-line: var(--aureon-ui-line, rgba(206, 196, 167, 0.18));
+    --fp3d-text: var(--aureon-ui-text, #f2f1e8);
+    --fp3d-muted: var(--aureon-ui-muted, #b1bcae);
+    --fp3d-accent: var(--aureon-ui-accent, #d6bc8b);
+    --fp3d-accent-text: var(--aureon-ui-accent-text, #1b211b);
+    --fp3d-soft: var(--aureon-ui-soft, #a6b99a);
+    --fp3d-accent-rgb: var(--aureon-ui-accent-rgb, 214, 188, 139);
+    --fp3d-soft-rgb: var(--aureon-ui-soft-rgb, 166, 185, 154);
+    --fp3d-line-rgb: var(--aureon-ui-line-rgb, 206, 196, 167);
     --fp3d-warm: #ffb547;
     --fp3d-danger: #ff6b8b;
     --fp3d-shadow: var(--aureon-ui-shadow, 0 8px 30px rgba(0, 0, 0, 0.5));
     --fp3d-font: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --fp3d-title-font: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
+    --fp3d-title-font: Georgia, "Times New Roman", serif;
     color-scheme: var(--aureon-ui-scheme, dark);
     font-family: var(--fp3d-font);
     color: var(--fp3d-text);
@@ -77,7 +78,7 @@ export const controls = css`
     font: inherit;
     font-weight: 600;
     border: 1px solid var(--fp3d-line);
-    background: rgba(55, 224, 255, 0.06);
+    background: rgba(var(--fp3d-accent-rgb), 0.06);
     color: var(--fp3d-text);
     border-radius: 10px;
     padding: 7px 12px;

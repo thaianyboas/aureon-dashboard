@@ -2,6 +2,7 @@
 
 import { formatImperial, lengthUnit, parseLength } from "./units.ts";
 import { setAureonModuleApproval, bundledAureonModuleIds } from "./aureon-modules/approval.ts";
+import { studioPanelStyles } from "./aureon-panel-chrome.ts";
 import { css, html, LitElement, nothing, type PropertyValues } from "lit";
 import { BuildingController } from "./building-controller.ts";
 import { countView } from "./diagnostics.ts";
@@ -1637,6 +1638,7 @@ export class Floorplan3dPanel extends LitElement {
         margin: auto;
       }
     `,
+    studioPanelStyles,
   ];
 }
 

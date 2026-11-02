@@ -448,3 +448,129 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
   "Help improve" topic and invitation, the extensions teaser under the library. Editor browser test expects no
   backend call at start.
 - Pending owner approval: the redesign (Floor Studio "Ajustes" instead of the Extensions tab, packs/modules built in).
+## STUDIO-UI-01 / ATELIER-01 - local approval preview (Codex, 2026-11-02)
+
+- Owner explicitly requires visual approval BEFORE publishing. All changes remain local;
+  no push, release, HACS package promotion or integration update authorized yet.
+- Fetched and fast-forwarded to Claude's PAINT-02 at 8e9b0eeb before editing. Preserved
+  wall paint, finishes, native tools, geometry and import/export. Re-fetch before publication.
+- Added theme-aware Floor Studio rail, optional furniture library, native inspector,
+  visible undo/redo, 2D/3D/split controls and responsive mobile dock/sheet. Native
+  complete toolbar remains available under Tools. Editor-only styles remain lazy.
+- Dashboard polish: room photo gallery, wrapping names, catalog summaries, camera,
+  assistant, calendar and settings layouts; existing service callbacks retained.
+- Candidate build/typecheck and npm test/fidelity pass; original editor 8 browser
+  checks passed. Local screenshot harness passes desktop/tablet/mobile and theme
+  checks. Full browser regression running; see /tmp/aureon-atelier-browser.log.
+- Preview PDF contains 17 actual local screenshots with synthetic plan/data. No
+  owner's personal models or plan included. Stable dist and integration untouched.
+- Editor budget 972 KiB (+20 for responsive workspace), built 963.4 KiB.
+
+## DISCOVERY-01 - local label filters and automatic equipment classification (Codex, 2026-11-02)
+
+- Owner requests Simon42-like metadata discovery plus labels and visual review before publishing.
+  All work remains LOCAL, no commit/push/dist promotion/integration update.
+- Re-fetched origin/master: unchanged at 8e9b0ee. Read Simon42 Registry.ts reference at
+  944ba945a066a2c4ad339ade128d898a3f373a44: explicit category/hidden/label metadata,
+  technical section separate. No source copied or modifications to reference repository.
+- New platform/discovery.mjs classifies by original domain, device_class, entity_category,
+  socket label and explicit presentation overrides. Unspecified switches remain switches.
+  Classification never rewrites entity IDs/domains or grants new service capabilities.
+- Saved per-user/browser include/exclude label sets (inherited entity/device/area labels
+  already supplied by registry). Exclusion wins; no_dboard and no-dboard respected.
+  systemgeraete_dashboard denies actions without hiding state. Registry label case preserved.
+- Equipment page has function chips, combined type/availability/label/area/search filters,
+  collapsed advanced filters on mobile, technical disclosure and per-entity category override.
+  Room panel now separates technical rows too. EN/DE/PT labels added.
+- Unit checks: 74 dashboard tests; focused discovery browser harness exercises native
+  compiled dashboard, classification, combined filters, label hiding/state denial and
+  desktop/mobile overflow. See build/discovery-preview logs and synthetic screenshots.
+- Broader earlier Atelier browser batch had a contour drag assertion failure (room vs roomedge)
+  in test-contour-browser.mjs. Do NOT publish until resolved and regression rerun; original
+  editor suite passed before this. Physical HA/iSG/phone not tested.
+
+## BALANCE-01 - approved compact page and Aubergine Balance theme (Codex, 2026-11-02)
+
+- Owner approved the compact, device-image-free composition with people below header,
+  realistic condition-driven weather, top-only filters and waste alongside people.
+  Requested implementation + theme entry. Still no publication before actual-screen review.
+- Fetched and integrated Claude commits 324c006, 918f43b and c66a318 before edits. Preserved
+  furniture import, finish fixes and current Real-only UI decision. Remote HEAD c66a318.
+  Local preview changes were stashed safely, ff merged, conflicts resolved; stash retained.
+- Added platform/balance.mjs + theme-token responsive CSS. Device categories use original
+  HA IDs, capabilities, service adapter, sensitivity confirmations and detailed controls.
+  Initial groups cap at six rows; more/category tabs expose the remaining entries.
+  Climate has setpoint ring and bounded +/- controls; sensors stay read-only; cameras
+  load only after explicit click. Scenes retain original actions and confirmations.
+- People use visible person entities and their HA picture or initials, presence, and only
+  one unambiguous valid battery linked through device-tracker registry metadata. No personal
+  portraits or hardcoded owner plan. iSG Display-style person entries excluded.
+- Weather sprite (weather-atlas.png) generated specifically for AUREON; original source
+  exec-93f85bd7-1d57-4f1d-be33-2347a45f42a6.png. Six transparent condition frames, CSS
+  clipping (no renderer dependency). Unknown/unavailable does not invent a temperature.
+  Sun metadata selects day/night for clear weather; rain/lightning take precedence.
+- Waste uses explicit existing preferences and WCS normalization, no city/calendar defaults.
+  Visible no-data fallback; opens Agenda; refreshes on entry and existing polling cadence.
+- Added selectable Aubergine · Balance palette, validated import/persistence, EN/DE/PT labels.
+- Found prior Studio chrome regression: localPoint selected the first SVG (now a rail
+  icon). Scoped it to svg.fp3d-plan, reviewed fidelity extension. Native geometry unchanged.
+  Contour browser six checks now pass incl wall drag, corner drag, undo/redo/save/reopen.
+- Build/typecheck pass (editor 966.9/972 KiB, main 751.3/752, 3D938.3/944). npm test passed
+  after merge; focused dashboard 77 tests pass incl weather, battery and theme. Original
+  editor browser passed. Focused Balance harness passes classification/filters/hide/state
+  denial/responsive widths; synthetic screenshots in build/balance-preview. Broader
+  platform browser rerun underway; log build/balance-platform.log.
+- All changes local, stable dist not promoted by Codex, integration not rebuilt/advanced.
+  No validation on owner's actual HA, iSG or phone. Actual-screen review still required.
+- Final focused evidence: 77 dashboard tests pass; platform browser 26 checks pass;
+  native editor browser 8 pass; contour browser 6 pass. Balance screenshot harness
+  passes after fixed mobile navigation. Root duplicate header removed via explicit
+  route metadata (shadow DOM cannot be traversed by :has). Desktop compact icon rail,
+  fixed mobile navigation and safe bottom padding verified in synthetic captures.
+
+## BALANCE-02 - reference fidelity correction (Codex, 2026-11-02)
+
+- Owner rejected BALANCE-01 as visually different from the approved image. Corrected
+  panel gradients, grouped unboxed rows, typography, thin custom range tracks,
+  inline mobile light controls, open thermostat arcs and compact setpoint buttons.
+  Search/area/Labels now share a top toolbar; advanced filters expand from one icon.
+  Overview keeps principal categories + scenes; Others opens secondary categories,
+  also accessible from the category tabs. No entity IDs or services rewritten.
+- Updated Balance preview harness verifies technical categories through the actual
+  tab state after overview collapses them. 77 dashboard tests pass; focused Balance
+  browser classification/filter/hide/state-denial/no-overflow checks pass after changes.
+- Fetched remote at start: origin/master now 49f5921 (pet and editor changes after
+  c66a318). Reviewed diff/log; NOT merged into this active presentation pass yet.
+  Must integrate those changes and rerun whole-candidate checks BEFORE publication.
+  No push or dist promotion. The owner still requires real-screen approval.
+
+## BALANCE-03 — owner approved publication, 2026-11-02 (Codex)
+
+- Owner now explicitly requests publication, all dashboard cards removable/addable/movable/editable,
+  and the stronger burgundy/plum/champagne colors of the approved reference.
+- Fetched and merged dashboard master through 64448c1 before publication. Preserved Claude's
+  Golden Retriever catalogue/licensing, original model.ts, removal of seasonal/help/feedback UI,
+  Real-only presentation choice, and late-mount/60-second home plan loader. Integration synchronized
+  with 8cdb851; duplicate local recovery commit was already upstream and skipped by rebase.
+- Balance compact composition: people, valid linked batteries, generated weather symbols, collection,
+  functional category groups, include/exclude Labels, safe automatic classification and manual override.
+  New Aubergine Balance palette is more saturated and luminous. Native entity IDs/services unchanged.
+- Personal layouts on platform pages: Edit cards, remove/restore, add an eligible equipment card,
+  rename, change width/density and reorder among siblings using accessible arrows; undo/reset.
+  Saved per HA user/origin/browser, included in settings export/import. Editing calls no HA service.
+  Adding/restoring respects entity visibility and the existing system-entity control restrictions.
+- Studio original editor tools retained inside new responsive workspace; geometry source and original
+  model remain protected by fidelity gate. Chrome budget +2 KiB accommodates merged Golden catalogue.
+- Validation: full JS/frontend suite and fidelity passed; Python gate regressions passed (10).
+  Focused browser verifies classification/Labels, desktop/mobile, edit/add/remove/restore/title/size,
+  navigation persistence and reorder with no HA service calls. Required full browser suite and
+  distribution/package checks run before promotion. Synthetic fixture only, no live HA/physical iSG.
+- Publication scope: master source + compiled stable dashboard/assets + reproducible integration pinned
+  to committed source. No tag or release. Do not overwrite later remote work; fetch again before push.
+- Final local validation completed: 186 dashboard/module tests + 535 native frontend tests; fidelity
+  2121 original methods / 35 reviewed extensions / 23 protected files; typecheck/build within budgets;
+  browser music/platform/renderer/editor/contour/loading checks passed (editor/contour/loading rerun with
+  explicit CHROME_BIN after the local browser path was missing); focused Balance layout checks passed.
+  Stable dist and matching assets deliberately promoted; HACS/hash/public-source and build evidence passed.
+  Backend source unchanged; the isolated local backend test environment lacks pytest/HA dependencies,
+  and attempted dependency installation did not complete. Backend CI remains the authoritative harness.

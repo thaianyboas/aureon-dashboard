@@ -1,3 +1,4 @@
+import {labelVisible,equipmentKind,hasSemanticLabel} from './discovery.mjs';
 import {bindingFields,bindingTargets} from './bindings.mjs';
 import {defaults,scopeKey,loadPreferences,savePreferences,validatePreferences,importPreferences} from './preferences.mjs';
 import {actionsFor,parameterAction,isAvailable} from './actions.mjs';
@@ -18,7 +19,9 @@ export class PlatformController{
  if(!ik||ik[0]!==registry||ik[1]!==registry?.entityRows||ik[2]!==registry?.entityRows?.length||ik[3]!==this.preferences.hidden||ik[4]!==count||ik[5]!==this.scope){this._indexKey=[registry,registry?.entityRows,registry?.entityRows?.length,this.preferences.hidden,count,this.scope];this.reindex();}
  this.emit();}
  get language(){return this.preferences.language==='auto'?(this.hass?.locale?.language||this.hass?.language||'en'):this.preferences.language;}
- reindex(){const hidden=new Set(this.preferences.hidden);this._allRows=this.registry?.entityRows?.filter(r=>this.hass?.states?.[r.id]&&!r.disabled&&!r.hidden)||[];this._rows=this._allRows.filter(r=>!hidden.has(r.id));this._byId=new Map(this._rows.map(r=>[r.id,r]));const signature=this._rows.map(r=>r.id).sort().join('\n');if(signature!==this._visibility){this._visibility=signature;this.epoch++;this.answer='';this.conversationId=null;this.events={};this.history={};this.series=[];this._confirmation=null;this.busy.clear();this.errors={};}}
+ reindex(){const hidden=new Set(this.preferences.hidden);this._allRows=this.registry?.entityRows?.filter(r=>this.hass?.states?.[r.id]&&!r.disabled&&!r.hidden)||[];this._rows=this._allRows.filter(r=>!hidden.has(r.id)&&labelVisible(r,this.preferences,this.labels));this._byId=new Map(this._rows.map(r=>[r.id,r]));const signature=this._rows.map(r=>r.id).sort().join('\n');if(signature!==this._visibility){this._visibility=signature;this.epoch++;this.answer='';this.conversationId=null;this.events={};this.history={};this.series=[];this._confirmation=null;this.busy.clear();this.errors={};}}
+ get labels(){return this.registry?.allLabels||[];}
+ kind(row){return equipmentKind(row,this.hass?.states?.[row.id],this.preferences,this.labels);}
  get rows(){return this._rows;}
  get allRows(){return this._allRows;}
  state(id){return this._byId.has(id)?this.hass?.states?.[id]:null;}
@@ -29,9 +32,10 @@ export class PlatformController{
  import(text){this.save(importPreferences(text));}
  export(){return JSON.stringify(validatePreferences(this.preferences),null,2);}
  async request(key,fn){if(this.busy.has(key))return false;const epoch=this.epoch;this.busy.add(key);delete this.errors[key];this.emit();const current=()=>epoch===this.epoch;try{const result=await fn(current);return current()?result:false;}catch(e){if(current())this.errors[key]=String(e?.message||e);return false;}finally{if(current()){this.busy.delete(key);this.emit();}}}
- actions(id){const s=this.state(id);return s?actionsFor(s,this.hass?.services):[];}
+ canControl(id){return !!this.state(id)&&!hasSemanticLabel(this._byId.get(id),this.labels,'systemgeraete_dashboard');}
+ actions(id){const row=this._byId.get(id),s=this.state(id);return s&&!hasSemanticLabel(row,this.labels,'systemgeraete_dashboard')?actionsFor(s,this.hass?.services):[];}
  confirm(action){if(!action)return null;this._confirmation={entityId:action.entityId,key:action.key,epoch:this.epoch,expires:this.now()+60000,token:Symbol()};return this._confirmation.token;}
- async act(id,key,{value,token,code}={}){const state=this.state(id);if(!state)return false;
+ async act(id,key,{value,token,code}={}){const state=this.state(id);if(!state||hasSemanticLabel(this._byId.get(id),this.labels,'systemgeraete_dashboard'))return false;
  const action=value===undefined?this.actions(id).find(a=>a.key===key):parameterAction(state,this.hass?.services,key,value);if(!action)return false;
  if(action.sensitive){const proof=this._confirmation;if(!proof||proof.token!==token||proof.entityId!==id||proof.key!==key||proof.epoch!==this.epoch||proof.expires<this.now())return false;this._confirmation=null;}
  const data={...action.data,entity_id:id};if(code!==undefined&&code!=='')data.code=String(code).slice(0,100);
