@@ -1132,18 +1132,18 @@
       "original_line": 1498,
       "candidate_line": 1497,
       "original_sha256": "0db0e67702fba99bb95f33039b3fc69e1d9cd288996a39a03886af5b3c0fc387",
-      "candidate_sha256": "863c24a70edf309ecfe0ad0a796fa1f112bf32f30fcd998808116cec7cd3eacf",
+      "candidate_sha256": "ac24bc7c3b921ded3d860d2ba858de902b453e3fcfd3e83e84a0c791f3012d10",
       "status": "aureon_extension",
-      "note": "Added before the room fallback, only for admins with the Select tool: a tap within 7 px of a room outline edge picks that wall (plans made of rooms only — e.g. imported — have no free walls). The drag collects every corner on that straight wall line (all collinear touching room edges; Shift: this segment only). Original order for handles, openings, furniture, free walls and rooms before it is unchanged."
+      "note": "Added before the room fallback, only for admins with the Select tool: a tap within 7 px of a room outline edge picks that wall (plans made of rooms only — e.g. imported — have no free walls). The drag collects every corner on that straight wall line (all collinear touching room edges; Shift: this segment only). Original order for handles, openings, furniture, free walls and rooms before it is unchanged. Reviewed: explicit outline mode gives existing walls priority over furniture/openings; standard selection remains unchanged."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.onPointerMove",
       "original_line": 1888,
       "candidate_line": 1887,
       "original_sha256": "e85b8d92682692793012722393b81640141aeba006a9da0529677090eb235fe6",
-      "candidate_sha256": "1454f0ee8e59ecde838c52091f041e160bc54b923a8af64dd95422c8d45d9298",
+      "candidate_sha256": "3bdf234f512d375388ba2e8abd52225de73db83ff09d772f38b5070dae562788",
       "status": "aureon_extension",
-      "note": "Two AUREON parts: new \"roomedge\" case moves the collected corners across the wall (grid snap, Alt free) and keeps doors/windows in place; the \"vertex\" case moves coincident corners of other rooms along (Shift: original single-room behaviour) and snaps against the corners as they were before the drag. Other cases unchanged."
+      "note": "Two AUREON parts: new \"roomedge\" case moves the collected corners across the wall (grid snap, Alt free) and keeps doors/windows in place; the \"vertex\" case moves coincident corners of other rooms along (Shift: original single-room behaviour) and snaps against the corners as they were before the drag. Other cases unchanged. Reviewed 2026-11-02: opening offsets also follow an unshared vertex; other drag cases unchanged."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.onPointerUp",
@@ -3760,9 +3760,9 @@
       "original_line": 10575,
       "candidate_line": 10516,
       "original_sha256": "51a456520342ebe0cb894a85260f5aa201c69b13d338b3c2744c27d66fcc164b",
-      "candidate_sha256": "ce10d77d7c07ab2121e10cf8dbecbc03f06f687d6db78b6b2ed0981cacf9cc4a",
+      "candidate_sha256": "0555efcf544db6273bb74dd0b5223548a0bc6f811558760fdfc8525e6f325f6c",
       "status": "aureon_extension",
-      "note": "Two added calls: renderAureonWall(room) at the top of the room form (picked wall panel: length, shared rooms, Straighten, Remove/restore divider) and renderAureonPaint(room) before the wall heights (wall colour of the room: swatches, free colour, remove; stored in room.aureon_finish.walls, undo like any room change)."
+      "note": "Two added calls: renderAureonWall(room) at the top of the room form (picked wall panel: length, shared rooms, Straighten, Remove/restore divider) and renderAureonPaint(room) before the wall heights (wall colour of the room: swatches, free colour, remove; stored in room.aureon_finish.walls, undo like any room change). Reviewed 2026-11-02: adds an admin-only numbered list of all contour edges; original room form remains. Reviewed: explicit outline mode gives existing walls priority over furniture/openings; standard selection remains unchanged."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.applyPackage",

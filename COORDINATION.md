@@ -327,3 +327,32 @@ Owner requested both visual concepts in Einstellungen → theme selection.
 - Added both IDs to the preference validator; otherwise reload/save discarded
   new selections. HACS dist rebuilt, checksum updated; npm run validate passed.
 - Dashboard-only change: integration backend and SOURCE_COMMIT unchanged.
+
+
+## CONTOUR-01 — Entire imported plan outline editing (Codex, 2026-11-02)
+Owner requests moving/resizing/removing existing walls and corners throughout the
+imported plan, not just drawing new free walls.
+- Root usability issues: hit testing only accepted a 7px centreline; furniture and
+  openings were selected before the room contour; outer-wall removal was blocked.
+- Room inspector now offers “Edit plan outline” and every numbered contour edge,
+  including short/obscured edges. Explicit mode prioritizes walls over objects;
+  standard mode and original insert/corner controls are preserved. Selection
+  accounts for visible wall thickness. Numeric X/Z endpoints follow shared corners
+  and reproject openings; unshared corner drags now also reproject openings.
+- Wall removal/restoration supports exterior walls without deleting room/floor.
+  Shared wall restoration discovers both sources even when both heights are zero.
+  Existing plan locks and admin checks remain. Furniture remains independent of
+  contour changes; no automatic rewrite/migration of private plans.
+- Files: editor.ts, EN/DE/PT labels, generated integration bundles; reviewed the
+  onPointerMove, pointerDown and renderRoomForm fidelity extensions explicitly.
+- Added scripts/test-contour-browser.mjs to npm run test:browser. Synthetic six-room
+  fixture checks every edge, thick-wall selection, outline toggle, left/bottom
+  drags, corner drag, numeric edit, exterior/shared remove+restore, undo/redo,
+  save/reopen, lock and narrow-screen controls. Private backup used locally only;
+  no plan, model, screenshot or credentials committed.
+- Build/typecheck, 529 frontend unit tests, full npm test and original editor
+  browser suite passed. New contour tests passed against synthetic and owner
+  backup. These are local compiled-editor fixtures, NOT live HA or iSG validation.
+- Next: owner checks installed integration after HACS redownload + HA restart.
+  This batch changes editor resources, so integration packaging must name the
+  published dashboard commit in SOURCE_COMMIT; never hand-edit that pin.

@@ -399,6 +399,7 @@ export class Fp3dEditor extends LitElement {
     _wallId: { state: true },
     _edgeHi: { state: true },
     _aureonWall: { state: true },
+    _aureonContour: { state: true },
     _wallView: { state: true },
     _wallSel: { state: true },
     _wallMulti: { state: true },
@@ -534,6 +535,7 @@ export class Fp3dEditor extends LitElement {
   /** Edge of the selected room highlighted from the wall height list. */
   private declare _edgeHi: number | null;
   /** AUREON: the room wall (outline edge) picked in the plan; it can be moved, straightened or removed as a divider. */
+  private declare _aureonContour: boolean;
   private declare _aureonWall: { roomId: string; index: number } | null;
   /** The wall view: a room's wall seen from the front (what stands and hangs on it), and the piece chosen in it. */
   private declare _wallView: { roomId: string; edge: number } | null;
@@ -722,6 +724,7 @@ export class Fp3dEditor extends LitElement {
     this._outdoorId = null;
     this._wallId = null;
     this._aureonWall = null;
+    this._aureonContour = false;
     this._edgeHi = null;
     this._wallView = null;
     this._techMode = false;
@@ -1342,7 +1345,7 @@ export class Fp3dEditor extends LitElement {
   private aureonWallInfo(room: Room, index: number): { shared: string[]; height: number | null; length: number; straight: boolean } {
     const floor = this.floor!;
     const s = this._doc.settings;
-    const walls = generateWalls(floor.rooms, { exterior: s.wall_exterior, interior: s.wall_interior }, floor.walls ?? []).walls;
+    const walls = generateWalls(floor.rooms.map(r=>({...r,wall_heights:undefined})), { exterior: s.wall_exterior, interior: s.wall_interior }, floor.walls ?? []).walls;
     const shared = [
       ...new Set(walls.filter((w) => w.sources.some((x) => x.room_id === room.id && x.edge === index)).flatMap((w) => w.sources.map((x) => x.room_id)).filter((id) => id !== room.id)),
     ];
@@ -1358,17 +1361,22 @@ export class Fp3dEditor extends LitElement {
     const w = this._aureonWall;
     if (!w || w.roomId !== room.id || w.index >= room.points.length || !this.isAdmin) return nothing;
     const info = this.aureonWallInfo(room, w.index);
+    const a = room.points[w.index], b = room.points[(w.index + 1) % room.points.length];
     const names = info.shared.map((id) => this.floor!.rooms.find((r) => r.id === id)?.name ?? id).join(", ");
     return html`<div class="fp3d-aureon-wall" role="group" aria-label=${this.t("aureon_wall_title")}>
       <div class="fp3d-h3row"><h3>${this.t("aureon_wall_title")}</h3><span class="fp3d-muted">${this.m(info.length, 2)}</span></div>
       <p class="fp3d-muted">${info.shared.length ? this.t("aureon_wall_shared", { rooms: names }) : this.t("aureon_wall_outer")}${info.height === 0 ? ` · ${this.t("wall_none")}` : ""}</p>
+      <div class="fp3d-form" data-contour-coordinates>
+        ${this.len("X₁ (m)", a[0], v => this.aureonSetCorner(room.id, w.index, [v, a[1]]))}
+        ${this.len("Z₁ (m)", a[1], v => this.aureonSetCorner(room.id, w.index, [a[0], v]))}
+        ${this.len("X₂ (m)", b[0], v => this.aureonSetCorner(room.id, (w.index + 1) % room.points.length, [v, b[1]]))}
+        ${this.len("Z₂ (m)", b[1], v => this.aureonSetCorner(room.id, (w.index + 1) % room.points.length, [b[0], v]))}
+      </div>
       <div class="fp3d-aureon-wall-actions">
         <button class="fp3d-btn" ?disabled=${info.straight} @click=${() => this.aureonStraighten()}>⟂ ${this.t("aureon_wall_straighten")}</button>
-        ${info.shared.length
-          ? info.height === 0
+        ${info.height === 0
             ? html`<button class="fp3d-btn" @click=${() => this.aureonRemoveDivider(false)}>↺ ${this.t("aureon_wall_restore")}</button>`
-            : html`<button class="fp3d-btn fp3d-aureon-danger" @click=${() => this.aureonRemoveDivider(true)}>✕ ${this.t("aureon_wall_remove")}</button>`
-          : nothing}
+            : html`<button class="fp3d-btn fp3d-aureon-danger" @click=${() => this.aureonRemoveDivider(true)}>✕ ${this.t("wall_none")}</button>`}
       </div>
       <p class="fp3d-muted fp3d-aureon-wall-hint">${this.t("aureon_wall_hint")}</p>
     </div>`;
@@ -1388,12 +1396,31 @@ export class Fp3dEditor extends LitElement {
     const w = this._aureonWall;
     const room = w ? this.floor?.rooms.find((r) => r.id === w.roomId) : undefined;
     if (!w || !room || !this.isAdmin) return;
-    if (!this.aureonWallInfo(room, w.index).shared.length) {
-      // an outer wall is never removed by the Delete key; the room stays
-      this._notice = this.t("aureon_wall_outer_keep");
-      return;
-    }
-    this.setEdgeHeight(room, w.index, remove ? 0 : null);
+    if (this.isFixedItem("room", room.id)) return;
+    const floor = this.floor!;
+    // Discover both sides even when their current height is zero (removed walls are omitted by generateWalls).
+    const walls = generateWalls(floor.rooms.map(r=>({...r,wall_heights:undefined})), {exterior:this._doc.settings.wall_exterior,interior:this._doc.settings.wall_interior},floor.walls??[]).walls;
+    const sources = walls.filter(x=>x.sources.some(s=>s.room_id===room.id&&s.edge===w.index)).flatMap(x=>x.sources);
+    if (!sources.some(s=>s.room_id===room.id&&s.edge===w.index)) sources.push({room_id:room.id,edge:w.index,t0:0,t1:0});
+    if (sources.some(s=>this.isFixedItem("room",s.room_id))) return;
+    this.change((_,f)=>{for(const source of sources){const r=f.rooms.find(r=>r.id===source.room_id)!;const heights=[...(r.wall_heights??[])];while(heights.length<r.points.length)heights.push(null);heights[source.edge]=remove?0:null;r.wall_heights=heights.every(h=>h===null)?undefined:heights;}});
+  }
+
+  /** Exact contour corner edit; coincident neighbours and opening offsets follow. */
+  private aureonSetCorner(roomId: string, index: number, point: Vec2): void {
+    const floor = this.floor, room = floor?.rooms.find(r => r.id === roomId);
+    if (!this.isAdmin || !floor || !room || this.isFixedItem("room", roomId) || !point.every(Number.isFinite)) return;
+    const at = room.points[index];
+    if (!at) return;
+    const linked = floor.rooms.flatMap(r => r.points.flatMap((p, i) => Math.hypot(p[0]-at[0], p[1]-at[1]) < 0.01 ? [{roomId:r.id,index:i}] : []));
+    if (linked.some(l => this.isFixedItem("room", l.roomId))) return;
+    const next: Vec2 = [round(point[0]), round(point[1])];
+    // Do not collapse either adjacent wall into a zero-length edge.
+    if (linked.some(l => {const r=floor.rooms.find(r=>r.id===l.roomId)!;const n=r.points.length;return [r.points[(l.index+n-1)%n],r.points[(l.index+1)%n]].some(p=>Math.hypot(p[0]-next[0],p[1]-next[1])<0.05);})) return;
+    this.change((_, f) => {
+      for (const l of linked) f.rooms.find(r=>r.id===l.roomId)!.points[l.index] = [...next];
+      this.aureonKeepOpenings(floor, f);
+    });
   }
 
   /** AUREON: turns a crooked wall straight (horizontal or vertical, whichever is closer); joined corners follow. */
@@ -1439,12 +1466,54 @@ export class Fp3dEditor extends LitElement {
     }
   }
 
+  private aureonStartWallDrag(edge: {roomId: string; index: number}, world: Vec2, local: [number, number], shift: boolean): boolean {
+
+      const base = this._doc;
+      const floor = base.floors.find((f) => f.id === this._floorId);
+      const room = floor?.rooms.find((r) => r.id === edge.roomId);
+      if (floor && room) {
+        const a = room.points[edge.index], b = room.points[(edge.index + 1) % room.points.length];
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, u: Vec2 = [(b[0] - a[0]) / len, (b[1] - a[1]) / len];
+        const along = (p: Vec2) => (p[0] - a[0]) * u[0] + (p[1] - a[1]) * u[1];
+        const off = (p: Vec2) => Math.abs((p[0] - a[0]) * u[1] - (p[1] - a[1]) * u[0]);
+        let lo = 0, hi = len;
+        if (!shift) {
+          // grow the interval over every collinear room edge that touches it
+          const spans: [number, number][] = [];
+          for (const r of floor.rooms)
+            r.points.forEach((p, i) => {
+              const q = r.points[(i + 1) % r.points.length];
+              if (off(p) < 0.01 && off(q) < 0.01) spans.push([Math.min(along(p), along(q)), Math.max(along(p), along(q))]);
+            });
+          for (let grown = true; grown; ) {
+            grown = false;
+            for (const [s0, s1] of spans)
+              if (s0 <= hi + 0.01 && s1 >= lo - 0.01 && (s0 < lo - 1e-6 || s1 > hi + 1e-6)) {
+                lo = Math.min(lo, s0);
+                hi = Math.max(hi, s1);
+                grown = true;
+              }
+          }
+        }
+        const moves: { roomId: string; index: number; at: Vec2 }[] = [];
+        for (const r of floor.rooms)
+          r.points.forEach((p, i) => {
+            if (off(p) < 0.01 && along(p) > lo - 0.01 && along(p) < hi + 0.01) moves.push({ roomId: r.id, index: i, at: [p[0], p[1]] });
+          });
+        this.selectItem("room", edge.roomId);
+        this._aureonWall = { roomId: edge.roomId, index: edge.index };
+        this.drag = { kind: "roomedge", roomId: edge.roomId, index: edge.index, start: world, startScreen: local, base, moved: false, normal: [-u[1], u[0]], moves };
+        return true;
+      }
+    return false;
+  }
+
   /** AUREON: the room outline edge (wall) within a few pixels of a screen point, nearest first. */
   private aureonEdgeAt(local: [number, number]): { roomId: string; index: number } | null {
     const floor = this.floor;
     if (!floor) return null;
     let best: { roomId: string; index: number } | null = null;
-    let bestD = 7;
+    let bestD = Infinity;
     for (const r of floor.rooms) {
       if (this.isFixedItem("room", r.id)) continue;
       r.points.forEach((p, i) => {
@@ -1454,7 +1523,9 @@ export class Fp3dEditor extends LitElement {
         const t = ((local[0] - ax) * dx + (local[1] - ay) * dy) / l2;
         if (t < 0.08 || t > 0.92) return;
         const d = Math.hypot(local[0] - (ax + t * dx), local[1] - (ay + t * dy));
-        if (d < bestD) {
+        const thickness = r.wall_thickness?.[i] ?? Math.max(this._doc.settings.wall_exterior, this._doc.settings.wall_interior);
+        const tolerance = Math.max(10, thickness * this._view.scale / 2 + 6);
+        if (d <= tolerance && d < bestD) {
           bestD = d;
           best = { roomId: r.id, index: i };
         }
@@ -1872,6 +1943,12 @@ export class Fp3dEditor extends LitElement {
       } else this.drag = { kind: "marquee", start: world, end: world, add: true };
       return;
     }
+    // In explicit contour mode walls take priority over furniture, devices and openings.
+    // Corner and insert handles keep their original behaviour.
+    if (this._aureonContour && this.isAdmin && this._tool === "select" && !target.closest("[data-vertex],[data-mid]")) {
+      const edge = this.aureonEdgeAt(local);
+      if (edge && this.aureonStartWallDrag(edge, world, local, e.shiftKey)) return;
+    }
     const deviceEl = target.closest("[data-device]");
     if (deviceEl && this.isAdmin) {
       this.drag = { kind: "device", entityId: deviceEl.getAttribute("data-device")!, start: world, startScreen: local, base: this._doc, moved: false };
@@ -2006,45 +2083,7 @@ export class Fp3dEditor extends LitElement {
     // e.g. imported ones, have no free walls to pick). The whole straight wall line moves — shared walls and the
     // corners of the neighbours go along, so no gap or overlap opens; with Shift only this room's segment moves.
     const edge = this.isAdmin && this._tool === "select" ? this.aureonEdgeAt(local) : null;
-    if (edge) {
-      const base = this._doc;
-      const floor = base.floors.find((f) => f.id === this._floorId);
-      const room = floor?.rooms.find((r) => r.id === edge.roomId);
-      if (floor && room) {
-        const a = room.points[edge.index], b = room.points[(edge.index + 1) % room.points.length];
-        const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, u: Vec2 = [(b[0] - a[0]) / len, (b[1] - a[1]) / len];
-        const along = (p: Vec2) => (p[0] - a[0]) * u[0] + (p[1] - a[1]) * u[1];
-        const off = (p: Vec2) => Math.abs((p[0] - a[0]) * u[1] - (p[1] - a[1]) * u[0]);
-        let lo = 0, hi = len;
-        if (!e.shiftKey) {
-          // grow the interval over every collinear room edge that touches it
-          const spans: [number, number][] = [];
-          for (const r of floor.rooms)
-            r.points.forEach((p, i) => {
-              const q = r.points[(i + 1) % r.points.length];
-              if (off(p) < 0.01 && off(q) < 0.01) spans.push([Math.min(along(p), along(q)), Math.max(along(p), along(q))]);
-            });
-          for (let grown = true; grown; ) {
-            grown = false;
-            for (const [s0, s1] of spans)
-              if (s0 <= hi + 0.01 && s1 >= lo - 0.01 && (s0 < lo - 1e-6 || s1 > hi + 1e-6)) {
-                lo = Math.min(lo, s0);
-                hi = Math.max(hi, s1);
-                grown = true;
-              }
-          }
-        }
-        const moves: { roomId: string; index: number; at: Vec2 }[] = [];
-        for (const r of floor.rooms)
-          r.points.forEach((p, i) => {
-            if (off(p) < 0.01 && along(p) > lo - 0.01 && along(p) < hi + 0.01) moves.push({ roomId: r.id, index: i, at: [p[0], p[1]] });
-          });
-        this.selectItem("room", edge.roomId);
-        this._aureonWall = { roomId: edge.roomId, index: edge.index };
-        this.drag = { kind: "roomedge", roomId: edge.roomId, index: edge.index, start: world, startScreen: local, base, moved: false, normal: [-u[1], u[0]], moves };
-        return;
-      }
-    }
+    if (edge && this.aureonStartWallDrag(edge, world, local, e.shiftKey)) return;
     const roomId = target.closest("[data-room]")?.getAttribute("data-room") ?? this.roomAt(world);
     if (roomId) {
       if (roomId !== this._roomId) this._vertex = null;
@@ -2170,7 +2209,7 @@ export class Fp3dEditor extends LitElement {
               const r = floor.rooms.find((x) => x.id === l.roomId);
               if (r) r.points[l.index] = [p[0], p[1]];
             }
-            if (linked.length) this.aureonKeepOpenings(baseFloor, floor);
+            this.aureonKeepOpenings(baseFloor, floor);
           },
           drag.base,
           false,
@@ -10765,6 +10804,7 @@ export class Fp3dEditor extends LitElement {
     const rect = isAxisRect(room.points);
     const b = bounds(room.points);
     return html`<section>
+      ${admin ? html`<button class="fp3d-btn" data-contour-mode aria-pressed=${this._aureonContour} @click=${()=>{this._aureonContour=!this._aureonContour;this._tool="select";}}>${this.t("aureon_contour_edit")}</button><details data-contour-walls><summary>${this.t("aureon_wall_title")} · ${room.points.length}</summary><div class="fp3d-form">${room.points.map((a,i)=>html`<button class="fp3d-btn" data-contour-edge=${i} ?disabled=${this.isFixedItem("room",room.id)} aria-pressed=${this._aureonWall?.roomId===room.id&&this._aureonWall.index===i} @click=${()=>{this._aureonWall={roomId:room.id,index:i};this._vertex=null;}}>${i+1} · ${this.m(Math.hypot(room.points[(i+1)%room.points.length][0]-a[0],room.points[(i+1)%room.points.length][1]-a[1]),2)}</button>`)}</div></details>` : nothing}
       ${this.renderAureonWall(room)}
       <div class="fp3d-h3row"><h3>${this.t("room")}</h3>${this.fixButton("room", room.id)}</div>
       <button class="fp3d-btn fp3d-wv-open" title=${this.t("wall_view_open")} @click=${() => this.openRoomWalls(room)}>▦ ${this.t("wall_view_room")}</button>
