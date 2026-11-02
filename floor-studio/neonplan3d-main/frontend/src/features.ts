@@ -12,7 +12,8 @@ export const FEATURES: readonly Feature[] = ["camera_cockpit", "weather", "scree
  * Fun packs: free extras (0 €, anyone may give what they like) picked up in the shop by customers – not Pro add-ons,
  * shown in their own section of the extensions page and switched on and off there.
  */
-export const FUN: readonly Feature[] = ["fun_pets", "fun_halloween"];
+// AUREON: the Halloween pack is removed (owner decision 2026-11-02); only the pets remain
+export const FUN: readonly Feature[] = ["fun_pets"];
 /** Free features built but not released yet (no pack unlocks them; only the lab switch shows them). */
 export type FreeFeature = "diagnostics" | "locate";
 export type Gated = Feature | FreeFeature;
@@ -89,7 +90,8 @@ export function manualUrl(lang: string | undefined, topic?: Feature | "extension
 
 export function unlockedFeatures(packs: readonly { features?: string[] }[] = getPacks()): Set<Feature> {
   const out = new Set<Feature>();
-  for (const p of packs) for (const f of p.features ?? []) if (knownFeature(f)) out.add(f as Feature);
+  // AUREON: Halloween removed – an installed Halloween pack unlocks nothing (no ghost, no decorations)
+  for (const p of packs) for (const f of p.features ?? []) if (knownFeature(f) && f !== "fun_halloween") out.add(f as Feature);
   return out;
 }
 

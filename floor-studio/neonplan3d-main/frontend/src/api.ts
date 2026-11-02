@@ -78,7 +78,8 @@ export async function restoreSnapshot(hass: HomeAssistant, snapshotId: string): 
 
 export async function listPacks(hass: HomeAssistant): Promise<FurniturePack[]> {
   const res = await hass.callWS<{ packs: FurniturePack[] }>({ type: "neonplan3d/packs/list" });
-  return res.packs;
+  // AUREON: the Halloween fun pack is removed (owner decision 2026-11-02): its decorations leave the library too
+  return res.packs.filter((p) => !(p.features ?? []).includes("fun_halloween"));
 }
 
 export interface ImportedPack {

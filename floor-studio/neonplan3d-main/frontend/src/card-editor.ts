@@ -162,12 +162,6 @@ export class Floorplan3dCardEditor extends LitElement {
             <span>${this.t("card_pets")}<small>${this.t("card_pets_hint")}</small></span>
           </label>`
         : nothing}
-      ${!UNRELEASED.includes("fun_halloween") || labOn()
-        ? html`<label class="toggle">
-            <input type="checkbox" .checked=${v.ghost} @change=${(e: Event) => this.set("ghost", (e.target as HTMLInputElement).checked ? undefined : false)} />
-            <span>${this.t("card_ghost")}<small>${this.t("card_ghost_hint")}</small></span>
-          </label>`
-        : nothing}
       <label class="toggle">
         <input type="checkbox" .checked=${v.marker_names} @change=${(e: Event) => this.set("marker_names", (e.target as HTMLInputElement).checked ? true : undefined)} />
         <span>${this.t("card_marker_names")}<small>${this.t("card_marker_names_hint")}</small></span>

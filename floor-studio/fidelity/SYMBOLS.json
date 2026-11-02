@@ -132,8 +132,9 @@
       "original_line": 79,
       "candidate_line": 79,
       "original_sha256": "09a476b044a4324a0ac400d4e7ec735ce3c86677885311684b7d0cb7847994ce",
-      "candidate_sha256": "09a476b044a4324a0ac400d4e7ec735ce3c86677885311684b7d0cb7847994ce",
-      "status": "preserved"
+      "candidate_sha256": "9011242c7479fb7adcedd15f385f95996f2537e628d138adc4052ba262715bda",
+      "status": "aureon_extension",
+      "note": "Owner decision 2026-11-02: the Halloween fun pack is removed; packs carrying fun_halloween are filtered out (no decorations in the library)."
     },
     {
       "symbol": "api.ts::reviewModule",
@@ -551,8 +552,9 @@
       "original_line": 144,
       "candidate_line": 144,
       "original_sha256": "9476c426a5cc78116b11118efeb9124ea5cd05210658a8aa694ca8a8500ed0e5",
-      "candidate_sha256": "9476c426a5cc78116b11118efeb9124ea5cd05210658a8aa694ca8a8500ed0e5",
-      "status": "preserved"
+      "candidate_sha256": "7ba15bed839d5e88847a7ab21a6806809df7764e0fbb9526d04a18169de4fefb",
+      "status": "aureon_extension",
+      "note": "Owner decision 2026-11-02: no look choice (Real only) and no Halloween ghost option."
     },
     {
       "symbol": "card-editor.ts::Floorplan3dCardEditor.renderKiosk",
@@ -977,8 +979,9 @@
       "original_line": 1207,
       "candidate_line": 1206,
       "original_sha256": "4a78a744274d2eddb855c50aefa6b4cb6e023d45d0402e6ca29f5c4f4d7461ce",
-      "candidate_sha256": "4a78a744274d2eddb855c50aefa6b4cb6e023d45d0402e6ca29f5c4f4d7461ce",
-      "status": "preserved"
+      "candidate_sha256": "85cc307cb73d4c5f1b76ed1dbd7c741739a01562fbd996480b1084db15526189",
+      "status": "aureon_extension",
+      "note": "Owner decision 2026-11-02: no \"Help improve\" invitation (returns at once)."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.closeDiagInvite",
@@ -1820,10 +1823,9 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderHelpLinks",
       "original_line": 4156,
-      "candidate_line": 4153,
       "original_sha256": "49170edc9628cdc41a31df047aa7490d93a0df2b8543bf699dd723f6798a3550",
-      "candidate_sha256": "49170edc9628cdc41a31df047aa7490d93a0df2b8543bf699dd723f6798a3550",
-      "status": "preserved"
+      "status": "missing",
+      "note": "Removed on owner decision 2026-11-02 (no help and feedback links in AUREON)."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderProCard",
@@ -2398,8 +2400,9 @@
       "original_line": 5597,
       "candidate_line": 5540,
       "original_sha256": "cf6306f54a6798eb0f2d38524859ce418fa98bd6cf129ac810992c90af7b7218",
-      "candidate_sha256": "cf6306f54a6798eb0f2d38524859ce418fa98bd6cf129ac810992c90af7b7218",
-      "status": "preserved"
+      "candidate_sha256": "18bb6945fcb87b4ec907b76e39d18efe5857695968586bc3b25982d81620adb9",
+      "status": "aureon_extension",
+      "note": "Owner decision 2026-11-02: no \"Help improve\" (diagnostics) topic."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderSettingsDialog",
@@ -3736,8 +3739,9 @@
       "original_line": 10400,
       "candidate_line": 10341,
       "original_sha256": "38b60fc5dc80e34a2138aa1ba3d443e286378ba21f9a459afb89d8b43bf900ca",
-      "candidate_sha256": "38b60fc5dc80e34a2138aa1ba3d443e286378ba21f9a459afb89d8b43bf900ca",
-      "status": "preserved"
+      "candidate_sha256": "7b5eeb21df03b3440fb794fe796fdd37c63888520f11fc16167f1d3cad716112",
+      "status": "aureon_extension",
+      "note": "Owner decision 2026-11-02: no help and feedback links."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.moveRoom",
@@ -4137,9 +4141,9 @@
       "original_line": 12547,
       "candidate_line": 12463,
       "original_sha256": "c7619ae05f1b8169cf7020a850380f553f1cb6be7303e390a60db51c83aaa738",
-      "candidate_sha256": "e877229eaacbbc44edce9edeb1cf720d59ebe3fb8fc3e65a363eb77327a8b75a",
+      "candidate_sha256": "e637261d2802eb50b38a237189978e39c6d6d0964b8e2d0c323b79832b84fc01",
       "status": "aureon_extension",
-      "note": "One added call: renderAureonOwn() at the top of the library ('Meus moveis': the owner's own models from /config/aureon_models via neonplan3d/aureon_models/list, real GLB size and optional private catalog names; a tap adds a normal furniture item with aureon_model, editable, movable and deletable like any furniture)."
+      "note": "One added call: renderAureonOwn() at the top of the library ('Meus moveis': the owner's own models from /config/aureon_models via neonplan3d/aureon_models/list, real GLB size and optional private catalog names; a tap adds a normal furniture item with aureon_model, editable, movable and deletable like any furniture). Owner decision 2026-11-02: the extensions teaser below the library is removed."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.showPreview",
@@ -7920,8 +7924,9 @@
       "original_line": 106,
       "candidate_line": 90,
       "original_sha256": "624f7064b24fc85581726b3ec934d7577f3de29da3985b87ffe301de4f246621",
-      "candidate_sha256": "624f7064b24fc85581726b3ec934d7577f3de29da3985b87ffe301de4f246621",
-      "status": "preserved"
+      "candidate_sha256": "560b85c927054b684eb325ce158b5b3032f4b435a461ceedf316244db9cca2b1",
+      "status": "aureon_extension",
+      "note": "Owner decision 2026-11-02: an installed Halloween pack unlocks nothing."
     },
     {
       "symbol": "features.ts::hasFeature",
@@ -8000,8 +8005,9 @@
       "original_line": 141,
       "candidate_line": 141,
       "original_sha256": "8ebd9b1d8f1043165bebfacc519a2e3a3622997d27ba7c3be89be384bc90bc53",
-      "candidate_sha256": "8ebd9b1d8f1043165bebfacc519a2e3a3622997d27ba7c3be89be384bc90bc53",
-      "status": "preserved"
+      "candidate_sha256": "bb0667fef832a48080a1ecbb0654c5eb995cf6ab1eb4a1e4f7531c55ed0badae",
+      "status": "aureon_extension",
+      "note": "AUREON: Golden Retriever coat (feathered ears, chest ruff, belly fringe) when the look has feather."
     },
     {
       "symbol": "fun/pets.ts::obstaclesOf",

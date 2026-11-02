@@ -99,6 +99,9 @@ const FURS: Record<string, [string, string]> = {
   brown: ["#7d5536", "#d4a97c"],
   calico: ["#f4f0e8", "#e09045"],
   golden: ["#e3b46b", "#f7e3bd"],
+  // AUREON: Golden Retriever shades (deep red-gold, light gold)
+  red_golden: ["#c47f3e", "#e9b97f"],
+  light_golden: ["#ecd2a0", "#fbefd8"],
   cream: ["#efe0c4", "#fff6e6"],
 };
 
@@ -111,6 +114,8 @@ interface Look {
   head: number;
   snout: number;
   ears: "cat" | "bunny" | "floppy" | "pointy";
+  /** AUREON: long feathered coat (chest ruff, feathered ears, belly fringe) – the Golden Retriever. */
+  feather?: boolean;
   tail: "cat" | "dog" | "curl" | "bushy" | "pom";
   speed: number;
 }
@@ -121,6 +126,7 @@ const LOOKS: Record<string, Look> = {
   dachshund: { len: 0.48, wid: 0.14, hi: 0.14, leg: 0.07, head: 0.105, snout: 0.08, ears: "floppy", tail: "dog", speed: 0.7 },
   pug: { len: 0.3, wid: 0.21, hi: 0.18, leg: 0.1, head: 0.13, snout: 0.02, ears: "floppy", tail: "curl", speed: 0.55 },
   terrier: { len: 0.32, wid: 0.16, hi: 0.16, leg: 0.13, head: 0.11, snout: 0.06, ears: "pointy", tail: "dog", speed: 0.8 },
+  golden_retriever: { len: 0.58, wid: 0.24, hi: 0.24, leg: 0.25, head: 0.145, snout: 0.095, ears: "floppy", tail: "bushy", speed: 0.85, feather: true },
   labrador: { len: 0.56, wid: 0.23, hi: 0.23, leg: 0.24, head: 0.14, snout: 0.09, ears: "floppy", tail: "dog", speed: 0.85 },
   shepherd: { len: 0.62, wid: 0.23, hi: 0.25, leg: 0.3, head: 0.14, snout: 0.11, ears: "pointy", tail: "bushy", speed: 0.9 },
 };
@@ -211,7 +217,7 @@ export function buildModel(lib: FunLib, pet: Pet): Model {
       inner.rotation.z = side * -0.18;
       head.add(ear, inner);
     } else if (L.ears === "floppy") {
-      const ear = ball(earMat, h * 0.35, h * 1.1, h * 0.75, side * h * 0.98, -h * 0.15, -h * 0.05);
+      const ear = ball(earMat, h * 0.35, h * (L.feather ? 1.3 : 1.1), h * 0.75, side * h * 0.98, -h * (L.feather ? 0.25 : 0.15), -h * 0.05);
       ear.rotation.z = side * 0.25;
       head.add(ear);
     } else {
@@ -222,6 +228,11 @@ export function buildModel(lib: FunLib, pet: Pet): Model {
     }
   }
   body.add(head);
+  if (L.feather) {
+    // AUREON: the Golden Retriever's long coat – a chest ruff and a soft fringe under the belly, in the coat colour
+    body.add(ball(m1, L.wid * 0.9, L.hi * 0.9, L.len * 0.32, 0, cy + L.hi * 0.05, L.len * 0.42));
+    body.add(ball(m1, L.wid * 0.8, L.hi * 0.35, L.len * 0.7, 0, cy - L.hi * 0.45, 0));
+  }
   // the tail, pivot at its root
   const tail = new lib.Group();
   tail.position.set(0, L.leg + L.hi * 0.7, -L.len / 2 + 0.01);

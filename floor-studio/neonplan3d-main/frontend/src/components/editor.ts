@@ -1232,6 +1232,8 @@ export class Fp3dEditor extends LitElement {
 
   /** Once per page: an admin with the usage reports off (and the invitation never closed) is invited. */
   private checkDiagInvite(): void {
+    // AUREON: no "Help improve" invitation (owner decision 2026-11-02); the rest stays for reference
+    if (this.isConnected) return;
     if (this.diagInviteChecked || !this.hass || !this.isAdmin || !released("diagnostics")) return;
     this.diagInviteChecked = true;
     try {
@@ -4454,19 +4456,6 @@ export class Fp3dEditor extends LitElement {
     </section>`;
   }
 
-  /** Where to report a problem and where to propose an idea. */
-  private renderHelpLinks() {
-    return html`<section class="fp3d-help">
-      <h3>${this.t("help_title")}</h3>
-      <p class="fp3d-sub">${this.t("help_hint")}</p>
-      <div class="fp3d-actions">
-        <a class="fp3d-btn" href="https://github.com/Mastershort/neonplan3d/issues/new/choose" target="_blank" rel="noopener">🐞 ${this.t("help_issue")}</a>
-        <a class="fp3d-btn" href="https://github.com/Mastershort/neonplan3d/discussions/categories/ideas" target="_blank" rel="noopener">💡 ${this.t("help_idea")}</a>
-        <a class="fp3d-btn" href="https://discord.gg/SSdVVFsev7" target="_blank" rel="noopener">💬 ${this.t("help_discord")}</a>
-      </div>
-    </section>`;
-  }
-
   /** The Pro add-on: active (with the manual), or what it brings and where to get it. */
   private renderProCard() {
     const lang = this.hass?.language;
@@ -5858,7 +5847,7 @@ export class Fp3dEditor extends LitElement {
       { key: "terrain", icon: "⛰", label: this.t("terrain"), admin: true },
       { key: "backup", icon: "💾", label: this.t("backup"), admin: true },
       { key: "modules", icon: "🧩", label: this.t("settings_modules"), admin: true },
-      ...(released("diagnostics") ? [{ key: "diagnostics" as const, icon: "🛟", label: this.t("diag_menu"), admin: true }] : []),
+      // AUREON: no "Help improve" (owner decision 2026-11-02)
     ];
     const topics = all.filter((t) => admin || !t.admin);
     const toggle = () => {
@@ -10767,7 +10756,6 @@ export class Fp3dEditor extends LitElement {
             : floor
               ? this.renderRoomList(floor)
               : nothing}
-      ${this.renderHelpLinks()}
       ${admin && SHOW_PRESENCE ? this.renderPresenceSettings() : nothing}
       ${floor && admin ? this.renderBackgroundForm(floor) : nothing}
     `;
@@ -12983,12 +12971,7 @@ export class Fp3dEditor extends LitElement {
           else this._preview = null;
         }}
       ></fp3d-library>
-    </section>
-    <div class="fp3d-ext-teaser">
-      <b>${this.t("ext_teaser_title")}</b>
-      <span class="fp3d-sub">${this.t("ext_teaser_text")}</span>
-      <button class="fp3d-btn fp3d-primary" @click=${() => this.dispatchEvent(new CustomEvent("open-extensions", { bubbles: true, composed: true }))}>${this.t("ext_open")}</button>
-    </div>`;
+    </section>`;
   }
 
   /** Picture of an item, drawn by the 3D bundle and shown left of its button. */

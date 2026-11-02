@@ -665,15 +665,15 @@ export interface Pet {
   floor_id?: string | null;
 }
 
-export const PET_FURS = ["orange", "tabby", "black", "white", "grey", "brown", "calico", "golden", "cream"] as const;
+export const PET_FURS = ["orange", "tabby", "black", "white", "grey", "brown", "calico", "golden", "red_golden", "light_golden", "cream"] as const;
 /** The furs each kind comes in (the first is the default). */
 export const PET_FURS_OF: Record<Pet["kind"], readonly string[]> = {
   cat: ["orange", "tabby", "black", "white", "grey", "calico", "cream"],
-  dog: ["golden", "cream", "brown", "black", "white", "grey"],
+  dog: ["golden", "red_golden", "light_golden", "cream", "brown", "black", "white", "grey"],
   rabbit: ["white", "grey", "brown", "black", "cream"],
 };
 /** Dog breeds, small to large. */
-export const DOG_BREEDS = ["dachshund", "pug", "terrier", "labrador", "shepherd"] as const;
+export const DOG_BREEDS = ["dachshund", "pug", "terrier", "labrador", "golden_retriever", "shepherd"] as const;
 
 export interface BuildingSettings {
   /** The background behind the 3D house (null: the look's own sky): a colour, a gradient or a picture. */
