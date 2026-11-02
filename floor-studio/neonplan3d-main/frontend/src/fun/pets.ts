@@ -126,7 +126,7 @@ const LOOKS: Record<string, Look> = {
   dachshund: { len: 0.48, wid: 0.14, hi: 0.14, leg: 0.07, head: 0.105, snout: 0.08, ears: "floppy", tail: "dog", speed: 0.7 },
   pug: { len: 0.3, wid: 0.21, hi: 0.18, leg: 0.1, head: 0.13, snout: 0.02, ears: "floppy", tail: "curl", speed: 0.55 },
   terrier: { len: 0.32, wid: 0.16, hi: 0.16, leg: 0.13, head: 0.11, snout: 0.06, ears: "pointy", tail: "dog", speed: 0.8 },
-  golden_retriever: { len: 0.58, wid: 0.24, hi: 0.24, leg: 0.25, head: 0.145, snout: 0.095, ears: "floppy", tail: "bushy", speed: 0.85, feather: true },
+  golden_retriever: { len: 0.6, wid: 0.25, hi: 0.26, leg: 0.22, head: 0.15, snout: 0.11, ears: "floppy", tail: "dog", speed: 0.85, feather: true },
   labrador: { len: 0.56, wid: 0.23, hi: 0.23, leg: 0.24, head: 0.14, snout: 0.09, ears: "floppy", tail: "dog", speed: 0.85 },
   shepherd: { len: 0.62, wid: 0.23, hi: 0.25, leg: 0.3, head: 0.14, snout: 0.11, ears: "pointy", tail: "bushy", speed: 0.9 },
 };
@@ -169,7 +169,7 @@ export function buildModel(lib: FunLib, pet: Pet): Model {
   body.add(ball(m1, L.wid, L.hi, L.len, 0, cy, 0), ball(m2, L.wid * 0.78, L.hi * 0.72, L.len * 0.55, 0, cy - L.hi * 0.12, L.len * 0.16));
   // stubby legs with light paws, pivot at the hip
   const legs: THREE.Group[] = [];
-  const lr = Math.min(0.04, L.wid * 0.17);
+  const lr = L.feather ? 0.05 : Math.min(0.04, L.wid * 0.17);
   for (const [x, z] of [
     [-1, 1],
     [1, 1],
@@ -182,18 +182,24 @@ export function buildModel(lib: FunLib, pet: Pet): Model {
     const leg = new lib.Mesh(S.cylinder(lr * 0.9, lr, hip, 8), m1);
     leg.position.y = -hip / 2;
     g.add(leg, ball(paw, lr * 2.3, lr * 1.4, lr * 2.6, 0, -hip + lr * 0.6, lr * 0.3));
+    // AUREON Golden Retriever: feathering behind the front legs, full "trousers" on the hind legs
+    if (L.feather) g.add(z > 0 ? ball(m1, lr * 1.8, hip * 0.55, lr * 1.6, 0, -hip * 0.42, -lr * 0.7) : ball(m1, lr * 3, hip * 0.7, lr * 3.2, 0, -hip * 0.18, -lr * 0.4));
     body.add(g);
     legs.push(g);
   }
   // the head: big and round, raised at the front
   const head = new lib.Group();
   const h = L.head;
-  head.position.set(0, L.leg + L.hi * 0.9 + h * 0.45, L.len / 2 + h * 0.45);
+  head.position.set(0, L.leg + L.hi * 0.9 + h * (L.feather ? 0.75 : 0.45), L.len / 2 + h * (L.feather ? 0.35 : 0.45));
   head.add(ball(m1, h * 2.15, h * 1.95, h * 1.95));
   // muzzle: a dog's snout forward, a cat's and rabbit's small cheeks, and the nose
   const sn = Math.max(0.025, L.snout);
-  head.add(ball(m2, h * 1.05, h * 0.8, sn * 1.6 + h * 0.5, 0, -h * 0.32, h * 0.72 + sn * 0.45));
-  head.add(ball(nose, h * 0.28, h * 0.2, h * 0.2, 0, -h * 0.12, h * 0.95 + sn * 1.1));
+  if (L.feather) {
+    // AUREON Golden Retriever: broad skull, a straight, deep muzzle in the coat colour (a shade lighter), black nose
+    head.add(ball(m1, h * 1.12, h * 0.86, sn * 1.25 + h * 0.55, 0, -h * 0.3, h * 0.62 + sn * 0.45));
+    body.add(ball(m1, L.wid * 0.75, L.hi * 1.1, L.len * 0.32, 0, L.leg + L.hi * 0.85, L.len * 0.4));
+  } else head.add(ball(m2, h * 1.05, h * 0.8, sn * 1.6 + h * 0.5, 0, -h * 0.32, h * 0.72 + sn * 0.45));
+  head.add(ball(nose, h * (L.feather ? 0.36 : 0.28), h * (L.feather ? 0.26 : 0.2), h * 0.2, 0, L.feather ? -h * 0.16 : -h * 0.12, h * (L.feather ? 0.92 : 0.95) + sn * 1.1));
   const eyes: THREE.Group[] = [];
   for (const side of [-1, 1]) {
     // the eyes: dark, round, with a shine (closed when sleeping)
@@ -217,8 +223,10 @@ export function buildModel(lib: FunLib, pet: Pet): Model {
       inner.rotation.z = side * -0.18;
       head.add(ear, inner);
     } else if (L.ears === "floppy") {
-      const ear = ball(earMat, h * 0.35, h * (L.feather ? 1.3 : 1.1), h * 0.75, side * h * 0.98, -h * (L.feather ? 0.25 : 0.15), -h * 0.05);
-      ear.rotation.z = side * 0.25;
+      const ear = L.feather
+        ? ball(earMat, h * 0.32, h * 1.25, h * 0.8, side * h * 0.95, -h * 0.35, -h * 0.12)
+        : ball(earMat, h * 0.35, h * 1.1, h * 0.75, side * h * 0.98, -h * 0.15, -h * 0.05);
+      ear.rotation.z = side * (L.feather ? 0.12 : 0.25);
       head.add(ear);
     } else {
       const ear = new lib.Mesh(S.cone(h * 0.32, h * 0.95, 6), m1);
@@ -230,13 +238,19 @@ export function buildModel(lib: FunLib, pet: Pet): Model {
   body.add(head);
   if (L.feather) {
     // AUREON: the Golden Retriever's long coat – a chest ruff and a soft fringe under the belly, in the coat colour
-    body.add(ball(m1, L.wid * 0.9, L.hi * 0.9, L.len * 0.32, 0, cy + L.hi * 0.05, L.len * 0.42));
-    body.add(ball(m1, L.wid * 0.8, L.hi * 0.35, L.len * 0.7, 0, cy - L.hi * 0.45, 0));
+    body.add(ball(paw, L.wid * 0.85, L.hi * 0.95, L.len * 0.3, 0, cy - L.hi * 0.05, L.len * 0.4));
+    body.add(ball(m1, L.wid * 0.78, L.hi * 0.4, L.len * 0.62, 0, cy - L.hi * 0.42, -L.len * 0.02));
   }
   // the tail, pivot at its root
   const tail = new lib.Group();
   tail.position.set(0, L.leg + L.hi * 0.7, -L.len / 2 + 0.01);
-  if (L.tail === "pom") tail.add(ball(m2, 0.08, 0.08, 0.08));
+  if (L.feather) {
+    // AUREON Golden Retriever: a long tail with a feathered plume hanging underneath, carried behind (not upright)
+    const plume = new lib.Group();
+    plume.rotation.x = -1.35;
+    plume.add(ball(m1, 0.06, 0.34, 0.06, 0, 0.17, 0), ball(m1, 0.05, 0.28, 0.1, 0, 0.17, -0.04));
+    tail.add(plume);
+  } else if (L.tail === "pom") tail.add(ball(m2, 0.08, 0.08, 0.08));
   else if (L.tail === "curl") tail.add(ball(m1, 0.07, 0.07, 0.06, 0, 0.03, -0.01));
   else {
     const tl = L.tail === "cat" ? 0.28 : L.tail === "bushy" ? 0.26 : 0.18;
