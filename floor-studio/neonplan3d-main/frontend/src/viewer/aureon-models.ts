@@ -85,6 +85,15 @@ const ARRAYS: Record<number, { new (b: ArrayBuffer, o: number, n: number): Array
 };
 
 /** Parses a self-contained .glb into merged geometries per material (exported for tests). */
+/** A performance mark once per page (read by AUREON's device diagnostics; never sent anywhere). */
+export function aureonMark(name: string): void {
+  try {
+    if (typeof performance !== "undefined" && performance.mark && !performance.getEntriesByName(name).length) performance.mark(name);
+  } catch {
+    /* timing is optional */
+  }
+}
+
 export async function parseGlb(buffer: ArrayBuffer, makeImage: (blob: Blob) => Promise<TexImageSource | null>): Promise<LoadedModel> {
   const dv = new DataView(buffer);
   if (buffer.byteLength < 20 || dv.getUint32(0, true) !== 0x46546c67 || dv.getUint32(4, true) !== 2) throw new Error("not a glTF 2.0 .glb");
@@ -324,6 +333,8 @@ export class AureonModels {
       console.warn("AUREON model not loaded:", url, err);
       this.entries.set(url, { state: "error", error: String((err as Error)?.message ?? err) });
     }
+    // timing for the device diagnostics (local only): when the last own model of the page is parsed
+    if (!this.loading) aureonMark("aureon:models-parsed");
     this.onReady();
   }
 

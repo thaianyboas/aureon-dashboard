@@ -4129,8 +4129,9 @@
       "original_line": 12547,
       "candidate_line": 12463,
       "original_sha256": "c7619ae05f1b8169cf7020a850380f553f1cb6be7303e390a60db51c83aaa738",
-      "candidate_sha256": "c7619ae05f1b8169cf7020a850380f553f1cb6be7303e390a60db51c83aaa738",
-      "status": "preserved"
+      "candidate_sha256": "e877229eaacbbc44edce9edeb1cf720d59ebe3fb8fc3e65a363eb77327a8b75a",
+      "status": "aureon_extension",
+      "note": "One added call: renderAureonOwn() at the top of the library ('Meus moveis': the owner's own models from /config/aureon_models via neonplan3d/aureon_models/list, real GLB size and optional private catalog names; a tap adds a normal furniture item with aureon_model, editable, movable and deletable like any furniture)."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.showPreview",

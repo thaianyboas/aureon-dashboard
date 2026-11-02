@@ -356,3 +356,19 @@ imported plan, not just drawing new free walls.
 - Next: owner checks installed integration after HACS redownload + HA restart.
   This batch changes editor resources, so integration packaging must name the
   published dashboard commit in SOURCE_COMMIT; never hand-edit that pin.
+
+## OWN-FURN-01 — "Meus móveis" in the editor and load-time diagnostics (Claude, 2026-11-02)
+
+- Owner request: the furniture she removed from her plan must stay available in the editor's furniture list.
+- Backend: websocket `neonplan3d/aureon_models/list` (signed-in users, read-only) lists the `.glb` files in
+  `/config/aureon_models` with their real size read from the GLB bounds; an optional private `catalog.json` there
+  adds display names, furniture type, `mount_y` and `mirror` (validated, unknown keys ignored). No files in git.
+- Editor: section "Meus móveis" at the top of the furniture library (search box above 8 items). A tap adds a normal
+  furniture item (`aureon_model`, real size) to the selected room or plan centre; it is moved, resized, undone and
+  deleted like any item, and the file stays in the list. Fidelity: `renderFurnitureLibrary` recorded as
+  `aureon_extension` (one added call).
+- Diagnostics: the AUREON device check now also reports load times (navigation, JS bundles, own models, first 3D
+  frame, models on screen, long tasks) so the owner can measure Chrome/GPU PC and iPhone without guessing.
+- Tests: npm test 174 + 529, validate, migration contract, typecheck, browser suites, backend pytest 141 (incl. the
+  new list tests), ruff. Disposable HA (emulated desktop, SwiftShader): list shows 24 private models with names and
+  sizes; add sofa + 2 lamps, undo, saved to HA; plan restored. Not tested on the owner's HA, iSG or phone.

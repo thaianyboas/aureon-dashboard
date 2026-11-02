@@ -150,6 +150,17 @@ import { packsVersion as libPacksVersion } from "../packs.ts";
 import type { WallMode } from "../viewer/viewer3d.ts";
 import { furnitureName } from "../furniture-names.ts";
 import { AUREON_WALL_PAINTS, paintColor } from "../aureon-paints.ts";
+
+/** One own model in <config>/aureon_models (see the integration's aureon_models.py). */
+interface AureonOwnModel {
+  file: string;
+  url: string;
+  size: [number, number, number];
+  name?: string;
+  type?: string;
+  mount_y?: number;
+  mirror?: boolean;
+}
 import { furnitureSize, isElectric, isPackHeater, isPackSensor, isPackType, isRobotVacuum, mountBase, packDisplay, packItem, packItemName, packMotion, packName, packType, setPacks, type FurniturePack } from "../packs.ts";
 
 /** Items that can be fixed against moving. */
@@ -399,6 +410,7 @@ export class Fp3dEditor extends LitElement {
     _wallId: { state: true },
     _edgeHi: { state: true },
     _aureonWall: { state: true },
+    _aureonOwn: { state: true },
     _aureonContour: { state: true },
     _wallView: { state: true },
     _wallSel: { state: true },
@@ -537,6 +549,10 @@ export class Fp3dEditor extends LitElement {
   /** AUREON: the room wall (outline edge) picked in the plan; it can be moved, straightened or removed as a divider. */
   private declare _aureonContour: boolean;
   private declare _aureonWall: { roomId: string; index: number } | null;
+  /** AUREON: the owner's own models ("My furniture"), listed from <config>/aureon_models; null = not loaded yet. */
+  private declare _aureonOwn: AureonOwnModel[] | null | "error";
+  private _aureonOwnLoading = false;
+  private _aureonOwnFilter = "";
   /** The wall view: a room's wall seen from the front (what stands and hangs on it), and the piece chosen in it. */
   private declare _wallView: { roomId: string; edge: number } | null;
   private declare _wallSel: string | null;
@@ -724,6 +740,7 @@ export class Fp3dEditor extends LitElement {
     this._outdoorId = null;
     this._wallId = null;
     this._aureonWall = null;
+    this._aureonOwn = null;
     this._aureonContour = false;
     this._edgeHi = null;
     this._wallView = null;
@@ -12749,10 +12766,94 @@ export class Fp3dEditor extends LitElement {
     return mod.furniturePreview({ type: entry.type, w, d, h, variant: null, lamp: LAMP_MODEL[entry.type] ?? null }, 96, this.packs ?? []);
   };
 
+  /** AUREON: loads the owner's own models once per editor (read only; nothing is written to Home Assistant). */
+  private loadAureonOwn(): void {
+    if (this._aureonOwn !== null || this._aureonOwnLoading || !this.hass) return;
+    this._aureonOwnLoading = true;
+    this.hass
+      .callWS<{ models: AureonOwnModel[] }>({ type: "neonplan3d/aureon_models/list" })
+      .then((r) => {
+        this._aureonOwn = Array.isArray(r?.models) ? r.models : [];
+      })
+      .catch(() => {
+        // an older backend without the command: the section explains the restart
+        this._aureonOwn = "error";
+      })
+      .finally(() => {
+        this._aureonOwnLoading = false;
+      });
+  }
+
+  /** AUREON: places an own model like any furniture item (its type, real size, mounting height; undo as usual). */
+  private addAureonOwn(m: AureonOwnModel): void {
+    const floor = this.floor;
+    if (!floor || !this.isAdmin) return;
+    const type = m.type && FURNITURE_TYPES.includes(m.type as FurnitureType) ? m.type : "sideboard";
+    const room = this.room;
+    const [x, z] = room ? centroid(room.points) : this.toWorld(this._size.w / 2, this._size.h / 2);
+    const [w, h, d] = m.size.map((v) => Math.max(0.01, round(v))) as [number, number, number];
+    const id = m.file.replace(/\.glb$/i, "");
+    const item = {
+      id: uid("furniture"),
+      type,
+      x: round(x),
+      z: round(z),
+      rotation: 0,
+      w,
+      d,
+      h,
+      variant: null,
+      name: m.name ?? id,
+      ...(m.mirror ? { mirror: true } : {}),
+      ...(m.mount_y ? { mount_y: m.mount_y } : {}),
+      aureon_model: { url: m.url, id },
+    } as unknown as Furniture;
+    this.change((_, f) => f.furniture.push(item));
+    this.selectItem("furniture", item.id);
+    this.showPoint(item.x, item.z);
+  }
+
+  private renderAureonOwn() {
+    this.loadAureonOwn();
+    const list = this._aureonOwn;
+    const filter = (this._aureonOwnFilter ?? "").trim().toLowerCase();
+    const shown = Array.isArray(list) ? list.filter((m) => !filter || `${m.name ?? ""} ${m.file}`.toLowerCase().includes(filter)) : [];
+    const used = new Map<string, number>();
+    for (const f of this.floor?.furniture ?? []) {
+      const u = (f as Furniture & { aureon_model?: { url?: string } }).aureon_model?.url;
+      if (u) used.set(u, (used.get(u) ?? 0) + 1);
+    }
+    const cm = (v: number) => Math.round(v * 100);
+    return html`<section class="fp3d-aureon-own">
+      <h3>${this.t("aureon_own_title")}</h3>
+      ${list === null
+        ? html`<p class="fp3d-sub">${this.t("aureon_own_loading")}</p>`
+        : list === "error"
+          ? html`<p class="fp3d-sub">${this.t("aureon_own_error")}</p>`
+          : !list.length
+            ? html`<p class="fp3d-sub">${this.t("aureon_own_empty")}</p>`
+            : html`${list.length > 8
+                  ? html`<input class="fp3d-aureon-own-filter" type="search" .value=${this._aureonOwnFilter ?? ""} placeholder=${this.t("aureon_own_search")} @input=${(e: Event) => {
+                      this._aureonOwnFilter = (e.target as HTMLInputElement).value;
+                      this.requestUpdate();
+                    }} />`
+                  : nothing}
+                <div class="fp3d-aureon-own-list">
+                  ${shown.map(
+                    (m) => html`<button class="fp3d-aureon-own-item" ?disabled=${!this.isAdmin} title=${m.file} @click=${() => this.addAureonOwn(m)}>
+                      <b>${m.name ?? m.file.replace(/\.glb$/i, "")}</b>
+                      <span class="fp3d-sub">${cm(m.size[0])} × ${cm(m.size[2])} × ${cm(m.size[1])} cm${used.get(m.url) ? ` · ${this.t("aureon_own_in_plan", { n: used.get(m.url)! })}` : ""}</span>
+                    </button>`,
+                  )}
+                </div>
+                <p class="fp3d-sub">${this.room ? this.t("aureon_own_hint_room", { room: this.room.name }) : this.t("aureon_own_hint")}</p>`}
+    </section>`;
+  }
+
   private renderFurnitureLibrary() {
     const room = this.room;
     const lang = this.hass?.language ?? "en";
-    return html`<section>
+    return html`${this.renderAureonOwn()}<section>
       <h3>${this.t("furniture_add")}</h3>
       <p class="fp3d-sub">${room ? this.t("furniture_into", { room: room.name }) : this.t("furniture_pick_room")}</p>
       <fp3d-library
@@ -15992,6 +16093,32 @@ export class Fp3dEditor extends LitElement {
       }
       .fp3d-ctx-danger {
         color: var(--fp3d-danger, #ff6b7a) !important;
+      }
+      .fp3d-aureon-own-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+        margin: 8px 0;
+      }
+      .fp3d-aureon-own-item {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        padding: 10px;
+        text-align: left;
+        border-radius: 10px;
+        border: 1px solid rgba(var(--aureon-ui-line-rgb, 128, 128, 128), 0.35);
+        background: var(--fp3d-surface, transparent);
+        color: var(--fp3d-text, inherit);
+        cursor: pointer;
+      }
+      .fp3d-aureon-own-item:hover:not([disabled]) {
+        border-color: var(--fp3d-accent);
+      }
+      .fp3d-aureon-own-filter {
+        width: 100%;
+        box-sizing: border-box;
       }
       .fp3d-aureon-paint {
         margin: 12px 0;

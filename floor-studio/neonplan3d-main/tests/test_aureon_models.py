@@ -69,3 +69,74 @@ async def test_models_are_not_served_from_local(hass: HomeAssistant, hass_client
     await _setup(hass)
     anonymous = await hass_client_no_auth()
     assert (await anonymous.get("/local/aureon_models/sofa.glb")).status in (401, 404)
+
+
+def _glb(path: Path, mins: list[float], maxs: list[float], translation: list[float] | None = None) -> None:
+    import json as _json
+    import struct as _struct
+
+    node = {"mesh": 0, **({"translation": translation} if translation else {})}
+    doc = {
+        "asset": {"version": "2.0"},
+        "scene": 0,
+        "scenes": [{"nodes": [0]}],
+        "nodes": [node],
+        "meshes": [{"primitives": [{"attributes": {"POSITION": 0}}]}],
+        "accessors": [{"componentType": 5126, "count": 3, "type": "VEC3", "min": mins, "max": maxs}],
+    }
+    chunk = _json.dumps(doc).encode()
+    chunk += b" " * (-len(chunk) % 4)
+    path.write_bytes(
+        b"glTF" + _struct.pack("<II", 2, 12 + 8 + len(chunk)) + _struct.pack("<II", len(chunk), 0x4E4F534A) + chunk
+    )
+
+
+def test_list_models_gives_real_sizes_and_catalog_names(tmp_path: Path) -> None:
+    import json as _json
+
+    from custom_components.neonplan3d.aureon_models import glb_bounds, list_models
+
+    folder = tmp_path / "aureon_models"
+    folder.mkdir()
+    _glb(folder / "sofa.glb", [-1.5, 0, -0.5], [1.5, 0.8, 0.5])
+    _glb(folder / "lamp.glb", [0, 0, 0], [0.25, 0.44, 0.25], translation=[5, 0, 0])
+    (folder / "broken.glb").write_bytes(b"glTF\x02\x00\x00\x00" + b"\x00" * 16)
+    (folder / "notes.txt").write_text("x")
+    (folder / "catalog.json").write_text(
+        _json.dumps(
+            {
+                "files": {
+                    "sofa.glb": {"name": "Sofá", "type": "sofa_l", "mirror": True, "mount_y": 99},
+                    "../x.glb": {"name": "evil"},
+                    "lamp.glb": {"type": "Bad Type!"},
+                }
+            }
+        )
+    )
+    assert glb_bounds(folder / "sofa.glb") == [3.0, 0.8, 1.0]
+    models = {m["file"]: m for m in list_models(str(tmp_path))}
+    assert set(models) == {"sofa.glb", "lamp.glb"}  # unreadable files and other types are left out
+    sofa = models["sofa.glb"]
+    assert sofa["url"] == "/api/neonplan3d/aureon_models/sofa.glb"
+    assert (
+        sofa["size"] == [3.0, 0.8, 1.0]
+        and sofa["name"] == "Sofá"
+        and sofa["type"] == "sofa_l"
+        and sofa["mirror"] is True
+    )
+    assert "mount_y" not in sofa  # out of range values are dropped
+    assert models["lamp.glb"]["size"] == [0.25, 0.44, 0.25] and "type" not in models["lamp.glb"]
+    assert list_models(str(tmp_path / "missing")) == []
+
+
+async def test_list_command_for_signed_in_users(hass: HomeAssistant, hass_ws_client) -> None:
+    folder = Path(hass.config.config_dir) / "aureon_models"
+    await hass.async_add_executor_job(lambda: folder.mkdir(parents=True, exist_ok=True))
+    await hass.async_add_executor_job(_glb, folder / "chair.glb", [-0.3, 0, -0.25], [0.3, 0.8, 0.25])
+    await _setup(hass)
+    client = await hass_ws_client(hass)
+    await client.send_json({"id": 1, "type": "neonplan3d/aureon_models/list"})
+    result = await client.receive_json()
+    assert result["success"]
+    assert [m["file"] for m in result["result"]["models"]] == ["chair.glb"]
+    assert result["result"]["models"][0]["size"] == [0.6, 0.8, 0.5]

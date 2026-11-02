@@ -51,7 +51,7 @@ import {
   type BufferGeometry,
   type Material,
 } from "three";
-import {AureonModels} from './aureon-models.ts';
+import {aureonMark,AureonModels} from './aureon-models.ts';
 import {buildFinishes} from './aureon-finishes.ts';
 import {AureonPathTrace,TRACE_IDLE_MS} from './aureon-pathtrace.ts';
 import {RealPbrRenderer,furniturePbrKind,floorPbrKind,type PbrGroup,type PbrKind,type PbrLamp} from './real-pbr.ts';
@@ -5076,9 +5076,13 @@ export class FloorplanViewer {
   }
 
   private renderScene(camera: CameraForPbr): void {
+    aureonMark("aureon:3d-first-frame");
+    // the frame that first drew the own models has finished (shaders compiled): timing for the device diagnostics
+    if (typeof performance !== "undefined" && performance.getEntriesByName?.("aureon:models-drawn").length) aureonMark("aureon:models-shown");
     if (this.aureonModels) {
       this.renderer.localClippingEnabled = true;
       this.aureonModels.sync(new Map(this.floors.map((fv) => [fv.floor.id, { group: fv.group, cut: this.wallMode === "cut" ? Math.min(fv.floor.cut_height, fv.floor.height) : null }])), this.theme, this.nightFactor());
+      if (!this.aureonModels.loading && Object.keys(this.aureonModels.status()).length) aureonMark("aureon:models-drawn");
     }
     if(this.theme==='real'){
       this.realPbr??=new RealPbrRenderer(this.renderer,this.lowQuality,this.highQuality);
