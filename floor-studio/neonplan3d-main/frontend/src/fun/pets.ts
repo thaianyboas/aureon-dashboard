@@ -8,9 +8,14 @@
 import type * as THREE from "three";
 import type { Building, Floor, Furniture, Pet, Vec2 } from "../model.ts";
 import type { FloorMap, Obstacle } from "../viewer/walk.ts";
+import { buildGolden, GOLDEN } from "./golden.ts";
 
 /** The three.js classes the pets need, lent by the 3D bundle (it has no ready-made spheres or boxes: shapes are made here). */
-export type FunLib = Pick<typeof THREE, "Group" | "Mesh" | "MeshBasicMaterial" | "CanvasTexture" | "Color" | "PlaneGeometry" | "BufferGeometry" | "Float32BufferAttribute"> & { DoubleSide: typeof THREE.DoubleSide };
+export type FunLib = Pick<typeof THREE, "Group" | "Mesh" | "MeshBasicMaterial" | "CanvasTexture" | "Color" | "PlaneGeometry" | "BufferGeometry" | "Float32BufferAttribute"> & {
+  DoubleSide: typeof THREE.DoubleSide;
+  /** AUREON: the lit material of the modelled Golden Retriever (older viewers without it keep the cartoon look). */
+  MeshStandardMaterial?: typeof THREE.MeshStandardMaterial;
+};
 
 /** The parts of NeonPlan's viewer the pets live in (reached at run time). */
 export interface PetViewer {
@@ -126,7 +131,7 @@ const LOOKS: Record<string, Look> = {
   dachshund: { len: 0.48, wid: 0.14, hi: 0.14, leg: 0.07, head: 0.105, snout: 0.08, ears: "floppy", tail: "dog", speed: 0.7 },
   pug: { len: 0.3, wid: 0.21, hi: 0.18, leg: 0.1, head: 0.13, snout: 0.02, ears: "floppy", tail: "curl", speed: 0.55 },
   terrier: { len: 0.32, wid: 0.16, hi: 0.16, leg: 0.13, head: 0.11, snout: 0.06, ears: "pointy", tail: "dog", speed: 0.8 },
-  golden_retriever: { len: 0.6, wid: 0.25, hi: 0.26, leg: 0.22, head: 0.15, snout: 0.11, ears: "floppy", tail: "dog", speed: 0.85, feather: true },
+  golden_retriever: { len: 0.62, wid: 0.25, hi: 0.26, leg: 0.33, head: 0.15, snout: 0.11, ears: "floppy", tail: "dog", speed: 0.85, feather: true },
   labrador: { len: 0.56, wid: 0.23, hi: 0.23, leg: 0.24, head: 0.14, snout: 0.09, ears: "floppy", tail: "dog", speed: 0.85 },
   shepherd: { len: 0.62, wid: 0.23, hi: 0.25, leg: 0.3, head: 0.14, snout: 0.11, ears: "pointy", tail: "bushy", speed: 0.9 },
 };
@@ -145,6 +150,11 @@ interface Model {
 
 /** A round, friendly animal in the colours of its fur: big head, dark eyes with a shine, a little nose. */
 export function buildModel(lib: FunLib, pet: Pet): Model {
+  if (pet.kind === "dog" && pet.breed === "golden_retriever" && lib.MeshStandardMaterial) {
+    // AUREON: the Golden Retriever is modelled (smooth, lit, with a coat), on the same rig as every pet
+    const g = buildGolden({ ...lib, MeshStandardMaterial: lib.MeshStandardMaterial }, pet.fur);
+    return { ...g, zzz: sleepCard(lib, g.root, GOLDEN.hi + 0.42) };
+  }
   const S = shapes(lib);
   const L = lookOf(pet);
   const [main, second] = FURS[pet.fur] ?? FURS.orange;
@@ -264,7 +274,12 @@ export function buildModel(lib: FunLib, pet: Pet): Model {
     if (L.tail === "cat") tail.add(ball(m1, thick * 1.8, thick * 1.8, thick * 1.8, 0, tl, 0));
   }
   body.add(tail);
-  // "z Z" over a sleeping pet, on a card tilted towards the usual view from above
+  const zzz = sleepCard(lib, root, L.hi + h * 2 + 0.12);
+  return { root, body, legs, tail, head, eyes, zzz };
+}
+
+/** "z Z" over a sleeping pet, on a card tilted towards the usual view from above (hidden while awake). */
+function sleepCard(lib: FunLib, root: THREE.Group, y: number): THREE.Mesh {
   const c = document.createElement("canvas");
   c.width = 128;
   c.height = 64;
@@ -276,10 +291,10 @@ export function buildModel(lib: FunLib, pet: Pet): Model {
   g.fillText("Z", 58, 46);
   const zzz = new lib.Mesh(new lib.PlaneGeometry(0.3, 0.15), new lib.MeshBasicMaterial({ map: new lib.CanvasTexture(c), transparent: true, depthWrite: false, side: lib.DoubleSide }));
   zzz.rotation.x = -0.7;
-  zzz.position.set(0, L.hi + h * 2 + 0.12, 0);
+  zzz.position.set(0, y, 0);
   zzz.visible = false;
   root.add(zzz);
-  return { root, body, legs, tail, head, eyes, zzz };
+  return zzz;
 }
 
 /** A place a pet likes: where it lies (and how high), where it walks to first (to jump up from the front), which way it faces. */

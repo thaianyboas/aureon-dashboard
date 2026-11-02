@@ -27,6 +27,7 @@ import {
   LineSegments,
   Mesh,
   MeshBasicMaterial,
+  MeshStandardMaterial,
   MultiplyBlending,
   OrthographicCamera,
   PerspectiveCamera,
@@ -72,7 +73,7 @@ import { pushPipeTube, type PipeTube } from "./pipes.ts";
 export { FloorMap, WalkCamera, type WalkState } from "./walk.ts";
 
 /** three.js classes lent to the fun packs' bundle (so it carries no copy of three.js). */
-export const funLib = { Group, Mesh, MeshBasicMaterial, CanvasTexture, Color, PlaneGeometry, BufferGeometry: Geometry, Float32BufferAttribute, DoubleSide };
+export const funLib = { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, CanvasTexture, Color, PlaneGeometry, BufferGeometry: Geometry, Float32BufferAttribute, DoubleSide };
 
 export type { PipeTube };
 import { groundUnder, isCooktopZone, mountBase, packItem, packMotion, setPacks, type FurniturePack } from "../packs.ts";
