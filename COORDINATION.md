@@ -574,3 +574,20 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
   Stable dist and matching assets deliberately promoted; HACS/hash/public-source and build evidence passed.
   Backend source unchanged; the isolated local backend test environment lacks pytest/HA dependencies,
   and attempted dependency installation did not complete. Backend CI remains the authoritative harness.
+
+## NAV-01 — accessible navigation on long pages (Codex, 2026-11-02)
+
+- Owner reports having to scroll the entire page to find the menu. Prior bottom sticky navigation
+  depended on document flow; the fixed exception covered only Devices and could be trapped by HA
+  card ancestors. Replaced with a viewport-bounded shell and independent main-content scrolling.
+- Navigation stays outside the scrolling content on every route. Mobile bottom bar retains safe-area
+  padding and More; desktop rail scrolls independently on short screens. Shell measures the actual
+  visible space below the HA header/card offset and reacts to resize/visual viewport; observers and
+  listeners are released on detach. Page navigation resets the content scroll to the top.
+- Changed only dashboard shell, browser regression coverage, compiled dist and checksum. Native
+  renderer/editor/backend unchanged, so existing integration pin 69857f1 remains compatible.
+- Fetched master 69857f1 before editing/publication. Validation passed: 186 + 535 JS/frontend tests,
+  fidelity gate, full typecheck/build, platform browser checks including long-page menu visibility
+  and More at 1440x900, 1024x600, 820x600, 390x844 and 844x390 with transformed HA-like ancestors.
+  Browser fixtures are synthetic; physical iSG/owner HA not accessed. Owner's publication authorization
+  remains active; promote tested dist to master/HACS, no tag/release or integration rebuild needed.

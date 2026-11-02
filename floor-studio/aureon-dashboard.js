@@ -138,6 +138,24 @@
       this._floorMountToken = 0;
       this._floorCard = null;
     }
+    connectedCallback() {
+      this._shellResize=()=>{cancelAnimationFrame(this._shellFrame);this._shellFrame=requestAnimationFrame(()=>this._fitShell());};
+      window.addEventListener('resize',this._shellResize,{passive:true});
+      window.visualViewport?.addEventListener('resize',this._shellResize,{passive:true});
+      this._shellObserver=new ResizeObserver(this._shellResize);this._shellObserver.observe(this);
+      if(this.parentElement)this._shellObserver.observe(this.parentElement);
+      this._shellResize();
+    }
+    disconnectedCallback() {
+      window.removeEventListener('resize',this._shellResize);window.visualViewport?.removeEventListener('resize',this._shellResize);
+      this._shellObserver?.disconnect();cancelAnimationFrame(this._shellFrame);
+    }
+    _fitShell() {
+      if(!this.isConnected)return;
+      const viewport=window.visualViewport,bottom=viewport?viewport.offsetTop+viewport.height:window.innerHeight;
+      const height=Math.max(200,Math.floor(bottom-Math.max(viewport?.offsetTop||0,this.getBoundingClientRect().top)-12))+'px';
+      if(this.style.getPropertyValue('--aureon-available-height')!==height)this.style.setProperty('--aureon-available-height',height);
+    }
     setConfig(config) {
       if (config && config.type && config.type !== 'custom:aureon-dashboard') {
         throw new Error('Tipo de cartão AUREON inválido');
@@ -229,6 +247,7 @@
       this._page=name;
       const main=this.shadowRoot.querySelector('main'),wrap=this.shadowRoot.querySelector('.wrap');
       if (!main||!wrap) { this._render();return; }
+      main.scrollTop=0;
       ++this._floorMountToken;this._floorCard=null;this._studioRendered=[];
       // The home page (with its 3D plan) is kept alive while other pages are open: going back to Início shows it at
       // once instead of rebuilding the WebGL view, reloading the furniture models and recompiling shaders.
@@ -1461,6 +1480,7 @@
       queueMicrotask(()=>this._mountFloorStudio());
     }
     _render() {
+      this._shellResize?.();
       const Platform=customElements.get('aureon-platform');
       if(Platform?.createController){if(!this._platformController){this._platformController=Platform.createController();this._platformController.subscribe?.(()=>{const p=this._platformController.preferences;if(p.appearance!==this._theme.mode||p.palette!==this._theme.palette){this._theme={...this._theme,mode:p.appearance,palette:p.palette};this._applyThemeTokens();}});}this._platformController.update(this._hass,this._registry);this._theme={...this._theme,mode:this._platformController.preferences.appearance,palette:this._platformController.preferences.palette};}
 
@@ -1520,6 +1540,9 @@
         if (text !== undefined) el.textContent = text;
         return el;
       };
+      // Keep navigation outside the page's scrolling region, including HA cards whose ancestors
+      // establish a containing block for position:fixed. The shell itself fits below the HA header.
+      filterStyle.textContent += `.wrap.wrap{height:var(--aureon-shell-height,var(--aureon-available-height,calc(100dvh - var(--header-height,56px) - 16px)));min-height:0;grid-template-rows:minmax(0,1fr);overflow:hidden}.wrap>main{min-height:0;overflow:auto;overscroll-behavior-y:contain;scrollbar-gutter:stable}.wrap>nav{min-height:0;max-height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}.wrap>nav>*{flex-shrink:0}@supports not(height:100dvh){.wrap.wrap{height:var(--aureon-shell-height,var(--aureon-available-height,calc(100vh - var(--header-height,56px) - 16px)))}}@media(max-width:650px){.wrap.wrap{grid-template-rows:minmax(0,1fr) auto}.wrap.wrap>nav{position:relative!important;bottom:auto!important;left:auto!important;width:auto!important;height:auto;max-height:none;overflow:visible;z-index:30;background:var(--au-nav)}.wrap.wrap>main{padding-bottom:18px!important}.wrap>nav .au-rail-foot,.wrap>nav .au-rail-person{display:none!important}}@media(min-width:651px) and (max-height:750px){.wrap>nav{padding-top:10px!important;padding-bottom:10px!important;gap:3px!important}.wrap>nav .logo{margin:0 0 8px!important}.wrap>nav .au-logo-mark{height:34px!important;width:32px!important}.wrap>nav .au-wordmark,.wrap>nav .au-rail-foot{display:none!important}.wrap>nav .au-nav-button{min-height:38px!important;padding-top:6px!important;padding-bottom:6px!important}}`;
       const wrap = make('div', 'wrap'+(this._page==='Início'||this._page==='Medien'?' au-home':'')+(this._page==='Medien'?' au-media':''));
       const nav = make('nav');
       nav.setAttribute('aria-label', 'AUREON navigation');
