@@ -436,3 +436,15 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
 - Tests: npm test, validate, contract, browser suites (platform test: no look select, older stored looks show Real),
   disposable HA: Startseite without look select, card theme real, panel without look buttons; wall 3 painted via the
   new picker, undo/redo/reload/clear. Stable dist rebuilt (page.mjs). Not run on the owner's HA.
+
+## PETS-01 / CLEAN-01 — Golden Retriever; Halloween and help removed (Claude, 2026-11-02, owner request)
+
+- Golden Retriever: model "Golden Retriever Dog 3D Model (Free)" by iRahulRajput (Sketchfab, CC BY 4.0, AI-generated)
+  reduced to 25k triangles / 1024 px, shipped as `frontend/pets/golden-retriever.glb` with THIRD_PARTY_PETS.txt and a
+  credit line under the pets. `fun/golden.ts` skins it at run time on the pets' rig (body, legs, head, tail); an own
+  `pet-golden-retriever.glb` in `/config/aureon_models` takes precedence (hidden from "Meus móveis"). Breed and coats
+  live in `aureon-pets.ts` (model.ts is a protected original file; `npm test` includes test:fidelity — check its exit code).
+- Removed on owner decision: Halloween (pack filtered in listPacks, no ghost option), help and feedback links,
+  "Help improve" topic and invitation, the extensions teaser under the library. Editor browser test expects no
+  backend call at start.
+- Pending owner approval: the redesign (Floor Studio "Ajustes" instead of the Extensions tab, packs/modules built in).
