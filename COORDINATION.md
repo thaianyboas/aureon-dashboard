@@ -306,3 +306,24 @@ source pin, per-file checksums vs MANIFEST, release guard, secret patterns; acti
 `candidate.yml` also proves the committed package is byte-identical to a fresh build of SOURCE_COMMIT; both on
 `ubuntu-24.04`, Node-24 actions, concurrency groups; monthly grouped Dependabot for actions; `CI.md` (publish order,
 diagnosis table). The older candidate failure (41301876357, migration contract expected test.1) was already fixed.
+
+## THEME-02 — Silver Penthouse / Amethyst Lounge (Codex, 2026-11-02)
+Owner requested both visual concepts in Einstellungen → theme selection.
+- Added distinct `silver-penthouse` (charcoal/silver/ice blue) and
+  `amethyst-lounge` (plum/rose gold) palettes without replacing existing IDs.
+- Settings exposes both names in the selector and compact CSS colour previews.
+  Selecting a palette or preview activates custom appearance directly; existing
+  per-user preference persistence and shared AUREON/Floor Studio tokens apply.
+- Scope: theme colours/finishes. The reference images' separate desktop/mobile
+  compositions and architectural image quality are NOT implemented by a palette.
+  Next owner: Claude for those layout requirements, preserving these palette IDs.
+- Source files: floor-studio/aureon-dashboard.js, dashboard/platform/page.mjs and
+  styles.mjs; browser coverage added to scripts/test-platform-browser.mjs.
+- Build/typecheck and 67 dashboard unit tests passed. Browser outcome and HACS
+  promotion recorded below after execution. No physical iSG/phone or live HA test.
+- Final validation: platform browser suite passed, including direct activation of
+  both previews and 390px settings width. Existing binding test now waits for its
+  rendered summary after loading (avoids an asynchronous rendering race).
+- Added both IDs to the preference validator; otherwise reload/save discarded
+  new selections. HACS dist rebuilt, checksum updated; npm run validate passed.
+- Dashboard-only change: integration backend and SOURCE_COMMIT unchanged.

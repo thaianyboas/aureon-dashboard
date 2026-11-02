@@ -6,7 +6,7 @@ export function validatePreferences(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.schema!==1)throw new Error('Invalid configuration');
  const out=defaults();
  for(const [key,allowed] of Object.entries({floorLook:['neon','blueprint','day','night','real'],language:['auto','en','de','pt'],appearance:['auto','dark','light','custom'],density:['compact','comfortable']}))if(allowed.includes(raw[key]))out[key]=raw[key];
- if(['black-gold-royal','black-bordeaux-royal','purple','blue','emerald','burgundy','rose-noir','gold','pearl','obsidian','sapphire','forest','forest-botanical','terracotta','sand','ocean','amethyst','copper','sage','arctic','ruby','lavender','graphite'].includes(raw.palette))out.palette=raw.palette;
+ if(['black-gold-royal','black-bordeaux-royal','purple','blue','emerald','burgundy','rose-noir','gold','pearl','obsidian','sapphire','forest','forest-botanical','terracotta','sand','ocean','amethyst','copper','sage','arctic','ruby','lavender','graphite','silver-penthouse','amethyst-lounge'].includes(raw.palette))out.palette=raw.palette;
  if(Array.isArray(raw.hidden))out.hidden=[...new Set(raw.hidden.map(id).filter(Boolean))].slice(0,3000);
  if(raw.widgets)for(const key of Object.keys(out.widgets))if(typeof raw.widgets[key]==='boolean')out.widgets[key]=raw.widgets[key];
  if(raw.energy){for(const key of ['power','total','daily','weekly','monthly','yearly'])out.energy[key]=id(raw.energy[key]);const rate=Number(raw.energy.tariff);if(raw.energy.tariff!==null&&String(raw.energy.tariff??'').trim()!==''&&Number.isFinite(rate)&&rate>=0&&rate<=10000)out.energy.tariff=rate;if(/^[A-Z]{3}$/.test(raw.energy.currency||''))out.energy.currency=raw.energy.currency;}
