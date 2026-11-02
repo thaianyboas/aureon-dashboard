@@ -293,3 +293,16 @@ VIS-REAL-01 step 5 (Claude, 2026-11-02; owner: "fix everything to look like prof
   gets one plain, unshared, single-material mesh per material range (`splitByMaterial`, tested); (3) cut copies kept
   the original layout. Brighter sky for daylight in the photo; seamless rug texture.
 - Unit tests 529 pass; browser floor/editor/platform/music pass; fidelity unchanged.
+
+### CI-INT-01 — aureon-integration validation failures (Claude, 2026-11-02, owner request)
+Root cause (logs of runs 41309856615, 41344081791, 41351602347): `Verify pre-release guard` failed with
+`AssertionError: package not built from SOURCE_COMMIT` — the package was generated BEFORE the dashboard commit was
+made, so `MANIFEST.json.source_commit` named the previous commit while `SOURCE_COMMIT` named the new one (2cd65cc:
+4d6e0cf vs f64cfc6; d463b09: 429f643 vs b49690b; 1363acc: b49690b vs 23de01a). A real inconsistency, correctly caught.
+Fix at the source: `scripts/package-hacs-integration-candidate.mjs` refuses uncommitted changes and writes
+`SOURCE_COMMIT` into the package (copy it, never hand-write it). Integration repo: `validate.yml` now runs
+`.github/scripts/validate_distribution.py` (YAML, hacs.json schema, integration manifest, Python compile, JSON,
+source pin, per-file checksums vs MANIFEST, release guard, secret patterns; actionable messages and annotations),
+`candidate.yml` also proves the committed package is byte-identical to a fresh build of SOURCE_COMMIT; both on
+`ubuntu-24.04`, Node-24 actions, concurrency groups; monthly grouped Dependabot for actions; `CI.md` (publish order,
+diagnosis table). The older candidate failure (41301876357, migration contract expected test.1) was already fixed.
