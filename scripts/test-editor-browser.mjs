@@ -23,7 +23,7 @@ try{
  });await page.waitForFunction(()=>editor.shadowRoot.querySelector('.fp3d-canvas-wrap'));
  const clickText=async text=>{await page.evaluate(text=>{const button=[...editor.shadowRoot.querySelectorAll('button')].find(b=>b.textContent.trim()===text&&!b.disabled);if(!button)throw Error('Missing enabled button: '+text);button.click();},text);await page.evaluate(()=>editor.updateComplete);};
  await page.evaluate(()=>[...editor.shadowRoot.querySelectorAll('button')].find(b=>b.textContent.trim()==='Not now')?.click());
- assert.equal(await page.evaluate(()=>editor.building.floors.length),0);assert.deepEqual(await page.evaluate(()=>calls.map(c=>c.type)),['neonplan3d/diagnostics/get']);checks.push('starts empty without private defaults or backend writes');
+ assert.equal(await page.evaluate(()=>editor.building.floors.length),0);assert.deepEqual(await page.evaluate(()=>calls.map(c=>c.type)),[]); /* no help-improve check (owner decision 2026-11-02): no backend call at start */ checks.push('starts empty without private defaults or backend writes');
  await page.click('#editor >>> .fp3d-seg-menu button');await clickText('Add floor');await page.waitForFunction(()=>editor.building.floors.length===1);checks.push('native floor menu creates a floor and emits parent change');
  await clickText('Build ▾');await clickText('Room▸');await clickText('Rectangle');
  const box=await page.$eval('#editor >>> .fp3d-canvas-wrap',e=>{const b=e.getBoundingClientRect();return {x:b.x,y:b.y};});
