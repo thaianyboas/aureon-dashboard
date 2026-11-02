@@ -4,7 +4,8 @@
 import { css, html, LitElement, nothing } from "lit";
 import { approveModule, importPack, removePack, reviewModule, type ModuleReview } from "../api.ts";
 import { FUN, knownFeature, unlockedFeatures } from "../features.ts";
-import { DOG_BREEDS, PET_FURS_OF, type Building, type Pet } from "../model.ts";
+import type { Building, Pet } from "../model.ts";
+import { AUREON_DOG_BREEDS as DOG_BREEDS, AUREON_PET_FURS_OF as PET_FURS_OF } from "../aureon-pets.ts";
 import { translate, type I18nKey } from "../i18n.ts";
 import { packName, type FurniturePack } from "../packs.ts";
 import { moduleWaits } from "../modules.ts";
