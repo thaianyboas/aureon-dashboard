@@ -27,7 +27,10 @@ import {
   LineSegments,
   Mesh,
   MeshBasicMaterial,
-  MeshStandardMaterial,
+  Bone,
+  Skeleton,
+  SkinnedMesh,
+  Uint16BufferAttribute,
   MultiplyBlending,
   OrthographicCamera,
   PerspectiveCamera,
@@ -73,7 +76,21 @@ import { pushPipeTube, type PipeTube } from "./pipes.ts";
 export { FloorMap, WalkCamera, type WalkState } from "./walk.ts";
 
 /** three.js classes lent to the fun packs' bundle (so it carries no copy of three.js). */
-export const funLib = { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, CanvasTexture, Color, PlaneGeometry, BufferGeometry: Geometry, Float32BufferAttribute, DoubleSide };
+export const funLib = {
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  CanvasTexture,
+  Color,
+  PlaneGeometry,
+  BufferGeometry: Geometry,
+  Float32BufferAttribute,
+  DoubleSide,
+  // AUREON: skinning for the owner's Golden Retriever model (fun/golden.ts)
+  skin: { Group, Bone, Skeleton, SkinnedMesh, Float32BufferAttribute, Uint16BufferAttribute },
+};
+/** AUREON: reads an own model file for the pets (the Golden Retriever). */
+export { parseGlb } from "./aureon-models.ts";
 
 export type { PipeTube };
 import { groundUnder, isCooktopZone, mountBase, packItem, packMotion, setPacks, type FurniturePack } from "../packs.ts";

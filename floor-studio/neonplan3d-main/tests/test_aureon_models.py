@@ -100,6 +100,7 @@ def test_list_models_gives_real_sizes_and_catalog_names(tmp_path: Path) -> None:
     folder.mkdir()
     _glb(folder / "sofa.glb", [-1.5, 0, -0.5], [1.5, 0.8, 0.5])
     _glb(folder / "lamp.glb", [0, 0, 0], [0.25, 0.44, 0.25], translation=[5, 0, 0])
+    _glb(folder / "pet-golden-retriever.glb", [0, 0, 0], [0.3, 0.7, 1.1])
     (folder / "broken.glb").write_bytes(b"glTF\x02\x00\x00\x00" + b"\x00" * 16)
     (folder / "notes.txt").write_text("x")
     (folder / "catalog.json").write_text(
@@ -115,7 +116,7 @@ def test_list_models_gives_real_sizes_and_catalog_names(tmp_path: Path) -> None:
     )
     assert glb_bounds(folder / "sofa.glb") == [3.0, 0.8, 1.0]
     models = {m["file"]: m for m in list_models(str(tmp_path))}
-    assert set(models) == {"sofa.glb", "lamp.glb"}  # unreadable files and other types are left out
+    assert set(models) == {"sofa.glb", "lamp.glb"}  # unreadable files, other types and pet models are left out
     sofa = models["sofa.glb"]
     assert sofa["url"] == "/api/neonplan3d/aureon_models/sofa.glb"
     assert (

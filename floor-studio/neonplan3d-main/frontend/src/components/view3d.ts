@@ -3883,6 +3883,13 @@ export class Fp3dView3d extends LitElement {
         pets: this.building?.settings.pets?.on !== false && this.petsOn !== false ? (this.building?.settings.pets?.list ?? []) : [],
         night: () => this.hass?.states["sun.sun"]?.state === "below_horizon",
         base: (floor, f) => mountBase(floor, f),
+        // AUREON: the owner's Golden Retriever model (private file in <config>/aureon_models; missing: simple look)
+        petModel: async (url) => {
+          const hass = this.hass as unknown as { fetchWithAuth?: (u: string, init?: RequestInit) => Promise<Response> } | undefined;
+          const res = hass?.fetchWithAuth ? await hass.fetchWithAuth(url, { credentials: "same-origin" }) : await fetch(url, { credentials: "same-origin" });
+          if (!res.ok) return null;
+          return mod.parseGlb(await res.arrayBuffer(), async (blob) => (typeof createImageBitmap === "function" ? createImageBitmap(blob) : null));
+        },
         closedDoors: () => {
           const out = new Set<string>();
           const states = this.hass?.states ?? {};

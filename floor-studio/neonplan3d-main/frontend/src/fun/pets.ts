@@ -8,13 +8,13 @@
 import type * as THREE from "three";
 import type { Building, Floor, Furniture, Pet, Vec2 } from "../model.ts";
 import type { FloorMap, Obstacle } from "../viewer/walk.ts";
-import { buildGolden, GOLDEN } from "./golden.ts";
+import { buildGolden, GOLDEN_LOOK, GOLDEN_URL, type PetAsset, type SkinLib } from "./golden.ts";
 
 /** The three.js classes the pets need, lent by the 3D bundle (it has no ready-made spheres or boxes: shapes are made here). */
 export type FunLib = Pick<typeof THREE, "Group" | "Mesh" | "MeshBasicMaterial" | "CanvasTexture" | "Color" | "PlaneGeometry" | "BufferGeometry" | "Float32BufferAttribute"> & {
   DoubleSide: typeof THREE.DoubleSide;
-  /** AUREON: the lit material of the modelled Golden Retriever (older viewers without it keep the cartoon look). */
-  MeshStandardMaterial?: typeof THREE.MeshStandardMaterial;
+  /** AUREON: skinning for the owner's Golden Retriever model (older viewers without it keep the simple look). */
+  skin?: SkinLib;
 };
 
 /** The parts of NeonPlan's viewer the pets live in (reached at run time). */
@@ -40,6 +40,8 @@ export interface PetsContext {
   base: (floor: Floor, f: Furniture) => number;
   /** Doors their contact reports shut: the pets go round them (doors without a sensor count as open). */
   closedDoors?: () => ReadonlySet<string>;
+  /** AUREON: reads a model file (the owner's Golden Retriever); null when it is not there. */
+  petModel?: (url: string) => Promise<PetAsset | null>;
 }
 
 export interface PetsController {
@@ -148,12 +150,15 @@ interface Model {
   zzz: THREE.Mesh;
 }
 
+/** AUREON: a Golden Retriever (drawn from the owner's model file once it has loaded). */
+const isGolden = (pet: Pet) => pet.kind === "dog" && pet.breed === "golden_retriever";
+
 /** A round, friendly animal in the colours of its fur: big head, dark eyes with a shine, a little nose. */
-export function buildModel(lib: FunLib, pet: Pet): Model {
-  if (pet.kind === "dog" && pet.breed === "golden_retriever" && lib.MeshStandardMaterial) {
-    // AUREON: the Golden Retriever is modelled (smooth, lit, with a coat), on the same rig as every pet
-    const g = buildGolden({ ...lib, MeshStandardMaterial: lib.MeshStandardMaterial }, pet.fur);
-    return { ...g, zzz: sleepCard(lib, g.root, GOLDEN.hi + 0.42) };
+export function buildModel(lib: FunLib, pet: Pet, golden: PetAsset | null = null): Model {
+  if (isGolden(pet) && golden && lib.skin) {
+    // AUREON: the owner's Golden Retriever model, given the pets' rig
+    const g = buildGolden(lib.skin, golden) as unknown as Omit<Model, "zzz">;
+    return { ...g, zzz: sleepCard(lib, g.root, 0.85) };
   }
   const S = shapes(lib);
   const L = lookOf(pet);
@@ -929,7 +934,23 @@ export function startPets(ctx: PetsContext): PetsController {
     fishes = [];
   };
 
+  // AUREON: the owner's Golden Retriever model, read once when a Golden lives here (then the dogs are rebuilt)
+  let golden: PetAsset | null = null;
+  let disposed = false;
+  let goldenAsked = false;
+  let shown: readonly Pet[] = ctx.pets;
+  const askGolden = (pets: readonly Pet[]) => {
+    if (goldenAsked || !ctx.petModel || !lib.skin || !pets.some(isGolden)) return;
+    goldenAsked = true;
+    void ctx.petModel(GOLDEN_URL).then((asset) => {
+      if (!asset || disposed) return;
+      golden = asset;
+      update(plan, shown);
+    }, () => undefined);
+  };
   const update = (b: Building, pets: readonly Pet[]) => {
+    shown = pets;
+    askGolden(pets);
     const before = new Map(animals.map((a) => [a.pet.id, a]));
     clear();
     plan = b;
@@ -943,8 +964,8 @@ export function startPets(ctx: PetsContext): PetsController {
       const old = prev;
       const a: Animal = {
         pet,
-        look: lookOf(pet),
-        model: buildModel(lib, pet),
+        look: isGolden(pet) && golden && lib.skin ? { ...lookOf(pet), ...GOLDEN_LOOK } : lookOf(pet),
+        model: buildModel(lib, pet, golden),
         floorId: floor.id,
         map: floorInfo(floor.id).map,
         spots: [],
@@ -976,5 +997,11 @@ export function startPets(ctx: PetsContext): PetsController {
   };
 
   update(ctx.building, ctx.pets);
-  return { update, dispose: clear };
+  return {
+    update,
+    dispose: () => {
+      disposed = true;
+      clear();
+    },
+  };
 }

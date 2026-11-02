@@ -6208,8 +6208,9 @@
       "original_line": 3848,
       "candidate_line": 3846,
       "original_sha256": "19ce63e457cf47bad2621fd16bde1cd169b7d87b03e1117abbfb037dd1fa6c9a",
-      "candidate_sha256": "19ce63e457cf47bad2621fd16bde1cd169b7d87b03e1117abbfb037dd1fa6c9a",
-      "status": "preserved"
+      "candidate_sha256": "7897763ee6755cdc406b0b802f14f832242dc63b7db149c162e8fdb95684d5e5",
+      "status": "aureon_extension",
+      "note": "AUREON: passes petModel (reads the owner's private Golden Retriever model from <config>/aureon_models)."
     },
     {
       "symbol": "components/view3d.ts::Fp3dView3d.syncGhost",
@@ -8005,7 +8006,7 @@
       "original_line": 141,
       "candidate_line": 141,
       "original_sha256": "8ebd9b1d8f1043165bebfacc519a2e3a3622997d27ba7c3be89be384bc90bc53",
-      "candidate_sha256": "139d2a3ac72a332765dfde0884e12871a5aa0cf801cfffa5581269110a45969f",
+      "candidate_sha256": "2ff44ce55ced6c5c83d147939b224b60baa023bdaa9141cf3c8f9792cc01d5a5",
       "status": "aureon_extension",
       "note": "AUREON: Golden Retriever coat (feathered ears, chest ruff, belly fringe) when the look has feather."
     },
@@ -8070,8 +8071,9 @@
       "original_line": 538,
       "candidate_line": 538,
       "original_sha256": "6848e6cf2460ef79f4c10dbe3827af5e290911321f694cabdafc476339590371",
-      "candidate_sha256": "6848e6cf2460ef79f4c10dbe3827af5e290911321f694cabdafc476339590371",
-      "status": "preserved"
+      "candidate_sha256": "4d71953df7722594811e03bc2e9e7c45af9cda2da385375db89b3748ab222371",
+      "status": "aureon_extension",
+      "note": "AUREON: reads the owner's Golden Retriever model once when a Golden lives here and rebuilds the dogs with it (skinned on the pets' rig); without the file the simple look stays."
     },
     {
       "symbol": "furniture-names.ts::furnitureName",
