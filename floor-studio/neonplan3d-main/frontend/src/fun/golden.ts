@@ -1,12 +1,15 @@
-// AUREON: the Golden Retriever from the owner's own model file (private, in <config>/aureon_models, never in the
-// repository). The file is a single posed mesh without a skeleton; here it gets one at run time: bones at the
+// AUREON: the Golden Retriever from a model file (shipped with AUREON under CC BY 4.0, or the owner's own in
+// <config>/aureon_models). The file is a single posed mesh without a skeleton; here it gets one at run time: bones at the
 // shoulders, hips, neck and tail root, and every vertex weighted to the part it belongs to (smoothly across the
 // joints). The bones are the pets' rig (body, four legs, head, tail), so walking, lying down and sleeping work as
 // for every pet. Without the file (or before it has loaded) the dog keeps the simple built-in look.
 import type * as THREE from "three";
 
-/** The file the owner's Golden Retriever is read from (served to signed-in users only). */
-export const GOLDEN_URL = "/api/neonplan3d/aureon_models/pet-golden-retriever.glb";
+/**
+ * The Golden Retriever model shipped with AUREON ("Golden Retriever Dog 3D Model (Free)" by iRahulRajput, CC BY 4.0,
+ * see frontend/pets/THIRD_PARTY_PETS.txt); an own file in <config>/aureon_models of the same name takes its place.
+ */
+export const GOLDEN_URLS = ["/api/neonplan3d/aureon_models/pet-golden-retriever.glb", "/neonplan3d_static/pets/golden-retriever.glb"];
 
 /** The model as the 3D bundle reads it (one or more parts, metres, feet at y = 0, front towards +z). */
 export interface PetAsset {

@@ -8071,9 +8071,9 @@
       "original_line": 538,
       "candidate_line": 538,
       "original_sha256": "6848e6cf2460ef79f4c10dbe3827af5e290911321f694cabdafc476339590371",
-      "candidate_sha256": "4d71953df7722594811e03bc2e9e7c45af9cda2da385375db89b3748ab222371",
+      "candidate_sha256": "7631fd4392cfb18b31f6079ae7fe8174178439cc811aeed379b7bc7096faa022",
       "status": "aureon_extension",
-      "note": "AUREON: reads the owner's Golden Retriever model once when a Golden lives here and rebuilds the dogs with it (skinned on the pets' rig); without the file the simple look stays."
+      "note": "AUREON: reads the owner's Golden Retriever model once when a Golden lives here and rebuilds the dogs with it (skinned on the pets' rig); without the file the simple look stays. The model ships with AUREON (CC BY 4.0, frontend/pets/THIRD_PARTY_PETS.txt); an own file of the same name in <config>/aureon_models takes its place."
     },
     {
       "symbol": "furniture-names.ts::furnitureName",

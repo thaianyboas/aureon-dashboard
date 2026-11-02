@@ -8,7 +8,7 @@
 import type * as THREE from "three";
 import type { Building, Floor, Furniture, Pet, Vec2 } from "../model.ts";
 import type { FloorMap, Obstacle } from "../viewer/walk.ts";
-import { buildGolden, GOLDEN_LOOK, GOLDEN_URL, type PetAsset, type SkinLib } from "./golden.ts";
+import { buildGolden, GOLDEN_LOOK, GOLDEN_URLS, type PetAsset, type SkinLib } from "./golden.ts";
 
 /** The three.js classes the pets need, lent by the 3D bundle (it has no ready-made spheres or boxes: shapes are made here). */
 export type FunLib = Pick<typeof THREE, "Group" | "Mesh" | "MeshBasicMaterial" | "CanvasTexture" | "Color" | "PlaneGeometry" | "BufferGeometry" | "Float32BufferAttribute"> & {
@@ -942,11 +942,18 @@ export function startPets(ctx: PetsContext): PetsController {
   const askGolden = (pets: readonly Pet[]) => {
     if (goldenAsked || !ctx.petModel || !lib.skin || !pets.some(isGolden)) return;
     goldenAsked = true;
-    void ctx.petModel(GOLDEN_URL).then((asset) => {
-      if (!asset || disposed) return;
-      golden = asset;
-      update(plan, shown);
-    }, () => undefined);
+    const read = ctx.petModel;
+    void (async () => {
+      // the owner's own file first, else the one shipped with AUREON
+      for (const url of GOLDEN_URLS) {
+        const asset = await read(url).catch(() => null);
+        if (!asset) continue;
+        if (disposed) return;
+        golden = asset;
+        update(plan, shown);
+        return;
+      }
+    })();
   };
   const update = (b: Building, pets: readonly Pet[]) => {
     shown = pets;

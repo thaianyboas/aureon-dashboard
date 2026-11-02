@@ -175,6 +175,13 @@ export class Extensions extends LitElement {
             </div>`
           : nothing,
       )}
+      ${list.some((x) => x.kind === "dog" && x.breed === "golden_retriever")
+        ? html`<p class="fp3d-sub fp3d-credit">
+            ${this.t("pet_golden_credit")}
+            <a href="https://sketchfab.com/3d-models/golden-retriever-dog-3d-model-free-4d32f856099c4baca05da2da485c24c1" target="_blank" rel="noopener">iRahulRajput</a>,
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>
+          </p>`
+        : nothing}
     </section>`;
   }
 
