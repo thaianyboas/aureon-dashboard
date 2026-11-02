@@ -247,7 +247,7 @@ function material(id: string, floor: boolean, color: string | null = null): Mesh
     tex.anisotropy = 8;
     textures.set(id, tex);
   }
-  m = new MeshStandardMaterial({ map: tex, roughness: def.roughness, metalness: 0, side: FrontSide, polygonOffset: true, polygonOffsetFactor: floor ? -2 : -1, polygonOffsetUnits: floor ? -4 : -2 });
+  m = new MeshStandardMaterial({ map: tex, roughness: def.roughness, metalness: 0, side: FrontSide, polygonOffset: true, polygonOffsetFactor: floor ? 0 : -1, polygonOffsetUnits: floor ? -4 : -2 });
   if (id === "paint") {
     m.color.set(color ?? AUREON_WALL_PAINTS[0].color);
     m.name = "paint";
