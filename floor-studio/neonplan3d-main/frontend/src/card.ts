@@ -435,7 +435,7 @@ clearTimeout(this.cleanTimer);
               }}
               @back=${() => this.back()}
             ></fp3d-view3d>`
-          : html`<p class="fp3d-card-msg">${this.data.error ?? (b ? translate(this.hass, "no_building") : translate(this.hass, "loading"))}</p>`}
+          : html`<div class="fp3d-card-msg" role="status"><p>${this.data.error ?? (b ? translate(this.hass, "no_building") : translate(this.hass, "loading"))}</p>${this.data.error ? html`<button class="fp3d-btn" @click=${()=>this.data.retry()}>${t("tt_retry")}</button>` : nothing}</div>`}
         ${this._roomId && b && this._config?.room_panel !== false
           ? html`<fp3d-room-panel
               @camera-look=${(e: CustomEvent<{ entity: string }>) => this.view3d()?.lookThrough(e.detail.entity)}

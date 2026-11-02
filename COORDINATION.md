@@ -372,3 +372,29 @@ imported plan, not just drawing new free walls.
 - Tests: npm test 174 + 529, validate, migration contract, typecheck, browser suites, backend pytest 141 (incl. the
   new list tests), ruff. Disposable HA (emulated desktop, SwiftShader): list shows 24 private models with names and
   sizes; add sofa + 2 lamps, undo, saved to HA; plan restored. Not tested on the owner's HA, iSG or phone.
+
+
+## LOAD-01 — Endless plan loading / reconnect recovery (Codex, 2026-11-02)
+Owner screenshot shows the native card's “Loading” placeholder, before building
+arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeasured.
+- Found unbounded building reads and setHass starting only for the first connection:
+  a request that never settles stays loading; replacing the HA connection does not
+  reload. No claim that this is the sole cause on the owner's installation.
+- Building reads now have a 12s deadline, a localized explanation and explicit
+  Retry. Optional pack reads have a separate 4s deadline and do not block showing
+  the building. No repeated background polling or private-plan disk cache added.
+- Scope/read generations discard stale completions after timeout, retry, detach
+  and connection replacement. Subscriptions acquired after detach are released.
+  Original save/edit logic and renderer quality are unchanged.
+- Added deadline unit tests and scripts/test-loading-browser.mjs to test:browser:
+  simulated never-returning WS request -> timeout message+Retry; recovery with
+  optional packs stalled; late reply cannot overwrite recovered plan; new HA
+  connection reloads. Actual compiled card + synthetic WS, not owner HA hardware.
+- Build/typecheck, npm test and focused loading browser tests passed. Broader
+  browser outcome is recorded below. No actual load-time improvement on the owner's
+  PC/iSG/phone has been measured; owner diagnostics remain needed for that claim.
+- Final validation: all six browser suites passed (music, platform, floor,
+  original editor, contour, loading); final build/typecheck, npm test and validate
+  passed. Timeout messages are localized in the shared controller, so other
+  native views do not display an internal error code. Integration package must
+  pin this published source revision. Real owner load latency still unmeasured.

@@ -2,6 +2,7 @@
 
 import type { ReactiveController, ReactiveControllerHost } from "lit";
 import { fetchBuilding, listPacks, saveBuilding, subscribeBuilding } from "./api.ts";
+import { translate } from "./i18n.ts";
 import { initDiagnostics } from "./diagnostics.ts";
 import { normalizeBuilding, type Building } from "./model.ts";
 import { setPacks, type FurniturePack } from "./packs.ts";
@@ -46,6 +47,14 @@ function writeDraft(draft: Draft | null): void {
   }
 }
 
+/** Bound a read without allowing an abandoned response to change current state. */
+export function loadDeadline<T>(promise: Promise<T>, ms = 12000): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("AUREON_PLAN_TIMEOUT")), ms);
+    promise.then(value => {clearTimeout(timer);resolve(value);}, error => {clearTimeout(timer);reject(error);});
+  });
+}
+
 export class BuildingController implements ReactiveController {
   building: Building | null = null;
   error: string | null = null;
@@ -70,6 +79,8 @@ export class BuildingController implements ReactiveController {
   private pending: Building | null = null;
   private saving: Promise<void> | null = null;
   private connected = false;
+  private loadEpoch = 0;
+  private readEpoch = 0;
 
   constructor(host: ReactiveControllerHost) {
     this.host = host;
@@ -78,9 +89,20 @@ export class BuildingController implements ReactiveController {
 
   /** Call whenever the host receives a new hass object. */
   setHass(hass: HomeAssistant): void {
-    const first = this.hass === null;
+    const previous = this.hass;
+    const changed = !!previous && previous.connection !== hass.connection;
     this.hass = hass;
-    if (first && this.connected) void this.start();
+    if (changed) {
+      ++this.loadEpoch;
+      void this.unsubscribe?.();
+      this.unsubscribe = null;
+      this.building = null;
+      this.error = null;
+      this.revision = -1;
+      this.backendVersion = null;
+      this.host.requestUpdate();
+    }
+    if ((!previous || changed) && this.connected) void this.start();
   }
 
   hostConnected(): void {
@@ -90,6 +112,7 @@ export class BuildingController implements ReactiveController {
 
   hostDisconnected(): void {
     this.connected = false;
+    ++this.loadEpoch;
     void this.flush();
     void this.unsubscribe?.();
     this.unsubscribe = null;
@@ -174,14 +197,19 @@ export class BuildingController implements ReactiveController {
     if (!this.hass) return;
     // the opt-in reports: one local call per page to learn whether they are on (see diagnostics.ts)
     initDiagnostics(this.hass);
+    const epoch = this.loadEpoch;
     await Promise.all([this.reloadPacks(), this.reload()]);
+    if (epoch !== this.loadEpoch) return;
     if (!this.unsubscribe && this.connected) {
       try {
-        this.unsubscribe = await subscribeBuilding(this.hass, (revision) => {
+        const unsubscribe = await subscribeBuilding(this.hass, (revision) => {
+          if (epoch !== this.loadEpoch || !this.connected) return;
           if (this.ownRevisions.has(revision) || revision === this.revision) return;
           if (this.pending || this.saving) return; // our own edits win; they are saved next
           void this.reload();
         });
+        if (epoch === this.loadEpoch && this.connected) this.unsubscribe = unsubscribe;
+        else void unsubscribe();
       } catch {
         // older backend or connection loss: changes from elsewhere show after a reload
       }
@@ -191,10 +219,14 @@ export class BuildingController implements ReactiveController {
   /** Load the furniture packs again (after an import or removal). */
   async reloadPacks(): Promise<void> {
     if (!this.hass) return;
+    const epoch = this.loadEpoch;
     try {
-      this.packs = await listPacks(this.hass);
+      const packs = await loadDeadline(listPacks(this.hass), 4000);
+      if (epoch !== this.loadEpoch || !this.connected) return;
+      this.packs = packs;
     } catch {
-      // backend without packs (before a restart): no pack furniture
+      if (epoch !== this.loadEpoch || !this.connected) return;
+      // Optional packs never hold up displaying the building.
       this.packs = [];
     }
     setPacks(this.packs);
@@ -202,17 +234,26 @@ export class BuildingController implements ReactiveController {
     this.host.requestUpdate();
   }
 
+  retry(): void {
+    this.error = null;
+    this.host.requestUpdate();
+    void this.reload();
+  }
+
   private async reload(): Promise<void> {
     if (!this.hass) return;
+    const epoch = this.loadEpoch, read = ++this.readEpoch;
     try {
-      const res = await fetchBuilding(this.hass);
+      const res = await loadDeadline(fetchBuilding(this.hass));
+      if (epoch !== this.loadEpoch || read !== this.readEpoch || !this.connected) return;
       this.building = normalizeBuilding(res.building);
       this.backendVersion = res.version ?? null;
       if (this.draft === null && !this.pending) this.draft = readDraft();
       this.revision = res.revision;
       this.error = null;
     } catch (err) {
-      this.error = errorText(err);
+      if (epoch !== this.loadEpoch || read !== this.readEpoch || !this.connected) return;
+      this.error = errorText(err) === "AUREON_PLAN_TIMEOUT" ? translate(this.hass, "aureon_plan_timeout") : errorText(err);
     }
     this.host.requestUpdate();
   }

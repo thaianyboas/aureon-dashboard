@@ -354,8 +354,9 @@
       "original_line": 80,
       "candidate_line": 80,
       "original_sha256": "5ab08bee71c91eb9e5e773168550e60a759218e8fceca8af066c445415d6056c",
-      "candidate_sha256": "5ab08bee71c91eb9e5e773168550e60a759218e8fceca8af066c445415d6056c",
-      "status": "preserved"
+      "candidate_sha256": "60a4976dbb67fa38191dc8299a19517b2dd7acf324fa9d1c1edbb4eceb6e3022",
+      "status": "aureon_extension",
+      "note": "Reviewed 2026-11-02 LOAD-01: bounded building/optional pack reads, explicit retry and connection recovery, scope guards for stale reads/subscriptions; original save, edit, renderer and card controls preserved."
     },
     {
       "symbol": "building-controller.ts::BuildingController.hostConnected",
@@ -370,8 +371,9 @@
       "original_line": 91,
       "candidate_line": 91,
       "original_sha256": "a8d8f4c9a3d9b6fc6c81347ea20ff114055838ae3f38860fd538dc544e2121aa",
-      "candidate_sha256": "a8d8f4c9a3d9b6fc6c81347ea20ff114055838ae3f38860fd538dc544e2121aa",
-      "status": "preserved"
+      "candidate_sha256": "132ab9a67ab8ea0b38b1ee6fe55068ce4db973084d8ba379470b9f229a6c2f9b",
+      "status": "aureon_extension",
+      "note": "Reviewed 2026-11-02 LOAD-01: bounded building/optional pack reads, explicit retry and connection recovery, scope guards for stale reads/subscriptions; original save, edit, renderer and card controls preserved."
     },
     {
       "symbol": "building-controller.ts::BuildingController.edit",
@@ -434,24 +436,27 @@
       "original_line": 173,
       "candidate_line": 173,
       "original_sha256": "857ac8a210b306ee06c09244d8cb158f98866938187833f9a463dc63392e892b",
-      "candidate_sha256": "857ac8a210b306ee06c09244d8cb158f98866938187833f9a463dc63392e892b",
-      "status": "preserved"
+      "candidate_sha256": "b5d8c317365f63f16cc2e13e3d4092766d317b841c202a623d28ef43138910fb",
+      "status": "aureon_extension",
+      "note": "Reviewed 2026-11-02 LOAD-01: bounded building/optional pack reads, explicit retry and connection recovery, scope guards for stale reads/subscriptions; original save, edit, renderer and card controls preserved."
     },
     {
       "symbol": "building-controller.ts::BuildingController.reloadPacks",
       "original_line": 192,
       "candidate_line": 192,
       "original_sha256": "3e65e3d64fd62f09fc8b0b27cd5d6bee0e612ad94645266493d7dc7699422968",
-      "candidate_sha256": "3e65e3d64fd62f09fc8b0b27cd5d6bee0e612ad94645266493d7dc7699422968",
-      "status": "preserved"
+      "candidate_sha256": "ad657786eb43aec02cf3177ba02e42c70b79e12ac489ea5881a09f53a2fd0795",
+      "status": "aureon_extension",
+      "note": "Reviewed 2026-11-02 LOAD-01: bounded building/optional pack reads, explicit retry and connection recovery, scope guards for stale reads/subscriptions; original save, edit, renderer and card controls preserved."
     },
     {
       "symbol": "building-controller.ts::BuildingController.reload",
       "original_line": 205,
       "candidate_line": 205,
       "original_sha256": "de4cc3cafa867d9615ad2e3ea5152bcfd65f335afa56f910f98eaedc3a43368a",
-      "candidate_sha256": "de4cc3cafa867d9615ad2e3ea5152bcfd65f335afa56f910f98eaedc3a43368a",
-      "status": "preserved"
+      "candidate_sha256": "a7b421304b042044f30192244828ee8d9a71b605c81220a9e84a95164da5606d",
+      "status": "aureon_extension",
+      "note": "Reviewed 2026-11-02 LOAD-01: bounded building/optional pack reads, explicit retry and connection recovery, scope guards for stale reads/subscriptions; original save, edit, renderer and card controls preserved."
     },
     {
       "symbol": "building-controller.ts::errorText",
@@ -778,9 +783,9 @@
       "original_line": 313,
       "candidate_line": 320,
       "original_sha256": "465957948ab630a38e182ebacaabc058b09e6d1151f13325f4c4d2effe0ad906",
-      "candidate_sha256": "858e8efcb6021e170eb7106ddfb083f771bc3e88b21d51872638b55d6e57bd47",
+      "candidate_sha256": "4bf3b599b4ef198cd44107ef36546c91b9803e4c0a7204756c225ff0dc8aceba",
       "status": "aureon_extension",
-      "note": "Adds one binding: .frameScale from the optional aureon_frame config (default 1 = original fit)."
+      "note": "Reviewed 2026-11-02 LOAD-01: bounded building/optional pack reads, explicit retry and connection recovery, scope guards for stale reads/subscriptions; original save, edit, renderer and card controls preserved."
     },
     {
       "symbol": "components/editor.ts::patchItem",
