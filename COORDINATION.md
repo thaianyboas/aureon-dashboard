@@ -411,3 +411,15 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
 - Tests: unit (finishes 6), npm test 174 + 531, validate, contract, browser suites, pytest 141, ruff; disposable HA
   (emulated desktop): single wall graphite + undo/redo + reload + clear, bathroom navy band, pure white; private
   harness 3D (SwiftShader live): band and single wall visible. Not tested on the owner's HA, iSG or phone.
+
+## OWN-FURN-02 — "Importar móveis" (Claude, 2026-11-02, owner request)
+
+- POST `/api/neonplan3d/aureon_models_upload` (administrators only, 403 otherwise; max 120 MB): a .zip (base names
+  of `.glb` members and `catalog.json` are taken from any folder in it; hidden/macOS files and everything else
+  skipped; each model checked as binary glTF with a mesh) or one `.glb` with `?name=`. Writes atomically into
+  `<config>/aureon_models`; nothing is deleted, same names are replaced, catalog entries are merged.
+- Editor "Meus móveis": admin button "Importar móveis" (file picker, .zip/.glb, several files), status line, list reload.
+- Also: floor finishes use a constant depth offset (no slope factor), so thin rugs are no longer hidden (324c006).
+- Tests: pytest 144 (zip import, traversal names, invalid models, catalog merge, admin-only upload), npm test, validate,
+  contract, browser suites; disposable HA: empty folder → import of the owner's private zip → 35 models listed with
+  names; invalid upload → 400. Not run on the owner's HA.

@@ -553,6 +553,7 @@ export class Fp3dEditor extends LitElement {
   private declare _aureonOwn: AureonOwnModel[] | null | "error";
   private _aureonOwnLoading = false;
   private _aureonOwnFilter = "";
+  private _aureonOwnImport: { busy: boolean; text: string; error: boolean } | null = null;
   /** The wall view: a room's wall seen from the front (what stands and hangs on it), and the piece chosen in it. */
   private declare _wallView: { roomId: string; edge: number } | null;
   private declare _wallSel: string | null;
@@ -12835,6 +12836,40 @@ export class Fp3dEditor extends LitElement {
       });
   }
 
+  /** AUREON: "Import furniture": a .zip (models + catalog.json) or .glb files into <config>/aureon_models (admins). */
+  private async importAureonOwn(files: FileList | null): Promise<void> {
+    const hass = this.hass as unknown as { fetchWithAuth?: (url: string, init?: RequestInit) => Promise<Response> } | undefined;
+    if (!files?.length || !this.isAdmin || !hass?.fetchWithAuth) return;
+    let added = 0, replaced = 0, names = 0, failed: string[] = [];
+    this._aureonOwnImport = { busy: true, text: this.t("aureon_own_import_busy"), error: false };
+    this.requestUpdate();
+    for (const file of Array.from(files)) {
+      try {
+        const res = await hass.fetchWithAuth(`/api/neonplan3d/aureon_models_upload?name=${encodeURIComponent(file.name)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/octet-stream" },
+          body: file,
+        });
+        const r = (await res.json().catch(() => ({}))) as { added?: string[]; replaced?: string[]; names?: number; error?: string };
+        if (!res.ok) throw new Error(r.error ?? String(res.status));
+        added += r.added?.length ?? 0;
+        replaced += r.replaced?.length ?? 0;
+        names += r.names ?? 0;
+      } catch {
+        failed.push(file.name);
+      }
+    }
+    this._aureonOwnImport = {
+      busy: false,
+      error: failed.length > 0,
+      text: failed.length
+        ? this.t("aureon_own_import_failed", { files: failed.join(", ") })
+        : this.t("aureon_own_import_done", { added, replaced, names }),
+    };
+    this._aureonOwn = null; // reload the list
+    this.requestUpdate();
+  }
+
   /** AUREON: places an own model like any furniture item (its type, real size, mounting height; undo as usual). */
   private addAureonOwn(m: AureonOwnModel): void {
     const floor = this.floor;
@@ -12876,7 +12911,19 @@ export class Fp3dEditor extends LitElement {
     }
     const cm = (v: number) => Math.round(v * 100);
     return html`<section class="fp3d-aureon-own">
-      <h3>${this.t("aureon_own_title")}</h3>
+      <div class="fp3d-h3row"><h3>${this.t("aureon_own_title")}</h3>
+        ${this.isAdmin
+          ? html`<label class="fp3d-btn fp3d-aureon-own-import" ?aria-disabled=${this._aureonOwnImport?.busy}
+              >⤓ ${this.t("aureon_own_import")}<input type="file" accept=".zip,.glb,application/zip,model/gltf-binary" multiple hidden
+                ?disabled=${this._aureonOwnImport?.busy}
+                @change=${(e: Event) => {
+                  const input = e.target as HTMLInputElement;
+                  void this.importAureonOwn(input.files).finally(() => (input.value = ""));
+                }}
+            /></label>`
+          : nothing}
+      </div>
+      ${this._aureonOwnImport ? html`<p class="fp3d-sub fp3d-aureon-own-status ${this._aureonOwnImport.error ? "fp3d-aureon-danger" : ""}" role="status">${this._aureonOwnImport.text}</p>` : nothing}
       ${list === null
         ? html`<p class="fp3d-sub">${this.t("aureon_own_loading")}</p>`
         : list === "error"
@@ -16166,6 +16213,14 @@ export class Fp3dEditor extends LitElement {
     }
     .fp3d-aureon-cover-white_tiles_navy_band .fp3d-aureon-cover-icon {
       background: linear-gradient(#f6f6f4 0 42%, #1c2e60 42% 58%, #f6f6f4 58% 100%);
+    }
+    .fp3d-aureon-own-import {
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .fp3d-aureon-own-import[aria-disabled] {
+      opacity: 0.6;
+      pointer-events: none;
     }
     .fp3d-aureon-own-list {
         display: grid;
