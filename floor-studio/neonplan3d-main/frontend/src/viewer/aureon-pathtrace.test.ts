@@ -81,7 +81,10 @@ test("the tracer sees walls cut like the live picture (fold rules on the CPU)", 
   m.userData.fp3dFold = { masks: { standing: { value: 0 }, glass: { value: 0 } }, role: "solid" };
   const copy = visibleGeometry(new Mesh(g, m));
   assert.ok(copy);
-  assert.deepEqual([...copy!.index!.array], [0, 1, 2]);
+  // non-indexed source → non-indexed copy holding only the kept triangle
+  assert.equal(copy!.index, null);
+  assert.equal(copy!.getAttribute("position").count, 3);
+  assert.equal(copy!.getAttribute("position").getY(2), 1);
   // a model clipped at 1.5 m keeps triangles with a corner below the plane, drops those wholly above
   const box = new BufferGeometry();
   box.setAttribute("position", new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1.8, 0, 1, 1.8, 0, 0, 2.2, 0]), 3));
@@ -89,6 +92,27 @@ test("the tracer sees walls cut like the live picture (fold rules on the CPU)", 
   cm.clippingPlanes = [new Plane(new Vector3(0, -1, 0), 1.5)];
   const mesh = new Mesh(box, cm);
   mesh.updateMatrixWorld();
-  assert.deepEqual([...visibleGeometry(mesh)!.index!.array], [0, 1, 2]);
+  assert.equal(visibleGeometry(mesh)!.getAttribute("position").count, 3);
   assert.equal(visibleGeometry(new Mesh(box, new MeshStandardMaterial())), null);
+});
+
+test("multi-material meshes reach the tracer as one plain mesh per material", async () => {
+  const { splitByMaterial } = await import("./aureon-pathtrace.ts");
+  const { BoxGeometry, Mesh, MeshStandardMaterial } = await import("three");
+  const box = new BoxGeometry(); // indexed, 6 groups, shared vertices per face
+  const a = new MeshStandardMaterial({ name: "a" }), b = new MeshStandardMaterial({ name: "b" });
+  box.clearGroups();
+  box.addGroup(0, 18, 0);
+  box.addGroup(18, 18, 1);
+  const parts = splitByMaterial(new Mesh(box, [a, b]));
+  assert.equal(parts.length, 2);
+  assert.deepEqual(parts.map((p) => p.material.name), ["a", "b"]);
+  for (const p of parts) {
+    assert.equal(p.geometry.index, null);
+    assert.equal(p.geometry.getAttribute("position").count, 18);
+    assert.ok(p.geometry.getAttribute("uv"));
+  }
+  const hidden = new MeshStandardMaterial();
+  hidden.visible = false;
+  assert.equal(splitByMaterial(new Mesh(new BoxGeometry(), hidden)).length, 0);
 });

@@ -892,7 +892,6 @@ export class FloorplanViewer {
     canvas.replaceWith(next.domElement);
     this.realPbr?.dispose();this.realPbr=null;
     this.stopAureonTrace();
-    this.softwareGlCache = null;
     this.renderer.dispose();
     this.renderer.forceContextLoss();
     this.renderer = next;
@@ -5017,23 +5016,7 @@ export class FloorplanViewer {
 
   /** AUREON: refinement is for the Real look on "High", on screen. */
   private traceWanted(): boolean {
-    return AureonPathTrace.enabled && this.theme === "real" && !this.lowQuality && (this.highQuality || !this.softwareGl()) && !this.disposed && !document.hidden && this.onScreen;
-  }
-  private softwareGlCache: boolean | null = null;
-  /** No graphics chip (software WebGL): "Auto" keeps the live picture only, "High" still refines (slowly). */
-  private softwareGl(): boolean {
-    if (this.softwareGlCache === null) {
-      let name = "";
-      try {
-        const gl = this.renderer.getContext();
-        const info = gl.getExtension("WEBGL_debug_renderer_info");
-        name = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER) ?? "");
-      } catch {
-        name = "";
-      }
-      this.softwareGlCache = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(name);
-    }
-    return this.softwareGlCache;
+    return AureonPathTrace.enabled && this.theme === "real" && !this.lowQuality && this.highQuality && !this.disposed && !document.hidden && this.onScreen;
   }
   private armAureonTrace(moving: boolean): void {
     if (!this.traceWanted() || this.aureonTrace?.off) return;

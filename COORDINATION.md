@@ -283,3 +283,13 @@ resized/deleted in the editor; still NOT approved):
   isometric and interior captures, orbit video, comparison with the owner's references. Remaining gap vs the
   references: bounce light (still no GI while moving), image treatment (glow/exposure, TV reflections), chair leg
   joints, curtains seen from inside; platform browser test flaked once under load (passed on rerun).
+
+VIS-REAL-01 step 5 (Claude, 2026-11-02; owner: "fix everything to look like professional programs"; still NOT approved):
+- Photo refinement (path tracing at rest) fixed and switched back on, quality "High" only (Auto/Low never trace):
+  causes found with the private harness: (1) own models had metalness 1 with metal/rough maps → mirror-like sofa/
+  chairs in the trace; private models re-exported with metalness 0 for non-metals; the tracer also gets lean copies
+  (colour/alpha only, metal only where named); (2) the tracer stores ONE material per vertex, so multi-material
+  meshes (walls/floors with PBR groups) with shared vertices mixed materials (orange walls, green floor) — it now
+  gets one plain, unshared, single-material mesh per material range (`splitByMaterial`, tested); (3) cut copies kept
+  the original layout. Brighter sky for daylight in the photo; seamless rug texture.
+- Unit tests 529 pass; browser floor/editor/platform/music pass; fidelity unchanged.

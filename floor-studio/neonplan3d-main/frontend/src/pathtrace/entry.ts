@@ -20,6 +20,8 @@ export interface AureonTracer {
   scale(value: number): void;
   readonly samples: number;
   readonly compiling: boolean;
+  /** Diagnostics: the tracer object itself. */
+  readonly raw: unknown;
   sky(top: Color, bottom: Color): Texture;
   dispose(): void;
 }
@@ -86,6 +88,9 @@ export function createTracer(renderer: WebGLRenderer, opts: { scale: number; til
     },
     get samples() {
       return pt.samples;
+    },
+    get raw() {
+      return pt;
     },
     get compiling() {
       return pt.isCompiling;

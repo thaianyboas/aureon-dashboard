@@ -4,8 +4,8 @@
  * any change of view or scene shows the live picture again at once. The tracer is a bundle of its own
  * (neonplan3d-pathtrace.js) that borrows three.js from this bundle. Nothing here calls Home Assistant.
  */
-import type { Camera, Material, Mesh, Object3D, Scene, WebGLRenderer } from "three";
-import { BufferAttribute, BufferGeometry, Color, MeshPhysicalMaterial, Vector3, type MeshStandardMaterial, type Plane } from "three";
+import type { Camera, Material, Object3D, Scene, WebGLRenderer } from "three";
+import { BufferAttribute, BufferGeometry, Color, Group, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Vector3, type Plane } from "three";
 import type * as TraceBundle from "../pathtrace/entry.ts";
 import { AUREON_THREE_LEND } from "./aureon-three-lend.ts";
 
@@ -103,8 +103,43 @@ export function visibleGeometry(mesh: Mesh): BufferGeometry | null {
     if (g.groups.length) copy.addGroup(start, out.length - start, grp.materialIndex ?? 0);
   }
   for (const [name, attr] of Object.entries(g.attributes)) copy.setAttribute(name, attr);
-  copy.setIndex(new BufferAttribute(n > 65535 ? new Uint32Array(out) : new Uint16Array(out), 1));
-  return copy;
+  copy.setIndex(new BufferAttribute(new Uint32Array(out), 1));
+  // the tracer merges every mesh into one geometry: a copy keeps the original's layout (indexed or not), otherwise
+  // its material ranges shift and furniture takes another surface's material (seen as see-through sofas)
+  if (index) return copy;
+  const flat = copy.toNonIndexed();
+  copy.dispose();
+  return flat;
+}
+
+/** One non-indexed geometry per material range of a mesh (attributes the tracer reads: position, normal, uv). */
+export function splitByMaterial(mesh: Mesh): { geometry: BufferGeometry; material: Material }[] {
+  const g = mesh.geometry;
+  const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+  const index = g.index;
+  const total = index ? index.count : (g.getAttribute("position")?.count ?? 0);
+  const groups = g.groups.length ? g.groups : [{ start: 0, count: total, materialIndex: 0 }];
+  const out: { geometry: BufferGeometry; material: Material }[] = [];
+  for (const grp of groups) {
+    const material = mats[grp.materialIndex ?? 0];
+    if (!material || !material.visible) continue;
+    const start = grp.start, end = Math.min(total, grp.start + grp.count);
+    if (end - start < 3) continue;
+    const part = new BufferGeometry();
+    for (const name of ["position", "normal", "uv"]) {
+      const a = g.getAttribute(name);
+      if (!a) continue;
+      const size = a.itemSize, arr = new Float32Array((end - start) * size);
+      for (let k = start; k < end; k++) {
+        const v = index ? index.getX(k) : k;
+        for (let c = 0; c < size; c++) arr[(k - start) * size + c] = a.getComponent(v, c);
+      }
+      part.setAttribute(name, new BufferAttribute(arr, size));
+    }
+    if (!part.getAttribute("normal")) part.computeVertexNormals();
+    out.push({ geometry: part, material });
+  }
+  return out;
 }
 
 /** Signature of what the tracer has collected: solid meshes, their geometry and place. */
@@ -136,12 +171,9 @@ export type Staged = (fn: () => void) => void;
 
 export class AureonPathTrace {
   /** Diagnostics (tests only): leave out the cut/clip copies or the lamp-shade swap. */
-  static debug = { copies: true, shades: true };
-  /**
-   * Off until its proof passes: in the disposable HA some own models came out wrong in the traced picture
-   * (VIS-REAL-01 step 3), so the refinement only runs when switched on explicitly (tests, diagnostics).
-   */
-  static enabled = false;
+  static debug = { copies: true, shades: true, lean: true };
+  /** Switch for tests and diagnostics; the refinement runs on quality "High" (see the viewer's traceWanted). */
+  static enabled = true;
   private tracer: Tracer | null = null;
   private failed = false;
   private sceneSig = "";
@@ -208,7 +240,7 @@ export class AureonPathTrace {
       const prevEnv = scene.environment,
         prevIntensity = (scene as Scene & { environmentIntensity?: number }).environmentIntensity;
       const hidden: Object3D[] = [];
-      const swapped: [Mesh, Material][] = [];
+      const swapped: [Mesh, Material | Material[]][] = [];
       const geoms: [Mesh, BufferGeometry][] = [];
       try {
         const sig = sceneSignature(scene);
@@ -225,7 +257,7 @@ export class AureonPathTrace {
             return;
           }
           scene.environment = t.sky(top, bottom);
-          (scene as Scene & { environmentIntensity?: number }).environmentIntensity = 0.9 * (1 - night) + 0.14 * night;
+          (scene as Scene & { environmentIntensity?: number }).environmentIntensity = 1.8 * (1 - night) + 0.14 * night;
           scene.traverseVisible((o) => {
             if (!(o as Mesh).isMesh || traceable(o)) return;
             hidden.push(o);
@@ -239,6 +271,17 @@ export class AureonPathTrace {
             swapped.push([mesh, before]);
             mesh.material = this.shade(before);
           });
+          // the photo needs colour (and cut-out alpha) only: a light copy per material without normal/roughness/
+          // metalness maps keeps the tracer's texture array small (a large one is unreliable on weaker graphics)
+          scene.traverseVisible((o) => {
+            const mesh = o as Mesh;
+            if (!traceable(o) || !AureonPathTrace.debug.lean) return;
+            const before = mesh.material as Material | Material[];
+            const list = Array.isArray(before) ? before : [before];
+            const lean = list.map((m) => this.lean(m as MeshStandardMaterial));
+            swapped.push([mesh, before as Material]);
+            mesh.material = Array.isArray(before) ? lean : lean[0];
+          });
           // walls cut at the cut height and models clipped there, as in the live picture
           scene.traverseVisible((o) => {
             const mesh = o as Mesh;
@@ -250,10 +293,36 @@ export class AureonPathTrace {
           });
           for (const old of this.copies) old.dispose();
           this.copies = geoms.map(([mesh]) => mesh.geometry);
-          t.build(scene, camera);
+          // the tracer keeps one material per vertex: meshes with several materials (walls, floors) and shared
+          // vertices would mix them up, so it gets one plain, unshared, single-material mesh per material range
+          const flat = new Group();
+          flat.name = "aureon-trace-flat";
+          const flatGeoms: BufferGeometry[] = [];
+          scene.updateMatrixWorld();
+          scene.traverseVisible((o) => {
+            const mesh = o as Mesh;
+            if (!traceable(o)) return;
+            for (const part of splitByMaterial(mesh)) {
+              const m = new Mesh(part.geometry, part.material);
+              m.matrixAutoUpdate = false;
+              m.matrix.copy(mesh.matrixWorld);
+              m.matrixWorld.copy(mesh.matrixWorld);
+              flat.add(m);
+              flatGeoms.push(part.geometry);
+            }
+            hidden.push(o);
+          });
+          for (const o of hidden) o.visible = false;
+          scene.add(flat);
+          try {
+            t.build(scene, camera);
+          } finally {
+            scene.remove(flat);
+            for (const g of flatGeoms) g.dispose();
+          }
           for (const [mesh, before] of geoms) mesh.geometry = before;
           geoms.length = 0;
-          for (const [mesh, before] of swapped) mesh.material = before;
+          for (const [mesh, before] of [...swapped].reverse()) mesh.material = before;
           swapped.length = 0;
           for (const o of hidden) o.visible = true;
           hidden.length = 0;
@@ -284,7 +353,7 @@ export class AureonPathTrace {
         fallback();
       } finally {
         for (const o of hidden) o.visible = true;
-        for (const [mesh, before] of swapped) mesh.material = before;
+        for (const [mesh, before] of [...swapped].reverse()) mesh.material = before;
         for (const [mesh, before] of geoms) mesh.geometry = before;
         scene.environment = prevEnv;
         (scene as Scene & { environmentIntensity?: number }).environmentIntensity = prevIntensity;
@@ -294,6 +363,31 @@ export class AureonPathTrace {
   }
   private copies: BufferGeometry[] = [];
   private shades = new Map<Material, MeshPhysicalMaterial>();
+  private leans = new Map<Material, MeshStandardMaterial>();
+  private lean(m: MeshStandardMaterial): MeshStandardMaterial {
+    if ((m as MeshStandardMaterial & { isMeshPhysicalMaterial?: boolean }).isMeshPhysicalMaterial && (m as MeshPhysicalMaterial).transmission > 0) return m;
+    let l = this.leans.get(m);
+    if (!l) {
+      l = (m as Material & { isMeshPhysicalMaterial?: boolean }).isMeshPhysicalMaterial ? new MeshPhysicalMaterial() : new MeshStandardMaterial();
+      l.name = m.name;
+      l.color.copy(m.color);
+      l.map = m.map;
+      l.alphaMap = m.alphaMap;
+      l.alphaTest = m.alphaTest;
+      l.transparent = m.transparent;
+      l.opacity = m.opacity;
+      l.side = m.side;
+      // metal only where the material says so; maps of the live picture carry the rest
+      l.metalness = m.metalnessMap ? (m.metalness >= 0.99 && /metal|brass|nickel|chrome|steel|black/i.test(m.name) ? 0.9 : 0) : m.metalness;
+      l.roughness = m.roughnessMap ? Math.max(0.35, Math.min(1, m.roughness * 0.75)) : m.roughness;
+      l.emissive.copy(m.emissive);
+      l.emissiveIntensity = m.emissiveIntensity;
+      l.visible = m.visible;
+      l.userData = m.userData;
+      this.leans.set(m, l);
+    }
+    return l;
+  }
   private shade(m: MeshStandardMaterial): MeshPhysicalMaterial {
     let s = this.shades.get(m);
     if (!s) {
@@ -305,6 +399,8 @@ export class AureonPathTrace {
   dispose(): void {
     for (const c of this.copies) c.dispose();
     this.copies = [];
+    for (const l of this.leans.values()) l.dispose();
+    this.leans.clear();
     for (const s of this.shades.values()) s.dispose();
     this.shades.clear();
     this.disposed = true;
