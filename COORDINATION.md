@@ -423,3 +423,16 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
 - Tests: pytest 144 (zip import, traversal names, invalid models, catalog merge, admin-only upload), npm test, validate,
   contract, browser suites; disposable HA: empty folder → import of the owner's private zip → 35 models listed with
   names; invalid upload → 400. Not run on the owner's HA.
+
+## LOOK-01 — Real only; single wall picker in the paint panel (Claude, 2026-11-02, owner request)
+
+- Owner: remove Day/Night/Auto/Neon/Blueprint, keep only Real (which follows day and night by sun.sun).
+  AUREON Startseite: look select removed, home plan always `real`, stored `floorLook` other than `real` ignored.
+  Floor Studio panel: look buttons removed (`_theme = "real"`; accent picker kept). Card and editor 3D previews pass
+  `real`; card editor has no look choice (default `real`). The other looks stay in the renderer (renderer tests keep
+  all five); fidelity notes on card render, editor render3d/renderWallView. Theme regression test updated to this decision.
+- Owner could not find "paint one wall": the room's paint panel now lists the walls ("1 · 2,13 m" …, a dot shows a
+  wall's own colour); tapping one highlights it in the plan and shows "Cor só desta parede" right there.
+- Tests: npm test, validate, contract, browser suites (platform test: no look select, older stored looks show Real),
+  disposable HA: Startseite without look select, card theme real, panel without look buttons; wall 3 painted via the
+  new picker, undo/redo/reload/clear. Stable dist rebuilt (page.mjs). Not run on the owner's HA.

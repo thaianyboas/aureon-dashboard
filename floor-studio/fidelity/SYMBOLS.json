@@ -783,9 +783,9 @@
       "original_line": 313,
       "candidate_line": 320,
       "original_sha256": "465957948ab630a38e182ebacaabc058b09e6d1151f13325f4c4d2effe0ad906",
-      "candidate_sha256": "4bf3b599b4ef198cd44107ef36546c91b9803e4c0a7204756c225ff0dc8aceba",
+      "candidate_sha256": "ef3d35912a9ca28f16c1b920654c139cb726c8c2881558f4d4aaf2476a56be0f",
       "status": "aureon_extension",
-      "note": "Reviewed 2026-11-02 LOAD-01: bounded building/optional pack reads, explicit retry and connection recovery, scope guards for stale reads/subscriptions; original save, edit, renderer and card controls preserved."
+      "note": "Reviewed 2026-11-02 LOAD-01: bounded building/optional pack reads, explicit retry and connection recovery, scope guards for stale reads/subscriptions; original save, edit, renderer and card controls preserved. Owner decision 2026-11-02: AUREON shows only the Real look (day and night follow sun.sun); the 3D passes theme \"real\" instead of the configured or fixed look. The other looks stay in the renderer, unused by the AUREON UI."
     },
     {
       "symbol": "components/editor.ts::patchItem",
@@ -960,8 +960,9 @@
       "original_line": 1136,
       "candidate_line": 1135,
       "original_sha256": "e6edefc119151e18ecbcd754748a5d130e3e9b2c42a01625256a2c0b4e078d08",
-      "candidate_sha256": "e6edefc119151e18ecbcd754748a5d130e3e9b2c42a01625256a2c0b4e078d08",
-      "status": "preserved"
+      "candidate_sha256": "d29688a33e8f1e58508f5d40f58ffbf76e25bfa3d2f9705aa3b5fa4987f9fa62",
+      "status": "aureon_extension",
+      "note": "Owner decision 2026-11-02: AUREON shows only the Real look (day and night follow sun.sun); the 3D passes theme \"real\" instead of the configured or fixed look. The other looks stay in the renderer, unused by the AUREON UI."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.setWall3d",
@@ -2837,8 +2838,9 @@
       "original_line": 6877,
       "candidate_line": 6818,
       "original_sha256": "fe8b2371f76429c4831bdd06acd8b7712c703062b5170f8068ddf36bfefd8369",
-      "candidate_sha256": "fe8b2371f76429c4831bdd06acd8b7712c703062b5170f8068ddf36bfefd8369",
-      "status": "preserved"
+      "candidate_sha256": "3f66bcc35d02cd79d9e194472f4978c08cc2a5b40c6af56dc3e7648433d5cade",
+      "status": "aureon_extension",
+      "note": "Owner decision 2026-11-02: AUREON shows only the Real look (day and night follow sun.sun); the 3D passes theme \"real\" instead of the configured or fixed look. The other looks stay in the renderer, unused by the AUREON UI."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderWallSetFoot",

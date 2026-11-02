@@ -14,7 +14,7 @@ import { controls, tokens } from "./styles.ts";
 import type { HomeAssistant } from "./types.ts";
 import type { MarkerMode } from "./components/view3d.ts";
 import type { HeatMode } from "./heatmap.ts";
-import { THEMES, type Theme } from "./themes.ts";
+import type { Theme } from "./themes.ts";
 import { keepInRoom, snapToWall } from "./geometry/snap.ts";
 import { furnitureName } from "./furniture-names.ts";
 import { confirmEntities, defaultHeight, entityName, kindOf } from "./devices.ts";
@@ -203,8 +203,8 @@ export class Floorplan3dPanel extends LitElement {
     this._pinSize = pinSize === "small" || pinSize === "large" ? pinSize : "normal";
     const heat = prefs.get("heat");
     this._heat = heat === "temperature" || heat === "humidity" || heat === "co2" || heat === "values" ? heat : "none";
-    const theme = prefs.get("theme") as Theme | "auto" | null;
-    this._theme = theme === "auto" || (theme && THEMES.includes(theme)) ? theme : "neon";
+    // AUREON: only the Real look (it follows day and night by the sun); a stored older look is not used any more
+    this._theme = "real";
     const clock = prefs.get("clock");
     this._clock = clock === "tl" || clock === "tr" || clock === "bl" || clock === "br" ? clock : "off";
     const accent = prefs.get("accent");
@@ -628,19 +628,7 @@ export class Floorplan3dPanel extends LitElement {
                   (q) => html`<button aria-pressed=${this._quality === q} @click=${() => this.setQuality(q)}>${this.t(`quality_${q}`)}</button>`,
                 )}
               </div>
-              <div class="fp3d-seg fp3d-quality" role="group" aria-label=${this.t("theme")}>
-                ${[...THEMES, "auto" as const].map(
-                  (t) =>
-                    html`<button
-                      aria-pressed=${this._theme === t}
-                      @click=${() => {
-                        this._theme = t;
-                        prefs.set("theme", t);
-                      }}
-                    >
-                      ${this.t(`theme_${t}`)}
-                    </button>`,
-                )}
+              <div class="fp3d-seg fp3d-quality" role="group" aria-label=${this.t("accent")}>
                 <label class="fp3d-accent-pick" title=${this.t("accent_hint")}>
                   <input
                     type="color"

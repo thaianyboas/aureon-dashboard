@@ -1181,7 +1181,7 @@ export class Fp3dEditor extends LitElement {
         .keepRoof=${this._tool === "roof" || this._tool === "energy"}
         .markerMode=${"important"}
         .heatMode=${"none"}
-        .theme=${"neon"}
+        .theme=${"real" /* AUREON: only the Real look */}
         .packs=${this.packs}
         .showEnergy=${false}
         .holograms=${this._tool === "energy" ? true : null}
@@ -1396,7 +1396,6 @@ export class Fp3dEditor extends LitElement {
             ? html`<button class="fp3d-btn" @click=${() => this.aureonRemoveDivider(false)}>↺ ${this.t("aureon_wall_restore")}</button>`
             : html`<button class="fp3d-btn fp3d-aureon-danger" @click=${() => this.aureonRemoveDivider(true)}>✕ ${this.t("wall_none")}</button>`}
       </div>
-      ${this.renderAureonWallPaint(room, w.index)}
       <p class="fp3d-muted fp3d-aureon-wall-hint">${this.t("aureon_wall_hint")}</p>
     </div>`;
   }
@@ -7483,7 +7482,7 @@ export class Fp3dEditor extends LitElement {
               .explode=${false}
               .markerMode=${"none"}
               .heatMode=${"none"}
-              .theme=${"neon"}
+              .theme=${"real" /* AUREON: only the Real look */}
               .packs=${this.packs}
               .showEnergy=${false}
               .holograms=${false}
@@ -10863,7 +10862,24 @@ export class Fp3dEditor extends LitElement {
         })}
       </div>
       <p class="fp3d-sub">${current ? this.t("aureon_paint_hint") : finish?.walls ? this.t("aureon_cover_hint") : this.t("aureon_paint_none")}</p>
-      <p class="fp3d-sub">${this.t("aureon_paint_one_wall")}</p>
+      <h4>${this.t("aureon_paint_one_wall_title")}</h4>
+      <div class="fp3d-aureon-wall-pick" role="group" aria-label=${this.t("aureon_paint_one_wall_title")}>
+        ${room.points.map((a, i) => {
+          const b = room.points[(i + 1) % room.points.length];
+          const on = this._aureonWall?.roomId === room.id && this._aureonWall.index === i;
+          const own = wallPaints(finish, room.points.length)[i];
+          return html`<button class="fp3d-btn" data-paint-wall=${i} aria-pressed=${on ? "true" : "false"} ?disabled=${!this.isAdmin}
+            @click=${() => {
+              this._aureonWall = on ? null : { roomId: room.id, index: i };
+              this._vertex = null;
+            }}
+            >${own ? html`<i class="fp3d-aureon-wall-dot" style="background:${own}"></i>` : nothing}${i + 1} · ${this.m(Math.hypot(b[0] - a[0], b[1] - a[1]), 2)}</button
+          >`;
+        })}
+      </div>
+      ${this._aureonWall?.roomId === room.id && this._aureonWall.index < room.points.length
+        ? this.renderAureonWallPaint(room, this._aureonWall.index)
+        : html`<p class="fp3d-sub">${this.t("aureon_paint_one_wall")}</p>`}
       ${current || finish?.walls ? html`<button class="fp3d-btn" ?disabled=${!this.isAdmin} @click=${() => set(null)}>${this.t("aureon_paint_clear")}</button>` : nothing}
     </div>`;
   }
@@ -16221,6 +16237,24 @@ export class Fp3dEditor extends LitElement {
     .fp3d-aureon-own-import[aria-disabled] {
       opacity: 0.6;
       pointer-events: none;
+    }
+    .fp3d-aureon-wall-pick {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 4px 0;
+    }
+    .fp3d-aureon-wall-pick .fp3d-btn[aria-pressed="true"] {
+      outline: 2px solid var(--fp3d-accent, var(--primary-color));
+    }
+    .fp3d-aureon-wall-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 4px;
+      border: 1px solid #0003;
+      vertical-align: -1px;
     }
     .fp3d-aureon-own-list {
         display: grid;

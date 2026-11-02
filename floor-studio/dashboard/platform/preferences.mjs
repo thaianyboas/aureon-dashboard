@@ -5,7 +5,7 @@ const id=value=>typeof value==='string'&&/^[a-z_]+\.[a-z0-9_]+$/.test(value)?val
 export function validatePreferences(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.schema!==1)throw new Error('Invalid configuration');
  const out=defaults();
- for(const [key,allowed] of Object.entries({floorLook:['neon','blueprint','day','night','real'],language:['auto','en','de','pt'],appearance:['auto','dark','light','custom'],density:['compact','comfortable']}))if(allowed.includes(raw[key]))out[key]=raw[key];
+ for(const [key,allowed] of Object.entries({floorLook:['real'],language:['auto','en','de','pt'],appearance:['auto','dark','light','custom'],density:['compact','comfortable']}))if(allowed.includes(raw[key]))out[key]=raw[key];
  if(['black-gold-royal','black-bordeaux-royal','purple','blue','emerald','burgundy','rose-noir','gold','pearl','obsidian','sapphire','forest','forest-botanical','terracotta','sand','ocean','amethyst','copper','sage','arctic','ruby','lavender','graphite','silver-penthouse','amethyst-lounge'].includes(raw.palette))out.palette=raw.palette;
  if(Array.isArray(raw.hidden))out.hidden=[...new Set(raw.hidden.map(id).filter(Boolean))].slice(0,3000);
  if(raw.widgets)for(const key of Object.keys(out.widgets))if(typeof raw.widgets[key]==='boolean')out.widgets[key]=raw.widgets[key];

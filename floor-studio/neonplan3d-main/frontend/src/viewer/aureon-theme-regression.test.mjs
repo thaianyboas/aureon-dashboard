@@ -19,8 +19,14 @@ test('real keeps part of original furniture colour', () => {
 test('active device colours remain unmodified before look conversion', () => {
  assert.match(shader, /if \(!line && mx > 0\.45 && sat > 0\.45\) return c;/);
 });
-test('UI selector uses the central registry', () => {
- assert.match(panel, /\[\.\.\.THEMES, "auto" as const\]/);
+test('AUREON shows only the Real look: no look choice in the panel, the card and the editor pass "real"', () => {
+ // owner decision 2026-11-02: Real only, day and night by the sun (the other looks stay in the renderer)
+ assert.match(panel, /this\._theme = "real";/);
+ assert.doesNotMatch(panel, /theme_\$\{t\}/);
+ const card = readFileSync(new URL('../card.ts', import.meta.url), 'utf8');
+ assert.match(card, /\.theme=\$\{"real"/);
+ const editor = readFileSync(new URL('../components/editor.ts', import.meta.url), 'utf8');
+ assert.doesNotMatch(editor, /\.theme=\$\{"neon"\}/);
 });
 test('real mode does not claim PBR or photorealism', () => {
  assert.match(shader, /not PBR textures or photorealism/);

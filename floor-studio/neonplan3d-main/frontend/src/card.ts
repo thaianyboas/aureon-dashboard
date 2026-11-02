@@ -379,7 +379,7 @@ clearTimeout(this.cleanTimer);
               .ghostOn=${this._config?.ghost !== false}
               .buttons=${this._config?.buttons?.map((b, i) => ({ id: `card_${i}`, ...b })) ?? null}
               .heatMode=${heat}
-              .theme=${this._config?.theme ?? "neon"}
+              .theme=${"real" /* AUREON: only the Real look, day and night by the sun */}
               .clock=${this._config?.clock ?? null}
               .accent=${this._config?.accent ?? null}
               .showEnergy=${this._config?.energy ?? true}

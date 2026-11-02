@@ -88,8 +88,8 @@ try{
   await page.screenshot({path:`${out}/palette-${appearance}-${palette}.png`});
  }
  checks.push('Startseite rendered in 5 custom palettes plus light and dark modes');
- for(const look of ['neon','blueprint','day','night','real']){await page.evaluate(look=>dashboard._platformController.patch('floorLook',look),look);await page.waitForFunction(look=>dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('aureon-home-plan').shadowRoot.querySelector('neonplan3d-card')._config.theme===look,{},look);await new Promise(r=>setTimeout(r,1200));await page.screenshot({path:`${out}/look-${look}.png`});}
- checks.push('five plan looks captured in the Startseite');
+ await page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-platform').shadowRoot.querySelector('aureon-home-plan').shadowRoot.querySelector('neonplan3d-card')._config.theme==='real');await new Promise(r=>setTimeout(r,1200));await page.screenshot({path:`${out}/look-real.png`});
+ checks.push('Real plan look captured in the Startseite (the only look)');
  assert.deepEqual(errors,[]);
  writeFileSync(`${out}/RESULTS.json`,JSON.stringify({environment:'synthetic fixture and compiled bundles; not a Home Assistant installation',passed:checks.length,checks},null,2)+'\n');
  console.log(JSON.stringify({passed:checks.length,checks},null,2));
