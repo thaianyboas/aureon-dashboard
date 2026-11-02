@@ -28,6 +28,36 @@ test("wall paint: a smooth matt finish with the room's colour, only valid colour
   assert.ok(F.paint.roughness >= 0.8, "matt");
   assert.equal(paintColor("#F4F3EF"), "#f4f3ef");
   for (const bad of ["red", "#fff", "#12345g", null, 3, "url(x)"]) assert.equal(paintColor(bad), null);
-  assert.equal(AUREON_WALL_PAINTS[0].id, "white");
+  assert.equal(AUREON_WALL_PAINTS[0].id, "pure_white");
   assert.ok(AUREON_WALL_PAINTS.every((p) => paintColor(p.color) === p.color));
+});
+
+test("wall paint: a single wall gets its own colour, the others keep the room colour", async () => {
+  const { buildFinishes } = await import("./aureon-finishes.ts");
+  const { spliceWallPaints, wallPaints } = await import("../aureon-paints.ts");
+  const room = {
+    id: "r",
+    points: [[0, 0], [4, 0], [4, 3], [0, 3]] as [number, number][],
+    aureon_finish: { walls: { material: "paint", color: "#f4f3ef" }, wall_paints: [null, "#c5cdb9", null, null] as (string | null)[] },
+  };
+  assert.deepEqual(wallPaints(room.aureon_finish, 4), [null, "#c5cdb9", null, null]);
+  assert.deepEqual(wallPaints({ wall_paints: ["bad"] }, 2), [null, null]);
+  if (typeof document !== "undefined") {
+    const g = buildFinishes({ height: 2.6, rooms: [room], openings: [] }, 0.12);
+    assert.equal(g.children.length, 2);
+  }
+  // splitting wall 1 keeps the colour on both halves; removing a corner drops its wall
+  spliceWallPaints(room, 2, 0, ["#c5cdb9"]);
+  assert.deepEqual(room.aureon_finish.wall_paints, [null, "#c5cdb9", "#c5cdb9", null, null]);
+  spliceWallPaints(room, 1, 1, []);
+  assert.deepEqual(room.aureon_finish.wall_paints, [null, "#c5cdb9", null, null]);
+});
+
+test("bathroom tiles: white tiles with a navy band at mid height, the band once per wall height", async () => {
+  const { FINISHES: F, TILE_BAND } = await import("./aureon-finishes.ts");
+  assert.ok(F.white_tiles_navy_band && F.white_tiles_wall && F.white_tiles_floor);
+  assert.equal(F.white_tiles_navy_band.period[1], TILE_BAND.repeat);
+  assert.ok(TILE_BAND.repeat >= 2.3, "no second band below a normal ceiling");
+  assert.ok(TILE_BAND.bottom > 0.9 && TILE_BAND.top < 1.5 && TILE_BAND.top > TILE_BAND.bottom);
+  assert.ok(F.white_tiles_navy_band.period[1] * F.white_tiles_navy_band.ppm <= 1024);
 });

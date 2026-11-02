@@ -149,7 +149,7 @@ import { basicTypes, buildIndex, roomKindOf, type LibraryEntry } from "../librar
 import { packsVersion as libPacksVersion } from "../packs.ts";
 import type { WallMode } from "../viewer/viewer3d.ts";
 import { furnitureName } from "../furniture-names.ts";
-import { AUREON_WALL_PAINTS, paintColor } from "../aureon-paints.ts";
+import { AUREON_WALL_PAINTS, paintColor, spliceWallPaints, wallPaints } from "../aureon-paints.ts";
 
 /** One own model in <config>/aureon_models (see the integration's aureon_models.py). */
 interface AureonOwnModel {
@@ -1395,7 +1395,44 @@ export class Fp3dEditor extends LitElement {
             ? html`<button class="fp3d-btn" @click=${() => this.aureonRemoveDivider(false)}>↺ ${this.t("aureon_wall_restore")}</button>`
             : html`<button class="fp3d-btn fp3d-aureon-danger" @click=${() => this.aureonRemoveDivider(true)}>✕ ${this.t("wall_none")}</button>`}
       </div>
+      ${this.renderAureonWallPaint(room, w.index)}
       <p class="fp3d-muted fp3d-aureon-wall-hint">${this.t("aureon_wall_hint")}</p>
+    </div>`;
+  }
+
+  /** AUREON: colour of only this wall (this room's side of it), over the room colour; undo like any room change. */
+  private renderAureonWallPaint(room: Room, index: number) {
+    const finish = (room as Room & { aureon_finish?: Record<string, unknown> | null }).aureon_finish ?? null;
+    const own = wallPaints(finish, room.points.length)[index];
+    const set = (color: string | null) => {
+      if (!this.isAdmin || this.isFixedItem("room", room.id)) return;
+      const list = wallPaints(finish, room.points.length);
+      list[index] = color;
+      const next: Record<string, unknown> = { ...(finish ?? {}) };
+      if (list.some((c) => c !== null)) next.wall_paints = list;
+      else delete next.wall_paints;
+      this.updateRoom({ aureon_finish: Object.keys(next).length ? next : null } as unknown as Partial<Room>);
+    };
+    return html`<div class="fp3d-aureon-paint fp3d-aureon-wall-paint" data-wall-paint=${index}>
+      <h4>${this.t("aureon_paint_wall_title")}</h4>
+      <div class="fp3d-aureon-swatches" role="radiogroup" aria-label=${this.t("aureon_paint_wall_title")}>
+        ${AUREON_WALL_PAINTS.map(
+          (p) => html`<button
+            class="fp3d-aureon-swatch ${own === p.color ? "fp3d-aureon-swatch-on" : ""}"
+            role="radio"
+            aria-checked=${own === p.color ? "true" : "false"}
+            title=${this.t(`aureon_paint_${p.id}` as I18nKey)}
+            style="background:${p.color}"
+            ?disabled=${!this.isAdmin}
+            @click=${() => set(p.color)}
+          ></button>`,
+        )}
+        <label class="fp3d-aureon-swatch fp3d-aureon-swatch-free" title=${this.t("aureon_paint_custom")}
+          >+<input type="color" .value=${own ?? AUREON_WALL_PAINTS[0].color} ?disabled=${!this.isAdmin} @change=${(e: Event) => set(paintColor((e.target as HTMLInputElement).value))}
+        /></label>
+      </div>
+      <p class="fp3d-sub">${own ? this.t("aureon_paint_wall_own") : this.t("aureon_paint_wall_room")}</p>
+      ${own ? html`<button class="fp3d-btn" ?disabled=${!this.isAdmin} @click=${() => set(null)}>${this.t("aureon_paint_wall_clear")}</button>` : nothing}
     </div>`;
   }
 
@@ -2039,6 +2076,7 @@ export class Fp3dEditor extends LitElement {
           // both halves of the split edge keep its wall height
           if (target.wall_heights) target.wall_heights.splice(i + 1, 0, target.wall_heights[i] ?? null);
           if (target.wall_thickness) target.wall_thickness.splice(i + 1, 0, target.wall_thickness[i] ?? null);
+          spliceWallPaints(target, i + 1, 0, [wallPaints((target as { aureon_finish?: unknown }).aureon_finish, target.points.length)[i] ?? null]);
           const first = Math.hypot(mid[0] - a[0], mid[1] - a[1]);
           if (target.wall_slopes) {
             const sl = target.wall_slopes[i] ?? null;
@@ -5401,6 +5439,7 @@ export class Fp3dEditor extends LitElement {
       // the edge starting at the removed corner goes away; the one before it keeps its height
       if (target.wall_heights) target.wall_heights.splice(index, 1);
       if (target.wall_thickness) target.wall_thickness.splice(index, 1);
+      spliceWallPaints(target, index, 1, []);
       if (target.wall_slopes) {
         target.wall_slopes.splice(index, 1);
         target.wall_slopes[(index - 1 + target.points.length) % target.points.length] = null;
@@ -10811,8 +10850,20 @@ export class Fp3dEditor extends LitElement {
           >+<input type="color" .value=${current ?? AUREON_WALL_PAINTS[0].color} ?disabled=${!this.isAdmin} @change=${(e: Event) => set(paintColor((e.target as HTMLInputElement).value))}
         /></label>
       </div>
-      <p class="fp3d-sub">${current ? this.t("aureon_paint_hint") : this.t("aureon_paint_none")}</p>
-      ${current ? html`<button class="fp3d-btn" ?disabled=${!this.isAdmin} @click=${() => set(null)}>${this.t("aureon_paint_clear")}</button>` : nothing}
+      <div class="fp3d-aureon-cover" role="radiogroup" aria-label=${this.t("aureon_cover_title")}>
+        ${(["white_tiles_wall", "white_tiles_navy_band"] as const).map((id) => {
+          const on = finish?.walls?.material === id;
+          return html`<button class="fp3d-btn fp3d-aureon-cover-${id}" role="radio" aria-checked=${on ? "true" : "false"} aria-pressed=${on ? "true" : "false"} ?disabled=${!this.isAdmin}
+            @click=${() => {
+              if (!this.isAdmin) return;
+              const next: Finish = { ...(finish ?? {}), walls: { material: id } };
+              this.updateRoom({ aureon_finish: next } as Partial<Room>);
+            }}><i class="fp3d-aureon-cover-icon"></i>${this.t(`aureon_cover_${id}` as I18nKey)}</button>`;
+        })}
+      </div>
+      <p class="fp3d-sub">${current ? this.t("aureon_paint_hint") : finish?.walls ? this.t("aureon_cover_hint") : this.t("aureon_paint_none")}</p>
+      <p class="fp3d-sub">${this.t("aureon_paint_one_wall")}</p>
+      ${current || finish?.walls ? html`<button class="fp3d-btn" ?disabled=${!this.isAdmin} @click=${() => set(null)}>${this.t("aureon_paint_clear")}</button>` : nothing}
     </div>`;
   }
 
@@ -16094,7 +16145,29 @@ export class Fp3dEditor extends LitElement {
       .fp3d-ctx-danger {
         color: var(--fp3d-danger, #ff6b7a) !important;
       }
-      .fp3d-aureon-own-list {
+      .fp3d-aureon-cover {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0 2px;
+    }
+    .fp3d-aureon-cover .fp3d-btn[aria-pressed="true"] {
+      outline: 2px solid var(--fp3d-accent, var(--primary-color));
+    }
+    .fp3d-aureon-cover-icon {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      margin-right: 6px;
+      vertical-align: -4px;
+      border-radius: 3px;
+      border: 1px solid #c9cbcf;
+      background: #f6f6f4;
+    }
+    .fp3d-aureon-cover-white_tiles_navy_band .fp3d-aureon-cover-icon {
+      background: linear-gradient(#f6f6f4 0 42%, #1c2e60 42% 58%, #f6f6f4 58% 100%);
+    }
+    .fp3d-aureon-own-list {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 8px;

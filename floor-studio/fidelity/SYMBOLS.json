@@ -1137,9 +1137,9 @@
       "original_line": 1498,
       "candidate_line": 1497,
       "original_sha256": "0db0e67702fba99bb95f33039b3fc69e1d9cd288996a39a03886af5b3c0fc387",
-      "candidate_sha256": "ac24bc7c3b921ded3d860d2ba858de902b453e3fcfd3e83e84a0c791f3012d10",
+      "candidate_sha256": "d027a5782d8d29ca09d02ff1d416546cd449d90ca835392df07c34e885d79722",
       "status": "aureon_extension",
-      "note": "Added before the room fallback, only for admins with the Select tool: a tap within 7 px of a room outline edge picks that wall (plans made of rooms only — e.g. imported — have no free walls). The drag collects every corner on that straight wall line (all collinear touching room edges; Shift: this segment only). Original order for handles, openings, furniture, free walls and rooms before it is unchanged. Reviewed: explicit outline mode gives existing walls priority over furniture/openings; standard selection remains unchanged."
+      "note": "Added before the room fallback, only for admins with the Select tool: a tap within 7 px of a room outline edge picks that wall (plans made of rooms only — e.g. imported — have no free walls). The drag collects every corner on that straight wall line (all collinear touching room edges; Shift: this segment only). Original order for handles, openings, furniture, free walls and rooms before it is unchanged. Reviewed: explicit outline mode gives existing walls priority over furniture/openings; standard selection remains unchanged. Also keeps single-wall paints (room.aureon_finish.wall_paints) aligned with the corners, like wall_heights: one added spliceWallPaints call."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.onPointerMove",
@@ -2270,8 +2270,9 @@
       "original_line": 5140,
       "candidate_line": 5125,
       "original_sha256": "f2f34f007382c648adef47341713cc10166d8272d3e001c19792eeb151d73983",
-      "candidate_sha256": "f2f34f007382c648adef47341713cc10166d8272d3e001c19792eeb151d73983",
-      "status": "preserved"
+      "candidate_sha256": "fb288cd4c3eee0775b9789215efc4763954abe18ae0078e373de1d0a7a89402a",
+      "status": "aureon_extension",
+      "note": "Also keeps single-wall paints (room.aureon_finish.wall_paints) aligned with the corners, like wall_heights: one added spliceWallPaints call."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.shiftFloor",

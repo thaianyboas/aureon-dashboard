@@ -6,7 +6,7 @@
  */
 import { BufferAttribute, BufferGeometry, CanvasTexture, FrontSide, Group, Mesh, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from "three";
 import { triangulate } from "./geo.ts";
-import { AUREON_WALL_PAINTS, paintColor } from "../aureon-paints.ts";
+import { AUREON_WALL_PAINTS, paintColor, wallPaints } from "../aureon-paints.ts";
 
 type Vec2 = [number, number];
 export interface AureonFinishRef {
@@ -19,6 +19,8 @@ export interface AureonFinishRef {
 export interface AureonRoomFinish {
   floor?: AureonFinishRef | null;
   walls?: (AureonFinishRef & { edges?: number[] | null }) | null;
+  /** Colour of single walls (index = room edge), over the room colour; see aureon-paints.ts. */
+  wall_paints?: (string | null)[] | null;
 }
 interface RoomLike {
   id: string;
@@ -87,6 +89,9 @@ function oakPlank(ctx: CanvasRenderingContext2D, x: number, y: number, w: number
   ctx.globalAlpha = 1;
 }
 
+/** Wall height (m) of the classic tile band: one texture repeat runs from the floor to this height. */
+export const TILE_BAND = { repeat: 2.4, bottom: 1.2, top: 1.32 };
+
 export const FINISHES: Record<string, FinishDef> = {
   // plain matt wall paint, smooth (no pattern): the colour comes from the room's choice
   paint: { period: [1, 1], roughness: 0.9, ppm: 4, draw: (ctx, W, H) => { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H); } },
@@ -142,6 +147,8 @@ export const FINISHES: Record<string, FinishDef> = {
   },
   // white tiles, 30 x 60 cm on walls / 60 x 60 cm on floors (approximate), very light grey joints, faint veins
   white_tiles_wall: { period: [0.6, 1.2], roughness: 0.22, ppm: 600, draw: (ctx, W, H) => whiteTiles(ctx, W, H, 2, 2, 21) },
+  // the same white tiles with a navy blue mosaic band at 1.20–1.32 m (one repeat up to 2.40 m)
+  white_tiles_navy_band: { period: [0.6, TILE_BAND.repeat], roughness: 0.22, ppm: 420, draw: navyBandTiles },
   white_tiles_floor: { period: [1.2, 1.2], roughness: 0.25, ppm: 500, draw: (ctx, W, H) => whiteTiles(ctx, W, H, 2, 2, 5) },
   // click deck tiles (30 x 30 cm), 6 parallel slats, black plastic base in the gaps
   deck_tiles: {
@@ -189,30 +196,35 @@ export const FINISHES: Record<string, FinishDef> = {
   },
 };
 
-function whiteTiles(ctx: CanvasRenderingContext2D, W: number, H: number, cols: number, rows: number, seed: number): void {
-  const r = rng(seed), tw = W / cols, th = H / rows;
+function whiteTiles(ctx: CanvasRenderingContext2D, W: number, H: number, cols: number, rows: number, seed: number, y0 = 0, y1 = H): void {
+  // plain glazed white (no marble veins): a barely visible tone change per tile, light grey joints
+  const r = rng(seed), tw = W / cols, th = (y1 - y0) / rows;
   for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
-    const x = j * tw, y = i * th;
-    ctx.fillStyle = rgb([243, 242, 239], 0.985 + 0.02 * r());
-    ctx.fillRect(x, y, tw, th);
-    for (let v = 0; v < 3; v++) {
-      ctx.strokeStyle = "rgba(170,170,172,0.22)";
-      ctx.lineWidth = 0.8 + r();
-      ctx.beginPath();
-      let px = x + r() * tw, py = y;
-      ctx.moveTo(px, py);
-      while (py < y + th) {
-        px += (r() - 0.5) * tw * 0.18;
-        py += th * 0.08;
-        ctx.lineTo(px, py);
-      }
-      ctx.stroke();
-    }
+    ctx.fillStyle = rgb([246, 246, 244], 0.992 + 0.012 * r());
+    ctx.fillRect(j * tw, y0 + i * th, tw, th);
   }
-  ctx.fillStyle = "#d9dadb";
+  ctx.fillStyle = "#dcdddf";
   const g = Math.max(1, W * 0.004);
-  for (let j = 0; j <= cols; j++) ctx.fillRect(j * tw - g / 2, 0, g, H);
-  for (let i = 0; i <= rows; i++) ctx.fillRect(0, i * th - g / 2, W, g);
+  for (let j = 0; j <= cols; j++) ctx.fillRect(j * tw - g / 2, y0, g, y1 - y0);
+  for (let i = 0; i <= rows; i++) ctx.fillRect(0, y0 + i * th - g / 2, W, g);
+}
+
+/** White wall tiles with a navy blue mosaic band at mid height (the classic bathroom look). */
+function navyBandTiles(ctx: CanvasRenderingContext2D, W: number, H: number): void {
+  const ppm = H / TILE_BAND.repeat, y = (m: number) => H - m * ppm; // canvas top is the top of the repeat
+  whiteTiles(ctx, W, H, 2, 2, 21, y(TILE_BAND.bottom), H); // two rows of 30 x 60 cm from the floor
+  whiteTiles(ctx, W, H, 2, 2, 22, 0, y(TILE_BAND.top)); // above the band, cut at the top
+  // mosaic of 2.4 cm squares in navy blues, light joints
+  const top = y(TILE_BAND.top), bottom = y(TILE_BAND.bottom), cell = 0.024 * ppm;
+  ctx.fillStyle = "#cfd3da";
+  ctx.fillRect(0, top, W, bottom - top);
+  const r = rng(9), blues = [[22, 36, 78], [28, 46, 96], [18, 30, 64], [36, 58, 112], [24, 40, 88]];
+  const cols = Math.max(1, Math.round(W / cell)), rows = Math.max(1, Math.round((bottom - top) / cell));
+  const cw = W / cols, ch = (bottom - top) / rows, gap = Math.max(0.6, cw * 0.1);
+  for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
+    ctx.fillStyle = rgb(blues[Math.floor(r() * blues.length)], 0.92 + 0.16 * r());
+    ctx.fillRect(j * cw + gap / 2, top + i * ch + gap / 2, cw - gap, ch - gap);
+  }
 }
 
 const textures = new Map<string, CanvasTexture>();
@@ -301,12 +313,21 @@ export function buildFinishes(floor: FloorLike, interior: number): Group {
       const mat = material(f.floor.material, true);
       if (mat) group.add(floorMesh(room.points, f.floor, mat));
     }
+    // single walls painted on their own leave the room finish and get a surface of their colour
+    const single = wallPaints(f, room.points.length);
     if (f.walls && FINISHES[f.walls.material]) {
       const mat = material(f.walls.material, false, paintColor(f.walls.color));
-      if (mat) {
-        const g = wallMesh(room, floor, f.walls, interior, mat);
+      const edges = room.points.map((_, i) => i).filter((i) => single[i] === null && (!f.walls!.edges || f.walls!.edges.includes(i)));
+      if (mat && edges.length) {
+        const g = wallMesh(room, floor, { ...f.walls, edges }, interior, mat);
         if (g) group.add(g);
       }
+    }
+    for (const color of new Set(single.filter((c): c is string => c !== null))) {
+      const mat = material("paint", false, color);
+      const edges = single.flatMap((c, i) => (c === color ? [i] : []));
+      const g = mat ? wallMesh(room, floor, { material: "paint", color, edges }, interior, mat) : null;
+      if (g) group.add(g);
     }
   }
   return group;

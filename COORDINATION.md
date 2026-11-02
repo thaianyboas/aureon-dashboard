@@ -398,3 +398,16 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
   passed. Timeout messages are localized in the shared controller, so other
   native views do not display an internal error code. Integration package must
   pin this published source revision. Real owner load latency still unmeasured.
+## PAINT-02 — single-wall paint, pure white, bathroom tiles with navy band (Claude, 2026-11-02, owner request)
+
+- `room.aureon_finish.wall_paints`: colour per room edge (aligned with `points` like `wall_heights`; null = room
+  colour). Picked wall panel gets "Cor só desta parede" (swatches, free colour, "Igual ao cômodo"); corner insert and
+  delete keep the list aligned (`spliceWallPaints`; fidelity notes on pointerDown/deleteVertex). 3D: those edges leave
+  the room surface and get their own paint surface (only this room's side of a shared wall).
+- Paint list starts with "Branco puro" `#fbfbfa` (owner: the previous whites looked odd).
+- Wall covering buttons: "Azulejo branco" and new finish `white_tiles_navy_band` (white 30×60 tiles, navy mosaic band
+  1.20–1.32 m, one band per 2.40 m repeat). White tiles drawn plain glazed (no marble veins).
+- Budgets: editor 952 KB (+8), card editor 278 KB (+2), reasons in build.mjs.
+- Tests: unit (finishes 6), npm test 174 + 531, validate, contract, browser suites, pytest 141, ruff; disposable HA
+  (emulated desktop): single wall graphite + undo/redo + reload + clear, bathroom navy band, pure white; private
+  harness 3D (SwiftShader live): band and single wall visible. Not tested on the owner's HA, iSG or phone.
