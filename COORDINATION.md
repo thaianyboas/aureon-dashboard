@@ -591,3 +591,76 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
   and More at 1440x900, 1024x600, 820x600, 390x844 and 844x390 with transformed HA-like ancestors.
   Browser fixtures are synthetic; physical iSG/owner HA not accessed. Owner's publication authorization
   remains active; promote tested dist to master/HACS, no tag/release or integration rebuild needed.
+
+## SETTINGS-01 — mobile visual correction, preview pending (Codex, 2026-11-02)
+
+- Owner rejected the shipped settings/mobile More visuals using seven iPhone captures: tall repeated
+  checkbox rows, every section expanded, cropped native file control, floating image illustration badge,
+  and oversized/poorly positioned More sheet. Review is grounded in those captures, not a generated mock.
+- Reworked settings into eight categories and one focused panel; mobile category list + Back, desktop
+  settings rail. Existing values/HA registry sources and service/confirmation behavior retained.
+- Compact Label matrix (show/hide in one row), equipment category/search with 30-item increments and
+  bounded list scrolling, waste source search and bounded checklist, primary energy fields with periods
+  disclosed on request, expandable room-picture rows, hidden native import file control with keyboard
+  activation, advanced diagnostics/users/backup. Theme/widget changes preserve the open settings panel.
+- Mobile navigation uses Home, Devices, Media, More; full Rooms/Floor Studio and every remaining route
+  available in More. More is a bounded bottom sheet with compact two-column rows, title/close, current
+  destination and expanded-state semantics. Menu stays outside page scrolling; no truncated Floor label.
+- Validation: full JS/frontend/fidelity tests passed; typecheck/build passed; platform browser suite passed
+  including native bindings, permissions, translations, account isolation and menu/long-page regression.
+  New preview-settings harness passed with 140 synthetic technical sensors and 32 calendars: category
+  navigation, theme/Label persistence, bounded lists/filtering, disclosures, no overflow at 428/390/1024/844,
+  short landscape navigation, and More bounds. Synthetic fixture only, no owner HA or physical phone test.
+- Actual implementation captures assembled into AUREON_Configuracoes_Revisao.png for visual review.
+  No new commit/push/dist promotion or integration pin change: show owner this revision before another
+  visual publication. Stable HACS remains dd5ffae. Continue from these local source changes after review.
+
+## LABELS-02 — Labels only as a view filter (Codex, 2026-11-02)
+
+- Owner requests Labels only as a filter. Removed the settings category and Show/Hide matrix.
+  The equipment toolbar has a single Labels dropdown, including mobile, with All labels, label counts,
+  and a removable current-filter chip. Filtering affects rendered equipment only, never HA entities.
+- Retired legacy include/exclude preference rules during validation so an invisible old rule cannot
+  keep equipment missing after choosing All. Reserved no_dboard and system-device control restrictions,
+  explicit per-entity hidden settings and HA permissions remain independent of this transient filter.
+- Removed duplicate Labels selector from the Devices advanced filters; other pages retain their
+  existing local Label filter. Added room selection in mobile advanced filters, since the toolbar's
+  room selector is hidden on narrow screens. Balanced filter controls use an explicit wrapper layout.
+- Updated unit and synthetic browser coverage for filter/clear without controller state denial,
+  removed settings administration, and retained card-editing/category/availability behavior.
+  Full JS/frontend/fidelity suite passes; focused desktop/mobile browser pass. Review remains local,
+  no commit/push/dist promotion. Continue SETTINGS-01 revision; earlier Labels matrix preview is superseded.
+
+## THEMES-02 — automatic HA language and visual theme gallery (Codex, 2026-11-02)
+
+- Owner requests removal of language setting: language getter now always uses HA locale/language,
+  old manual preference imports migrate to auto, selector removed. HA language changes refresh shell
+  labels as well as platform content, preserving the open settings category. Scope/storage regression
+  tests now use palette/density; added automatic locale precedence and old-language migration coverage.
+- Replaced name-only palette select and three placeholder swatches with all 26 theme miniatures,
+  drawn as vector dashboard layouts using each real palette's background/surface/accent/text colors.
+  Gallery is compact and scrollable, selected card has outline/check, active theme shown above it.
+  Picking a theme immediately applies the custom palette without a prerequisite mode selection or
+  remounting the page, preserving gallery scroll and keyboard focus. Fixed initial select/option state.
+- Full tests/fidelity, typecheck/build, platform browser suite and focused settings preview passed.
+  Verified dark/light palette application and gallery scroll preservation, all 26 previews, no language
+  selector, HA-driven translated navigation, mobile/short-landscape fit and reserved security behavior.
+- Labels remains only the transient equipment filter from LABELS-02. All current revisions LOCAL;
+  no dist promotion, commit/push or integration pin update. Await owner's visual review/publication.
+
+## SETTINGS-PUBLISH — owner approved, 2026-11-03 (Codex)
+
+- Owner explicitly approved the settings/theme design and requested publication. SETTINGS-01,
+  LABELS-02 and THEMES-02 review holds are superseded by this authorization.
+- Fetched and checked remote master dd5ffae; no later Claude changes to integrate. Native compiled
+  renderer/editor/backend are byte-unchanged. Existing integration source pin remains compatible;
+  this publication changes only the dashboard and its stable dist, no integration update needed.
+- Version 0.29.0-test.3, build AUREON-SETTINGS-20261103. README reflects automatic HA language,
+  all 26 visual theme previews, compact settings and transient Labels filtering.
+- Final checks passed: 187 dashboard/module tests + 535 native frontend tests, original fidelity gate,
+  typecheck/build, complete platform browser suite (including locale/navigation, security, native
+  bindings, account isolation, long-page menu), focused settings preview with large synthetic inventory,
+  and equipment/Labels/card-layout browser regression. No physical iSG/owner HA claimed.
+- Deliberately promoted compiled dashboard/assets to dist and updated stable checksum after approval.
+  HACS metadata/checksum, public-source privacy and both build-evidence checks pass. Publish directly
+  to master through authenticated GitHub connection, preserving expected remote head; no tag/release.

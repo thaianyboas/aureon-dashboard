@@ -1,12 +1,12 @@
 # AUREON Dashboard
 
-**Owner test build 0.29.0-test.1 (2026-11-01).** At the owner's request the HACS distribution in `dist/` now carries the current AUREON platform build for testing in her own Home Assistant. It is not a visual approval or a finished release. It needs the matching NeonPlan3D AUREON integration from `thaianyboas/aureon-integration` (same `neonplan3d` domain; replaces the official integration, keeps its storage). The previous stable v0.28.0 file is kept in `rollback/v0.28.0/`. See [OWNER_TEST_2026-11-01.md](OWNER_TEST_2026-11-01.md).
+**Owner test build 0.29.0-test.3 (2026-11-03).** At the owner's request the HACS distribution in `dist/` now carries the current AUREON platform build for testing in her own Home Assistant. The compact settings and visual theme gallery have owner approval; this remains an owner test build. It needs the matching NeonPlan3D AUREON integration from `thaianyboas/aureon-integration` (same `neonplan3d` domain; replaces the official integration, keeps its storage). The previous stable v0.28.0 file is kept in `rollback/v0.28.0/`. See [OWNER_TEST_2026-11-01.md](OWNER_TEST_2026-11-01.md).
 
 ## Balance and personal cards — 2026-11-02
 
 Select **Aubergine · Balance** in Settings → Appearance → AUREON theme for the approved burgundy,
 plum and champagne palette. The equipment view groups native controls by function and offers combined
-room, type, availability and Label filters. Labels can be included or excluded in Settings; exclusion wins.
+room, type, availability and Label filters. Labels only filter the current equipment view; choose All labels or clear the active chip to reset. Earlier global include/exclude rules are retired. Reserved no_dboard visibility and system-device control restrictions still apply.
 
 Use **Edit cards** on a dashboard page to remove/restore cards, rename them, change size, move them
 with the arrows, or add an eligible equipment card. Arrows move cards among siblings in their section.
@@ -17,6 +17,16 @@ change automations or call services. Equipment controls keep their original Home
 Update both the dashboard and matching AUREON integration from HACS, then restart Home Assistant
 for the integration and refresh the browser cache. This is an owner-authorized master test build;
 physical Home Assistant/iSG acceptance is still separate from the automated synthetic-fixture checks.
+
+## Approved settings revision — 2026-11-03
+
+Settings use compact categories, bounded equipment/source lists, expandable room pictures and a compact
+mobile More menu. Home Assistant controls the language automatically, including existing installations
+that previously saved a manual choice. Choose among 26 visual theme miniatures in Appearance; selection
+applies immediately, shows the active palette and preserves gallery scroll.
+
+For this settings revision, update **AUREON Dashboard** in HACS and reload the browser. The integration's
+renderer/editor/backend did not change; its existing 69857f1 source pin remains compatible.
 
 ## Floor Studio source integration
 

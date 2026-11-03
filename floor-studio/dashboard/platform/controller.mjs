@@ -18,7 +18,7 @@ export class PlatformController{
  const states=hass?.states,count=states?Object.keys(states).length:0,ik=this._indexKey;
  if(!ik||ik[0]!==registry||ik[1]!==registry?.entityRows||ik[2]!==registry?.entityRows?.length||ik[3]!==this.preferences.hidden||ik[4]!==count||ik[5]!==this.scope){this._indexKey=[registry,registry?.entityRows,registry?.entityRows?.length,this.preferences.hidden,count,this.scope];this.reindex();}
  this.emit();}
- get language(){return this.preferences.language==='auto'?(this.hass?.locale?.language||this.hass?.language||'en'):this.preferences.language;}
+ get language(){return this.hass?.locale?.language||this.hass?.language||'en';}
  reindex(){const hidden=new Set(this.preferences.hidden);this._allRows=this.registry?.entityRows?.filter(r=>this.hass?.states?.[r.id]&&!r.disabled&&!r.hidden)||[];this._rows=this._allRows.filter(r=>!hidden.has(r.id)&&labelVisible(r,this.preferences,this.labels));this._byId=new Map(this._rows.map(r=>[r.id,r]));const signature=this._rows.map(r=>r.id).sort().join('\n');if(signature!==this._visibility){this._visibility=signature;this.epoch++;this.answer='';this.conversationId=null;this.events={};this.history={};this.series=[];this._confirmation=null;this.busy.clear();this.errors={};}}
  get labels(){return this.registry?.allLabels||[];}
  kind(row){return equipmentKind(row,this.hass?.states?.[row.id],this.preferences,this.labels);}

@@ -1,8 +1,8 @@
 /* AUREON v0.2 — original dashboard strategy foundation; no external requests. */
 (() => {
   'use strict';
-  const VERSION = '0.29.0-test.2';
-  const BUILD_ID = 'AUREON-OWNER-TEST-20261101B';
+  const VERSION = '0.29.0-test.3';
+  const BUILD_ID = 'AUREON-SETTINGS-20261103';
   // AUREON design tokens: single source of truth. Palettes are visual references, not copied logic.
   const PALETTES = {"aubergine-balance":{"name":"Aubergine · Balance","accent":"#f2cba5","background":"#240f1e","surface":"#422236","text":"#fff3e6","muted":"#debfcd","border":"#d7a0b760","ambient":false},"black-gold-royal": {"name": "Black & Gold · Imperial", "accent": "#D9B76E", "background": "#050505", "surface": "#18140D", "text": "#E8C77D"}, "black-bordeaux-royal": {"name": "Black & Bordeaux · Prestige", "accent": "#C35B76", "background": "#050505", "surface": "#1B0D13", "text": "#E3A0B1"}, "purple": {"name": "Royal Purple", "accent": "#a477f5", "background": "#111019", "surface": "#282037", "text": "#f6f3fb"}, "blue": {"name": "Midnight Blue", "accent": "#559cff", "background": "#0c1628", "surface": "#1c304b", "text": "#f5f8ff"}, "emerald": {"name": "Emerald", "accent": "#43c6a0", "background": "#0c1b19", "surface": "#1c3530", "text": "#f2fff9"}, "burgundy": {"name": "Burgundy", "accent": "#ce6c90", "background": "#221219", "surface": "#3a222d", "text": "#fff4f7"}, "rose-noir": {"name": "Rose Noir", "accent": "#e3a04b", "background": "#190d17", "surface": "#301823", "text": "#fff1f4"}, "gold": {"name": "Champagne Gold", "accent": "#b8ab92", "background": "#1b1b1a", "surface": "#2c2b29", "text": "#fff9ed"}, "pearl": {"name": "Pearl White", "accent": "#7664a9", "background": "#f5f3f8", "surface": "#ffffff", "text": "#30283a"}, "obsidian": {"name": "Obsidian", "accent": "#b6b9c2", "background": "#101114", "surface": "#25272c", "text": "#f6f6f8"}, "sapphire": {"name": "Sapphire Night", "accent": "#70a9ed", "background": "#081425", "surface": "#162b43", "text": "#f1f7ff"}, "forest": {"name": "Forest Luxe", "accent": "#b2c79a", "background": "#101c18", "surface": "#24382d", "text": "#f5f7ef"}, "forest-botanical": {"name": "Forest Luxe · Botanical", "accent": "#d5bd8c", "background": "#0b1511", "surface": "#162419", "text": "#f4f0e6", "muted": "#b9c0ae", "border": "#e2dbb738", "sage": "#b6cba0", "ambient": true}, "terracotta": {"name": "Terracotta Atelier", "accent": "#b85e48", "background": "#faf1e8", "surface": "#fffaf5", "text": "#322820"}, "sand": {"name": "Desert Sand", "accent": "#96734b", "background": "#f4e9d7", "surface": "#fff9ed", "text": "#312b22"}, "ocean": {"name": "Ocean Mist", "accent": "#277c8c", "background": "#e8f4f4", "surface": "#f9ffff", "text": "#18323b"}, "amethyst": {"name": "Amethyst Velvet", "accent": "#c2a1eb", "background": "#1b1429", "surface": "#322440", "text": "#faf3ff"}, "copper": {"name": "Copper Noir", "accent": "#d59a72", "background": "#171513", "surface": "#30251f", "text": "#fff4e9"}, "sage": {"name": "Sage Residence", "accent": "#657b57", "background": "#f0f2e9", "surface": "#fcfdf8", "text": "#283229"}, "arctic": {"name": "Arctic Silver", "accent": "#53778e", "background": "#edf2f6", "surface": "#ffffff", "text": "#1b2a36"}, "ruby": {"name": "Ruby Eclipse", "accent": "#ed8794", "background": "#200e18", "surface": "#3a202d", "text": "#fff4f7"}, "lavender": {"name": "Lavender Cloud", "accent": "#8068b0", "background": "#f3effa", "surface": "#ffffff", "text": "#2b2341"}, "graphite": {"name": "Graphite Studio", "accent": "#c6d0d9", "background": "#171b20", "surface": "#2b3038", "text": "#f6f8fb"}, "silver-penthouse": {"name": "Silver Penthouse", "accent": "#A8C9E2", "background": "#10171C", "surface": "#242D35", "text": "#F0F2F4", "muted": "#BBC6CE", "border": "#BDD5E340", "sage": "#CDD8DF", "ambient": true}, "amethyst-lounge": {"name": "Amethyst Lounge", "accent": "#EDB5A3", "background": "#1B111D", "surface": "#302231", "text": "#FFF0EA", "muted": "#D4BCCA", "border": "#EDB5A345", "sage": "#C3A1CD", "ambient": true}};
   const DEFAULT_THEME = 'forest';
@@ -179,6 +179,9 @@
       this._hass=value;
       this._musicController?.setHass(value);
       this._platformController?.update(value,this._registry);
+      const language=value?.locale?.language||value?.language||'en',languageChanged=this._shellLanguage&&this._shellLanguage!==language;this._shellLanguage=language;
+      if(languageChanged&&this._configured&&!identityChanged){const current=this.shadowRoot.querySelector('aureon-platform'),tab=current?._settingsTab;this._render();const next=this.shadowRoot.querySelector('aureon-platform');if(next&&next.page==='settings')next._settingsTab=tab||'';}
+
       if(identityChanged&&this._configured)this._render();
       const studioKey=this._studioStorageKey();
       if(this._studioLoadedKey!==studioKey){this._studioLoadedKey=studioKey;this._studioCards=this._studioRead();if(this._configured&&this._page==='Início')this._render();}
@@ -258,8 +261,10 @@
       wrap.classList.toggle('au-home',name==='Início'||name==='Medien');wrap.classList.toggle('au-media',name==='Medien');
       const Page=customElements.get('aureon-platform'),labels=Page?.labels(this._platformController?.language||this._hass?.language||'en');
       main.dataset.auPage=Page?.routeNames?.[name]||'';if(header)header.hidden=['Geräte','Planta'].includes(name);
-      if(header&&labels){header.querySelector('h1').textContent=labels[Page.routeNames[name]]||name;}
+      if(header&&labels){header.querySelector('h1').textContent=labels[Page.routeNames[name]]||name;const eyebrow=header.querySelector('.small');if(eyebrow)eyebrow.textContent='AUREON / '+(name==='Einstellungen'?labels.settings.toUpperCase():'CONTROL CENTER');}
       [...this.shadowRoot.querySelectorAll('nav .au-nav-button')].forEach((button,i)=>{const active=PAGES[i]?.[1]===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
+      this.shadowRoot.querySelector('.au-nav-more')?.classList.toggle('active',!['Início','Geräte','Medien'].includes(name));
+      this.shadowRoot.querySelectorAll('.au-more-item').forEach(item=>{if(item.dataset.route===name)item.setAttribute('aria-current','page');else item.removeAttribute('aria-current');});
       const make=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
       if(keep&&name==='Início'){keep.style.display='';keep.requestUpdate?.();return;}
       if(!this._platformSection(main,make)){if(name==='Medien')this._musicSection(main,make,false);else if(name==='Planta')this._floorSection(main,make);}
@@ -274,7 +279,7 @@
       this._platformController.update(this._hass,this._registry);
       const page=make('aureon-platform');page.page=route;page.controller=this._platformController;page.palettes=Object.entries(PALETTES).map(([id,p])=>({id,...p}));
       page.addEventListener('aureon-platform-navigate',e=>this._navigate(e.detail));
-      page.addEventListener('aureon-preferences-changed',e=>{this._theme={...this._theme,mode:e.detail.appearance,palette:e.detail.palette};if(e.detail.changedKey!=='cardLayouts')this._render();});
+      page.addEventListener('aureon-preferences-changed',e=>{this._theme={...this._theme,mode:e.detail.appearance,palette:e.detail.palette};if(['density','widgets'].includes(e.detail.changedKey)){const state={_settingsTab:page._settingsTab,_settingsKind:page._settingsKind,_settingsLimit:page._settingsLimit,_search:page._search,_wasteSearch:page._wasteSearch};this._render();const next=this.shadowRoot.querySelector('aureon-platform');if(next&&next.page===page.page)Object.assign(next,state);}});
       target.append(page);if(route==='home')this._homeKeep=page;if(route==='home'&&this._platformController.preferences.widgets.music)this._musicSection(page,make,true);return true;
     }
     _musicSection(target, make, compact = false) {
@@ -1543,12 +1548,15 @@
       // Keep navigation outside the page's scrolling region, including HA cards whose ancestors
       // establish a containing block for position:fixed. The shell itself fits below the HA header.
       filterStyle.textContent += `.wrap.wrap{height:var(--aureon-shell-height,var(--aureon-available-height,calc(100dvh - var(--header-height,56px) - 16px)));min-height:0;grid-template-rows:minmax(0,1fr);overflow:hidden}.wrap>main{min-height:0;overflow:auto;overscroll-behavior-y:contain;scrollbar-gutter:stable}.wrap>nav{min-height:0;max-height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}.wrap>nav>*{flex-shrink:0}@supports not(height:100dvh){.wrap.wrap{height:var(--aureon-shell-height,var(--aureon-available-height,calc(100vh - var(--header-height,56px) - 16px)))}}@media(max-width:650px){.wrap.wrap{grid-template-rows:minmax(0,1fr) auto}.wrap.wrap>nav{position:relative!important;bottom:auto!important;left:auto!important;width:auto!important;height:auto;max-height:none;overflow:visible;z-index:30;background:var(--au-nav)}.wrap.wrap>main{padding-bottom:18px!important}.wrap>nav .au-rail-foot,.wrap>nav .au-rail-person{display:none!important}}@media(min-width:651px) and (max-height:750px){.wrap>nav{padding-top:10px!important;padding-bottom:10px!important;gap:3px!important}.wrap>nav .logo{margin:0 0 8px!important}.wrap>nav .au-logo-mark{height:34px!important;width:32px!important}.wrap>nav .au-wordmark,.wrap>nav .au-rail-foot{display:none!important}.wrap>nav .au-nav-button{min-height:38px!important;padding-top:6px!important;padding-bottom:6px!important}}`;
+      filterStyle.textContent += `@media(max-width:650px){.wrap.wrap>nav .au-nav-secondary{display:none!important}.wrap.wrap>nav .au-nav-button,.wrap.wrap>nav .au-nav-more{min-height:48px;padding:5px 3px;gap:4px}.wrap>nav .au-nav-label{font-size:10px}.wrap>nav .au-nav-button svg,.wrap>nav .au-nav-more svg{width:20px;height:20px}.au-more-sheet{position:fixed;inset:auto 10px max(10px,env(safe-area-inset-bottom));margin:0;width:calc(100% - 20px);max-height:calc(100dvh - 84px);height:fit-content;overflow:auto;padding:18px;border-radius:24px;background:linear-gradient(145deg,var(--au-card),var(--au-bg));box-shadow:0 20px 80px #0007}.au-more-sheet::backdrop{background:#10091099;backdrop-filter:blur(10px)}.au-more-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.au-more-heading h2{font:26px Georgia,serif;margin:0}.au-more-close{display:grid;place-items:center;width:34px;height:34px;min-height:34px;margin:0;padding:0;border-radius:50%;font:24px system-ui;background:var(--au-hover)}.au-more-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.au-more-item{display:flex;align-items:center;justify-items:start;gap:10px;min-height:54px;padding:12px;border-radius:12px;font-size:12px;text-align:left;background:color-mix(in srgb,var(--au-card) 72%,transparent)}.au-more-item svg{width:20px;height:20px;flex:none;color:var(--au-accent)}.au-more-item span{text-align:left;font-size:12px;line-height:1.35}.au-more-item:focus-visible{outline-width:2px;outline-offset:1px}}`;
+      filterStyle.textContent += `.wrap>main[data-au-page="settings"]>header .muted{display:none}.wrap>main[data-au-page="settings"]>header{padding-bottom:16px}.wrap>main[data-au-page="settings"]>header h1{font-size:30px;margin:4px 0}@media(max-width:650px){.wrap>main[data-au-page="settings"]{padding:20px 14px 18px}.wrap>main[data-au-page="settings"]>header h1{font-size:28px}}`;
+      filterStyle.textContent += `.au-more-item[aria-current="page"]{border-color:var(--au-accent);background:color-mix(in srgb,var(--au-accent) 9%,var(--au-card))}`;
       const wrap = make('div', 'wrap'+(this._page==='Início'||this._page==='Medien'?' au-home':'')+(this._page==='Medien'?' au-media':''));
       const nav = make('nav');
       nav.setAttribute('aria-label', 'AUREON navigation');
       {const logo=make('div','logo');const asset=globalThis.aureonAssetUrl;if(asset){const img=make('img','au-logo-mark');img.src=asset('logo.svg');img.alt='';logo.append(img);}else logo.textContent='A✦';logo.append(make('span','au-wordmark','AUREON'));nav.append(logo);}
       for (const [icon, name] of PAGES) {
-        const primary=['Início','Räume','Planta','Medien'].includes(name);
+        const primary=['Início','Geräte','Medien'].includes(name);
         const button = make('button', 'au-nav-button' + (name === this._page ? ' active' : '') + (primary ? ' au-nav-primary' : ' au-nav-secondary'));
         button.append(aureonNavIcon(name));
         button.type = 'button';
@@ -1564,15 +1572,15 @@
       // Phones: four primary destinations plus "More" for the rest (sheet with every remaining page).
       {
         const Page=customElements.get('aureon-platform'),lang=this._platformController?.language||this._hass?.locale?.language||this._hass?.language||'en',labels=Page?.labels?.(lang)||{};
-        const more=make('button','au-nav-more');more.type='button';more.setAttribute('aria-haspopup','dialog');more.setAttribute('aria-label',labels.navMore||'More');
+        const more=make('button','au-nav-more');more.type='button';more.classList.toggle('active',!['Início','Geräte','Medien'].includes(this._page));more.setAttribute('aria-expanded','false');more.setAttribute('aria-haspopup','dialog');more.setAttribute('aria-label',labels.navMore||'More');
         const dots=document.createElementNS('http://www.w3.org/2000/svg','svg');dots.setAttribute('viewBox','0 0 24 24');dots.setAttribute('width','21');dots.setAttribute('height','21');dots.setAttribute('aria-hidden','true');dots.innerHTML='<path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/>';
         more.append(dots,make('span','au-nav-label',labels.navMore||'More'));
         const sheet=make('dialog','au-more-sheet');sheet.setAttribute('aria-label',labels.navMore||'More');
         const grid=make('div','au-more-grid');
-        for(const [,name] of PAGES){if(['Início','Räume','Planta','Medien'].includes(name))continue;const label=labels[Page?.routeNames?.[name]]||name;const item=make('button','au-more-item');item.type='button';item.append(aureonNavIcon(name),make('span','',label));item.addEventListener('click',()=>{sheet.close();this._navigate(name);});grid.append(item);}
-        const close=make('button','au-more-close',labels.close||'Close');close.type='button';close.addEventListener('click',()=>sheet.close());
-        sheet.append(grid,close);sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.close();});
-        more.addEventListener('click',()=>sheet.showModal());
+        for(const [,name] of PAGES){if(['Início','Geräte','Medien'].includes(name))continue;const label=labels[Page?.routeNames?.[name]]||name;const item=make('button','au-more-item');item.type='button';item.dataset.route=name;if(name===this._page)item.setAttribute('aria-current','page');item.append(aureonNavIcon(name),make('span','',label));item.addEventListener('click',()=>{sheet.close();this._navigate(name);});grid.append(item);}
+        const close=make('button','au-more-close','×');close.setAttribute('aria-label',labels.close||'Close');close.type='button';close.addEventListener('click',()=>sheet.close());
+        const heading=make('div','au-more-heading');heading.append(make('h2','',labels.navMore||'More'),close);sheet.append(heading,grid);sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.close();});
+        more.addEventListener('click',()=>{sheet.showModal();more.setAttribute('aria-expanded','true');});sheet.addEventListener('close',()=>more.setAttribute('aria-expanded','false'));
         nav.append(more,sheet);
       }
       {const Page=customElements.get('aureon-platform'),labels=Page?.labels?.(this._platformController?.language||this._hass?.locale?.language||this._hass?.language||'en')||{};const foot=make('div','au-rail-foot');foot.append(make('span','','AUREON'),make('small','',labels.tagline2||''));nav.append(foot);}
@@ -1581,10 +1589,10 @@
        if(person){const Page=customElements.get('aureon-platform'),labels=Page?.labels?.(this._platformController?.language||h?.locale?.language||h?.language||'en')||{};const box=make('div','au-rail-person');const pic=person.attributes.entity_picture;
         if(typeof pic==='string'&&pic.startsWith('/')&&!pic.startsWith('//')){const img=make('img');img.src=h.hassUrl?h.hassUrl(pic):pic;img.alt='';box.append(img);}else box.append(make('span','au-rail-initial',(person.attributes.friendly_name||'?').trim().charAt(0).toUpperCase()));
         const home=person.state==='home';box.classList.toggle('home',home);box.append(make('strong','',person.attributes.friendly_name||person.entity_id),make('small','',home?(labels.homeState||'Home'):(labels.away||person.state)));nav.append(box);}}
-      const main = make('main');main.dataset.auPage=this._page==='Geräte'?'devices':'';
+      const main = make('main');main.dataset.auPage=customElements.get('aureon-platform')?.routeNames?.[this._page]||'';
       const header = make('header');header.hidden=['Geräte','Planta'].includes(this._page);
       const heading = make('div');
-      heading.append(make('div','small','AUREON / CONTROL CENTER'));
+      heading.append(make('div','small','AUREON / '+(this._page==='Einstellungen'?(customElements.get('aureon-platform')?.labels(this._platformController?.language)?.settings||'Settings').toUpperCase():'CONTROL CENTER')));
       const Page=customElements.get('aureon-platform');
       heading.append(make('h1','',Page?.labels?.(this._platformController?.language||this._hass?.locale?.language||this._hass?.language||'en')?.[Page?.routeNames?.[this._page]]||this._page));
       heading.append(make('div','muted',Page?.labels?.(this._platformController?.language||this._hass?.language||'en')?.tagline||''));

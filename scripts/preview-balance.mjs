@@ -40,13 +40,9 @@ try{
  await page.evaluate(()=>{ui._equipment='';ui._availability='';ui._label='';});await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
  await page.click('#platform-dashboard >>> aureon-platform >>> .equipment-filter-panel summary');
  await page.screenshot({path:out+'/equipamentos-computador.png',fullPage:true});
- await navigate('Einstellungen','settings');await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
- await page.click('#platform-dashboard >>> aureon-platform >>> input[data-label-rule="exclude"][value="daily"]');await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
- assert.equal(await page.evaluate(()=>dashboard._platformController.rows.some(r=>r.id==='switch.socket')),false);
- assert.equal(await page.evaluate(()=>dashboard._platformController.state('switch.socket')),null);
- await page.click('#platform-dashboard >>> aureon-platform >>> input[data-label-rule="exclude"][value="daily"]');await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
- await page.evaluate(()=>ui.shadowRoot.querySelector('.label-settings').scrollIntoView({block:'start'}));await page.screenshot({path:out+'/labels-computador.png',fullPage:false});
+ await page.select('#platform-dashboard >>> aureon-platform >>> select[aria-label="Labels"]','sockets');await page.evaluate(()=>ui.updateComplete);assert.equal(await page.evaluate(()=>ui.shadowRoot.querySelectorAll('.balance-device').length),1);assert.ok(await page.evaluate(()=>!!dashboard._platformController.state('light.desk')));assert.equal(await page.evaluate(()=>dashboard._platformController.preferences.labelVisibility.exclude.length),0);await page.screenshot({path:out+'/labels-computador.png'});await page.click('#platform-dashboard >>> aureon-platform >>> .label-filter-chip button');await page.evaluate(()=>ui.updateComplete);assert.ok(await page.evaluate(()=>ui.shadowRoot.querySelectorAll('.balance-device').length>1));
  await page.setViewport({width:390,height:844});await navigate('Geräte','devices');await page.evaluate(async()=>{ui=dashboard.shadowRoot.querySelector('aureon-platform');await ui.updateComplete;});
+ assert.ok(await page.$eval('#platform-dashboard >>> aureon-platform >>> select[aria-label="Labels"]',e=>e.getBoundingClientRect().width>0));await page.select('#platform-dashboard >>> aureon-platform >>> select[aria-label="Labels"]','sockets');await page.evaluate(()=>ui.updateComplete);assert.equal(await page.evaluate(()=>ui.shadowRoot.querySelectorAll('.balance-device').length),1);await page.click('#platform-dashboard >>> aureon-platform >>> .label-filter-chip button');await page.evaluate(()=>ui.updateComplete);
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:out+'/equipamentos-celular.png',fullPage:false});
 
  // Personal layouts must not call HA services while their editing controls are used.
@@ -72,5 +68,5 @@ try{
  assert.equal(await page.evaluate(()=>layoutCalls),0);
  await page.setViewport({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  await page.evaluate(()=>{ui._layoutEditing=false;ui.save('cardLayouts',{});});await page.evaluate(()=>ui.updateComplete);
- assert.deepEqual(errors,[]);console.log('PASS: native classification, technical disclosure, combined availability filters, label hide/restore, state denial, desktop/mobile no overflow, card edit/remove/restore/add/reorder without HA service calls; synthetic HA fixture only');
+ assert.deepEqual(errors,[]);console.log('PASS: native classification, technical disclosure, combined availability filters, transient Label filter/clear without state denial, desktop/mobile no overflow, card edit/remove/restore/add/reorder without HA service calls; synthetic HA fixture only');
 }finally{await browser?.close();server.close();}
