@@ -713,4 +713,4 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
   old store byte-identical, resource taken over, Floor Studio + Ajustes + 35 own pictures + home 3D plan, no 404s;
   official 2.0.7 installed next to it → notice shown, our stores unchanged, its own resource separate; removed →
   notice gone, stale resource cleaned. Not tested on the owner's HA.
-- Not published yet: waiting for the owner's approval.
+- Owner approved publishing on 2026-11-05 ("Sim, pode publicar").
