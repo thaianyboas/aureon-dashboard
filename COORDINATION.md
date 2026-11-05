@@ -728,4 +728,4 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
   same rail as a sheet. Original renderToolBar unchanged (kept, unused). Editor browser test uses the rail.
 - Tests: npm test, typecheck, validate, contract, browser suites, pytest 149; disposable HA: walk + grab + drag +
   undo, rail/choices/settings dialog/whole plan, phone sheet; icons fixed size. Not on the owner's HA.
-- Not published yet: waiting for the owner's approval.
+- Owner approved publishing on 2026-11-05 ("Sim, pode publicar").
