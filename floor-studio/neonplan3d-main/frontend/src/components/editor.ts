@@ -150,18 +150,10 @@ import { basicTypes, buildIndex, roomKindOf, type LibraryEntry } from "../librar
 import { packsVersion as libPacksVersion } from "../packs.ts";
 import type { WallMode } from "../viewer/viewer3d.ts";
 import { furnitureName } from "../furniture-names.ts";
+import { importOwnFurniture, listOwnFurniture, type AureonOwnModel } from "../aureon-own.ts";
 import { AUREON_WALL_PAINTS, paintColor, spliceWallPaints, wallPaints } from "../aureon-paints.ts";
 
 /** One own model in <config>/aureon_models (see the integration's aureon_models.py). */
-interface AureonOwnModel {
-  file: string;
-  url: string;
-  size: [number, number, number];
-  name?: string;
-  type?: string;
-  mount_y?: number;
-  mirror?: boolean;
-}
 import { furnitureSize, isElectric, isPackHeater, isPackSensor, isPackType, isRobotVacuum, mountBase, packDisplay, packItem, packItemName, packMotion, packName, packType, setPacks, type FurniturePack } from "../packs.ts";
 
 /** Items that can be fixed against moving. */
@@ -356,6 +348,26 @@ const NO_STATE_TYPES = new Set(["parking", "stairwell", "rug", "grid_point", "wa
 function volumeMeter(type: string): boolean {
   const item = packItem(type);
   return item?.family === "meter" && (item.tags ?? []).some((t) => /^(gas|water|wasser)$/i.test(t));
+}
+
+// AUREON: small line icons and a remembered open/closed state for the editor's side panel
+const AUREON_ICON_JOIN = svg`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7v7H4zM13 13h7v7h-7z"></path><path d="M11 7.5h3.5V13"></path></svg>`;
+const AUREON_ICON_STRAIGHT = svg`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"></path><path d="M8 16l8-8"></path></svg>`;
+const AUREON_ICON_TRASH = svg`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"></path></svg>`;
+const AUREON_ICON_CHEVRON = svg`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>`;
+function aureonOpen(key: string): boolean {
+  try {
+    return localStorage.getItem(`aureon.side.${key}`) !== "0";
+  } catch {
+    return true;
+  }
+}
+function aureonRemember(key: string, open: boolean): void {
+  try {
+    localStorage.setItem(`aureon.side.${key}`, open ? "1" : "0");
+  } catch {
+    // a private window: it stays as it is for this visit
+  }
 }
 
 export class Fp3dEditor extends LitElement {
@@ -563,6 +575,8 @@ export class Fp3dEditor extends LitElement {
   private _aureonOwnLoading = false;
   private _aureonOwnFilter = "";
   private _aureonOwnImport: { busy: boolean; text: string; error: boolean } | null = null;
+  /** AUREON: pictures of the own models (data URLs), drawn by the 3D bundle one after the other. */
+  private _aureonThumbs = new Map<string, string | null>();
   /** The wall view: a room's wall seen from the front (what stands and hangs on it), and the piece chosen in it. */
   private declare _wallView: { roomId: string; edge: number } | null;
   private declare _wallSel: string | null;
@@ -10765,19 +10779,20 @@ export class Fp3dEditor extends LitElement {
                   </div>`
                 : nothing}
               ${admin
-                ? html`<div class="fp3d-actions fp3d-wide">
-                    <button class="fp3d-btn" title=${this.t("floor_order_hint")} @click=${() => this.moveFloor(1)}>${this.t("move_up")}</button>
-                    <button class="fp3d-btn" title=${this.t("floor_order_hint")} @click=${() => this.moveFloor(-1)}>${this.t("move_down")}</button>
-                    <button class="fp3d-btn fp3d-danger" @click=${() => this.deleteFloor()}>${this.t("delete_floor")}</button>
+                ? html`<div class="fp3d-aureon-tools fp3d-wide" role="group" aria-label=${this.t("aureon_plan_tools")}>
+                    <span class="fp3d-aureon-kicker">${this.t("aureon_plan_tools")}</span>
+                    <button class="fp3d-aureon-tool" ?disabled=${floor.rooms.length < 2} @click=${() => this.closeFloorGaps()}>
+                      <i aria-hidden="true">${AUREON_ICON_JOIN}</i><span><b>${this.t("gaps_close")}</b><small>${this.t("gaps_hint")}</small></span><em aria-hidden="true">›</em>
+                    </button>
+                    <button class="fp3d-aureon-tool" ?disabled=${!floor.rooms.length} @click=${() => this.straightenFloor()}>
+                      <i aria-hidden="true">${AUREON_ICON_STRAIGHT}</i><span><b>${this.t("straighten")}</b><small>${this.t("straighten_hint")}</small></span><em aria-hidden="true">›</em>
+                    </button>
                   </div>
                   <div class="fp3d-actions fp3d-wide">
-                    <button class="fp3d-btn" title=${this.t("gaps_hint")} ?disabled=${floor.rooms.length < 2} @click=${() => this.closeFloorGaps()}>
-                      ${this.t("gaps_close")}
-                    </button>
-                    <button class="fp3d-btn" title=${this.t("straighten_hint")} ?disabled=${!floor.rooms.length} @click=${() => this.straightenFloor()}>
-                      ${this.t("straighten")}
-                    </button>
+                    <button class="fp3d-btn" title=${this.t("floor_order_hint")} @click=${() => this.moveFloor(1)}>↑ ${this.t("move_up")}</button>
+                    <button class="fp3d-btn" title=${this.t("floor_order_hint")} @click=${() => this.moveFloor(-1)}>↓ ${this.t("move_down")}</button>
                   </div>
+                  <button class="fp3d-aureon-delete fp3d-wide" @click=${() => this.deleteFloor()}>${AUREON_ICON_TRASH} ${this.t("delete_floor")}</button>
                   ${this._notice ? html`<p class="fp3d-sub fp3d-wide fp3d-notice">${this._notice}</p>` : nothing}`
                 : nothing}
             </div>`
@@ -10818,8 +10833,10 @@ export class Fp3dEditor extends LitElement {
 
   private renderRoomList(floor: Floor) {
     if (!floor.rooms.length) return nothing;
-    return html`<section>
-      <h3>${this.t("rooms")}</h3>
+    // AUREON: the list folds away behind its arrow (remembered on this device)
+    const total = floor.rooms.reduce((s, r) => s + polygonArea(r.points), 0);
+    return html`<details class="fp3d-aureon-collapse" ?open=${aureonOpen("rooms")} @toggle=${(e: Event) => aureonRemember("rooms", (e.target as HTMLDetailsElement).open)}>
+      <summary><span class="fp3d-aureon-kicker">${this.t("rooms")}</span><span class="fp3d-muted">${floor.rooms.length} · ${this.area(total)}</span><i aria-hidden="true">${AUREON_ICON_CHEVRON}</i></summary>
       <div class="fp3d-room-list">
         ${floor.rooms.map(
           (r, i) => html`<div class="fp3d-row fp3d-dev-row">
@@ -10833,7 +10850,7 @@ export class Fp3dEditor extends LitElement {
           </div>`,
         )}
       </div>
-    </section>`;
+    </details>`;
   }
 
   /** The room's doors and windows as a list: a tap selects one that is hard to hit in the plan (#312). */
@@ -12870,10 +12887,9 @@ export class Fp3dEditor extends LitElement {
   private loadAureonOwn(): void {
     if (this._aureonOwn !== null || this._aureonOwnLoading || !this.hass) return;
     this._aureonOwnLoading = true;
-    this.hass
-      .callWS<{ models: AureonOwnModel[] }>({ type: "neonplan3d/aureon_models/list" })
-      .then((r) => {
-        this._aureonOwn = Array.isArray(r?.models) ? r.models : [];
+    listOwnFurniture(this.hass)
+      .then((models) => {
+        this._aureonOwn = models;
       })
       .catch(() => {
         // an older backend without the command: the section explains the restart
@@ -12886,33 +12902,14 @@ export class Fp3dEditor extends LitElement {
 
   /** AUREON: "Import furniture": a .zip (models + catalog.json) or .glb files into <config>/aureon_models (admins). */
   private async importAureonOwn(files: FileList | null): Promise<void> {
-    const hass = this.hass as unknown as { fetchWithAuth?: (url: string, init?: RequestInit) => Promise<Response> } | undefined;
-    if (!files?.length || !this.isAdmin || !hass?.fetchWithAuth) return;
-    let added = 0, replaced = 0, names = 0, failed: string[] = [];
+    if (!files?.length || !this.isAdmin || !this.hass) return;
     this._aureonOwnImport = { busy: true, text: this.t("aureon_own_import_busy"), error: false };
     this.requestUpdate();
-    for (const file of Array.from(files)) {
-      try {
-        const res = await hass.fetchWithAuth(`/api/neonplan3d/aureon_models_upload?name=${encodeURIComponent(file.name)}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/octet-stream" },
-          body: file,
-        });
-        const r = (await res.json().catch(() => ({}))) as { added?: string[]; replaced?: string[]; names?: number; error?: string };
-        if (!res.ok) throw new Error(r.error ?? String(res.status));
-        added += r.added?.length ?? 0;
-        replaced += r.replaced?.length ?? 0;
-        names += r.names ?? 0;
-      } catch {
-        failed.push(file.name);
-      }
-    }
+    const r = await importOwnFurniture(this.hass, Array.from(files));
     this._aureonOwnImport = {
       busy: false,
-      error: failed.length > 0,
-      text: failed.length
-        ? this.t("aureon_own_import_failed", { files: failed.join(", ") })
-        : this.t("aureon_own_import_done", { added, replaced, names }),
+      error: r.failed.length > 0,
+      text: r.failed.length ? this.t("aureon_own_import_failed", { files: r.failed.join(", ") }) : this.t("aureon_own_import_done", { added: r.added, replaced: r.replaced, names: r.names }),
     };
     this._aureonOwn = null; // reload the list
     this.requestUpdate();
@@ -12945,6 +12942,23 @@ export class Fp3dEditor extends LitElement {
     this.change((_, f) => f.furniture.push(item));
     this.selectItem("furniture", item.id);
     this.showPoint(item.x, item.z);
+  }
+
+  /** AUREON: asks the 3D bundle for a model's picture once; the card shows it when it is there. */
+  private aureonThumb(url: string): string | null {
+    if (this._aureonThumbs.has(url)) return this._aureonThumbs.get(url) ?? null;
+    this._aureonThumbs.set(url, null);
+    const hass = this.hass as unknown as { fetchWithAuth?: (u: string, i?: RequestInit) => Promise<Response> } | undefined;
+    const read = (u: string) => (hass?.fetchWithAuth ? hass.fetchWithAuth(u, { credentials: "same-origin" }) : fetch(u, { credentials: "same-origin" }));
+    void load3d()
+      .then((mod) => mod.aureonModelThumb(url, read))
+      .then((pic) => {
+        if (!pic) return;
+        this._aureonThumbs.set(url, pic);
+        this.requestUpdate();
+      })
+      .catch(() => undefined);
+    return null;
   }
 
   private renderAureonOwn() {
@@ -12987,6 +13001,7 @@ export class Fp3dEditor extends LitElement {
                 <div class="fp3d-aureon-own-list">
                   ${shown.map(
                     (m) => html`<button class="fp3d-aureon-own-item" ?disabled=${!this.isAdmin} title=${m.file} @click=${() => this.addAureonOwn(m)}>
+                      ${((pic) => (pic ? html`<img class="fp3d-aureon-own-pic" src=${pic} alt="" />` : html`<span class="fp3d-aureon-own-pic" aria-hidden="true"></span>`))(this.aureonThumb(m.url))}
                       <b>${m.name ?? m.file.replace(/\.glb$/i, "")}</b>
                       <span class="fp3d-sub">${cm(m.size[0])} × ${cm(m.size[2])} × ${cm(m.size[1])} cm${used.get(m.url) ? ` · ${this.t("aureon_own_in_plan", { n: used.get(m.url)! })}` : ""}</span>
                     </button>`,
@@ -16283,9 +16298,123 @@ export class Fp3dEditor extends LitElement {
       border: 1px solid #0003;
       vertical-align: -1px;
     }
+    .fp3d-aureon-kicker {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--fp3d-muted);
+    }
+    .fp3d-aureon-collapse {
+      border: 1px solid var(--fp3d-line);
+      border-radius: 16px;
+      background: var(--fp3d-chrome);
+      padding: 2px 14px;
+      margin: 10px 0;
+    }
+    .fp3d-aureon-collapse > summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      cursor: pointer;
+    }
+    .fp3d-aureon-collapse > summary::-webkit-details-marker {
+      display: none;
+    }
+    .fp3d-aureon-collapse > summary .fp3d-muted {
+      flex: 1;
+      font-size: 12px;
+    }
+    .fp3d-aureon-collapse > summary i {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(var(--fp3d-accent-rgb, 168, 201, 226), 0.14);
+      transition: transform 0.2s;
+    }
+    .fp3d-aureon-collapse[open] > summary i {
+      transform: rotate(180deg);
+    }
+    .fp3d-aureon-collapse > .fp3d-room-list {
+      padding-bottom: 8px;
+    }
+    .fp3d-aureon-tools {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--fp3d-line);
+      border-radius: 16px;
+      background: var(--fp3d-chrome);
+      overflow: hidden;
+      margin: 6px 0;
+    }
+    .fp3d-aureon-tools > .fp3d-aureon-kicker {
+      padding: 12px 16px 4px;
+    }
+    .fp3d-aureon-tool {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border: 0;
+      border-top: 1px solid var(--fp3d-line);
+      background: transparent;
+      color: var(--fp3d-text);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .fp3d-aureon-tool:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    .fp3d-aureon-tool > i {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(var(--fp3d-accent-rgb, 168, 201, 226), 0.14);
+    }
+    .fp3d-aureon-tool > span {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+    .fp3d-aureon-tool small {
+      color: var(--fp3d-muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .fp3d-aureon-tool > em {
+      font-style: normal;
+      color: var(--fp3d-muted);
+    }
+    .fp3d-aureon-delete {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 0 14px;
+      margin-top: 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(231, 120, 120, 0.3);
+      background: rgba(231, 120, 120, 0.07);
+      color: var(--fp3d-danger, #e88);
+      font: inherit;
+      cursor: pointer;
+    }
     .fp3d-aureon-own-list {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 8px;
         margin: 8px 0;
       }
@@ -16293,14 +16422,32 @@ export class Fp3dEditor extends LitElement {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        gap: 2px;
-        padding: 10px;
+        gap: 4px;
+        padding: 6px 6px 8px;
         text-align: left;
-        border-radius: 10px;
+        border-radius: 12px;
+        min-width: 0;
+        font-size: 12px;
+        line-height: 1.25;
         border: 1px solid rgba(var(--aureon-ui-line-rgb, 128, 128, 128), 0.35);
         background: var(--fp3d-surface, transparent);
         color: var(--fp3d-text, inherit);
         cursor: pointer;
+      }
+      .fp3d-aureon-own-item b {
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+      .fp3d-aureon-own-item .fp3d-sub {
+        font-size: 11px;
+      }
+      .fp3d-aureon-own-pic {
+        display: block;
+        width: 100%;
+        aspect-ratio: 25 / 18;
+        object-fit: cover;
+        border-radius: 8px;
+        background: #1d272e;
       }
       .fp3d-aureon-own-item:hover:not([disabled]) {
         border-color: var(--fp3d-accent);

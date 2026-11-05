@@ -5783,6 +5783,8 @@ function makeGroundTexture(): CanvasTexture {
 }
 
 export { furnitureFront, furniturePreview, type FrontPicture, type PreviewItem } from "./preview.ts";
+/** AUREON: pictures of the owner's own models for "Meus móveis". */
+export { aureonModelThumb } from "./aureon-thumb.ts";
 
 export function createViewer(host: HTMLElement, options?: ViewerOptions): FloorplanViewer {
   return new FloorplanViewer(host, options);

@@ -17,6 +17,7 @@ export class Extensions extends LitElement {
     hass: { attribute: false },
     packs: { attribute: false },
     building: { attribute: false },
+    section: {},
     _packMsg: { state: true },
     _moduleMsg: { state: true },
     _review: { state: true },
@@ -27,6 +28,8 @@ export class Extensions extends LitElement {
   declare packs: FurniturePack[] | undefined;
   /** The plan (the fun packs keep their settings in it, e.g. the pets). */
   declare building: Building | null | undefined;
+  /** AUREON: one part only, for the Floor Studio "Ajustes" sheet ("pets", "packs", "modules"); unset: the whole page. */
+  declare section: "pets" | "packs" | "modules" | undefined;
   private declare _packMsg: { ok: boolean; text: string } | null;
   private declare _moduleMsg: { ok: boolean; text: string } | null;
   /** The module code an admin is reading before approving it. */
@@ -92,6 +95,13 @@ export class Extensions extends LitElement {
     // AUREON public distribution: no storefront, purchase links, offers or
     // license-key prompts. Existing locally imported packs remain available.
     // Private licensed assets are never bundled with the public frontend.
+    // AUREON: the "Ajustes" sheet shows one part at a time
+    if (this.section === "pets") {
+      const fun = this.renderFun(unlockedFeatures(this.packs ?? []));
+      return fun === nothing ? html`<p class="fp3d-sub">${this.t("aureon_settings_pets_none")}</p>` : fun;
+    }
+    if (this.section === "packs") return this.renderPacks();
+    if (this.section === "modules") return this.renderModules();
     return html`<div class="fp3d-ext">
       <header class="fp3d-ext-head">
         <h2>${this.t("packs")}</h2>

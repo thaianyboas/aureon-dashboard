@@ -664,3 +664,18 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
 - Deliberately promoted compiled dashboard/assets to dist and updated stable checksum after approval.
   HACS metadata/checksum, public-source privacy and both build-evidence checks pass. Publish directly
   to master through authenticated GitHub connection, preserving expected remote head; no tag/release.
+
+## FLOOR-UI-01 — Floor Studio "Ajustes" and side-panel redesign (Claude, owner-approved 2026-11-02/05)
+
+- Floor Studio tabs are 3D | Editor; the Extensions tab, the "Módulos AUREON" button and the small 3D gear are
+  replaced by one "Ajustes" sheet (below HA's top bar): Visual e qualidade (all former 3D view options, labelled),
+  Meus móveis (count + Importar móveis), Animais de estimação, Módulos e pacotes (AUREON module approval unchanged:
+  explicit, temporary, admin-only; NeonPlan modules; installed packs folded). `fp3d-extensions` gained `section`.
+- Editor side panel: rooms list folds behind an arrow (remembered per device), "Ajustar a planta" card with icons,
+  delete floor separated. "Meus móveis": 3 columns with real pictures of each own model (3D bundle
+  `aureonModelThumb`, one at a time). Shared `aureon-own.ts` for list/import.
+- Budgets: main 768, editor 960, card editor 282, 3D 952 KB (reasons in build.mjs).
+- Tests: npm test (admin-only approval check moved to the sheet), validate, contract, browser suites, pytest 144;
+  disposable HA: tabs, all four Ajustes sections, editor panel, 25 model pictures. Not on the owner's HA.
+- Note for Codex: 029eeac bumped the stable dist to 0.29.0-test.3 but the migration contract still pinned
+  test.2 (Floor Studio source build red on master since dd5ffae). Pin updated to test.3 in the same push.

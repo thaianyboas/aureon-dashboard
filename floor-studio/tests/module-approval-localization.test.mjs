@@ -5,6 +5,7 @@ const panel=readFileSync(new URL('../neonplan3d-main/frontend/src/panel.ts',impo
 const dashboard=readFileSync(new URL('../aureon-dashboard.js',import.meta.url),'utf8');
 test('approval interface uses Home Assistant language',()=>assert.match(panel,/this\.hass\?\.language/));
 test('approval warnings are translated to three languages',()=>{for(const word of ['Ative apenas módulos confiáveis','Aktivieren Sie nur vertrauenswürdige Module','Enable only trusted modules'])assert.ok(panel.includes(word));});
-test('approval is still admin-only',()=>assert.match(panel,/this\.isAdmin && this\._aureonApprovalOpen/));
+// the approval moved into the Ajustes sheet (owner-approved redesign 2026-11-02): its modules part is for admins only
+test('approval is still admin-only',()=>{assert.match(panel,/const tab = this\.isAdmin \? this\._settingsTab : "view";/);assert.match(panel,/\$\{this\.isAdmin\s*\? html`<span class="fp3d-settings-group">/);});
 test('module approval remains explicit',()=>assert.match(panel,/@click=\$\{\(\) => this\.toggleAureonModule\(id\)\}/));
 test('stale async mount errors cannot replace editor',()=>assert.match(dashboard,/const explain=\(message\)=>\{\s*if\(!alive\(\)\)return;/));

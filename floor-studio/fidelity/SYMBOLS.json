@@ -3742,9 +3742,9 @@
       "original_line": 10400,
       "candidate_line": 10341,
       "original_sha256": "38b60fc5dc80e34a2138aa1ba3d443e286378ba21f9a459afb89d8b43bf900ca",
-      "candidate_sha256": "53cd2a8734440534ac2dee2d87820fea9453e49c30c75a3329586062ecf892ce",
+      "candidate_sha256": "801d3008de7ac64eefc15ab5b0f927c6d110aa00e526fa0d6ccdc266d006c8f1",
       "status": "aureon_extension",
-      "note": "STUDIO-UI-01 combined with owner feedback removal: native library relocated once to the workspace panel; original property forms and controls retained; help/feedback removal from upstream preserved."
+      "note": "STUDIO-UI-01 combined with owner feedback removal: native library relocated once to the workspace panel; original property forms and controls retained; help/feedback removal from upstream preserved. Owner-approved redesign 2026-11-02: floor tools as an \"Ajustar a planta\" card with icons and hints; delete floor separated at the end."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.moveRoom",
@@ -3759,8 +3759,9 @@
       "original_line": 10539,
       "candidate_line": 10480,
       "original_sha256": "f6a1f9e8973e731f4a8312ae1c158a2c3b9f3a766b6368ba2050931042c0b506",
-      "candidate_sha256": "f6a1f9e8973e731f4a8312ae1c158a2c3b9f3a766b6368ba2050931042c0b506",
-      "status": "preserved"
+      "candidate_sha256": "6575d9f6f86679df2b61c58f4b2c1a617f1e3a585dcb712051fb1c5f5d1d7cf0",
+      "status": "aureon_extension",
+      "note": "Owner-approved redesign 2026-11-02: the rooms list folds behind an arrow (remembered per device), with count and total area."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderRoomOpenings",
@@ -11287,8 +11288,9 @@
       "original_line": 857,
       "candidate_line": 846,
       "original_sha256": "24fcec4cfd48b079edb55cd0b64f5fc274b7e38c33c789d2bb17c2c6fcf87ba5",
-      "candidate_sha256": "24fcec4cfd48b079edb55cd0b64f5fc274b7e38c33c789d2bb17c2c6fcf87ba5",
-      "status": "preserved"
+      "candidate_sha256": "8e4a88abdc5f5a7847ce2ed7439753f6a77b565ce40920afdfaaada0a2ce33d8",
+      "status": "aureon_extension",
+      "note": "Owner-approved redesign 2026-11-02: \"open-extensions\" opens the Ajustes sheet (modules) instead of the removed Extensions tab."
     },
     {
       "symbol": "panel.ts::Floorplan3dPanel.onNavWheel",
@@ -11303,8 +11305,9 @@
       "original_line": 892,
       "candidate_line": 881,
       "original_sha256": "364febd2a8a92eaa75da1ea8163ab38fac3ac840cdd607d6b8ee00e49d0c2493",
-      "candidate_sha256": "364febd2a8a92eaa75da1ea8163ab38fac3ac840cdd607d6b8ee00e49d0c2493",
-      "status": "preserved"
+      "candidate_sha256": "8f42ad330efe62cb6b358cf41b5bbeb5055a8d2c145f8f3fee22612ff3b866d1",
+      "status": "aureon_extension",
+      "note": "Owner-approved redesign 2026-11-02: \"open-extensions\" opens the Ajustes sheet (modules) instead of the removed Extensions tab."
     },
     {
       "symbol": "parking.ts::ref",

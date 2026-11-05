@@ -7,6 +7,7 @@ import { css, html, LitElement, nothing, type PropertyValues } from "lit";
 import { BuildingController } from "./building-controller.ts";
 import { countView } from "./diagnostics.ts";
 import { loadEditor } from "./load-editor.ts";
+import { importOwnFurniture, listOwnFurniture } from "./aureon-own.ts";
 import "./components/room-panel.ts";
 import "./components/view3d.ts";
 import { languageReady, loadLanguage, translate, type I18nKey } from "./i18n.ts";
@@ -98,7 +99,10 @@ export class Floorplan3dPanel extends LitElement {
     _micProbe: { state: true },
     _voiceHere: { state: true },
     _screen: { state: true },
-    _aureonApprovalOpen: { state: true },
+    _settingsOpen: { state: true },
+    _settingsTab: { state: true },
+    _ownCount: { state: true },
+    _ownImport: { state: true },
     _aureonApprovedIds: { state: true },
   };
 
@@ -107,7 +111,11 @@ export class Floorplan3dPanel extends LitElement {
   declare aureonEmbedded: boolean;
   declare route: unknown;
   declare panel: unknown;
-  private _aureonApprovalOpen = false;
+  /** AUREON: the "Ajustes" sheet (everything of the former Extensions page and the 3D view options). */
+  private declare _settingsOpen: boolean;
+  private declare _settingsTab: "view" | "furniture" | "pets" | "modules";
+  private declare _ownCount: number | null;
+  private declare _ownImport: { busy: boolean; text: string; error: boolean } | null;
   private _aureonApprovedIds: string[] = [];
 
   private toggleAureonModule(id: string): void {
@@ -187,6 +195,10 @@ export class Floorplan3dPanel extends LitElement {
     this.narrow = false;
     this.aureonEmbedded = false;
     this._mode = "view";
+    this._settingsOpen = false;
+    this._settingsTab = "view";
+    this._ownCount = null;
+    this._ownImport = null;
     this._showOpen = false;
     this._editorReady = !!customElements.get("fp3d-editor");
     this._floorId = null;
@@ -242,7 +254,7 @@ export class Floorplan3dPanel extends LitElement {
     if (changed.has("hass") && !this.isAdmin && this._aureonApprovedIds.length) {
       for (const id of this._aureonApprovedIds) setAureonModuleApproval(id, false);
       this._aureonApprovedIds = [];
-      this._aureonApprovalOpen = false;
+      this._settingsOpen = false;
     }
     if (changed.has("hass") && this.hass) {
       this.data.setHass(this.hass);
@@ -578,23 +590,6 @@ export class Floorplan3dPanel extends LitElement {
     };
     return html`
       <div class="fp3d-app ${this._clean && this._mode === "view" ? "fp3d-clean" : ""}" style=${this._accent ? `--fp3d-accent:${this._accent}` : ""}>
-        ${this.isAdmin && this._aureonApprovalOpen ? html`
-          <section class="aureon-module-approval" role="region" aria-label=${aureonCopy.heading}
-            style="position:relative;z-index:50;padding:16px;background:#13241e;color:#f1f7f2;border:1px solid #4e705c;border-radius:12px;margin:8px;">
-            <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
-              <strong>${aureonCopy.heading}</strong>
-              <button type="button" @click=${() => (this._aureonApprovalOpen = false)} aria-label=${aureonCopy.close}>✕</button>
-            </div>
-            <p>${aureonCopy.warning}</p>
-            ${bundledAureonModuleIds().map(id => html`
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;">
-                <span title=${id}>${aureonNames[id] || id}</span>
-                <button type="button" aria-pressed=${this._aureonApprovedIds.includes(id)}
-                  @click=${() => this.toggleAureonModule(id)}>
-                  ${this._aureonApprovedIds.includes(id) ? aureonCopy.disable : aureonCopy.enable}
-                </button>
-              </div>`)}
-          </section>` : nothing}
         ${this._micProbe && this.hass ? html`<fp3d-mic-probe .hass=${this.hass} .building=${b} @close=${() => ((this._micProbe = false), micProbeDone())}></fp3d-mic-probe>` : nothing}
         ${this._clean && this._mode === "view" ? nothing : html`<header class="fp3d-header">
           ${this.aureonEmbedded ? nothing : html`<ha-menu-button .hass=${this.hass} .narrow=${this.narrow}></ha-menu-button>`}
@@ -603,27 +598,71 @@ export class Floorplan3dPanel extends LitElement {
             ? html`<div class="fp3d-seg" role="tablist">
                 <button role="tab" aria-pressed=${this._mode === "view"} @click=${() => this.setMode("view")}>${this.t("view")}</button>
                 <button role="tab" aria-pressed=${this._mode === "editor"} @click=${() => this.setMode("editor")}>${this.t("editor")}</button>
-                <button role="tab" class="fp3d-tab-ext" aria-pressed=${this._mode === "extensions"} @click=${() => this.setMode("extensions")}>
-                  ✦ ${this.t("ext_tab")}
-                </button>
               </div>`
             : nothing}
-          ${this.isAdmin ? html`<button type="button" aria-expanded=${this._aureonApprovalOpen}
-            aria-label=${aureonCopy.menu} @click=${() => (this._aureonApprovalOpen = !this._aureonApprovalOpen)}>
-            ${aureonCopy.menu}
-          </button>` : nothing}
           <span class="fp3d-grow"></span>
-          ${this._mode === "view" && b?.floors.some((f) => f.rooms.length)
-            ? html`<button
-                  class="fp3d-opts-btn"
-                  aria-expanded=${this._optsOpen}
-                  title=${this.t("view_options")}
-                  aria-label=${this.t("view_options")}
-                  @click=${() => (this._optsOpen = !this._optsOpen)}
-                >
-                  ⚙
-                </button>
-                <div class="fp3d-view-opts ${this._optsOpen ? "fp3d-opts-open" : ""}">
+          <button type="button" class="fp3d-settings-btn" aria-expanded=${this._settingsOpen} @click=${() => this.openSettings()}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+            ${this.t("aureon_settings")}
+          </button>
+          ${this._mode === "editor" && saveState !== "idle"
+            ? html`<span class="fp3d-save fp3d-save-${saveState}">${this.t(saveState === "saving" ? "saving" : saveState === "saved" ? "saved" : "save_error")}</span>`
+            : nothing}
+          <span class="fp3d-version" title=${this.t("version_hint", { backend: this.data.backendVersion ?? "?" })}>v${this.data.frontendVersion}</span>
+        </header>`}
+        ${this._clean && this._mode === "view" ? nothing : this.renderNotices()}
+        ${this.data.error && !b ? html`<p class="fp3d-message">${this.t("load_error")}: ${this.data.error}</p>` : nothing}
+        ${!b && !this.data.error ? html`<p class="fp3d-message">${this.t("loading")}</p>` : nothing}
+        ${b
+          ? this._mode === "editor" && this.isAdmin
+            ? this.renderEditor(b)
+            : this._mode === "extensions" && this.isAdmin
+              ? this.renderExtensions()
+              : this.renderView(b)
+          : nothing}
+        ${this._settingsOpen ? this.renderSettings(aureonCopy, aureonNames) : nothing}
+      </div>
+    `;
+  }
+
+  /** AUREON: opens the "Ajustes" sheet (the editor bundle carries the pets, packs and modules parts). */
+  private openSettings(): void {
+    this._settingsOpen = !this._settingsOpen;
+    if (!this._settingsOpen) return;
+    if (!this._editorReady)
+      loadEditor().then(
+        () => (this._editorReady = true),
+        () => undefined,
+      );
+    if (this.hass && this.isAdmin)
+      listOwnFurniture(this.hass).then(
+        (m) => (this._ownCount = m.length),
+        () => (this._ownCount = null),
+      );
+  }
+
+  private renderSettings(
+    aureonCopy: { heading: string; close: string; warning: string; enable: string; disable: string; menu: string },
+    aureonNames: Record<string, string>,
+  ) {
+    const tab = this.isAdmin ? this._settingsTab : "view";
+    const item = (key: typeof this._settingsTab, label: string) =>
+      html`<button type="button" class="fp3d-settings-nav-item" aria-current=${tab === key ? "page" : "false"} @click=${() => (this._settingsTab = key)}>${label}</button>`;
+    const ext = (section: "pets" | "packs" | "modules") =>
+      this._editorReady
+        ? html`<fp3d-extensions
+            .section=${section}
+            .hass=${this.hass}
+            .packs=${this.data.packs}
+            .building=${this.data.building}
+            @building-edit=${(e: CustomEvent<Building>) => this.data.edit(e.detail)}
+            @packs-changed=${() => void this.data.reloadPacks()}
+          ></fp3d-extensions>`
+        : html`<p class="fp3d-sub">${this.t("loading")}</p>`;
+    let body;
+    if (tab === "view") {
+      body = html`<p class="fp3d-sub">${this.t("aureon_settings_view_hint")}</p>
+        <div class="fp3d-settings-rows">
                 <div class="fp3d-seg fp3d-quality" role="group" aria-label=${this.t("quality")}>
                 ${(["auto", "low", "high"] as Quality[]).map(
                   (q) => html`<button aria-pressed=${this._quality === q} @click=${() => this.setQuality(q)}>${this.t(`quality_${q}`)}</button>`,
@@ -760,26 +799,64 @@ export class Floorplan3dPanel extends LitElement {
                   ${this.t("fps")}
                 </button>
               </div>
-              </div>`
+              </div>`;
+    } else if (tab === "furniture") {
+      body = html`<p class="fp3d-sub">${this._ownCount === null ? this.t("aureon_own_loading") : this.t("aureon_settings_own_count", { n: this._ownCount })}</p>
+        <label class="fp3d-btn fp3d-primary fp3d-settings-import" ?aria-disabled=${this._ownImport?.busy}
+          >⤓ ${this.t("aureon_own_import")}<input type="file" accept=".zip,.glb,application/zip,model/gltf-binary" multiple hidden
+            @change=${async (e: Event) => {
+              const input = e.target as HTMLInputElement;
+              if (!input.files?.length || !this.hass) return;
+              this._ownImport = { busy: true, text: this.t("aureon_own_import_busy"), error: false };
+              const r = await importOwnFurniture(this.hass, Array.from(input.files));
+              input.value = "";
+              this._ownImport = {
+                busy: false,
+                error: r.failed.length > 0,
+                text: r.failed.length ? this.t("aureon_own_import_failed", { files: r.failed.join(", ") }) : this.t("aureon_own_import_done", { added: r.added, replaced: r.replaced, names: r.names }),
+              };
+              listOwnFurniture(this.hass).then((m) => (this._ownCount = m.length), () => undefined);
+            }}
+        /></label>
+        ${this._ownImport ? html`<p class="fp3d-sub" role="status">${this._ownImport.text}</p>` : nothing}
+        <p class="fp3d-sub">${this.t("aureon_settings_own_hint")}</p>`;
+    } else if (tab === "pets") {
+      body = ext("pets");
+    } else {
+      body = html`<section class="fp3d-settings-card">
+          <h3>${aureonCopy.heading}</h3>
+          <p class="fp3d-sub">${aureonCopy.warning}</p>
+          ${bundledAureonModuleIds().map(
+            (id) => html`<div class="fp3d-settings-row">
+              <span title=${id}>${aureonNames[id] || id}</span>
+              <button type="button" class="fp3d-btn" aria-pressed=${this._aureonApprovedIds.includes(id)} @click=${() => this.toggleAureonModule(id)}>
+                ${this._aureonApprovedIds.includes(id) ? aureonCopy.disable : aureonCopy.enable}
+              </button>
+            </div>`,
+          )}
+        </section>
+        ${ext("modules")}
+        <details class="fp3d-settings-card"><summary>${this.t("aureon_settings_packs")}</summary>${ext("packs")}</details>`;
+    }
+    return html`<div class="fp3d-settings-scrim" @click=${() => (this._settingsOpen = false)}></div>
+      <section class="fp3d-settings" role="dialog" aria-modal="true" aria-label=${this.t("aureon_settings")}>
+        <nav class="fp3d-settings-nav" aria-label=${this.t("aureon_settings")}>
+          <span class="fp3d-settings-title">${this.t("aureon_settings")}</span>
+          <span class="fp3d-settings-group">${this.t("aureon_settings_group_house")}</span>
+          ${item("view", this.t("aureon_settings_view"))}
+          ${this.isAdmin
+            ? html`<span class="fp3d-settings-group">${this.t("aureon_settings_group_extras")}</span>
+                ${item("furniture", this.t("aureon_own_title"))} ${item("pets", this.t("aureon_settings_pets"))} ${item("modules", this.t("aureon_settings_modules"))}`
             : nothing}
-          ${this._mode === "editor" && saveState !== "idle"
-            ? html`<span class="fp3d-save fp3d-save-${saveState}">${this.t(saveState === "saving" ? "saving" : saveState === "saved" ? "saved" : "save_error")}</span>`
-            : nothing}
-          <span class="fp3d-version" title=${this.t("version_hint", { backend: this.data.backendVersion ?? "?" })}>v${this.data.frontendVersion}</span>
-        </header>`}
-        ${this._clean && this._mode === "view" ? nothing : this.renderNotices()}
-        ${this.data.error && !b ? html`<p class="fp3d-message">${this.t("load_error")}: ${this.data.error}</p>` : nothing}
-        ${!b && !this.data.error ? html`<p class="fp3d-message">${this.t("loading")}</p>` : nothing}
-        ${b
-          ? this._mode === "editor" && this.isAdmin
-            ? this.renderEditor(b)
-            : this._mode === "extensions" && this.isAdmin
-              ? this.renderExtensions()
-              : this.renderView(b)
-          : nothing}
-
-      </div>
-    `;
+        </nav>
+        <div class="fp3d-settings-body">
+          <header class="fp3d-settings-head">
+            <h2>${tab === "view" ? this.t("aureon_settings_view") : tab === "furniture" ? this.t("aureon_own_title") : tab === "pets" ? this.t("aureon_settings_pets") : this.t("aureon_settings_modules")}</h2>
+            <button type="button" class="fp3d-settings-close" aria-label=${aureonCopy.close} @click=${() => (this._settingsOpen = false)}>✕</button>
+          </header>
+          ${body}
+        </div>
+      </section>`;
   }
 
   /**
@@ -858,7 +935,7 @@ export class Floorplan3dPanel extends LitElement {
         this._screen = screenName();
       }}
       @mic-probe=${() => loadVoice().then(() => (this._micProbe = true)).catch(() => undefined)}
-      @open-extensions=${() => this.setMode("extensions")}
+      @open-extensions=${() => ((this._settingsTab = "modules"), this.openSettings())}
       @building-changed=${(e: CustomEvent<{ building: Building }>) => this.data.edit(e.detail.building)}
     ></fp3d-editor>`;
   }
@@ -990,7 +1067,7 @@ export class Floorplan3dPanel extends LitElement {
           .quality=${this._quality}
           ?showStats=${this._stats}
           @room-tap=${this.onRoomTap}
-          @open-extensions=${() => this.setMode("extensions")}
+          @open-extensions=${() => ((this._settingsTab = "modules"), this.openSettings())}
           @floor-tap=${(e: CustomEvent<{ floorId: string | null }>) => {
             this._floorId = e.detail.floorId;
             this._roomId = null;
@@ -1141,6 +1218,195 @@ export class Floorplan3dPanel extends LitElement {
     tokens,
     controls,
     css`
+      /* AUREON: the "Ajustes" button and sheet */
+      .fp3d-settings-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 0 16px 0 12px;
+        border-radius: 999px;
+        border: 1px solid var(--fp3d-line);
+        background: var(--fp3d-chrome);
+        color: var(--fp3d-text);
+        font: inherit;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      .fp3d-settings-btn[aria-expanded="true"] {
+        background: var(--fp3d-accent);
+        color: var(--fp3d-accent-text, #0b1014);
+        border-color: transparent;
+      }
+      .fp3d-settings-scrim {
+        position: fixed;
+        inset: var(--header-height, 56px) 0 0 0;
+        background: rgba(5, 8, 11, 0.5);
+        z-index: 40;
+      }
+      .fp3d-settings {
+        position: fixed;
+        /* below Home Assistant's own top bar, which stays on top of everything */
+        top: var(--header-height, 56px);
+        right: 0;
+        bottom: 0;
+        z-index: 41;
+        width: min(920px, 100vw);
+        display: flex;
+        background: var(--fp3d-bg, #10171c);
+        color: var(--fp3d-text);
+        border-left: 1px solid var(--fp3d-line);
+        box-shadow: -24px 0 60px rgba(0, 0, 0, 0.45);
+      }
+      .fp3d-settings-nav {
+        width: 240px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 28px 14px;
+        border-right: 1px solid var(--fp3d-line);
+        overflow-y: auto;
+      }
+      .fp3d-settings-title {
+        font-family: var(--fp3d-title-font, inherit);
+        font-size: 28px;
+        font-weight: 600;
+        padding: 0 10px 18px;
+      }
+      .fp3d-settings-group {
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        color: var(--fp3d-muted);
+        font-weight: 600;
+        padding: 14px 10px 6px;
+      }
+      .fp3d-settings-nav-item {
+        text-align: left;
+        min-height: 44px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 0;
+        background: transparent;
+        color: var(--fp3d-text);
+        font: inherit;
+        cursor: pointer;
+        opacity: 0.8;
+      }
+      .fp3d-settings-nav-item[aria-current="page"] {
+        background: var(--fp3d-accent);
+        color: var(--fp3d-accent-text, #0b1014);
+        font-weight: 600;
+        opacity: 1;
+      }
+      .fp3d-settings-body {
+        flex: 1;
+        min-width: 0;
+        padding: 28px 36px 40px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .fp3d-settings-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .fp3d-settings-head h2 {
+        margin: 0;
+        font-family: var(--fp3d-title-font, inherit);
+        font-size: 30px;
+        font-weight: 600;
+      }
+      .fp3d-settings-close {
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        border: 1px solid var(--fp3d-line);
+        background: transparent;
+        color: var(--fp3d-text);
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .fp3d-settings-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .fp3d-settings-rows > .fp3d-seg {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid var(--fp3d-line);
+        background: var(--fp3d-chrome);
+      }
+      .fp3d-settings-rows > .fp3d-seg::before {
+        content: attr(aria-label);
+        flex: 1 0 100%;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        color: var(--fp3d-muted);
+        padding-bottom: 4px;
+      }
+      .fp3d-settings-card {
+        padding: 16px 18px;
+        border-radius: 16px;
+        border: 1px solid var(--fp3d-line);
+        background: var(--fp3d-chrome);
+      }
+      .fp3d-settings-card h3 {
+        margin: 0 0 6px;
+      }
+      .fp3d-settings-card summary {
+        cursor: pointer;
+        font-weight: 600;
+        min-height: 32px;
+      }
+      .fp3d-settings-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-top: 1px solid var(--fp3d-line);
+      }
+      .fp3d-settings-import {
+        align-self: flex-start;
+        cursor: pointer;
+      }
+      .fp3d-settings-import[aria-disabled] {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+      @media (max-width: 700px) {
+        .fp3d-settings {
+          flex-direction: column;
+        }
+        .fp3d-settings-nav {
+          width: auto;
+          flex-direction: row;
+          flex-wrap: wrap;
+          padding: 16px;
+          border-right: 0;
+          border-bottom: 1px solid var(--fp3d-line);
+        }
+        .fp3d-settings-title {
+          flex: 1 0 100%;
+          padding-bottom: 6px;
+        }
+        .fp3d-settings-group {
+          display: none;
+        }
+        .fp3d-settings-body {
+          padding: 18px 16px 32px;
+        }
+      }
+
       .fp3d-gift-veil {
         position: fixed;
         inset: 0;
