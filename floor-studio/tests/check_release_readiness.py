@@ -4,7 +4,7 @@ from pathlib import Path
 import sys,json,re,hashlib
 root=Path(__file__).resolve().parents[1]
 front=root/'neonplan3d-main/frontend'
-comp=root/'neonplan3d-main/custom_components/neonplan3d'
+comp=root/'neonplan3d-main/custom_components/aureon_floor'
 checks=[]
 def check(name,ok,reason=''):
  checks.append((name,bool(ok),reason))

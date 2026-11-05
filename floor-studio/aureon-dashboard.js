@@ -1409,15 +1409,15 @@
     _floorText(key){
       const language=String(this._hass?.language||'en').toLowerCase().split('-')[0];
       const labels={
-        pt:{loading:'Carregando o AUREON Floor Studio…',retry:'Tentar novamente',missing:'O AUREON Floor Studio não foi encontrado. Verifique se a integração AUREON (neonplan3d) está instalada e reinicie o Home Assistant.',mountError:'Não foi possível abrir o AUREON Floor Studio',title:'AUREON Floor Studio',region:'Editor e visualização da planta',foreign:'Atenção: o editor carregado não é a versão AUREON (provavelmente a integração NeonPlan 3D oficial do HACS substituiu os arquivos). Salvar pode falhar e os modelos próprios não carregam. Siga as instruções de atualização antes de editar.'},
-        de:{loading:'AUREON Floor Studio wird geladen…',retry:'Erneut versuchen',missing:'AUREON Floor Studio wurde nicht gefunden. Prüfe, ob die AUREON-Integration (neonplan3d) installiert ist, und starte Home Assistant neu.',mountError:'AUREON Floor Studio konnte nicht geöffnet werden',title:'AUREON Floor Studio',region:'Grundriss-Editor und -Ansicht',foreign:'Achtung: Der geladene Editor ist nicht die AUREON-Version (vermutlich hat die offizielle NeonPlan-3D-Integration aus HACS die Dateien ersetzt). Speichern kann fehlschlagen, eigene Modelle laden nicht. Vor dem Bearbeiten die Update-Anleitung befolgen.'},
-        en:{loading:'Loading AUREON Floor Studio…',retry:'Try again',missing:'AUREON Floor Studio was not found. Check that the AUREON integration (neonplan3d) is installed and restart Home Assistant.',mountError:'Could not open AUREON Floor Studio',title:'AUREON Floor Studio',region:'Floor plan editor and view',foreign:'Warning: the loaded editor is not the AUREON build (the official NeonPlan 3D integration from HACS has probably replaced the files). Saving may fail and own models do not load. Follow the update steps before editing.'}
+        pt:{loading:'Carregando o AUREON Floor Studio…',retry:'Tentar novamente',missing:'O AUREON Floor Studio não foi encontrado. Verifique se a integração AUREON Floor Studio está instalada (HACS → AUREON Floor Studio) e reinicie o Home Assistant.',mountError:'Não foi possível abrir o AUREON Floor Studio',title:'AUREON Floor Studio',region:'Editor e visualização da planta',foreign:'Atenção: o editor carregado não é a versão AUREON (provavelmente o NeonPlan 3D oficial também está instalado e carregou antes). Remova o NeonPlan 3D oficial no HACS e reinicie o Home Assistant. Siga as instruções de atualização antes de editar.'},
+        de:{loading:'AUREON Floor Studio wird geladen…',retry:'Erneut versuchen',missing:'AUREON Floor Studio wurde nicht gefunden. Prüfe, ob die Integration AUREON Floor Studio installiert ist (HACS → AUREON Floor Studio), und starte Home Assistant neu.',mountError:'AUREON Floor Studio konnte nicht geöffnet werden',title:'AUREON Floor Studio',region:'Grundriss-Editor und -Ansicht',foreign:'Achtung: Der geladene Editor ist nicht die AUREON-Version (vermutlich ist die offizielle NeonPlan-3D-Integration zusätzlich installiert und wurde zuerst geladen). Entferne das offizielle NeonPlan 3D in HACS und starte Home Assistant neu. Vor dem Bearbeiten die Update-Anleitung befolgen.'},
+        en:{loading:'Loading AUREON Floor Studio…',retry:'Try again',missing:'AUREON Floor Studio was not found. Check that the AUREON Floor Studio integration is installed (HACS → AUREON Floor Studio) and restart Home Assistant.',mountError:'Could not open AUREON Floor Studio',title:'AUREON Floor Studio',region:'Floor plan editor and view',foreign:'Warning: the loaded editor is not the AUREON build (the official NeonPlan 3D integration is probably installed as well and loaded first). Remove the official NeonPlan 3D in HACS and restart Home Assistant. Follow the update steps before editing.'}
       };
       return (labels[language]||labels.en)[key]||key;
     }
     // AUREON Floor Studio: the complete original editor (view, editor, extensions; import/export, undo/redo,
     // furniture, materials, looks) placed directly in this page — no iframe, so Home Assistant's header and
-    // sidebar appear only once. It is the same element and the same backend store as /neonplan3d and the
+    // sidebar appear only once. It is the same element and the same backend store as /aureon-floor-studio and the
     // Startseite. Permissions stay with the editor and the backend (non-admins only get the view).
     async _mountFloorStudio(){
       const host=this.shadowRoot?.querySelector('[data-aureon-floor-studio]');
@@ -1450,7 +1450,7 @@
         panel.setAttribute('aureon-embedded','');
         panel.aureonEmbedded=true;
         panel.narrow=window.matchMedia?.('(max-width: 870px)')?.matches||false;
-        panel.route={prefix:'/neonplan3d',path:''};
+        panel.route={prefix:'/aureon-floor-studio',path:''};
         panel.panel={config:{}};
         panel.hass=this._hass;
         this._floorTheme();

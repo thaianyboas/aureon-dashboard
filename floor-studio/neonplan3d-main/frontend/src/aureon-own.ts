@@ -13,7 +13,7 @@ export interface AureonOwnModel {
 }
 
 export async function listOwnFurniture(hass: HomeAssistant): Promise<AureonOwnModel[]> {
-  const r = await hass.callWS<{ models: AureonOwnModel[] }>({ type: "neonplan3d/aureon_models/list" });
+  const r = await hass.callWS<{ models: AureonOwnModel[] }>({ type: "aureon_floor/aureon_models/list" });
   return Array.isArray(r?.models) ? r.models : [];
 }
 
@@ -31,7 +31,7 @@ export async function importOwnFurniture(hass: HomeAssistant, files: Iterable<Fi
   for (const file of files) {
     try {
       if (!fetchWithAuth) throw new Error("no fetchWithAuth");
-      const res = await fetchWithAuth(`/api/neonplan3d/aureon_models_upload?name=${encodeURIComponent(file.name)}`, {
+      const res = await fetchWithAuth(`/api/aureon_floor/aureon_models_upload?name=${encodeURIComponent(file.name)}`, {
         method: "POST",
         headers: { "Content-Type": "application/octet-stream" },
         body: file,

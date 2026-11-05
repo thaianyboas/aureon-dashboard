@@ -1,10 +1,10 @@
-// Builds the two bundles into custom_components/neonplan3d/frontend and checks the size budgets.
+// Builds the two bundles into custom_components/aureon_floor/frontend and checks the size budgets.
 
 import { build, context } from "esbuild";
 import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
 
-const out = "../custom_components/neonplan3d/frontend";
+const out = "../custom_components/aureon_floor/frontend";
 const watch = process.argv.includes("--watch");
 
 const common = {
@@ -75,7 +75,7 @@ const importConfig = { ...common, entryPoints: ["src/import/app.ts"], outfile: "
 // The main bundle loads the 3D bundle with a hash of its content in the URL, so a new 3D bundle is
 // never taken from the browser cache (the integration version only changes after a restart).
 // the frontend knows its own version, to notice a backend that still runs an older one
-const version = JSON.parse(readFileSync("../custom_components/neonplan3d/manifest.json", "utf8")).version;
+const version = JSON.parse(readFileSync("../custom_components/aureon_floor/manifest.json", "utf8")).version;
 const mainConfig = (viewerHash, editorHash, cardEditorHash, timeTravelHash, funHash, voiceHash, locateHash) => ({
   ...common,
   entryPoints: ["src/main.ts"],

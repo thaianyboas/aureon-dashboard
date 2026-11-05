@@ -10,8 +10,8 @@ from homeassistant.helpers import instance_id
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.neonplan3d import diagnostics_report as diag
-from custom_components.neonplan3d.const import DATA_DIAGNOSTICS, DOMAIN
+from custom_components.aureon_floor import diagnostics_report as diag
+from custom_components.aureon_floor.const import DATA_DIAGNOSTICS, DOMAIN
 
 REPORT_URL = f"{diag.TELEMETRY_API}/report"
 DELETE_URL = f"{diag.TELEMETRY_API}/delete"
@@ -152,14 +152,14 @@ async def test_nothing_is_sent_while_off(hass: HomeAssistant, hass_ws_client, ai
     aioclient_mock.post(REPORT_URL, json={"ok": True})
     client = await hass_ws_client(hass)
 
-    await client.send_json_auto_id({"type": "neonplan3d/diagnostics/get"})
+    await client.send_json_auto_id({"type": "aureon_floor/diagnostics/get"})
     status = (await client.receive_json())["result"]
     assert status["enabled"] is False and status["preview"]["id"] is None and status["can_delete"] is False
 
     # a frontend's aggregate is dropped and it is told not to collect
     await client.send_json_auto_id(
         {
-            "type": "neonplan3d/diagnostics/client",
+            "type": "aureon_floor/diagnostics/client",
             "client": {"device": "tablet", "browser": "Chrome 120", "os": "Android 9"},
         }
     )
@@ -176,7 +176,7 @@ async def test_daily_report_and_delete(hass: HomeAssistant, hass_ws_client, aioc
     aioclient_mock.post(DELETE_URL, json={"ok": True})
     client = await hass_ws_client(hass)
 
-    await client.send_json_auto_id({"type": "neonplan3d/diagnostics/set", "enabled": True})
+    await client.send_json_auto_id({"type": "aureon_floor/diagnostics/set", "enabled": True})
     status = (await client.receive_json())["result"]
     report_id = status["preview"]["id"]
     assert status["enabled"] is True and str(uuid.UUID(report_id)) == report_id
@@ -184,7 +184,7 @@ async def test_daily_report_and_delete(hass: HomeAssistant, hass_ws_client, aioc
 
     await client.send_json_auto_id(
         {
-            "type": "neonplan3d/diagnostics/client",
+            "type": "aureon_floor/diagnostics/client",
             "client": {
                 "device": "tablet",
                 "browser": "Silk 120",
@@ -232,7 +232,7 @@ async def test_daily_report_and_delete(hass: HomeAssistant, hass_ws_client, aioc
     await reporter.async_tick(time.time() + diag.DAILY_INTERVAL + 120)
     assert aioclient_mock.call_count == 2
 
-    await client.send_json_auto_id({"type": "neonplan3d/diagnostics/delete"})
+    await client.send_json_auto_id({"type": "aureon_floor/diagnostics/delete"})
     result = await client.receive_json()
     assert result["success"], result
     assert aioclient_mock.mock_calls[-1][1].path.endswith("/telemetry/v1/delete")

@@ -1,4 +1,4 @@
-// Copies custom_components/neonplan3d to a Home Assistant config folder (e.g. a Samba share).
+// Copies custom_components/aureon_floor to a Home Assistant config folder (e.g. a Samba share).
 // The target comes from NEONPLAN_DEPLOY_TARGET or deploy.local.json ({"target": "..."}), which is
 // not committed. Files in the target that no longer exist here are removed.
 
@@ -11,7 +11,7 @@ const localConfig = join(root, "deploy.local.json");
 const target = process.env.NEONPLAN_DEPLOY_TARGET ?? (existsSync(localConfig) ? JSON.parse(readFileSync(localConfig, "utf8")).target : null);
 
 if (!target) {
-  console.error('No target. Set NEONPLAN_DEPLOY_TARGET or create deploy.local.json with {"target": "<ha config>/custom_components/neonplan3d"}.');
+  console.error('No target. Set NEONPLAN_DEPLOY_TARGET or create deploy.local.json with {"target": "<ha config>/custom_components/aureon_floor"}.');
   process.exit(1);
 }
 if (basename(target) !== "neonplan3d") {

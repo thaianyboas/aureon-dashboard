@@ -4,7 +4,7 @@ import hashlib,json,subprocess,sys,datetime
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 front=root/'neonplan3d-main/frontend'
-comp=root/'neonplan3d-main/custom_components/neonplan3d/frontend'
+comp=root/'neonplan3d-main/custom_components/aureon_floor/frontend'
 marker=root/'BUILD_VERIFIED.json'
 marker.unlink(missing_ok=True)
 for cmd in (['npm','run','typecheck'],['npm','run','build']):

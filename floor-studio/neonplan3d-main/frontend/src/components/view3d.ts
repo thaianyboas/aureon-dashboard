@@ -4386,7 +4386,7 @@ export class Fp3dView3d extends LitElement {
       }
       // who and what is where: locating answers first (the same answer Assist gets) and flies there
       const located = await hass
-        .callWS<{ text: string; rooms: string[]; admins_only: boolean } | null>({ type: "neonplan3d/locate/ask", text, language: hass.language })
+        .callWS<{ text: string; rooms: string[]; admins_only: boolean } | null>({ type: "aureon_floor/locate/ask", text, language: hass.language })
         .catch(() => null);
       if (located) {
         say("done", `“${text}” – ${located.text}`);
@@ -4683,7 +4683,7 @@ export class Fp3dView3d extends LitElement {
         const next = structuredClone(cur);
         mutate(next);
         this.building = next;
-        saveBuilding(this.hass, next).catch((err) => this.serviceFailed("neonplan3d/building/save", err));
+        saveBuilding(this.hass, next).catch((err) => this.serviceFailed("aureon_floor/building/save", err));
       },
       callService: (domain, service, data) => (this.hass ? this.hass.callService(domain, service, data) : Promise.resolve()),
       newId: (prefix) => uid(prefix),
@@ -4885,7 +4885,7 @@ export class Fp3dView3d extends LitElement {
     const next = structuredClone(cur);
     Object.assign(next.settings, patch);
     this.building = next;
-    saveBuilding(this.hass, next).catch((err) => this.serviceFailed("neonplan3d/building/save", err));
+    saveBuilding(this.hass, next).catch((err) => this.serviceFailed("aureon_floor/building/save", err));
   }
 
   /**

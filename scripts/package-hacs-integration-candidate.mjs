@@ -14,12 +14,12 @@ if (dirty.length && process.env.AUREON_ALLOW_DIRTY_PACKAGE !== '1') {
   process.exit(1);
 }
 
-const source = 'floor-studio/neonplan3d-main/custom_components/neonplan3d';
+const source = 'floor-studio/neonplan3d-main/custom_components/aureon_floor';
 const output = 'build/neonplan3d-hacs-integration-candidate';
-const target = join(output, 'custom_components/neonplan3d');
+const target = join(output, 'custom_components/aureon_floor');
 const manifest = JSON.parse(readFileSync(join(source, 'manifest.json'), 'utf8'));
-if (manifest.domain !== 'neonplan3d' || !manifest.version || !manifest.config_flow) {
-  throw new Error('Unexpected NeonPlan3D integration manifest');
+if (manifest.domain !== 'aureon_floor' || !manifest.version || !manifest.config_flow) {
+  throw new Error('Unexpected AUREON Floor Studio integration manifest');
 }
 for (const required of ['__init__.py', 'manifest.json', 'frontend/neonplan3d.js', 'frontend/neonplan3d-3d.js', 'frontend/neonplan3d-editor.js', 'frontend/neonplan3d-pathtrace.js', 'frontend/THIRD_PARTY_PATHTRACE.txt']) {
   if (!existsSync(join(source, required))) throw new Error('Missing integration file: ' + required);

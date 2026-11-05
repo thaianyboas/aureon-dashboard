@@ -8,8 +8,8 @@ from unittest.mock import patch
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import intent
 
-from custom_components.neonplan3d.const import DOMAIN
-from custom_components.neonplan3d.voice import remove_sentences, sentences_yaml, write_sentences
+from custom_components.aureon_floor.const import DOMAIN
+from custom_components.aureon_floor.voice import remove_sentences, sentences_yaml, write_sentences
 
 from .test_init import _setup
 
@@ -17,7 +17,7 @@ from .test_init import _setup
 async def _view(hass_ws_client, hass: HomeAssistant):
     """An open NeonPlan view: subscribed to the sentences."""
     client = await hass_ws_client(hass)
-    await client.send_json({"id": 1, "type": "neonplan3d/voice/subscribe"})
+    await client.send_json({"id": 1, "type": "aureon_floor/voice/subscribe"})
     assert (await client.receive_json())["success"]
     return client
 
@@ -41,11 +41,11 @@ async def test_service_hands_the_sentence_to_the_views_and_returns_the_first_ans
     assert (await other.receive_json())["event"]["ask_id"] == ask["ask_id"]
 
     await view.send_json(
-        {"id": 2, "type": "neonplan3d/voice/answer", "ask_id": ask["ask_id"], "text": "Ich zeige das Wohnzimmer."}
+        {"id": 2, "type": "aureon_floor/voice/answer", "ask_id": ask["ask_id"], "text": "Ich zeige das Wohnzimmer."}
     )
     assert (await view.receive_json())["result"] == {"taken": True}
     # the second view is late
-    await other.send_json({"id": 2, "type": "neonplan3d/voice/answer", "ask_id": ask["ask_id"], "text": "Wohnzimmer"})
+    await other.send_json({"id": 2, "type": "aureon_floor/voice/answer", "ask_id": ask["ask_id"], "text": "Wohnzimmer"})
     assert (await other.receive_json())["result"] == {"taken": False}
 
     assert await task == {"answered": True, "answer": "Ich zeige das Wohnzimmer.", "screen_open": True}
@@ -53,7 +53,7 @@ async def test_service_hands_the_sentence_to_the_views_and_returns_the_first_ans
 
 async def test_service_without_an_open_view_says_so(hass: HomeAssistant) -> None:
     await _setup(hass)
-    with patch("custom_components.neonplan3d.voice.ANSWER_TIMEOUT", 0.05):
+    with patch("custom_components.aureon_floor.voice.ANSWER_TIMEOUT", 0.05):
         result = await hass.services.async_call(
             DOMAIN, "ask", {"text": "Zeig die Küche", "screen": "Flur"}, blocking=True, return_response=True
         )
@@ -75,7 +75,7 @@ async def test_intent_speaks_the_answer_or_that_nothing_was_understood(hass: Hom
         await view.send_json(
             {
                 "id": next(ids),
-                "type": "neonplan3d/voice/answer",
+                "type": "aureon_floor/voice/answer",
                 "ask_id": ask["ask_id"],
                 "text": "Drei Fenster sind offen.",
                 "answered": answered,
@@ -90,7 +90,7 @@ async def test_intent_speaks_the_answer_or_that_nothing_was_understood(hass: Hom
 
 async def test_intent_without_a_view(hass: HomeAssistant) -> None:
     await _setup(hass)
-    with patch("custom_components.neonplan3d.voice.ANSWER_TIMEOUT", 0.05):
+    with patch("custom_components.aureon_floor.voice.ANSWER_TIMEOUT", 0.05):
         response = await intent.async_handle(
             hass, "test", "NeonPlanAsk", {"text": {"value": "living room"}}, language="en"
         )
@@ -98,8 +98,8 @@ async def test_intent_without_a_view(hass: HomeAssistant) -> None:
 
 
 def test_sentences_are_written_only_on_request_and_never_over_a_changed_file(tmp_path: Path) -> None:
-    de = tmp_path / "custom_sentences" / "de" / "neonplan3d.yaml"
-    en = tmp_path / "custom_sentences" / "en" / "neonplan3d.yaml"
+    de = tmp_path / "custom_sentences" / "de" / "aureon_floor.yaml"
+    en = tmp_path / "custom_sentences" / "en" / "aureon_floor.yaml"
     hashes, kept, changed = write_sentences(tmp_path, "distinct", {})
     assert changed and kept == []
     text = de.read_text(encoding="utf-8")
@@ -130,7 +130,7 @@ def test_sentences_are_written_only_on_request_and_never_over_a_changed_file(tmp
 
 def test_a_file_an_older_version_wrote_is_still_ours(tmp_path: Path) -> None:
     """Files from 1.22.0 - 1.24.0 (older header lines) are replaced, not kept as the user's own."""
-    de = tmp_path / "custom_sentences" / "de" / "neonplan3d.yaml"
+    de = tmp_path / "custom_sentences" / "de" / "aureon_floor.yaml"
     de.parent.mkdir(parents=True)
     de.write_text(
         sentences_yaml("de", "distinct").replace(
@@ -179,7 +179,7 @@ lists:
 def test_an_early_file_with_other_sentences_is_still_ours(tmp_path: Path) -> None:
     """Only NeonPlan's sentences under NeonPlan's header: replaced (it lacked "wer ist zu hause"); one sentence of
     the user's own in it, and it stays."""
-    de = tmp_path / "custom_sentences" / "de" / "neonplan3d.yaml"
+    de = tmp_path / "custom_sentences" / "de" / "aureon_floor.yaml"
     de.parent.mkdir(parents=True)
     de.write_text(_EARLY_FILE, encoding="utf-8")
     _, kept, changed = write_sentences(tmp_path, "distinct", {})
@@ -195,7 +195,7 @@ def test_an_early_file_with_other_sentences_is_still_ours(tmp_path: Path) -> Non
 def test_the_names_locating_knows_are_a_list_not_a_wildcard(tmp_path: Path) -> None:
     """ "Wo ist Frauke?" matches a list of names exactly, so Assist handles it locally and an AI agent behind it
     never gets the question."""
-    de = tmp_path / "custom_sentences" / "de" / "neonplan3d.yaml"
+    de = tmp_path / "custom_sentences" / "de" / "aureon_floor.yaml"
     hashes, _, _ = write_sentences(tmp_path, "distinct", {}, ["Torsten Apple Watch", "Torsten", 'Frau "K"'])
     text = de.read_text(encoding="utf-8")
     assert "wo (ist|steckt|sind) [der|die|das|mein|meine] {neonplan_who}" in text
@@ -209,7 +209,7 @@ def test_the_names_locating_knows_are_a_list_not_a_wildcard(tmp_path: Path) -> N
 
 def test_an_older_file_with_fewer_sentences_is_still_ours(tmp_path: Path) -> None:
     """A file of an older version had fewer sentences (no "wer ist zu hause"): replaced, not kept as the user's."""
-    de = tmp_path / "custom_sentences" / "de" / "neonplan3d.yaml"
+    de = tmp_path / "custom_sentences" / "de" / "aureon_floor.yaml"
     de.parent.mkdir(parents=True)
     de.write_text(
         "# Written by NeonPlan 3D: the sentences Assist hands to the open NeonPlan views (the first one that\n"
@@ -234,7 +234,7 @@ def test_an_older_file_with_fewer_sentences_is_still_ours(tmp_path: Path) -> Non
 
 def test_the_names_locating_knows_are_sentences(tmp_path: Path) -> None:
     """ "Wo ist Frauke?" as a list of names (no wildcard): Assist matches it locally even with an AI agent."""
-    de = tmp_path / "custom_sentences" / "de" / "neonplan3d.yaml"
+    de = tmp_path / "custom_sentences" / "de" / "aureon_floor.yaml"
     hashes, _, _ = write_sentences(tmp_path, "distinct", {}, ["Frauke", "Torstens iPhone"])
     text = de.read_text(encoding="utf-8")
     assert "{neonplan_who}" in text and '      - "Torstens iPhone"' in text

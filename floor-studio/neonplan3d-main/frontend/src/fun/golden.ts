@@ -9,7 +9,7 @@ import type * as THREE from "three";
  * The Golden Retriever model shipped with AUREON ("Golden Retriever Dog 3D Model (Free)" by iRahulRajput, CC BY 4.0,
  * see frontend/pets/THIRD_PARTY_PETS.txt); an own file in <config>/aureon_models of the same name takes its place.
  */
-export const GOLDEN_URLS = ["/api/neonplan3d/aureon_models/pet-golden-retriever.glb", "/neonplan3d_static/pets/golden-retriever.glb"];
+export const GOLDEN_URLS = ["/api/aureon_floor/aureon_models/pet-golden-retriever.glb", "/aureon_floor_static/pets/golden-retriever.glb"];
 
 /** The model as the 3D bundle reads it (one or more parts, metres, feet at y = 0, front towards +z). */
 export interface PetAsset {

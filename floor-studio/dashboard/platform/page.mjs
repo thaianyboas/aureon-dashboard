@@ -24,7 +24,7 @@ function loadTimings(){
   if(nav)out.push(['load (since HA page opened)',`DOMContentLoaded ${ms(nav.domContentLoadedEventEnd)} · load ${ms(nav.loadEventEnd)}`]);
   const res=performance.getEntriesByType('resource'),size=r=>r.transferSize||r.encodedBodySize||0;
   const group=(label,re)=>{const list=res.filter(r=>re.test(r.name));if(!list.length)return;const cached=list.filter(r=>r.transferSize===0&&r.decodedBodySize>0).length;out.push([label,`${list.length} files · ${kb(list.reduce((a,r)=>a+size(r),0))} transferred${cached?` (${cached} from cache)`:''} · last done ${ms(Math.max(...list.map(r=>r.responseEnd)))} · slowest ${ms(Math.max(...list.map(r=>r.duration)))}`]);};
-  group('AUREON dashboard JS',/aureon-dashboard\.js/);group('Floor Studio JS',/neonplan3d_static\/.*\.js/);group('own 3D models',/aureon_models\//);
+  group('AUREON dashboard JS',/aureon-dashboard\.js/);group('Floor Studio JS',/aureon_floor_static\/.*\.js/);group('own 3D models',/aureon_models\//);
   for(const [k,label] of [['aureon:3d-first-frame','3D first frame'],['aureon:models-parsed','own models read'],['aureon:models-shown','own models on screen']]){const m=performance.getEntriesByName(k)[0];out.push([label,m?ms(m.startTime):'–']);}
   out.push(['long tasks (blocked)',LONG.supported?`${LONG.n} · ${ms(LONG.ms)}`:'not measurable in this browser']);
  }catch{}

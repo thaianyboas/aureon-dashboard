@@ -12,8 +12,8 @@ from homeassistant.setup import async_setup_component
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.neonplan3d import packs
-from custom_components.neonplan3d.const import DOMAIN
+from custom_components.aureon_floor import packs
+from custom_components.aureon_floor.const import DOMAIN
 
 PAYLOAD = {
     "format": "fp3dpack",
@@ -74,7 +74,7 @@ async def test_a_pack_bound_elsewhere_is_refused_on_import(hass: HomeAssistant, 
     client = await hass_ws_client(hass)
     await client.send_json_auto_id(
         {
-            "type": "neonplan3d/packs/import",
+            "type": "aureon_floor/packs/import",
             "pack": _sign(private, keys, {**PAYLOAD, "instance": packs.fingerprint("x")}),
         }
     )
@@ -94,6 +94,6 @@ async def test_private_license_routes_require_admin(
         ("license/remove", {}),
         ("packs/install", {"pack_id": "synthetic-pack"}),
     ]:
-        await client.send_json_auto_id({"type": "neonplan3d/" + route, **fields})
+        await client.send_json_auto_id({"type": "aureon_floor/" + route, **fields})
         result = await client.receive_json()
         assert not result["success"] and result["error"]["code"] == "unauthorized"

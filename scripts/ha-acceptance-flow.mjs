@@ -14,7 +14,7 @@ const ctx=await browser.newContext({viewport:{width:1440,height:900},locale:lang
 await ctx.addInitScript(([t,l])=>{try{localStorage.setItem('hassTokens',t);localStorage.setItem('selectedLanguage',JSON.stringify(l));}catch{}},[stored,lang]);
 const page=await ctx.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
 const ws=(msg)=>page.evaluate(m=>document.querySelector('home-assistant').hass.callWS(m),msg);
-const plan=async()=>(await ws({type:'neonplan3d/building/get'})).building;
+const plan=async()=>(await ws({type:'aureon_floor/building/get'})).building;
 try{
  // 1. Floor Studio: the original NeonPlan3D panel inside Home Assistant.
  await page.goto(url+'/neonplan3d');

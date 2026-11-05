@@ -10,9 +10,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import area_registry
 import pytest
 
-from custom_components.neonplan3d.bindings import bind_plan
-from custom_components.neonplan3d.const import DOMAIN
-from custom_components.neonplan3d.storage import FloorplanData
+from custom_components.aureon_floor.bindings import bind_plan
+from custom_components.aureon_floor.const import DOMAIN
+from custom_components.aureon_floor.storage import FloorplanData
 from tests.test_init import BUILDING, _setup
 
 
@@ -47,7 +47,7 @@ async def test_binding_ws_save_reload_remove_and_stale(hass: HomeAssistant, hass
     await data.async_save_building(copy.deepcopy(BUILDING))
     area = area_registry.async_get(hass).async_create("Synthetic area")
     command = {
-        "type": "neonplan3d/building/bind",
+        "type": "aureon_floor/building/bind",
         "revision": data.revision,
         "floor_id": "f1",
         "kind": "room",
@@ -92,7 +92,7 @@ async def test_reader_cannot_bind_plan(hass: HomeAssistant, hass_ws_client, hass
     client = await hass_ws_client(hass, access_token=hass_read_only_access_token)
     await client.send_json_auto_id(
         {
-            "type": "neonplan3d/building/bind",
+            "type": "aureon_floor/building/bind",
             "revision": data.revision,
             "floor_id": "f1",
             "kind": "room",

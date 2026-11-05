@@ -2,7 +2,7 @@
 
     python tools/fp3dpack.py keygen KEYFILE
         Creates a new signing key (keep it secret, never commit it) and prints the public key line
-        for PACK_PUBLIC_KEYS in custom_components/neonplan3d/packs.py.
+        for PACK_PUBLIC_KEYS in custom_components/aureon_floor/packs.py.
 
     python tools/fp3dpack.py sign SOURCE.json --key KEYFILE [--licensee "Name"] [--out PACK.fp3dpack]
     python tools/fp3dpack.py canonical SOURCE.json [--out PACK.canonical.json]   (template for the shop)

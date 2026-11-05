@@ -52,121 +52,135 @@
       "original_line": 7,
       "candidate_line": 7,
       "original_sha256": "a72e0acbfba09fb7ca7b185345ed9f11668519374e2446eff89d160ac41a932c",
-      "candidate_sha256": "a72e0acbfba09fb7ca7b185345ed9f11668519374e2446eff89d160ac41a932c",
-      "status": "preserved"
+      "candidate_sha256": "eb94691fc059ecc26e132e4e6bec1e31b835f32ce186bb65de9a717c01f99076",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::saveBuilding",
       "original_line": 11,
       "candidate_line": 11,
       "original_sha256": "6a0d9276898169160af67d1098488662bc3ca4d16f37b885ee010c1607713c89",
-      "candidate_sha256": "6a0d9276898169160af67d1098488662bc3ca4d16f37b885ee010c1607713c89",
-      "status": "preserved"
+      "candidate_sha256": "7b96b85523d7855123762b45cb3a7a6a561f9b8474fe3e2cb67d9b92c27d0003",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::subscribeBuilding",
       "original_line": 16,
       "candidate_line": 16,
       "original_sha256": "b05faa7e95c40a292570462eaf6e2a8f328376d1a29ffb1e609d9ef9203e5b6f",
-      "candidate_sha256": "b05faa7e95c40a292570462eaf6e2a8f328376d1a29ffb1e609d9ef9203e5b6f",
-      "status": "preserved"
+      "candidate_sha256": "caeb302f4726ad5d7f6c9d891dcad79b771d6cefaa9d6c1fdd7ccba4edb2ae5c",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::subscribeAsk",
       "original_line": 36,
       "candidate_line": 36,
       "original_sha256": "24f761074d692e03a4bfae0d920f01c0bffe55bf77cfe1073be86cb22c7f454d",
-      "candidate_sha256": "24f761074d692e03a4bfae0d920f01c0bffe55bf77cfe1073be86cb22c7f454d",
-      "status": "preserved"
+      "candidate_sha256": "1650b355c1495599fd7209bf7d26a2297081b0e048ae09d51e0c9670fb600c4a",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::answerAsk",
       "original_line": 41,
       "candidate_line": 41,
       "original_sha256": "70b382116c3a26f24e67536d79a85a2c3c9a13834531211e6a42edc3c6c72fbe",
-      "candidate_sha256": "70b382116c3a26f24e67536d79a85a2c3c9a13834531211e6a42edc3c6c72fbe",
-      "status": "preserved"
+      "candidate_sha256": "7cca8fc0bac59e508b5629c34808446714fc7d68a3114be085caebf457b4e81b",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::fetchImage",
       "original_line": 46,
       "candidate_line": 46,
       "original_sha256": "4c1e57e7a0c72248c54aa9b3d0367cb00f6932193f37e587de1a76d2ee8ba16d",
-      "candidate_sha256": "4c1e57e7a0c72248c54aa9b3d0367cb00f6932193f37e587de1a76d2ee8ba16d",
-      "status": "preserved"
+      "candidate_sha256": "f2e0a1c478897cc34e03ba575a085d2f11bb494fa72e5174f9897dcdb19b2829",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::storeImage",
       "original_line": 51,
       "candidate_line": 51,
       "original_sha256": "b5ddbe0a310f504cb3b0c2a810926e381fb21b9a7c6943156c1167a9055426f2",
-      "candidate_sha256": "b5ddbe0a310f504cb3b0c2a810926e381fb21b9a7c6943156c1167a9055426f2",
-      "status": "preserved"
+      "candidate_sha256": "58850f22d2e2f83996ccaf5ed137fa158f9b4cae65b27961109cb9bdefa3c283",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::listHistory",
       "original_line": 65,
       "candidate_line": 65,
       "original_sha256": "ef27649a669676184d9bde69f38f21053ce2acdd61058083e24781f41927f866",
-      "candidate_sha256": "ef27649a669676184d9bde69f38f21053ce2acdd61058083e24781f41927f866",
-      "status": "preserved"
+      "candidate_sha256": "3570644e2c9fac827f912107c6a896b9c4326b5b8836d20d497efa076bd36699",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::takeSnapshot",
       "original_line": 70,
       "candidate_line": 70,
       "original_sha256": "c6ead9429068ddf1414d0ac189ba6cc66562b628edaa37b7f769282d38ef46c2",
-      "candidate_sha256": "c6ead9429068ddf1414d0ac189ba6cc66562b628edaa37b7f769282d38ef46c2",
-      "status": "preserved"
+      "candidate_sha256": "6d185b25d68a9181af99ab864242757eb820a977d5299fcf156eb72c5841bc36",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::restoreSnapshot",
       "original_line": 74,
       "candidate_line": 74,
       "original_sha256": "069b23ce3e5e846210f45fb65ff1d73edd590d50409e7594b4882c5fe14f3fab",
-      "candidate_sha256": "069b23ce3e5e846210f45fb65ff1d73edd590d50409e7594b4882c5fe14f3fab",
-      "status": "preserved"
+      "candidate_sha256": "1765ae60f00d9c4454203cfa2a49bff5cac2d1522a7db635ac6e6e36c0ccc159",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::listPacks",
       "original_line": 79,
       "candidate_line": 79,
       "original_sha256": "09a476b044a4324a0ac400d4e7ec735ce3c86677885311684b7d0cb7847994ce",
-      "candidate_sha256": "9011242c7479fb7adcedd15f385f95996f2537e628d138adc4052ba262715bda",
+      "candidate_sha256": "93d298fe08ddff2e90296d606de475fc2d2cfe0fa2071074544acac20e706deb",
       "status": "aureon_extension",
-      "note": "Owner decision 2026-11-02: the Halloween fun pack is removed; packs carrying fun_halloween are filtered out (no decorations in the library)."
+      "note": "Owner decision 2026-11-02: the Halloween fun pack is removed; packs carrying fun_halloween are filtered out (no decorations in the library). SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::reviewModule",
       "original_line": 107,
       "candidate_line": 107,
       "original_sha256": "4ef8af362f0eaa10adbc2b1940527a6e956252e917058fa3594a2fa529897ce2",
-      "candidate_sha256": "4ef8af362f0eaa10adbc2b1940527a6e956252e917058fa3594a2fa529897ce2",
-      "status": "preserved"
+      "candidate_sha256": "62ab9259cc793c0c2c4f438dbe8e877671b7b4d4d592b021f5f0a243801f13dc",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::approveModule",
       "original_line": 112,
       "candidate_line": 112,
       "original_sha256": "89a54356254b5550e7d6c15874650c45b13ff34378707cfee1839c64a92443a6",
-      "candidate_sha256": "89a54356254b5550e7d6c15874650c45b13ff34378707cfee1839c64a92443a6",
-      "status": "preserved"
+      "candidate_sha256": "32a1a19cbc4243409228aa45c4e18ff2e815eb9b1869e8a82952031b174b4e70",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::importPack",
       "original_line": 117,
       "candidate_line": 117,
       "original_sha256": "0fabc5a6ce4ec7f8386477adf7b9ba7fe5cffb637a1fe29a41b80af82a81295e",
-      "candidate_sha256": "0fabc5a6ce4ec7f8386477adf7b9ba7fe5cffb637a1fe29a41b80af82a81295e",
-      "status": "preserved"
+      "candidate_sha256": "f81812bd599b7d1838ede0bf3aeaf42c57c2a0dda4b40e560dee8de36d211399",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::removePack",
       "original_line": 121,
       "candidate_line": 121,
       "original_sha256": "7df27f39c9026c532b2afa5c81ffcd9c67af2c531c8c603354ae5a0fa485dbad",
-      "candidate_sha256": "7df27f39c9026c532b2afa5c81ffcd9c67af2c531c8c603354ae5a0fa485dbad",
-      "status": "preserved"
+      "candidate_sha256": "ccdd118f212cb6d0c155282aadbd7a1ae31ab0d792c27944743dc93aeb2067f1",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::unseenOffers",
@@ -213,96 +227,108 @@
       "original_line": 231,
       "candidate_line": 231,
       "original_sha256": "666093170df2d56087f58e3c88e2ac13ae8d1d917f1adce31dfcc2c4f0994921",
-      "candidate_sha256": "666093170df2d56087f58e3c88e2ac13ae8d1d917f1adce31dfcc2c4f0994921",
-      "status": "preserved"
+      "candidate_sha256": "a7337f4bfc002152ed3c43fd40b43f62ed137e96cb1f4722e102befc36fcb71a",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::activateLicense",
       "original_line": 236,
       "candidate_line": 236,
       "original_sha256": "38fd1a3ed95b0630f901685213a4964289518b8c1a01d8740ff2d79b18b71dd9",
-      "candidate_sha256": "38fd1a3ed95b0630f901685213a4964289518b8c1a01d8740ff2d79b18b71dd9",
-      "status": "preserved"
+      "candidate_sha256": "bcc3e616ff9f78144f3492b2048c4e10f6947813a2636b57de6e70386a8a693a",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::removeLicense",
       "original_line": 240,
       "candidate_line": 240,
       "original_sha256": "b2665e16b5c6d48b067de268f154b66f0b0df183f3d66ebe06f8b6a6ea48e3b6",
-      "candidate_sha256": "b2665e16b5c6d48b067de268f154b66f0b0df183f3d66ebe06f8b6a6ea48e3b6",
-      "status": "preserved"
+      "candidate_sha256": "ae73289a34883f071b949789636278cb307435bd29e09cc5a1baeb1a7f7ba0a1",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::refreshLicense",
       "original_line": 244,
       "candidate_line": 244,
       "original_sha256": "05dc5fb29d6c0e84104434c38bb89224d55045f091057c4e40dfa1e1a4e01ccb",
-      "candidate_sha256": "05dc5fb29d6c0e84104434c38bb89224d55045f091057c4e40dfa1e1a4e01ccb",
-      "status": "preserved"
+      "candidate_sha256": "3f73daee07a7325dc1627bd283959033f33568fbc33ee63ac3eef78e79a5d508",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::fetchBackup",
       "original_line": 258,
       "candidate_line": 258,
       "original_sha256": "8f07ce8a0b9e15784692f8f0131a4fbf6e38b794ac66510a339b0a64be2fd5b7",
-      "candidate_sha256": "8f07ce8a0b9e15784692f8f0131a4fbf6e38b794ac66510a339b0a64be2fd5b7",
-      "status": "preserved"
+      "candidate_sha256": "adc491da86e6b29c52d88c312889bffb4b96a3b2d6d7b676924ba02c6498fa02",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::restoreBackup",
       "original_line": 263,
       "candidate_line": 263,
       "original_sha256": "e342893e6c18c4f16dccb4a7d563e799d38929a0e3208b91cfac7de872f592a3",
-      "candidate_sha256": "e342893e6c18c4f16dccb4a7d563e799d38929a0e3208b91cfac7de872f592a3",
-      "status": "preserved"
+      "candidate_sha256": "82430809c2887d523218d203a2c318383ab1ee15579110cc6e2a159a2369701e",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::installPack",
       "original_line": 272,
       "candidate_line": 272,
       "original_sha256": "384095d88e173c80ba41a01c81167f08ab548531ea89853f016a66b25731c85a",
-      "candidate_sha256": "384095d88e173c80ba41a01c81167f08ab548531ea89853f016a66b25731c85a",
-      "status": "preserved"
+      "candidate_sha256": "4affa70fddc168085a8b9aefdf3b59911da7a4a254906e0c797f418c316a00c5",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::getDiagnostics",
       "original_line": 287,
       "candidate_line": 287,
       "original_sha256": "06aa4da8aad01557743f844a88c3a2a0ec23c7137cc1a4c8dee10e2bc45a986f",
-      "candidate_sha256": "06aa4da8aad01557743f844a88c3a2a0ec23c7137cc1a4c8dee10e2bc45a986f",
-      "status": "preserved"
+      "candidate_sha256": "cc368261da90c3897386546877e8296f6e6a1d1e6e7602204481a9b8340c3385",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::setDiagnostics",
       "original_line": 291,
       "candidate_line": 291,
       "original_sha256": "4242434a08ec78aa37c0d15d159bf77cd6f3c07b716ae44c9f811ecc59f1397b",
-      "candidate_sha256": "4242434a08ec78aa37c0d15d159bf77cd6f3c07b716ae44c9f811ecc59f1397b",
-      "status": "preserved"
+      "candidate_sha256": "080de9a7575fc8089dc8e4f8e44c7d2a9db8fec7a6141e457dd797eede0640e6",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::deleteDiagnostics",
       "original_line": 296,
       "candidate_line": 296,
       "original_sha256": "f0df318bef7c01f1db984749c47d6e580409726c93ebc646f3d3bf074332e931",
-      "candidate_sha256": "f0df318bef7c01f1db984749c47d6e580409726c93ebc646f3d3bf074332e931",
-      "status": "preserved"
+      "candidate_sha256": "a527589784e00321272075db491b3687c98c871e42efdc1dd32dfebfa1144ac0",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::getVoiceSettings",
       "original_line": 303,
       "candidate_line": 303,
       "original_sha256": "1a9f72d48bcd3cefe282fa6df1271b9390fa1801a3296d542930ee27fe0d48a9",
-      "candidate_sha256": "1a9f72d48bcd3cefe282fa6df1271b9390fa1801a3296d542930ee27fe0d48a9",
-      "status": "preserved"
+      "candidate_sha256": "9749ffd54ca48190425d255f42e85990d8c498b67a66fd57d84643b7c38ed365",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "api.ts::setVoiceSentences",
       "original_line": 307,
       "candidate_line": 307,
       "original_sha256": "33066cd4fa811346b3342f27735636450179ffc785191cceeef8d177b40d1cfd",
-      "candidate_sha256": "33066cd4fa811346b3342f27735636450179ffc785191cceeef8d177b40d1cfd",
-      "status": "preserved"
+      "candidate_sha256": "de1181896d110957240f2bd04e91a231dff4465e40cfa371e1f876693d1d378a",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "backdrop.ts::backdropImage",
@@ -6325,8 +6351,9 @@
       "original_line": 4351,
       "candidate_line": 4349,
       "original_sha256": "592be46011ca3258d3ece6352cac88375a34af463f8fdacc6dc91048dbe7c500",
-      "candidate_sha256": "592be46011ca3258d3ece6352cac88375a34af463f8fdacc6dc91048dbe7c500",
-      "status": "preserved"
+      "candidate_sha256": "34ccdfe4c5d6c710d2700c71510da48d8e658d89610bb68711d6f06e4477fdc1",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "components/view3d.ts::Fp3dView3d.spokenDevices",
@@ -6389,8 +6416,9 @@
       "original_line": 4653,
       "candidate_line": 4651,
       "original_sha256": "3dadcb6f912d25a1ba2c9030a722096362bb407959d2ae764441fb3e2897c022",
-      "candidate_sha256": "3dadcb6f912d25a1ba2c9030a722096362bb407959d2ae764441fb3e2897c022",
-      "status": "preserved"
+      "candidate_sha256": "d2dfa87bc3fbdabc2226dd03f8d4c6af6aae074998cb5449add67f39bdb62247",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "components/view3d.ts::Fp3dView3d.showNote",
@@ -6453,8 +6481,9 @@
       "original_line": 4871,
       "candidate_line": 4869,
       "original_sha256": "c015dd503df9d9a75799e7ead4116fe5220059deac09d4fd767238e9e0200e6c",
-      "candidate_sha256": "c015dd503df9d9a75799e7ead4116fe5220059deac09d4fd767238e9e0200e6c",
-      "status": "preserved"
+      "candidate_sha256": "f0e30147441e14f852a71d8c58976ec737ee9f797b7980f67ee4331f40d751fd",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderSettings",
@@ -7421,8 +7450,9 @@
       "original_line": 240,
       "candidate_line": 240,
       "original_sha256": "418b285d9a9fa58119b60708279dbe6a9152b31d399901f99d5632786d95622c",
-      "candidate_sha256": "418b285d9a9fa58119b60708279dbe6a9152b31d399901f99d5632786d95622c",
-      "status": "preserved"
+      "candidate_sha256": "2728b0017b2af0a4878109bef4ea4444e78c62a435f4e8f77480fcec0735636e",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "director.ts::directorOnHere",
@@ -9804,8 +9834,9 @@
       "original_line": 1784,
       "candidate_line": 1784,
       "original_sha256": "e3ddebb79223b645afc76d64c6fd1612dc5b6217046d92185432197596237bfc",
-      "candidate_sha256": "e3ddebb79223b645afc76d64c6fd1612dc5b6217046d92185432197596237bfc",
-      "status": "preserved"
+      "candidate_sha256": "2b18cf143f324da6c8db0b05bd1efdb88dc3ea619dc29d15dcb9c3f65dd4bccc",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "locate/setup.ts::LocateSetup.disconnectedCallback",
@@ -9828,8 +9859,9 @@
       "original_line": 1810,
       "candidate_line": 1810,
       "original_sha256": "73c2eaf7414af985bbd403a3d22de711d43e37a8227f11d7b131eb87e702965e",
-      "candidate_sha256": "73c2eaf7414af985bbd403a3d22de711d43e37a8227f11d7b131eb87e702965e",
-      "status": "preserved"
+      "candidate_sha256": "2ba05eebd6688ab077e0520c6c936eed817c98f7f56c781ff120f566e210c021",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "locate/setup.ts::LocateSetup.guessRoom",
@@ -9844,16 +9876,18 @@
       "original_line": 1874,
       "candidate_line": 1874,
       "original_sha256": "e1982313a293db0d6a5aab6f1a8c7742c4388e65a2c2df139ed8193dd1adef0a",
-      "candidate_sha256": "e1982313a293db0d6a5aab6f1a8c7742c4388e65a2c2df139ed8193dd1adef0a",
-      "status": "preserved"
+      "candidate_sha256": "2a5da8acf4f6b2e546277c9d1307739e5b88bfb0bab3d44ab68480b5d5db48c6",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "locate/setup.ts::LocateSetup.tick",
       "original_line": 1890,
       "candidate_line": 1890,
       "original_sha256": "728820c401622968a0a70374656b939abc0d726343da6579b62d9d2b7403b1a9",
-      "candidate_sha256": "728820c401622968a0a70374656b939abc0d726343da6579b62d9d2b7403b1a9",
-      "status": "preserved"
+      "candidate_sha256": "7202b254e55eeb087a1d2598ceb2cfc35a0fa8307ddb00dcfbc1033d76e5fe32",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "locate/setup.ts::LocateSetup.render",
@@ -9956,8 +9990,9 @@
       "original_line": 2230,
       "candidate_line": 2230,
       "original_sha256": "a23ff7b734ef8b8b5a6db0106435e8ba9c28dd7b535adb25083803b24054291f",
-      "candidate_sha256": "a23ff7b734ef8b8b5a6db0106435e8ba9c28dd7b535adb25083803b24054291f",
-      "status": "preserved"
+      "candidate_sha256": "a88d21458ab58c38fdad6135e4ceddda79ed8d04f65f23126d3b10a67f79c5f2",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "locate/setup.ts::LocateSetup.renderLive",
@@ -9972,8 +10007,9 @@
       "original_line": 29,
       "candidate_line": 29,
       "original_sha256": "08a0b52f4ea986ea23e5b0c6714695e53415e2ed84246152f630004ff9d1d724",
-      "candidate_sha256": "08a0b52f4ea986ea23e5b0c6714695e53415e2ed84246152f630004ff9d1d724",
-      "status": "preserved"
+      "candidate_sha256": "f0622c30cdf294ee970bd0176f6a5e4dba1091df975d40f1724b48cd087852af",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "locate-lab.ts::clock",
@@ -10572,8 +10608,9 @@
       "original_line": 484,
       "candidate_line": 486,
       "original_sha256": "52a5623cf4687928b2fbdb9510afd3288e5741a0517a0baa2baf047d8b3bf756",
-      "candidate_sha256": "52a5623cf4687928b2fbdb9510afd3288e5741a0517a0baa2baf047d8b3bf756",
-      "status": "preserved"
+      "candidate_sha256": "21ef2c366ffe2e4f25a1cf7cf8e68ee9bd0b6d27279d0f2e6114c34999b14022",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "modules.ts::load",
@@ -12666,8 +12703,9 @@
       "original_line": 199,
       "candidate_line": 199,
       "original_sha256": "e24e42be2b60c30bc9377f3eeed13d7c6c5f2b64092d43ff38f46724e7955b33",
-      "candidate_sha256": "e24e42be2b60c30bc9377f3eeed13d7c6c5f2b64092d43ff38f46724e7955b33",
-      "status": "preserved"
+      "candidate_sha256": "152578092bb2ed2c21d591652614e6941c1023124515db998674da224d1bf618",
+      "status": "aureon_extension",
+      "note": "SEP-01 (owner decision 2026-11-05): AUREON Floor Studio is separated from the official NeonPlan 3D; its WebSocket commands and URLs use the own namespace aureon_floor. Otherwise unchanged (verified by reversing the rename)."
     },
     {
       "symbol": "timetravel/entry.ts::Session.load",

@@ -8,8 +8,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.neonplan3d.aureon_models import model_file
-from custom_components.neonplan3d.const import DOMAIN
+from custom_components.aureon_floor.aureon_models import model_file
+from custom_components.aureon_floor.const import DOMAIN
 
 
 async def _setup(hass: HomeAssistant) -> None:
@@ -51,16 +51,31 @@ async def test_models_need_a_signed_in_user(hass: HomeAssistant, hass_client, ha
     await hass.async_add_executor_job(_write_model, hass)
     await _setup(hass)
     anonymous = await hass_client_no_auth()
-    response = await anonymous.get("/api/neonplan3d/aureon_models/sofa.glb")
+    response = await anonymous.get("/api/aureon_floor/aureon_models/sofa.glb")
     assert response.status == 401
     client = await hass_client()
-    response = await client.get("/api/neonplan3d/aureon_models/sofa.glb")
+    response = await client.get("/api/aureon_floor/aureon_models/sofa.glb")
     assert response.status == 200
     assert response.headers["Content-Type"] == "model/gltf-binary"
     assert "private" in response.headers["Cache-Control"]
     assert (await response.read()).startswith(b"glTF")
     for bad in ["missing.glb", "notes.txt", "..%2Fconfiguration.yaml"]:
         # traversal is stopped by HA's security filter (400) or by the name check (404)
+        assert (await client.get(f"/api/aureon_floor/aureon_models/{bad}")).status in (400, 404)
+
+
+async def test_plans_saved_before_the_separation_still_load_their_models(
+    hass: HomeAssistant, hass_client, hass_client_no_auth
+) -> None:
+    """Saved plans carry /api/neonplan3d/aureon_models/<file>: served the same way (signed in only, same checks)."""
+    await hass.async_add_executor_job(_write_model, hass)
+    await _setup(hass)
+    assert (await (await hass_client_no_auth()).get("/api/neonplan3d/aureon_models/sofa.glb")).status == 401
+    client = await hass_client()
+    response = await client.get("/api/neonplan3d/aureon_models/sofa.glb")
+    assert response.status == 200
+    assert (await response.read()).startswith(b"glTF")
+    for bad in ["missing.glb", "notes.txt", "..%2Fconfiguration.yaml"]:
         assert (await client.get(f"/api/neonplan3d/aureon_models/{bad}")).status in (400, 404)
 
 
@@ -94,7 +109,7 @@ def _glb(path: Path, mins: list[float], maxs: list[float], translation: list[flo
 def test_list_models_gives_real_sizes_and_catalog_names(tmp_path: Path) -> None:
     import json as _json
 
-    from custom_components.neonplan3d.aureon_models import glb_bounds, list_models
+    from custom_components.aureon_floor.aureon_models import glb_bounds, list_models
 
     folder = tmp_path / "aureon_models"
     folder.mkdir()
@@ -118,7 +133,7 @@ def test_list_models_gives_real_sizes_and_catalog_names(tmp_path: Path) -> None:
     models = {m["file"]: m for m in list_models(str(tmp_path))}
     assert set(models) == {"sofa.glb", "lamp.glb"}  # unreadable files, other types and pet models are left out
     sofa = models["sofa.glb"]
-    assert sofa["url"] == "/api/neonplan3d/aureon_models/sofa.glb"
+    assert sofa["url"] == "/api/aureon_floor/aureon_models/sofa.glb"
     assert (
         sofa["size"] == [3.0, 0.8, 1.0]
         and sofa["name"] == "Sofá"
@@ -136,7 +151,7 @@ async def test_list_command_for_signed_in_users(hass: HomeAssistant, hass_ws_cli
     await hass.async_add_executor_job(_glb, folder / "chair.glb", [-0.3, 0, -0.25], [0.3, 0.8, 0.25])
     await _setup(hass)
     client = await hass_ws_client(hass)
-    await client.send_json({"id": 1, "type": "neonplan3d/aureon_models/list"})
+    await client.send_json({"id": 1, "type": "aureon_floor/aureon_models/list"})
     result = await client.receive_json()
     assert result["success"]
     assert [m["file"] for m in result["result"]["models"]] == ["chair.glb"]
@@ -153,7 +168,7 @@ def test_import_takes_models_and_names_from_a_zip_and_deletes_nothing(tmp_path: 
     import json as _json
     import zipfile as _zip
 
-    from custom_components.neonplan3d.aureon_models import import_models
+    from custom_components.aureon_floor.aureon_models import import_models
 
     src = tmp_path / "src"
     src.mkdir()
@@ -181,7 +196,7 @@ def test_import_takes_models_and_names_from_a_zip_and_deletes_nothing(tmp_path: 
 def test_import_one_glb_needs_a_plain_name(tmp_path: Path) -> None:
     import pytest
 
-    from custom_components.neonplan3d.aureon_models import import_models
+    from custom_components.aureon_floor.aureon_models import import_models
 
     data = _glb_bytes(tmp_path, "x.glb")
     assert import_models(str(tmp_path), data, "lamp.glb")["added"] == ["lamp.glb"]
@@ -197,13 +212,13 @@ async def test_upload_is_for_administrators_only(hass: HomeAssistant, hass_clien
     client = await hass_client()
     tmp = Path(hass.config.config_dir)
     data = _glb_bytes(tmp, "probe.glb")
-    resp = await client.post("/api/neonplan3d/aureon_models_upload?name=chair.glb", data=data)
+    resp = await client.post("/api/aureon_floor/aureon_models_upload?name=chair.glb", data=data)
     assert resp.status == 200
     body = await resp.json()
     assert "chair.glb" in body["added"] + body["replaced"], body
     (tmp / "aureon_models" / "chair.glb").unlink()
     (tmp / "aureon_models" / "desk.glb").unlink(missing_ok=True)
     hass_admin_user.groups = []  # no longer an administrator
-    resp = await client.post("/api/neonplan3d/aureon_models_upload?name=desk.glb", data=data)
+    resp = await client.post("/api/aureon_floor/aureon_models_upload?name=desk.glb", data=data)
     assert resp.status == 403
     assert not (tmp / "aureon_models" / "desk.glb").exists()

@@ -1,9 +1,9 @@
 # NeonPlan 3D – notes for Claude
 
 - Spec and phase plan: `private/docs/plan.md` (German, not public). Unreleased docs (Pool Pro) live in `private/docs/pending/`. Talk to the user in German; code, identifiers and comments in English.
-- Domain `neonplan3d`, repo `mastershort/neonplan3d`, minimum Home Assistant 2025.1.
+- AUREON fork: domain `aureon_floor` (separated from the official `neonplan3d` on 2026-11-05, see floor-studio/NEONPLAN_MIGRATION_AND_ROLLBACK.md); upstream repo `mastershort/neonplan3d`, minimum Home Assistant 2025.1.
 - Frontend lives in `frontend/` (Lit 3 + TypeScript, no decorators; three.js in a separate lazily loaded bundle).
-  Bundles are committed to `custom_components/neonplan3d/frontend/`, and CI fails when they are stale, so run `npm run build` before committing.
+  Bundles are committed to `custom_components/aureon_floor/frontend/`, and CI fails when they are stale, so run `npm run build` before committing.
 - Checks: `npm test`, `npm run typecheck`, `npm run build` (size budgets), `ruff check` / `ruff format`.
   HA integration tests only run in the Linux CI.
 - Visual self-check: `npm run screenshot` renders `preview/index.html` (invented demo data, mock hass) into `preview/screenshots/`.

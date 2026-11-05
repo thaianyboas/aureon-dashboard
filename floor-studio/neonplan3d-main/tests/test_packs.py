@@ -15,8 +15,8 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 import voluptuous as vol
 
-from custom_components.neonplan3d import packs
-from custom_components.neonplan3d.const import DOMAIN
+from custom_components.aureon_floor import packs
+from custom_components.aureon_floor.const import DOMAIN
 
 PAYLOAD = {
     "format": "fp3dpack",
@@ -145,7 +145,7 @@ async def test_import_list_and_remove(hass: HomeAssistant, hass_ws_client, monke
     client = await hass_ws_client(hass)
 
     await client.send_json_auto_id(
-        {"type": "neonplan3d/packs/import", "pack": _sign(private, keys, {**PAYLOAD, "licensee": "Anna"})}
+        {"type": "aureon_floor/packs/import", "pack": _sign(private, keys, {**PAYLOAD, "licensee": "Anna"})}
     )
     result = await client.receive_json()
     assert result["success"]
@@ -157,18 +157,18 @@ async def test_import_list_and_remove(hass: HomeAssistant, hass_ws_client, monke
         "items": 1,
     }
 
-    await client.send_json_auto_id({"type": "neonplan3d/packs/import", "pack": "{}"})
+    await client.send_json_auto_id({"type": "aureon_floor/packs/import", "pack": "{}"})
     result = await client.receive_json()
     assert not result["success"] and result["error"]["code"] == "not_a_pack"
 
-    await client.send_json_auto_id({"type": "neonplan3d/packs/list"})
+    await client.send_json_auto_id({"type": "aureon_floor/packs/list"})
     listed = (await client.receive_json())["result"]["packs"]
     assert [p["id"] for p in listed] == ["test.starter"]
     assert listed[0]["items"][0]["name"]["de"] == "Würfelsessel"
 
-    await client.send_json_auto_id({"type": "neonplan3d/packs/remove", "pack_id": "test.starter"})
+    await client.send_json_auto_id({"type": "aureon_floor/packs/remove", "pack_id": "test.starter"})
     assert (await client.receive_json())["success"]
-    await client.send_json_auto_id({"type": "neonplan3d/packs/list"})
+    await client.send_json_auto_id({"type": "aureon_floor/packs/list"})
     assert (await client.receive_json())["result"]["packs"] == []
 
 
@@ -192,44 +192,49 @@ async def test_module_code_runs_only_after_an_admin_approved_it(
 
     module = {**PAYLOAD, "id": "mastershort.window_watch", "items": [], "release": 1}
     v1 = {**module, "module": {"api": 1, "kind": "stage", "code": "export default { api: 1, id: 'v1' };"}}
-    res = await call(type="neonplan3d/packs/import", pack=_sign(private, keys, v1))
+    res = await call(type="aureon_floor/packs/import", pack=_sign(private, keys, v1))
     assert res["success"] and res["result"]["approval"] is True
-    listed = (await call(type="neonplan3d/packs/list"))["result"]["packs"][0]
+    listed = (await call(type="aureon_floor/packs/list"))["result"]["packs"][0]
     assert listed["module"]["approved"] is False and "code" not in listed["module"]
     # not approved: its code is not served
-    res = await call(type="neonplan3d/modules/code", pack_id="mastershort.window_watch")
+    res = await call(type="aureon_floor/modules/code", pack_id="mastershort.window_watch")
     assert res["error"]["code"] == "not_approved"
     # the admin reads it, then approves exactly that code
-    review = (await call(type="neonplan3d/modules/review", pack_id="mastershort.window_watch"))["result"]
+    review = (await call(type="aureon_floor/modules/review", pack_id="mastershort.window_watch"))["result"]
     assert "id: 'v1'" in review["code"]
-    assert not (await call(type="neonplan3d/modules/approve", pack_id="mastershort.window_watch", sha="0" * 64))[
+    assert not (await call(type="aureon_floor/modules/approve", pack_id="mastershort.window_watch", sha="0" * 64))[
         "success"
     ]
-    assert (await call(type="neonplan3d/modules/approve", pack_id="mastershort.window_watch", sha=review["sha"]))[
+    assert (await call(type="aureon_floor/modules/approve", pack_id="mastershort.window_watch", sha=review["sha"]))[
         "success"
     ]
     assert (
-        "id: 'v1'" in (await call(type="neonplan3d/modules/code", pack_id="mastershort.window_watch"))["result"]["code"]
+        "id: 'v1'"
+        in (await call(type="aureon_floor/modules/code", pack_id="mastershort.window_watch"))["result"]["code"]
     )
 
     # a new release waits beside the running code
     v2 = {**module, "release": 2, "module": {"api": 1, "kind": "stage", "code": "export default { api: 1, id: 'v2' };"}}
-    assert (await call(type="neonplan3d/packs/import", pack=_sign(private, keys, v2)))["result"]["approval"] is True
-    listed = (await call(type="neonplan3d/packs/list"))["result"]["packs"][0]
+    assert (await call(type="aureon_floor/packs/import", pack=_sign(private, keys, v2)))["result"]["approval"] is True
+    listed = (await call(type="aureon_floor/packs/list"))["result"]["packs"][0]
     assert listed["module"]["approved"] is True and listed["release"] == 1
     assert listed["pending"]["release"] == 2
     assert (
-        "id: 'v1'" in (await call(type="neonplan3d/modules/code", pack_id="mastershort.window_watch"))["result"]["code"]
+        "id: 'v1'"
+        in (await call(type="aureon_floor/modules/code", pack_id="mastershort.window_watch"))["result"]["code"]
     )
-    pending = (await call(type="neonplan3d/modules/review", pack_id="mastershort.window_watch", pending=True))["result"]
+    pending = (await call(type="aureon_floor/modules/review", pack_id="mastershort.window_watch", pending=True))[
+        "result"
+    ]
     assert "id: 'v2'" in pending["code"]
-    assert (await call(type="neonplan3d/modules/approve", pack_id="mastershort.window_watch", sha=pending["sha"]))[
+    assert (await call(type="aureon_floor/modules/approve", pack_id="mastershort.window_watch", sha=pending["sha"]))[
         "success"
     ]
-    listed = (await call(type="neonplan3d/packs/list"))["result"]["packs"][0]
+    listed = (await call(type="aureon_floor/packs/list"))["result"]["packs"][0]
     assert listed["release"] == 2 and listed["module"]["approved"] is True and "pending" not in listed
     assert (
-        "id: 'v2'" in (await call(type="neonplan3d/modules/code", pack_id="mastershort.window_watch"))["result"]["code"]
+        "id: 'v2'"
+        in (await call(type="aureon_floor/modules/code", pack_id="mastershort.window_watch"))["result"]["code"]
     )
 
 
@@ -331,7 +336,7 @@ def test_a_module_pack_needs_no_furniture_and_its_code_is_served_apart() -> None
         packs.validate_payload({**module, "module": {"api": 1, "kind": "editor", "code": "x"}})
     assert err.value.code == "needs_update"
     # the pack list leaves the code out, the code command returns it
-    from custom_components.neonplan3d.websocket import _without_code
+    from custom_components.aureon_floor.websocket import _without_code
 
     slim = _without_code({**clean, "source": clean})
     assert "code" not in slim["module"] and "code" not in slim["source"]["module"]

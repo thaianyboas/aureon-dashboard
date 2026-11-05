@@ -340,7 +340,7 @@ export class AureonModels {
 
   private static download(url: string): Promise<ArrayBuffer> {
     const job = (async () => {
-      // the integration serves own models only to signed-in users (/api/neonplan3d/aureon_models/…): use the HA
+      // the integration serves own models only to signed-in users (/api/aureon_floor/aureon_models/…): use the HA
       // session's authenticated fetch; older plans may still point at /local/… (served without login)
       const hass = (globalThis.document?.querySelector("home-assistant") as unknown as { hass?: { fetchWithAuth?: (p: string, i?: RequestInit) => Promise<Response> } } | null)?.hass;
       const res = url.startsWith("/api/") && hass?.fetchWithAuth ? await hass.fetchWithAuth(url, { credentials: "same-origin" }) : await fetch(url, { credentials: "same-origin" });

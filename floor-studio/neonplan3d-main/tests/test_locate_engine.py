@@ -6,7 +6,7 @@ import random
 import sys
 
 _spec = importlib.util.spec_from_file_location(
-    "locate_engine", Path(__file__).parents[1] / "custom_components" / "neonplan3d" / "locate" / "engine.py"
+    "locate_engine", Path(__file__).parents[1] / "custom_components" / "aureon_floor" / "locate" / "engine.py"
 )
 engine = importlib.util.module_from_spec(_spec)
 sys.modules["locate_engine"] = engine

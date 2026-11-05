@@ -13,19 +13,19 @@ test('all interactive surfaces are independent of commerce and license requests'
 });
 
 test('original admin license APIs coexist with local imports, without background commerce refresh', () => {
-  const backend = read('custom_components/neonplan3d/websocket.py');
+  const backend = read('custom_components/aureon_floor/websocket.py');
   const registry = backend.split('for command in (')[1].split('):')[0];
-  assert.match(backend, /neonplan3d\/license\/activate/);
+  assert.match(backend, /aureon_floor\/license\/activate/);
   assert.match(registry, /ws_license_activate/);
-  assert.match(read('custom_components/neonplan3d/license.py'), /verify_pack/);
+  assert.match(read('custom_components/aureon_floor/license.py'), /verify_pack/);
   assert.match(registry, /ws_packs_import/);
   assert.match(registry, /ws_modules_review/);
   assert.match(registry, /ws_modules_approve/);
-  assert.doesNotMatch(read('custom_components/neonplan3d/__init__.py'), /async_refresh_quietly|FIRST_CHECK_DELAY|REFRESH_INTERVAL/);
+  assert.doesNotMatch(read('custom_components/aureon_floor/__init__.py'), /async_refresh_quietly|FIRST_CHECK_DELAY|REFRESH_INTERVAL/);
 });
 
 test('local licensed packs retain signature and installation binding checks', () => {
-  const backend = read('custom_components/neonplan3d/websocket.py');
+  const backend = read('custom_components/aureon_floor/websocket.py');
   assert.match(backend, /verify_pack\(msg\["pack"\], instance=await lic.async_instance_fingerprint\(hass\)\)/);
   assert.match(backend, /instance = await lic.async_instance_fingerprint\(hass\)/);
   const extensions = read('frontend/src/components/extensions.ts');

@@ -12,5 +12,5 @@ class ReleaseGateTests(unittest.TestCase):
   self.assertEqual(p.returncode,0,p.stdout+p.stderr)
  def test_ha_source_and_editor_preserved(self):
   self.assertTrue((ROOT/'neonplan3d-main/frontend/src/components/editor.ts').is_file())
-  self.assertTrue((ROOT/'neonplan3d-main/custom_components/neonplan3d/manifest.json').is_file())
+  self.assertTrue((ROOT/'neonplan3d-main/custom_components/aureon_floor/manifest.json').is_file())
 if __name__=='__main__':unittest.main()

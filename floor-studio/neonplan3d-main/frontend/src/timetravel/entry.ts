@@ -203,7 +203,7 @@ export class Session implements TimeTravelSession {
     for (let i = 0; i < parts; i++) {
       const entityIds = req.entities.slice(i * BATCH, (i + 1) * BATCH);
       const statIds = req.stats.slice(i * STAT_BATCH, (i + 1) * STAT_BATCH);
-      const msg: Record<string, unknown> = { type: "neonplan3d/timetravel/history", start_time: from / 1000, end_time: to / 1000, entity_ids: entityIds, statistic_ids: statIds };
+      const msg: Record<string, unknown> = { type: "aureon_floor/timetravel/history", start_time: from / 1000, end_time: to / 1000, entity_ids: entityIds, statistic_ids: statIds };
       // the cars' own trackers: the integration answers them as home or away only
       const cars = req.cars.filter((id) => entityIds.includes(id));
       if (cars.length) msg.car_trackers = cars;

@@ -685,3 +685,32 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
   (editor -> 3D view) about 5 s after opening the editor; not reproduced afterwards. If it shows again, check what
   re-renders the Planta page during startup (registry/identity paths in the hass setter) — a rebuild drops
   unsaved editor work.
+
+## SEP-01 — AUREON Floor Studio separated from the official NeonPlan 3D (Claude, owner decision 2026-11-05)
+
+- Why: an HACS update of the official NeonPlan 3D overwrote the owner's AUREON build (same folder
+  `custom_components/neonplan3d`). Owner chose name "AUREON Floor Studio" and to remove the official integration.
+- Integration is now `floor-studio/neonplan3d-main/custom_components/aureon_floor`, domain `aureon_floor`: WS
+  `aureon_floor/...`, `/aureon_floor_static`, panel `/aureon-floor-studio`, loader `aureon-floor-loader.js`, model
+  API `/api/aureon_floor/aureon_models/...` (+ read-only legacy `/api/neonplan3d/aureon_models/...`, saved plans
+  carry it), sentences file `aureon_floor.yaml`, locate folder `aureon_floor_locate`.
+- Stores: `async_migrate_legacy_stores` copies building/images/history/packs/license/voice/locate once from
+  `neonplan3d.*` (else `floorplan_3d.*`); never overwrites an existing aureon_floor store, never deletes/changes the
+  old ones. Licence binding string in packs.py unchanged (protected file).
+- Unchanged on purpose: browser element names (`neonplan3d-panel`, `neonplan3d-card`, `fp3d-*`), backup/export format
+  "neonplan3d", localStorage keys. So the official must not stay installed next to it: a persistent notification
+  asks to remove it while `custom_components/neonplan3d` exists; the old dashboard resource is taken over only
+  when that folder is absent (own resource otherwise untouched by either side).
+- Fidelity: 39 original methods differ only by the WS/URL namespace — recorded as aureon_extension "SEP-01" after a
+  scripted proof (reversing the rename gives the reviewed hash). Verifier maps protected py paths to aureon_floor.
+- Updated: migration contract (new identity), floor-embedded/local-resource tests, integration repo
+  validate_distribution.py, hacs.json name, README; docs NEONPLAN_MIGRATION_AND_ROLLBACK (SEP-01 section),
+  DISTRIBUTION_TARGET. dist rebuilt (still 0.29.0-test.3): dashboard WS calls/route/loader use the new names, so the
+  dashboard and the integration must be updated together.
+- Tests: pytest 149 (new: takeover of all stores + old untouched, own plan never overwritten, notice with/without the
+  official folder, legacy model URL), ruff, npm test, typecheck, validate, contract, browser suites. Disposable HA:
+  switched a running neonplan3d install (rev 200, 6 rooms, 45 items) to aureon_floor → identical plan/history,
+  old store byte-identical, resource taken over, Floor Studio + Ajustes + 35 own pictures + home 3D plan, no 404s;
+  official 2.0.7 installed next to it → notice shown, our stores unchanged, its own resource separate; removed →
+  notice gone, stale resource cleaned. Not tested on the owner's HA.
+- Not published yet: waiting for the owner's approval.

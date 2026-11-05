@@ -1,4 +1,4 @@
-// Opt-in "help improve NeonPlan" reports (custom_components/neonplan3d/diagnostics_report.py).
+// Opt-in "help improve NeonPlan" reports (custom_components/aureon_floor/diagnostics_report.py).
 //
 // Off by default. Only while the user switched it on in the editor, this page collects: its device class,
 // browser and OS (name and major version), the 3D view's quality level, frame rate and GPU tier, how often
@@ -240,7 +240,7 @@ export function clientAggregate(): Record<string, unknown> {
 async function push(): Promise<void> {
   const hass = hassRef;
   if (!hass) return;
-  const msg: Record<string, unknown> = { type: "neonplan3d/diagnostics/client" };
+  const msg: Record<string, unknown> = { type: "aureon_floor/diagnostics/client" };
   if (active) {
     msg.client = clientAggregate();
     msg.errors = errors;

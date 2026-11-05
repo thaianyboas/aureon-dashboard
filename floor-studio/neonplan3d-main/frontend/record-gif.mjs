@@ -76,9 +76,9 @@ const inPage = (code) =>
 
 // the live director with the doorbell switched on, on this "device" (the demo's mock Home Assistant)
 await inPage(`
-  const { building } = await panel.hass.callWS({ type: "neonplan3d/building/get" });
+  const { building } = await panel.hass.callWS({ type: "aureon_floor/building/get" });
   building.settings.director = { doorbell: true, hold: 60 };
-  await panel.hass.callWS({ type: "neonplan3d/building/save", building });
+  await panel.hass.callWS({ type: "aureon_floor/building/save", building });
   localStorage.setItem("neonplan3d.director", "1");
   localStorage.setItem("neonplan3d.voice", "1");
   panel._director = true;

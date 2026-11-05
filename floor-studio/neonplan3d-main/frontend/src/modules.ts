@@ -484,7 +484,7 @@ export function moduleWaits(pack: { module?: { approved?: boolean }; pending?: u
 }
 
 async function fetchCode(hass: HomeAssistant, packId: string): Promise<{ code: string; release: number; api: number }> {
-  return hass.callWS({ type: "neonplan3d/modules/code", pack_id: packId });
+  return hass.callWS({ type: "aureon_floor/modules/code", pack_id: packId });
 }
 
 async function load(hass: HomeAssistant, pack: ModulePack): Promise<Loaded | null> {

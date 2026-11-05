@@ -41,10 +41,15 @@ test('the panel hides only the duplicated HA chrome when embedded; editor stays 
   // the version notice stays visible in the embedded panel
   assert.match(panel,/\$\{this\._clean && this\._mode === "view" \? nothing : this\.renderNotices\(\)\}/);
 });
-test('visible product name is AUREON Floor Studio; technical ids stay neonplan3d',()=>{
+test('AUREON Floor Studio has its own domain, URLs and stores; browser element names stay NeonPlan\'s',()=>{
   assert.match(panel,/<h1>AUREON Floor Studio<\/h1>/);
-  const constPy=readFileSync(new URL('../neonplan3d-main/custom_components/neonplan3d/const.py',import.meta.url),'utf8');
+  const constPy=readFileSync(new URL('../neonplan3d-main/custom_components/aureon_floor/const.py',import.meta.url),'utf8');
   assert.match(constPy,/PANEL_TITLE = "AUREON Floor Studio"/);
-  assert.match(constPy,/PANEL_URL_PATH = "neonplan3d"/);
+  assert.match(constPy,/^DOMAIN = "aureon_floor"$/m);
+  assert.match(constPy,/^URL_BASE = "\/aureon_floor_static"$/m);
+  assert.match(constPy,/PANEL_URL_PATH = "aureon-floor-studio"/);
+  assert.match(constPy,/LEGACY_DOMAINS = \("neonplan3d", "floorplan_3d"\)/);
+  const manifest=JSON.parse(readFileSync(new URL('../neonplan3d-main/custom_components/aureon_floor/manifest.json',import.meta.url),'utf8'));
+  assert.equal(manifest.domain,'aureon_floor');assert.equal(manifest.name,'AUREON Floor Studio');
   assert.match(constPy,/PANEL_COMPONENT = "neonplan3d-panel"/);
 });

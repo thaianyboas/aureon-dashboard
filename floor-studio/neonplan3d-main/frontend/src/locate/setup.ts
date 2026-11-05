@@ -1786,7 +1786,7 @@ export class LocateSetup extends LitElement {
     this.load().catch((e: unknown) => (this._error = `load: ${(e as Error)?.stack ?? String(e)}`));
     this.timer = window.setInterval(() => void this.tick(), 1000);
     void this.hass.connection
-      .subscribeMessage<Live>((live) => (this._live = live), { type: "neonplan3d/locate/subscribe" })
+      .subscribeMessage<Live>((live) => (this._live = live), { type: "aureon_floor/locate/subscribe" })
       .then((u) => (this.unsub = u))
       .catch(() => undefined);
   }
@@ -1808,7 +1808,7 @@ export class LocateSetup extends LitElement {
   }
 
   private async load(): Promise<void> {
-    const cfg = await this.call<Config>({ type: "neonplan3d/locate/config" });
+    const cfg = await this.call<Config>({ type: "aureon_floor/locate/config" });
     if (!cfg) return;
     // scanners not placed yet: the room of their device in the plan (a placed switch of a Shelly), else its area
     const rooms = { ...cfg.scanner_rooms };
@@ -1879,7 +1879,7 @@ export class LocateSetup extends LitElement {
       console.warn("NeonPlan locate: no door graph", e);
     }
     const cfg = await this.call<Config>({
-      type: "neonplan3d/locate/configure",
+      type: "aureon_floor/locate/configure",
       rooms: this.rooms,
       doors,
       ...changes,
@@ -1891,12 +1891,12 @@ export class LocateSetup extends LitElement {
     const live = this.hassSource?.();
     if (live && live !== this.hass) this.hass = live;
     if (this._step === "devices" && this.nearOpen) {
-      const res = await this.call<{ devices: Nearby[] }>({ type: "neonplan3d/locate/nearby" });
+      const res = await this.call<{ devices: Nearby[] }>({ type: "aureon_floor/locate/nearby" });
       if (res) this._near = res.devices;
     }
     if (this._step === "walk") {
       // the countdown and the sample counts come from here (the live state only changes when a room changes)
-      const res = await this.call<{ calibration: Live["calibration"]; samples: Config["samples"] }>({ type: "neonplan3d/locate/calibrate", action: "status" });
+      const res = await this.call<{ calibration: Live["calibration"]; samples: Config["samples"] }>({ type: "aureon_floor/locate/calibrate", action: "status" });
       if (res && this._cfg) {
         this._cfg = { ...this._cfg, samples: res.samples };
         this._live = { ...(this._live ?? { running: true, devices: [] }), calibration: res.calibration };
@@ -2259,7 +2259,7 @@ export class LocateSetup extends LitElement {
         ? html`<div class="learning">
             ${this.tr(t.learning, { room: this.rooms.find((r) => r.id === cal.room)?.name ?? "", left: cal.left })}
             <div class="bar"><i style="width:${Math.round(((90 - cal.left) / 90) * 100)}%"></i></div>
-            <button @click=${() => void this.call({ type: "neonplan3d/locate/calibrate", action: "stop" })}>${t.stop}</button>
+            <button @click=${() => void this.call({ type: "aureon_floor/locate/calibrate", action: "stop" })}>${t.stop}</button>
           </div>`
         : nothing}
       ${floors.map(
@@ -2276,7 +2276,7 @@ export class LocateSetup extends LitElement {
                   ?disabled=${!!cal}
                   @click=${async () => {
                     const devices = cfg.devices.filter((d) => !this.notCarried.has(d.id)).map((d) => d.id);
-                    const res = await this.call<{ calibration: Live["calibration"] }>({ type: "neonplan3d/locate/calibrate", action: "start", room: r.id, seconds: 90, devices });
+                    const res = await this.call<{ calibration: Live["calibration"] }>({ type: "aureon_floor/locate/calibrate", action: "start", room: r.id, seconds: 90, devices });
                     if (res) this._live = { ...(this._live ?? { running: true, devices: [] }), calibration: res.calibration };
                     // learning the first room switches locating on (one switch less to find)
                     if (res && !cfg.enabled) await this.save({ enabled: true });
@@ -2288,7 +2288,7 @@ export class LocateSetup extends LitElement {
           </div>`,
       )}
       <p class="end">
-        <button @click=${async () => (this._quality = await this.call({ type: "neonplan3d/locate/quality" }))}>${t.quality}</button>
+        <button @click=${async () => (this._quality = await this.call({ type: "aureon_floor/locate/quality" }))}>${t.quality}</button>
         ${q
           ? html`<b>${this.tr(t.quality_result, {
               p: cfg.devices.map((d) => `${d.name} ${q[d.id]?.overall != null ? Math.round(q[d.id].overall! * 100) : "–"} %`).join(" · "),
@@ -2296,7 +2296,7 @@ export class LocateSetup extends LitElement {
           : nothing}
         <button class="primary" @click=${() => (this._step = "live")}>${t.next} →</button>
       </p>
-      <p class="end"><button class="ghost" @click=${() => void this.call({ type: "neonplan3d/locate/calibrate", action: "clear" }).then(() => this.load())}>${t.relearn_all}</button></p>`;
+      <p class="end"><button class="ghost" @click=${() => void this.call({ type: "aureon_floor/locate/calibrate", action: "clear" }).then(() => this.load())}>${t.relearn_all}</button></p>`;
   }
 
   private renderLive(cfg: Config) {
