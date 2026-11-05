@@ -679,3 +679,9 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
   disposable HA: tabs, all four Ajustes sections, editor panel, 25 model pictures. Not on the owner's HA.
 - Note for Codex: 029eeac bumped the stable dist to 0.29.0-test.3 but the migration contract still pinned
   test.2 (Floor Studio source build red on master since dd5ffae). Pin updated to test.3 in the same push.
+- Published 2026-11-05 after rebasing onto 69857f1/dd5ffae/029eeac: dashboard 61f28db, integration 89699d0, all CI
+  green. Disposable HA after the merge: Meus móveis shows all 35 pictures + Importar (3 of 3 runs).
+- Watch item for Codex: in one run right after an HA restart the embedded `neonplan3d-panel` was replaced
+  (editor -> 3D view) about 5 s after opening the editor; not reproduced afterwards. If it shows again, check what
+  re-renders the Planta page during startup (registry/identity paths in the hass setter) — a rebuild drops
+  unsaved editor work.
