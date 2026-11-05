@@ -1491,6 +1491,31 @@ export class FloorplanViewer {
     this.invalidate();
   }
 
+  /**
+   * AUREON: furnishing while walking through the house (the editor's walk). The walk owns the pointer; a press on a
+   * piece of furniture (client coordinates) grabs it like in the orbit view, its drag moves it and the release
+   * drops it (and reports the move). False: nothing to grab there, the walk turns or walks as usual.
+   */
+  walkGrab(clientX: number, clientY: number): boolean {
+    if (!this.furnish) return false;
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const [x, y] = [clientX - rect.left, clientY - rect.top];
+    if (!this.furnitureAt(x, y)) return false;
+    // a fixed piece is only selected (no drag), still not a step on the floor
+    this.grabFurniture(x, y);
+    return true;
+  }
+
+  walkDrag(clientX: number, clientY: number): void {
+    if (!this.grab) return;
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    this.dragFurniture(clientX - rect.left, clientY - rect.top);
+  }
+
+  walkDrop(): void {
+    if (this.grab) this.dropFurniture();
+  }
+
   /** Furnishing mode: dragging furniture and lamps moves them instead of turning the view. */
   setFurnishMode(on: boolean): void {
     this.furnish = on;

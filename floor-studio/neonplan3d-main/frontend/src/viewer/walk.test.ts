@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { emptyBuilding, newFloor, type Room, type Vec2 } from "../model.ts";
-import { FloorMap, type Obstacle } from "./walk.ts";
+import { FloorMap, type Obstacle, WalkCamera } from "./walk.ts";
 
 function rect(id: string, x0: number, z0: number, x1: number, z1: number): Room {
   return { id, name: id, area_id: null, points: [[x0, z0], [x1, z0], [x1, z1], [x0, z1]], floor_material: "wood" };
@@ -54,4 +54,56 @@ test("an outer door upstairs leads nowhere unless a balcony is drawn behind it; 
   assert.equal(new FloorMap({ ...emptyBuilding(), floors: [withBalcony] }, withBalcony).doors.length, 1);
   const down = { ...up, elevation: 0 };
   assert.equal(new FloorMap({ ...emptyBuilding(), floors: [down] }, down).doors.length, 1);
+});
+
+test("AUREON: in the editor's walk a press on furniture moves the piece, not the view; elsewhere the walk looks around", () => {
+  // a fake surface and viewer: just what the walk camera touches
+  const handlers = new Map<string, (e: unknown) => void>();
+  const surface = {
+    addEventListener: (type: string, fn: (e: unknown) => void) => handlers.set(type, fn),
+    removeEventListener: () => {},
+    setPointerCapture: () => {},
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 800, height: 600 }),
+    clientHeight: 600,
+  };
+  const vec = () => ({ x: 0, y: 0, z: 0, set() {} });
+  const v = {
+    camera: { position: vec(), lookAt() {}, fov: 60, near: 0.1, aspect: 1, updateProjectionMatrix() {} },
+    controls: { update: () => false, view: { target: vec(), radius: 1, theta: 0, phi: 0 } },
+    floorMap: new Map(),
+    floors: [],
+    labels: { style: {} as Record<string, string> },
+    renderer: { domElement: {} },
+    invalidate() {},
+    updateWalls() {},
+  };
+  const calls: string[] = [];
+  const onPiece = (x: number) => x < 400;
+  const g = globalThis as unknown as { window?: unknown; requestAnimationFrame?: unknown; cancelAnimationFrame?: unknown };
+  const saved = [g.window, g.requestAnimationFrame, g.cancelAnimationFrame];
+  g.window = { addEventListener() {}, removeEventListener() {} };
+  g.requestAnimationFrame = () => 0;
+  g.cancelAnimationFrame = () => {};
+  try {
+    const walk = new WalkCamera(v as never, new FloorMap(building, floor), surface as never, {
+      onRoom: () => {},
+      start: { x: 1, z: 2.5, yaw: 0, pitch: -0.05 },
+      furnish: { grab: (x) => (calls.push(`grab ${x}`), onPiece(x)), drag: (x) => calls.push(`drag ${x}`), drop: () => calls.push("drop") },
+    });
+    const ev = (clientX: number) => ({ clientX, clientY: 300, pointerId: 1 });
+    handlers.get("pointerdown")!(ev(100));
+    handlers.get("pointermove")!(ev(160));
+    handlers.get("pointerup")!(ev(160));
+    assert.deepEqual(calls, ["grab 100", "drag 160", "drop"]);
+    assert.equal(walk.state.yaw, 0, "holding a piece does not turn the view");
+    calls.length = 0;
+    handlers.get("pointerdown")!(ev(500));
+    handlers.get("pointermove")!(ev(560));
+    handlers.get("pointerup")!(ev(560));
+    assert.deepEqual(calls, ["grab 500"]);
+    assert.notEqual(walk.state.yaw, 0, "a drag elsewhere looks around");
+    walk.dispose();
+  } finally {
+    [g.window, g.requestAnimationFrame, g.cancelAnimationFrame] = saved;
+  }
 });

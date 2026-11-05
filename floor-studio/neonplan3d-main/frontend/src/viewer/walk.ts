@@ -317,6 +317,13 @@ export interface WalkState {
   pitch: number;
 }
 
+/** AUREON: the editor's hands while walking (client coordinates; see Viewer3D.walkGrab). */
+export interface WalkFurnish {
+  grab(clientX: number, clientY: number): boolean;
+  drag(clientX: number, clientY: number): void;
+  drop(): void;
+}
+
 export class WalkCamera {
   state: WalkState;
   private path: Vec2[] = [];
@@ -338,11 +345,15 @@ export class WalkCamera {
   map: FloorMap;
   private readonly surface: HTMLElement;
 
-  constructor(v: ViewerInternals, map: FloorMap, surface: HTMLElement, opts: { onRoom: (room: Room | null) => void; start?: WalkState }) {
+  /** AUREON: furnishing while walking (the editor): a press on furniture grabs it instead of looking or walking. */
+  private readonly furnish: WalkFurnish | null;
+
+  constructor(v: ViewerInternals, map: FloorMap, surface: HTMLElement, opts: { onRoom: (room: Room | null) => void; start?: WalkState; furnish?: WalkFurnish }) {
     this.v = v;
     this.map = map;
     this.surface = surface;
     this.onRoom = opts.onRoom;
+    this.furnish = opts.furnish ?? null;
     const s = opts.start ?? (() => {
       const st = map.start();
       return { x: st.p[0], z: st.p[1], yaw: st.yaw, pitch: -0.05 };
@@ -551,12 +562,24 @@ export class WalkCamera {
       this.listeners.push([t, type, fn as EventListener, !!opts?.capture]);
     };
     let drag: { x: number; y: number; moved: boolean; id: number } | null = null;
+    // AUREON: a piece of furniture held while walking (the editor)
+    let held: number | null = null;
     on(this.surface, "pointerdown", (e: PointerEvent) => {
-      if (drag) return;
-      drag = { x: e.clientX, y: e.clientY, moved: false, id: e.pointerId };
+      if (drag || held !== null) return;
       this.surface.setPointerCapture?.(e.pointerId);
+      if (this.furnish?.grab(e.clientX, e.clientY)) {
+        held = e.pointerId;
+        this.v.invalidate();
+        return;
+      }
+      drag = { x: e.clientX, y: e.clientY, moved: false, id: e.pointerId };
     });
     on(this.surface, "pointermove", (e: PointerEvent) => {
+      if (held !== null && e.pointerId === held) {
+        this.furnish?.drag(e.clientX, e.clientY);
+        this.v.invalidate();
+        return;
+      }
       if (!drag || e.pointerId !== drag.id) return;
       const dx = e.clientX - drag.x;
       const dy = e.clientY - drag.y;
@@ -572,6 +595,12 @@ export class WalkCamera {
       this.v.invalidate();
     });
     const up = (e: PointerEvent) => {
+      if (held !== null && e.pointerId === held) {
+        held = null;
+        this.furnish?.drop();
+        this.v.invalidate();
+        return;
+      }
       if (!drag || e.pointerId !== drag.id) return;
       const tap = !drag.moved;
       drag = null;
@@ -581,7 +610,13 @@ export class WalkCamera {
       }
     };
     on(this.surface, "pointerup", up);
-    on(this.surface, "pointercancel", () => (drag = null));
+    on(this.surface, "pointercancel", () => {
+      drag = null;
+      if (held !== null) {
+        held = null;
+        this.furnish?.drop();
+      }
+    });
     on(
       this.surface,
       "wheel",

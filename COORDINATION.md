@@ -714,3 +714,18 @@ arrival (not evidence of a GPU/model bottleneck). Actual owner latency is unmeas
   official 2.0.7 installed next to it → notice shown, our stores unchanged, its own resource separate; removed →
   notice gone, stale resource cleaned. Not tested on the owner's HA.
 - Owner approved publishing on 2026-11-05 ("Sim, pode publicar").
+
+## WALK-EDIT-01 + TOOLS-01 — walk while furnishing; one tool rail (Claude, owner requests 2026-11-05)
+
+- WALK-EDIT-01: the editor's 3D view (3D / Dividida) now offers "Passeio". While walking, a press on furniture grabs
+  it (new `Viewer3D.walkGrab/walkDrag/walkDrop`, `WalkCamera` option `furnish`), so pieces (guitars on the wall…)
+  are placed and checked at eye height; the 3D bar keeps size, height (↕), rotate, fix, delete; Ctrl+Z undoes.
+  Fidelity: render3d, startWalk, WalkCamera.bind recorded as extensions. Unit test in walk.test.ts.
+- TOOLS-01: the "Ferramentas" menu is gone. Left rail = every tool (added Divisão, Abertura no piso, Telhado,
+  Piscina; Definições at its foot opens the original settings menu); shapes/kinds of the tool in use (room
+  rectangle/free, outdoor kinds and shape, pool shapes/pipe) show as chips where the menu was; "Vista de parede" and
+  "Planta inteira" sit next to 2D/3D/Dividida ("3D ao lado" = Dividida). Phones: the dock's "Ferramentas" opens the
+  same rail as a sheet. Original renderToolBar unchanged (kept, unused). Editor browser test uses the rail.
+- Tests: npm test, typecheck, validate, contract, browser suites, pytest 149; disposable HA: walk + grab + drag +
+  undo, rail/choices/settings dialog/whole plan, phone sheet; icons fixed size. Not on the owner's HA.
+- Not published yet: waiting for the owner's approval.

@@ -988,9 +988,9 @@
       "original_line": 1136,
       "candidate_line": 1135,
       "original_sha256": "e6edefc119151e18ecbcd754748a5d130e3e9b2c42a01625256a2c0b4e078d08",
-      "candidate_sha256": "d29688a33e8f1e58508f5d40f58ffbf76e25bfa3d2f9705aa3b5fa4987f9fa62",
+      "candidate_sha256": "926b51edcd22110617cad59a118c99f749c78d4d49467fec1ce3157d035bb2ae",
       "status": "aureon_extension",
-      "note": "Owner decision 2026-11-02: AUREON shows only the Real look (day and night follow sun.sun); the 3D passes theme \"real\" instead of the configured or fixed look. The other looks stay in the renderer, unused by the AUREON UI."
+      "note": "Owner decision 2026-11-02: AUREON shows only the Real look (day and night follow sun.sun); the 3D passes theme \"real\" instead of the configured or fixed look. The other looks stay in the renderer, unused by the AUREON UI. WALK-EDIT-01 (owner request 2026-11-05): the editor 3D view offers the walk; while walking a press on furniture grabs it (Viewer3D.walkGrab/walkDrag/walkDrop) instead of looking/walking, so pieces are placed and checked at eye height."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.setWall3d",
@@ -2461,9 +2461,9 @@
       "original_line": 5755,
       "candidate_line": 5698,
       "original_sha256": "fe26d2f9b2bb22372b6ec362ab1fd6ce423aa5b2d2eb27ad70d235d3ade8613a",
-      "candidate_sha256": "5bea4133b36ddbe6f489817ce3b810bc3eb83218d4af23970b12c021af813cf2",
+      "candidate_sha256": "421f13be163f42e9d11e52153141b3c266c1e7ca01f5322e5f90d3190b34f794",
       "status": "aureon_extension",
-      "note": " Reviewed STUDIO-UI-01: adds responsive workspace chrome and contextual drawers; native canvas, tools, library renderer and forms remain intact. Library is rendered once in its own panel. STUDIO-UI-01 review: workspace layout and five selectable native 3D looks; original editing handlers retained."
+      "note": " Reviewed STUDIO-UI-01: adds responsive workspace chrome and contextual drawers; native canvas, tools, library renderer and forms remain intact. Library is rendered once in its own panel. STUDIO-UI-01 review: workspace layout and five selectable native 3D looks; original editing handlers retained. TOOLS-01 (owner request 2026-11-05): the editor's former Tools menu is gone; every tool is in the left rail (room, floor hole, roof, pool added; settings at its foot), the shapes/kinds of the tool in use show as chips in the toolbar, wall view and whole plan sit next to the 2D/3D/split switch. The original renderToolBar stays unchanged."
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderBackground",
@@ -6255,8 +6255,9 @@
       "original_line": 3932,
       "candidate_line": 3930,
       "original_sha256": "c8bd0fcd51df1603464ebc4521d19221f0d15328f3c1a217e9ec00f065e149d8",
-      "candidate_sha256": "c8bd0fcd51df1603464ebc4521d19221f0d15328f3c1a217e9ec00f065e149d8",
-      "status": "preserved"
+      "candidate_sha256": "922f0f89306ee4f47bac52ee41ace334920b16fe82da814caa3f7c1d2a00d42a",
+      "status": "aureon_extension",
+      "note": "WALK-EDIT-01 (owner request 2026-11-05): the editor 3D view offers the walk; while walking a press on furniture grabs it (Viewer3D.walkGrab/walkDrag/walkDrop) instead of looking/walking, so pieces are placed and checked at eye height."
     },
     {
       "symbol": "components/view3d.ts::Fp3dView3d.stopWalk",
@@ -17427,8 +17428,9 @@
       "original_line": 548,
       "candidate_line": 548,
       "original_sha256": "6a45b8a42661f9b87154c5a50a342cfec8316f148c75594dc63e58ca92cdf046",
-      "candidate_sha256": "6a45b8a42661f9b87154c5a50a342cfec8316f148c75594dc63e58ca92cdf046",
-      "status": "preserved"
+      "candidate_sha256": "4aa8dbb1fccde81bcb35b020b9ce24106bb63446191c19b0c397df284eb5aea8",
+      "status": "aureon_extension",
+      "note": "WALK-EDIT-01 (owner request 2026-11-05): the editor 3D view offers the walk; while walking a press on furniture grabs it (Viewer3D.walkGrab/walkDrag/walkDrop) instead of looking/walking, so pieces are placed and checked at eye height."
     },
     {
       "symbol": "voice/commands.ts::normalize",

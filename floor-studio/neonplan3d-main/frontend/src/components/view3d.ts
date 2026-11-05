@@ -3966,6 +3966,10 @@ export class Fp3dView3d extends LitElement {
     }
     this.walker = new mod.WalkCamera(v as never, map, surface, {
       start,
+      // AUREON: in the editor (furnishing) a press on furniture grabs it while walking: placed and checked at eye height
+      furnish: this.furnish
+        ? { grab: (x: number, y: number) => v.walkGrab(x, y), drag: (x: number, y: number) => v.walkDrag(x, y), drop: () => v.walkDrop() }
+        : undefined,
       onRoom: (r) => {
         this.walkRoomPts = r?.points ?? null;
         if (this._walk) this._walk = { ...this._walk, room: r?.name ?? null };
