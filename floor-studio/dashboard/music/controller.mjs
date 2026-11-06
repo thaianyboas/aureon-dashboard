@@ -83,7 +83,7 @@ export class MusicController {
     finally{if(current()){this.pending.delete(key);this.emit();}}
   }
   async callSpotify(name,data={},response=false){
-    if(!this.advanced(name))throw new Error('SpotifyPlus service unavailable');
+    if(!this.advanced(name))throw new Error('Spotify service unavailable');
     // Explicit entity_id selects the configured Spotify account; never infer it from an entity name.
     const result=await this.hass.callService(spotifyPlusDomain(this.hass,this.entityId),name,{...data,entity_id:this.entityId},undefined,undefined,response);
     return response ? result : true;

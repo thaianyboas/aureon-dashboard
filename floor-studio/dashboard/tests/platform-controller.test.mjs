@@ -48,3 +48,12 @@ test('card layouts and preferences follow the user to another device through HA 
  t=5000;phone.patch('palette','graphite');await new Promise(r=>setTimeout(r,900));const again=new PlatformController({storage:mem(),now:()=>t});again.update({...hass},null);await new Promise(r=>setTimeout(r,10));assert.equal(again.preferences.palette,'graphite');assert.ok(!sent.some(x=>!x.startsWith('frontend/')));});
 
 test('a scene that was never activated (state unknown) can still be activated, with confirmation',()=>{const services={scene:{turn_on:{}},light:{turn_on:{}}};const a=actionsFor({entity_id:'scene.manha',state:'unknown',attributes:{}},services);assert.deepEqual(a.map(x=>[x.key,x.sensitive]),[['activate',true]]);assert.deepEqual(actionsFor({entity_id:'light.a',state:'unknown',attributes:{}},services),[]);assert.deepEqual(actionsFor({entity_id:'scene.x',state:'unavailable',attributes:{}},services),[]);});
+
+test('the 3D plan on the start page keeps the Cinema look; an old "classic" choice migrates to it',()=>{
+  assert.equal(validatePreferences({schema:1}).home3d,false);
+  const old=validatePreferences({schema:1,look:'classic'});
+  assert.equal(old.look,'cinema');assert.equal(old.home3d,true);
+  const now=validatePreferences({schema:1,look:'cinema',home3d:true});
+  assert.equal(now.look,'cinema');assert.equal(now.home3d,true);
+  assert.equal(validatePreferences({schema:1,home3d:'yes'}).home3d,false);
+});

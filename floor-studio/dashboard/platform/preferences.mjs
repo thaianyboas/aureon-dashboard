@@ -1,6 +1,6 @@
 import {cleanLayouts} from './card-layout-model.mjs';
 import {equipmentKinds} from './discovery.mjs';
-export const defaults=()=>({schema:1,floorLook:'real',language:'auto',appearance:'auto',palette:'forest',accent:'',look:'cinema',density:'compact',hidden:[],labelVisibility:{include:[],exclude:[]},labelKinds:{},equipmentOverrides:{},cardLayouts:{},widgets:{music:true,weather:true,people:true,energy:true,waste:true,security:true},energy:{power:'',total:'',daily:'',weekly:'',monthly:'',yearly:'',tariff:null,currency:'EUR'},waste:[],roomFloor:{},roomImages:{},music:{entity:'',appearance:'auto',providers:{},spotcastTargets:[]}});
+export const defaults=()=>({schema:1,floorLook:'real',language:'auto',appearance:'auto',palette:'forest',accent:'',look:'cinema',home3d:false,density:'compact',hidden:[],labelVisibility:{include:[],exclude:[]},labelKinds:{},equipmentOverrides:{},cardLayouts:{},widgets:{music:true,weather:true,people:true,energy:true,waste:true,security:true},energy:{power:'',total:'',daily:'',weekly:'',monthly:'',yearly:'',tariff:null,currency:'EUR'},waste:[],roomFloor:{},roomImages:{},music:{entity:'',appearance:'auto',providers:{},spotcastTargets:[]}});
 // Room pictures: the owner's own files in Home Assistant (/local/…, media/image proxy) or an https address. Never embedded data.
 export function roomImageUrl(value){if(typeof value!=='string'||value.length>2048)return '';const v=value.trim();if(v==='none'||/^preset:(living|kitchen|dining|bedroom|bathroom|hallway|balcony|entrance|controlroom|pool|office|hobby)$/.test(v))return v;if(/^\/(local|media|api\/image\/serve)\/[^\s"'<>\\]+$/.test(v)&&!v.includes('..'))return v;try{const u=new URL(v);return u.protocol==='https:'&&!u.username&&!u.password?u.href:'';}catch{return '';}}
 const id=value=>typeof value==='string'&&/^[a-z_]+\.[a-z0-9_]+$/.test(value)?value:'';
@@ -8,6 +8,10 @@ export function validatePreferences(raw){
  if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.schema!==1)throw new Error('Invalid configuration');
  const out=defaults();out.cardLayouts=cleanLayouts(raw.cardLayouts);
  for(const [key,allowed] of Object.entries({floorLook:['real'],appearance:['auto','dark','light','custom'],density:['compact','comfortable'],look:['cinema','classic']}))if(allowed.includes(raw[key]))out[key]=raw[key];
+ if(typeof raw.home3d==='boolean')out.home3d=raw.home3d;
+ // Owner wish: the 3D plan on the start page must not change the whole design. A stored "classic" look from before
+ // becomes the Cinema look with the 3D plan on its start page.
+ else if(raw.look==='classic'){out.look='cinema';out.home3d=true;}
  if(typeof raw.accent==='string'&&/^#[0-9a-fA-F]{6}$/.test(raw.accent))out.accent=raw.accent.toLowerCase();
  if(['cinema','aubergine-balance','black-gold-royal','black-bordeaux-royal','purple','blue','emerald','burgundy','rose-noir','gold','pearl','obsidian','sapphire','forest','forest-botanical','terracotta','sand','ocean','amethyst','copper','sage','arctic','ruby','lavender','graphite','silver-penthouse','amethyst-lounge'].includes(raw.palette))out.palette=raw.palette;
  if(Array.isArray(raw.hidden))out.hidden=[...new Set(raw.hidden.map(id).filter(Boolean))].slice(0,3000);

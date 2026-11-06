@@ -787,3 +787,21 @@ logs in once, checks playback, then removes originals. Then Mídia in the Cinema
 - AUREON Música pushed to thaianyboas/aureon-music (owner created the repo).
 Validation: npm test, typecheck, validate, migration contract, platform browser test (Cinema check), disposable HA
 screenshots desktop/phone; label filtering 124 → 15 rows with show_dboard. Not tested on the owner's HA/iSG.
+
+## Claude batch 2026-11-06 — start page 3D without changing the design; neutral music names
+
+- HOME3D-01: new preference `home3d` (boolean). The 3D plan (`aureon-home-plan`) now sits inside the Cinema start
+  page (`.cine-plan`) instead of switching every page to the classic look. Settings › Aparência offers
+  "Cartões ao vivo" / "Com a planta 3D"; the look switch is gone from the UI. A stored `look:'classic'` without
+  `home3d` migrates to `look:'cinema', home3d:true` (owner could not get back). `look:'classic'` stays valid for
+  the browser test of the classic pages. Phone framing of the start plan tightened (`frame` .78 when taller than wide).
+- MUSIC-NAMES: owner does not want the upstream project names in the UI. Dashboard Settings › Música shows
+  "Conta do Spotify (Spotify Web API)" and "Caixas Cast / Alexa (Spotify Connect)"; music texts say AUREON Música.
+  aureon-music (local commit, not pushed): config-flow menu, translations and device/entity names neutral; the
+  builder applies it (`neutral_names`), credits stay in NOTICE.md.
+- NeonPlan check: our fork is based on NeonPlan 2.0.7; official 3.0.1 adds 2.0.8–3.0.1 (several plans/property,
+  room cards, card templates, room vacuum/everything off, show-if furniture, floor-plan-only, gates, sliding doors,
+  pins only while active, camera pop-up, walk from a room, HA 2026.11 channel-room fix, light-through-wall fixes).
+  Not ported yet — waiting for owner approval.
+Validation: npm test (193+536), typecheck, validate, migration contract, platform browser test, disposable HA
+screenshots (start page with 3D desk/phone, Settings appearance and music). Not tested on the owner's HA.
