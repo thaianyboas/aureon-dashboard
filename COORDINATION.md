@@ -769,3 +769,21 @@ the originals would. NOT tested: real Spotify login/playback, owner HA, iSG hard
 
 Next: owner approval → create GitHub repo thaianyboas/aureon-music, push dashboard, owner installs AUREON Música,
 logs in once, checks playback, then removes originals. Then Mídia in the Cinema look.
+
+## Claude batch — 2026-11-06 (afternoon): Settings, Labels, rooms (owner approved publication)
+
+- SETTINGS-01 `settings-cinema.mjs`: Cinema Settings (category cards with current value; Aparência = look, theme
+  gallery, HA theme, accent, density, start-page widgets; Cartões per page; Música status of aureon_music /
+  spotifyplus / spotcast + start player; Labels). Quick "Tema" button removed from page bars (theme lives in
+  Settings). Existing detail panels kept.
+- LABELS-01: owner Label rules reinstated by request: `labelVisibility.include/exclude` + `labelKinds[kind]`
+  (validated label ids); applied in controller `reindex` with the equipment kind; music players follow the same rows.
+  Tests updated to the requested behaviour (the old "labels retired" tests encoded the previous decision).
+- HOME: weather hero with animated condition art and `weather/subscribe_forecast` (read-only subscription), colour
+  person photos, less empty space. ROOMS: Dispositivos folded into Cômodos in the Cinema look (nav without Geräte;
+  every room lists all its equipment as compact rows, 8 per kind + "show all"; virtual "Sem cômodo"); drawn room art
+  fallback; new presets pool/office/hobby (Pexels 261102, 667838, 4050318, graded; see assets/PHOTOS.md).
+  Back-to-top button on every page (listens to the AUREON main scroller).
+- AUREON Música pushed to thaianyboas/aureon-music (owner created the repo).
+Validation: npm test, typecheck, validate, migration contract, platform browser test (Cinema check), disposable HA
+screenshots desktop/phone; label filtering 124 → 15 rows with show_dboard. Not tested on the owner's HA/iSG.
