@@ -11,7 +11,7 @@ export class PlatformController{
  constructor({storage=safeStorage(),now=()=>Date.now()}={}){this.storage=storage;this.now=now;this.hass=null;this.registry=null;this.preferences=defaults();this.scope=null;this.connection=null;this.epoch=0;this.listeners=new Set();this.busy=new Set();this.errors={};this.events={};this.series=[];this.history={};this.floors=[];this.nativeRevision=null;this.answer='';this.conversationId=null;this._confirmation=null;this.storageError=false;this._rows=[];this._allRows=[];this._byId=new Map();this._visibility='';this.floors=[];this.nativeRevision=null;}
  subscribe(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
  emit(){for(const fn of this.listeners)fn();}
- update(hass,registry){const key=scopeKey(hass);if(key!==this.scope||hass?.connection!==this.connection){const changed=key!==this.scope;this.scope=key;this.connection=hass?.connection;this.epoch++;this.events={};this.series=[];this.history={};this.floors=[];this.nativeRevision=null;this.answer='';this.conversationId=null;this._confirmation=null;this.busy.clear();this.errors={};if(changed)this.preferences=loadPreferences(this.storage,key);}
+ update(hass,registry){const key=scopeKey(hass);if(key!==this.scope||hass?.connection!==this.connection){const changed=key!==this.scope;this.scope=key;this.connection=hass?.connection;this.epoch++;this.events={};this.series=[];this.history={};this.floors=[];this.nativeRevision=null;this.answer='';this.conversationId=null;this._confirmation=null;this.busy.clear();this.errors={};if(changed)this.preferences=loadPreferences(this.storage,key);this._syncFromAccount(hass,key);}
  this.hass=hass;this.registry=registry;
  // speed: the row index only depends on the registry, the hidden list and which entities exist — not on every
  // state change (HA sends one hass object per change, often several per second)
@@ -27,7 +27,13 @@ export class PlatformController{
  state(id){return this._byId.has(id)?this.hass?.states?.[id]:null;}
  list(domains){return this.rows.filter(r=>domains.includes(r.domain));}
  get areas(){return this.registry?.rows||[];}
- save(value){this._indexKey=null;const before=this.preferences.energy.total;try{this.preferences=savePreferences(this.storage,this.scope,value);this.storageError=false;}catch{this.preferences=validatePreferences(value);this.storageError=true;}this.reindex();if(before!==this.preferences.energy.total)this.series=[];this.emit();}
+ // Preferences follow the Home Assistant user to every device (tablet, phone, iSG): a copy is kept in that user's own
+ // frontend data (frontend/set_user_data, a per-user store; not a service call). The newest copy wins.
+ _stamp(key){try{return Number(this.storage?.getItem(key+':at'))||0;}catch{return 0;}}
+ _setStamp(key,at){try{this.storage?.setItem(key+':at',String(at));}catch{}}
+ async _syncFromAccount(hass,key){const conn=hass?.connection;if(!key||!conn?.sendMessagePromise)return;try{const res=await conn.sendMessagePromise({type:'frontend/get_user_data',key:'aureon_preferences'});if(key!==this.scope)return;const remote=res?.value,local=this._stamp(key);if(remote&&Number(remote.at)>local&&remote.preferences){const clean=validatePreferences(remote.preferences);this._indexKey=null;this.preferences=savePreferences(this.storage,key,clean);this._setStamp(key,Number(remote.at));this.reindex();this.emit();}else if(local>Number(remote?.at||0))this._pushToAccount();}catch{}}
+ _pushToAccount(){const key=this.scope,conn=this.hass?.connection;if(!key||!conn?.sendMessagePromise)return;clearTimeout(this._pushTimer);this._pushTimer=setTimeout(()=>{if(key!==this.scope)return;conn.sendMessagePromise({type:'frontend/set_user_data',key:'aureon_preferences',value:{at:this._stamp(key)||Date.now(),preferences:this.preferences}}).catch(()=>{});},800);}
+ save(value){this._indexKey=null;const before=this.preferences.energy.total;try{this.preferences=savePreferences(this.storage,this.scope,value);this.storageError=false;if(this.scope){this._setStamp(this.scope,this.now());this._pushToAccount();}}catch{this.preferences=validatePreferences(value);this.storageError=true;}this.reindex();if(before!==this.preferences.energy.total)this.series=[];this.emit();}
  patch(key,value){this.save({...this.preferences,[key]:value});}
  import(text){this.save(importPreferences(text));}
  export(){return JSON.stringify(validatePreferences(this.preferences),null,2);}

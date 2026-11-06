@@ -1,0 +1,13 @@
+import {html,nothing} from '../../neonplan3d-main/frontend/node_modules/lit/index.js';
+// Quick theme switch on every page: AUREON themes, Home Assistant's own theme (including themes installed through
+// HACS) and an own accent colour. Saved with the other preferences of this Home Assistant user.
+export const ACCENT_SWATCHES=['#e6cc9a','#d59a72','#e3a04b','#7fd4a0','#70a9ed','#a477f5','#ed8794','#c6d0d9'];
+export function accentControls(ui){const t=ui.t,p=ui.c.preferences,current=p.accent||'';
+ return html`<div class="accent-row" role="group" aria-label=${t.accentColor}><span class="accent-label">${t.accentColor}</span><div class="accent-swatches">${ACCENT_SWATCHES.map(c=>html`<button type="button" class="accent-swatch" style=${'--swatch:'+c} aria-label=${t.accentColor+' '+c} aria-pressed=${String(current===c)} @click=${()=>ui.save('accent',c)}></button>`)}<label class="accent-own" title=${t.accentOwn}><input type="color" .value=${current||'#e6cc9a'} aria-label=${t.accentOwn} @change=${e=>ui.save('accent',e.target.value.toLowerCase())}><span>${t.accentOwn}</span></label><button type="button" class="accent-reset" aria-pressed=${String(!current)} @click=${()=>ui.save('accent','')}>${t.accentDefault}</button></div></div>`;}
+export function renderThemeButton(ui){return html`<button type="button" class="theme-quick-btn" aria-expanded=${String(!!ui._themeOpen)} @click=${()=>{ui._themeOpen=!ui._themeOpen;ui.requestUpdate();}}><span class="theme-quick-dot" aria-hidden="true"></span>${ui.t.themeQuick}</button>`;}
+export function renderThemePanel(ui){if(!ui._themeOpen)return nothing;const t=ui.t,p=ui.c.preferences,palettes=ui.palettes||[],ha=p.appearance==='auto';
+ const pick=id=>{ui.c.patch('appearance','custom');ui.save('palette',id);};
+ return html`<section class="theme-quick" aria-label=${t.themeQuick}><div class="theme-quick-head"><h3>${t.themeQuick}</h3><button type="button" class="ghost" @click=${()=>{ui._themeOpen=false;ui.requestUpdate();}}>${t.close}</button></div>
+ <button type="button" class="theme-ha" aria-pressed=${String(ha)} @click=${()=>ui.save('appearance','auto')}><strong>${t.themeFollowHa}</strong><small>${t.themeFollowHaHint}</small></button>
+ <div class="theme-swatches">${palettes.map(r=>html`<button type="button" class="theme-swatch" data-theme=${r.id} aria-pressed=${String(!ha&&p.appearance==='custom'&&p.palette===r.id)} @click=${()=>pick(r.id)} title=${r.name}><span class="theme-swatch-art" style=${`--bg:${r.background};--sf:${r.surface};--ac:${r.accent}`} aria-hidden="true"><i></i><b></b></span><span class="theme-swatch-name">${r.name}</span></button>`)}</div>
+ ${accentControls(ui)}</section>`;}
