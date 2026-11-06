@@ -835,3 +835,9 @@ picker, plans/property settings, card templates). Not tested on the owner's HA.
   only validated colour tokens (aureon-theme-sync.ts + test). Embedded mode unchanged.
 - Plan manager / site editor draw again once the editor bundle has its language file (were English first).
 - Shared files: aureon-dashboard.js (_floorTheme/_floorTokens/_publishFloorTheme), panel.ts (syncTheme).
+- RAIL-02 (owner): refined desktop rail — quieter 38px items, gold marker on the open page, hairline groups
+  (house / assistant+agenda+automations+Floor Studio / settings), "Floor Studio" short label, hidden scrollbar,
+  smaller logo and footer. Phones unchanged (bottom bar).
+- ROOMS-HERO: no empty band above the room title (page no longer stretched to window height).
+- ROOM-PHOTOS: presets re-encoded from the 1672×941 design originals (q90) and pool/office/hobby re-cut at
+  2560×1440 from the Pexels photos with the earlier grade (assets/PHOTOS.md).

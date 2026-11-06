@@ -320,4 +320,7 @@ export const platformStyles=`
 
 .to-top-dock{position:sticky;bottom:18px;height:0;display:flex;justify-content:flex-end;z-index:4;pointer-events:none}.to-top{pointer-events:auto;transform:translateY(-56px) scale(.8);opacity:0;visibility:hidden;width:48px;height:48px;min-width:48px;padding:0!important;border-radius:50%!important;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--p-surface) 82%,transparent)!important;border:1px solid color-mix(in srgb,var(--p-accent) 55%,transparent)!important;color:var(--p-accent)!important;backdrop-filter:blur(16px);box-shadow:0 10px 30px #0006;transition:opacity .3s ease,transform .3s ease,visibility .3s}.to-top.show{opacity:1;visibility:visible;transform:translateY(-56px) scale(1)}.to-top svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:650px){.to-top-dock{bottom:84px}}
+
+/* Owner 2026-11-06: no empty band above the room title (the page no longer stretches to the window height) */
+.cine-rooms-page{min-height:0}.cine-room-stage{flex:0 0 auto;padding-top:clamp(28px,6vh,72px)}@media(max-width:600px){.cine-room-stage{padding-top:36px}}
 `;
