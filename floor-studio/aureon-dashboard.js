@@ -266,7 +266,7 @@
       for(const child of [...main.childNodes])if(child!==header&&child!==keep)child.remove();
       wrap.classList.toggle('au-home',name==='Início'||name==='Medien');wrap.classList.toggle('au-media',name==='Medien');
       const Page=customElements.get('aureon-platform'),labels=Page?.labels(this._platformController?.language||this._hass?.language||'en');
-      main.dataset.auPage=Page?.routeNames?.[name]||'';if(header)header.hidden=['Geräte','Planta'].includes(name)||(name==='Räume'&&this._platformController?.preferences?.look!=='classic');
+      main.dataset.auPage=Page?.routeNames?.[name]||'';if(header)header.hidden=['Geräte','Planta'].includes(name)||(['Räume','Sicherheit','Energie'].includes(name)&&this._platformController?.preferences?.look!=='classic');
       if(header&&labels){header.querySelector('h1').textContent=labels[Page.routeNames[name]]||name;const eyebrow=header.querySelector('.small');if(eyebrow)eyebrow.textContent='AUREON / '+(name==='Einstellungen'?labels.settings.toUpperCase():'CONTROL CENTER');}
       [...this.shadowRoot.querySelectorAll('nav .au-nav-button')].forEach((button,i)=>{const active=PAGES[i]?.[1]===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
       this.shadowRoot.querySelector('.au-nav-more')?.classList.toggle('active',!['Início','Geräte','Medien'].includes(name));
