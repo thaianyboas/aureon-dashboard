@@ -2,7 +2,6 @@
 // ⚙ Settings → Fun packs. A pack not installed yet tells how to get it (it waits in the customer account, or a free
 // account brings it); installing stays on the extensions page with the shop.
 import { css, html, LitElement, nothing } from "lit";
-import { getLicense } from "../api.ts";
 import { entityName } from "../devices.ts";
 import { FUN, released, unlockedFeatures } from "../features.ts";
 import { translate, type I18nKey } from "../i18n.ts";
@@ -29,7 +28,6 @@ export class Fp3dFunPacks extends LitElement {
   /** Changes the plan (the editor's own change, so it can be undone and is saved). */
   declare edit: ((fn: (b: Building) => void) => void) | null;
   private declare _connected: boolean | null;
-  private asked = false;
 
   constructor() {
     super();
@@ -52,14 +50,7 @@ export class Fp3dFunPacks extends LitElement {
   }
 
   protected render() {
-    // whether the installation is connected to a customer account (a pack not installed yet waits there)
-    if (!this.asked && this.hass) {
-      this.asked = true;
-      getLicense(this.hass).then(
-        (l) => (this._connected = !!l.active),
-        () => (this._connected = false),
-      );
-    }
+    // AUREON: no shop request; a fun pack not installed is simply not shown
     return this.renderFun(unlockedFeatures(this.packs ?? []));
   }
 

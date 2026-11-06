@@ -1,8 +1,8 @@
 {
   "scope": "AST printer with comments removed; runtime fidelity requires browser evidence",
   "summary": {
-    "preserved": 2305,
-    "aureon_extension": 97,
+    "preserved": 2304,
+    "aureon_extension": 98,
     "missing": 19,
     "modified": 30,
     "added": 129
@@ -5263,7 +5263,7 @@
     {
       "symbol": "components/fun-packs.ts::Fp3dFunPacks.isAdmin",
       "original_line": 42,
-      "candidate_line": 42,
+      "candidate_line": 40,
       "original_sha256": "542d2f592bedb120dc758c5e7ede6b21f8216216119a3ea170cac2df8da33d17",
       "candidate_sha256": "542d2f592bedb120dc758c5e7ede6b21f8216216119a3ea170cac2df8da33d17",
       "status": "preserved"
@@ -5271,7 +5271,7 @@
     {
       "symbol": "components/fun-packs.ts::Fp3dFunPacks.t",
       "original_line": 46,
-      "candidate_line": 46,
+      "candidate_line": 44,
       "original_sha256": "05696a8e508fc681f773069247fc1fbfd841f5eb14b731d98939d17d2f00d74a",
       "candidate_sha256": "05696a8e508fc681f773069247fc1fbfd841f5eb14b731d98939d17d2f00d74a",
       "status": "preserved"
@@ -5279,7 +5279,7 @@
     {
       "symbol": "components/fun-packs.ts::Fp3dFunPacks.editPlan",
       "original_line": 50,
-      "candidate_line": 50,
+      "candidate_line": 48,
       "original_sha256": "69a82ffbf3009e9a30e33b445161b3f5a8bd0409214eb92891d2ebb5f5ad80e8",
       "candidate_sha256": "69a82ffbf3009e9a30e33b445161b3f5a8bd0409214eb92891d2ebb5f5ad80e8",
       "status": "preserved"
@@ -5287,15 +5287,15 @@
     {
       "symbol": "components/fun-packs.ts::Fp3dFunPacks.render",
       "original_line": 54,
-      "candidate_line": 54,
+      "candidate_line": 52,
       "original_sha256": "9be3fd6927c02fb7faea49971807f19fe22fff276fe528b0d95b6d75112598d6",
-      "candidate_sha256": "9be3fd6927c02fb7faea49971807f19fe22fff276fe528b0d95b6d75112598d6",
-      "status": "preserved"
+      "candidate_sha256": "4f3a6b77d0030ee469e7acdac33863a6f0823b6070494924cdaae702a2fdcd21",
+      "status": "aureon_extension"
     },
     {
       "symbol": "components/fun-packs.ts::Fp3dFunPacks.renderFun",
       "original_line": 66,
-      "candidate_line": 66,
+      "candidate_line": 57,
       "original_sha256": "f5a64f21f54bcdb574804c71c90a2a78eac4a37165eb402751e1990b464b8fc7",
       "candidate_sha256": "f5a64f21f54bcdb574804c71c90a2a78eac4a37165eb402751e1990b464b8fc7",
       "status": "preserved"
@@ -5303,7 +5303,7 @@
     {
       "symbol": "components/fun-packs.ts::Fp3dFunPacks.renderFunLocked",
       "original_line": 140,
-      "candidate_line": 141,
+      "candidate_line": 132,
       "original_sha256": "4e99ef5e7e567d230f7740ded939d07bc11a94b4233d161926f0731268335b95",
       "candidate_sha256": "fd5bf717e114cf926f963ad76e24cb241b2a1ccf96d14acb4145750f235c1836",
       "status": "aureon_extension"
@@ -5311,7 +5311,7 @@
     {
       "symbol": "components/fun-packs.ts::Fp3dFunPacks.renderWinter",
       "original_line": 154,
-      "candidate_line": 147,
+      "candidate_line": 138,
       "original_sha256": "11374c83376977c1e8092d74596b121e993684aefbd92854ccda894198d42c20",
       "candidate_sha256": "11374c83376977c1e8092d74596b121e993684aefbd92854ccda894198d42c20",
       "status": "preserved"
@@ -5319,7 +5319,7 @@
     {
       "symbol": "components/fun-packs.ts::Fp3dFunPacks.renderHalloween",
       "original_line": 195,
-      "candidate_line": 188,
+      "candidate_line": 179,
       "original_sha256": "f01beb8d49cd42975d8730185538e5b1f5e0c2d7b3d8caae1c93bd1e086bfe3f",
       "candidate_sha256": "f01beb8d49cd42975d8730185538e5b1f5e0c2d7b3d8caae1c93bd1e086bfe3f",
       "status": "preserved"

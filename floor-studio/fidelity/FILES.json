@@ -4,10 +4,10 @@
   "zip_members_crc_verified": 679,
   "version": "3.0.1",
   "summary": {
-    "identical": 321,
+    "identical": 319,
     "missing": 183,
-    "modified": 136,
-    "added": 118
+    "modified": 138,
+    "added": 120
   },
   "files": [
     {
@@ -146,16 +146,16 @@
     {
       "path": "custom_components/neonplan3d/brand/icon.png",
       "original_sha256": "151ecee94eaccc696aa4c8163fc34b67468b4397ee0528499ee568013c9c7352",
-      "candidate_sha256": "151ecee94eaccc696aa4c8163fc34b67468b4397ee0528499ee568013c9c7352",
+      "candidate_sha256": "f803e6a65f8185765a5bb818385e024c25b61d74f1f603b1d25f505e34b6dd84",
       "bytes": 44573,
-      "status": "identical"
+      "status": "modified"
     },
     {
       "path": "custom_components/neonplan3d/brand/icon@2x.png",
       "original_sha256": "48eb56b3b5afb8ab6e45f9930fbe6d5aeac2b0b17477abe8d1c2acc8ac0d2862",
-      "candidate_sha256": "48eb56b3b5afb8ab6e45f9930fbe6d5aeac2b0b17477abe8d1c2acc8ac0d2862",
+      "candidate_sha256": "97368410b02d5f2a4d1e83aecf3f24e54a31925e01b42b16dd66820c27cb5b95",
       "bytes": 127124,
-      "status": "identical"
+      "status": "modified"
     },
     {
       "path": "custom_components/neonplan3d/card_resource.py",
@@ -356,7 +356,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-editor.js",
       "original_sha256": "c5ea0f02630abdc4e8166e7273215d319d8c72c0466a1c13966e68407f2db5c3",
-      "candidate_sha256": "b37a273616f45a6f1f21cb372d18360412e42ad389e0b281c7393134f69cf105",
+      "candidate_sha256": "141f3ae5d693a5c57d0fa45059259251c6e88aa60eda1a1198d559aadd83b4ec",
       "bytes": 1067764,
       "status": "modified"
     },
@@ -391,7 +391,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d.js",
       "original_sha256": "a2ecf30a957cc66557fd0286d6b0da2fb3b2785c8c8b19819ca17d0a58afc154",
-      "candidate_sha256": "9c032401b54479c08d1fb19bf45bd8348ee5cb4366b0021420f0fc991e567f9a",
+      "candidate_sha256": "84cfc7c27ca718bc04ac1836899d5b563bda1781e360858b467b6eee07ec3d84",
       "bytes": 834792,
       "status": "modified"
     },
@@ -2120,7 +2120,7 @@
     {
       "path": "frontend/src/components/fun-packs.ts",
       "original_sha256": "146d7280e369c62a761fc9c641577af786bc975f58d57eb784dc6e8b8cdb678b",
-      "candidate_sha256": "6798bac37929148e85d5f4eb86b3dddb262b2c0b3d3fb42c55ee4e90d480eb0a",
+      "candidate_sha256": "296a08511e66449f713d60b2f26a13a8bed342b82f35b6945af70604d3ba5043",
       "bytes": 13109,
       "status": "modified"
     },
@@ -4511,13 +4511,23 @@
       "status": "added"
     },
     {
+      "path": "custom_components/aureon_floor/brand/dark_icon.png",
+      "candidate_sha256": "f803e6a65f8185765a5bb818385e024c25b61d74f1f603b1d25f505e34b6dd84",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/brand/dark_icon@2x.png",
+      "candidate_sha256": "97368410b02d5f2a4d1e83aecf3f24e54a31925e01b42b16dd66820c27cb5b95",
+      "status": "added"
+    },
+    {
       "path": "custom_components/aureon_floor/brand/icon.png",
-      "candidate_sha256": "151ecee94eaccc696aa4c8163fc34b67468b4397ee0528499ee568013c9c7352",
+      "candidate_sha256": "f803e6a65f8185765a5bb818385e024c25b61d74f1f603b1d25f505e34b6dd84",
       "status": "added"
     },
     {
       "path": "custom_components/aureon_floor/brand/icon@2x.png",
-      "candidate_sha256": "48eb56b3b5afb8ab6e45f9930fbe6d5aeac2b0b17477abe8d1c2acc8ac0d2862",
+      "candidate_sha256": "97368410b02d5f2a4d1e83aecf3f24e54a31925e01b42b16dd66820c27cb5b95",
       "status": "added"
     },
     {
@@ -4667,7 +4677,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-editor.js",
-      "candidate_sha256": "b37a273616f45a6f1f21cb372d18360412e42ad389e0b281c7393134f69cf105",
+      "candidate_sha256": "141f3ae5d693a5c57d0fa45059259251c6e88aa60eda1a1198d559aadd83b4ec",
       "status": "added"
     },
     {
@@ -4697,7 +4707,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d.js",
-      "candidate_sha256": "9c032401b54479c08d1fb19bf45bd8348ee5cb4366b0021420f0fc991e567f9a",
+      "candidate_sha256": "84cfc7c27ca718bc04ac1836899d5b563bda1781e360858b467b6eee07ec3d84",
       "status": "added"
     },
     {
