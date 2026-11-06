@@ -805,3 +805,24 @@ screenshots desktop/phone; label filtering 124 → 15 rows with show_dboard. Not
   Not ported yet — waiting for owner approval.
 Validation: npm test (193+536), typecheck, validate, migration contract, platform browser test, disposable HA
 screenshots (start page with 3D desk/phone, Settings appearance and music). Not tested on the owner's HA.
+
+## Claude batch 2026-11-06 (2) — AUREON Floor Studio on NeonPlan 3.0.1
+
+- NP-3.0.1: three-way merge (base 2.0.7 ZIP, AUREON fork, official 3.0.1 ZIP from the owner) after normalising the
+  fork's mechanical renames (ws types `aureon_floor/…`, `custom_components.aureon_floor`, `/aureon_floor_static`).
+  New: several floor plans + property (site), room-only cards and card templates, room bar, vacuum / everything off
+  per room, "only show while …" furniture, floor-plan-only, gates in fences, sliding doors, top-hung windows, pins only
+  while active, camera pop-up, walk from a room, duplicate floor, winter pack code, announcements service, open
+  screens, HA 2026.11 channel/room fix and all light fixes. Manifest version 3.0.1.
+- Kept AUREON: own domain/stores, bindings with revision lock (now per plan, `PlanData`), load deadlines/epochs,
+  Ajustes sheet, pets, Real look, own models, paints, no shop/supporter/print/newsletter/gift UI, no Halloween.
+- Storage: further plans of a NeonPlan 3.x install (`neonplan3d.plans`, `.building.<id>`, `.history.<id>`) are taken
+  over once like the main plan; earlier stores never changed (pytest). Migration contract refined: no removal in the
+  take-over code; the only store removal is AUREON's own plan bin after 30 days (upstream behaviour).
+- Fidelity guards re-baselined to the 3.0.1 ZIP with the existing scripts (same strictness).
+- Portuguese texts added for the new plan/site/room-card keys.
+- The owner's 22 bought .fp3dpack files verified with our code: valid for her installation, refused (wrong_instance)
+  on the test HA. They are NOT in any repository.
+Validation: frontend 622 tests, backend 180 pytest, root 193, typecheck, build budgets, fidelity, migration contract,
+validate, browser tests floor/editor/contour/loading/platform/music, disposable HA 2026.2.3 (Floor Studio panel, plan
+picker, plans/property settings, card templates). Not tested on the owner's HA.

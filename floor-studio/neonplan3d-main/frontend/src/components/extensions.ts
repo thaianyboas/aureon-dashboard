@@ -122,7 +122,8 @@ export class Extensions extends LitElement {
 
   private renderFun(unlocked: Set<string>) {
     // unlocked by an installed pack (this page's own list), or shown to test with the lab switch
-    const shown = FUN.filter((f) => unlocked.has(f));
+    // AUREON: the pets here; the winter pack is set in the editor's ⚙ Settings → Fun packs
+    const shown = FUN.filter((f) => f === "fun_pets" && unlocked.has(f));
     if (!shown.length) return nothing;
     const pets = this.building?.settings.pets ?? null;
     const list = pets?.list ?? [];

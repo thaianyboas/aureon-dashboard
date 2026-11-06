@@ -73,7 +73,7 @@ async def test_binding_ws_save_reload_remove_and_stale(hass: HomeAssistant, hass
 
 async def test_concurrent_saves_reject_stale_binding(hass: HomeAssistant) -> None:
     data = FloorplanData(hass)
-    data._building_store.async_save = AsyncMock()
+    data.main._building_store.async_save = AsyncMock()
     first, second = copy.deepcopy(BUILDING), copy.deepcopy(BUILDING)
     results = await asyncio.gather(
         data.async_save_building(first, expected_revision=0),
@@ -109,7 +109,7 @@ async def test_reader_cannot_bind_plan(hass: HomeAssistant, hass_ws_client, hass
 async def test_failed_store_preserves_last_successful_plan(hass: HomeAssistant) -> None:
     data = FloorplanData(hass)
     original = copy.deepcopy(data.building)
-    data._building_store.async_save = AsyncMock(side_effect=OSError("Synthetic disk error"))
+    data.main._building_store.async_save = AsyncMock(side_effect=OSError("Synthetic disk error"))
     with pytest.raises(OSError):
         await data.async_save_building(copy.deepcopy(BUILDING), expected_revision=0)
     assert data.building == original

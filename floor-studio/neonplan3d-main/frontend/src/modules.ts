@@ -166,6 +166,8 @@ export interface ModuleHost {
   listen?(onListening?: () => void): Promise<string | null>;
   /** A short note at the bottom of the view ("Durchsage an Kinderzimmer gesendet"). */
   notify?(text: string): void;
+  /** Flies the view to each stop in turn, like a voice answer's tour (a tap ends it); `say` is spoken when `speak` is set. */
+  tour?(stops: NonNullable<VoiceAnswer["tour"]>, speak?: boolean): void;
   /** The rooms someone is in right now: located people, and presence or motion sensors of the room's area. */
   occupied?(): { floorId: string; roomId: string }[];
   /** The media players of the plan (placed as a device or linked to a piece of furniture), each with its room. */
@@ -216,6 +218,8 @@ export type ScenePiece =
       level: number;
       /** A band of light round the item at mid height instead of its screen. */
       band?: boolean;
+      /** Its top plate glows instead (with a thin rim at its top edge): free of a fan or a grille in the middle (#917). */
+      plate?: boolean;
       /** Layers: light round the item from its foot (`color`) up to its top (this colour) – a tank warm above, cool below. */
       top?: [number, number, number];
     }

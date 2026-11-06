@@ -141,6 +141,31 @@ export function buildFloorGeometry(
     const r = roofUnder ? roofUnder(x, z) : null;
     return r !== null && r < BURIED;
   };
+  // the part of a wall step the roof leaves standing: a wall along the eaves of a high attic floor can run under
+  // the slope across its thickness – the outer face below the roof's top, the inner face above – and its outer
+  // edge stood out of the roof as a step along the whole length (#855); the footprint ends where the roof's
+  // underside passes the buried depth (the roof is one plane over a step, so the line between is straight)
+  const unburied = (poly: Vec2[]): Vec2[] => {
+    if (!roofUnder) return poly;
+    const depth = poly.map(([x, z]) => {
+      const r = roofUnder(x, z);
+      return r === null ? Infinity : r - BURIED;
+    });
+    if (depth.every((d) => d >= 0)) return poly;
+    if (depth.every((d) => d < 0)) return [];
+    const out: Vec2[] = [];
+    for (let i = 0; i < poly.length; i++) {
+      const j = (i + 1) % poly.length;
+      const [p, q] = [poly[i], poly[j]];
+      const [dp, dq] = [depth[i], depth[j]];
+      if (dp >= 0) out.push(p);
+      if (dp >= 0 !== dq >= 0 && Number.isFinite(dp) && Number.isFinite(dq)) {
+        const k = dp / (dp - dq);
+        out.push([p[0] + (q[0] - p[0]) * k, p[1] + (q[1] - p[1]) * k]);
+      }
+    }
+    return out;
+  };
   // the lowest wall top along a stretch of a wall (sampled), for openings and the top edge line
   const lowestTop = (a: Vec2, ax: Vec2, s0: number, s1: number, H: number, wall?: Wall): number => {
     if (!roofUnder && !wall?.slope) return H;
@@ -167,10 +192,13 @@ export function buildFloorGeometry(
     // an opening across a room line is cut in every room it covers: here, the part inside this room (#353)
     // the openings are clipped one by one and only then merged: an opening joined with the stairs' own hole before
     // (overlapping, no longer convex) and reaching past the room was not cut at all (#375)
+    // one only within a few centimetres of the edge is clipped as well when it can be: a corner just past the room
+    // line (stairs below reaching 2.5 cm beyond the wall's face) crossed the floor's outline, and the floor was not
+    // cut at all (#813)
     const parts = holes.flatMap((h) => {
-      if (holeInRoom(h, poly)) return [h];
+      if (holeInRoom(h, poly) && (!isConvex(h) || holeInRoom(h, poly, 0.002))) return [h];
       if (!isConvex(h)) return [];
-      const part = clipConvex(poly, h);
+      const part = dropRepeats(clipConvex(poly, h));
       return part.length >= 3 && Math.abs(polygonArea(part)) > 0.01 ? [ccw(part)] : [];
     });
     const inside = mergeHoles(parts).map((h) => insetHole(ccw(h), 0.003));
@@ -366,8 +394,29 @@ export function buildFloorGeometry(
         inner1: i < n - 1 || piece.inner1,
       })).filter((st) => !clipAlong(wall.footprint, wall.a, ax, st.t0, st.t1).every(([x, z]) => buried(x, z)));
     };
-    for (const piece of underRoof ? steps.flatMap(fine) : steps) {
-      const poly = clipAlong(wall.footprint, wall.a, ax, piece.t0, piece.t1);
+    // a step whose top crosses the cut height is split where it does: built whole, the part above the cut was
+    // left out and the part below ended on a straight line from its low corner to the cut – a notch in the
+    // slope (#821)
+    const crossing = (piece: (typeof steps)[number]): (typeof steps)[number][] => {
+      const topOn = (t: number) => topAt(wall.a[0] + ax[0] * t, wall.a[1] + ax[1] * t, H, wall);
+      let lo = Math.max(piece.t0, 0);
+      let hi = Math.min(piece.t1, len);
+      if (hi - lo < 0.01 || (topOn(lo) - cut) * (topOn(hi) - cut) >= 0) return [piece];
+      const rising = topOn(hi) > cut;
+      for (let i = 0; i < 24; i++) {
+        const mid = (lo + hi) / 2;
+        if (topOn(mid) > cut === rising) hi = mid;
+        else lo = mid;
+      }
+      // the split lies on the high side, so the upper step's lowest top is never below the cut
+      const t = rising ? hi : lo;
+      return [
+        { ...piece, t1: t, inner1: true },
+        { ...piece, t0: t, inner0: true },
+      ];
+    };
+    for (const piece of underRoof ? steps.flatMap(fine).flatMap(crossing) : steps) {
+      const poly = underRoof ? unburied(clipAlong(wall.footprint, wall.a, ax, piece.t0, piece.t1)) : clipAlong(wall.footprint, wall.a, ax, piece.t0, piece.t1);
       if (poly.length < 3) continue;
       // the faces between two steps of one piece are inside the wall: left out, or they show as stripes
       // through the see-through walls (D180)
@@ -387,7 +436,7 @@ export function buildFloorGeometry(
           const capped = sloped && roofTop < cut ? (x: number, z: number) => Math.min(cut, topOf(x, z)) : Math.min(y1, cut);
           pushPrism(wallBuf, poly, y0, capped, NEON.wall, NEON.wallTop, { aoFrom: 0, bottom: lintel, fold: LOWER_OFFSET + b, topFold, skipSide });
         }
-        if (y1 > cut + 1e-6 && roofTop > cut + 1e-6) pushPrism(wallBuf, poly, Math.max(y0, cut), sloped ? topOf : y1, NEON.wall, NEON.wallTop, { aoFrom: 0, fold: b, bottom: lintel && y0 >= cut, skipSide });
+        if (y1 > cut + 1e-6 && roofTop > cut - 1e-6) pushPrism(wallBuf, poly, Math.max(y0, cut), sloped ? topOf : y1, NEON.wall, NEON.wallTop, { aoFrom: 0, fold: b, bottom: lintel && y0 >= cut, skipSide });
       }
     }
   }
@@ -733,6 +782,14 @@ export function wallHeight(wall: Wall, floorHeight: number): number {
 function unit(v: Vec2): Vec2 {
   const l = Math.hypot(v[0], v[1]) || 1;
   return [v[0] / l, v[1] / l];
+}
+
+/** A ring without points that repeat the one before (a clipped corner on the clipper's edge): the inset needs real edges. */
+function dropRepeats(points: Vec2[]): Vec2[] {
+  return points.filter((p, i) => {
+    const q = points[(i + points.length - 1) % points.length];
+    return points.length < 2 || Math.hypot(p[0] - q[0], p[1] - q[1]) > 1e-6;
+  });
 }
 
 function ccw(points: Vec2[]): Vec2[] {

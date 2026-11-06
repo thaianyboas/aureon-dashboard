@@ -1,5 +1,13 @@
 # Auditoria de fidelidade ao NeonPlan3D fornecido
 
+> **Atualização 2026-11-06 — base NeonPlan 3.0.1.** O fork foi atualizado de 2.0.7 para 3.0.1 por merge de três vias
+> (base 2.0.7, AUREON, oficial 3.0.1). A referência dos guardas passou a ser o ZIP `neonplan3d-main.zip` 3.0.1
+> (SHA-256 `fb8be9d804121bc50b2de8412cccfedd092df681d22dc4004247989c1a198bf6`, 679 entradas com CRC conferido):
+> `fidelity/FILES.json` e `fidelity/SYMBOLS.json` foram regenerados com os mesmos scripts; 2.305 métodos originais
+> idênticos, 97 extensões AUREON revisadas, 23 arquivos críticos idênticos. Removidos de novo apenas os pedaços de
+> loja (oferta de NeonPlan Print para supporters, ofertas, newsletter, presente de Halloween, licença na loja). O texto
+> abaixo descreve a auditoria original de 2.0.7.
+
 ## Referência verificável e conclusão delimitada
 
 Referência: ZIP `neonplan3d-main(2).zip`, SHA-256 `917dfc2b78eb37d3de760316078be24c17a0f262ae14986a778061328c2aa744`, versão **2.0.7**, 615 entradas com CRC conferido, 576 arquivos. Não é uma afirmação sobre outra versão disponível na internet.

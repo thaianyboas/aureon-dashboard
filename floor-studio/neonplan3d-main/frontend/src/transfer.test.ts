@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { emptyBuilding, newFloor } from "./model.ts";
-import { exportFile, parseExport } from "./transfer.ts";
+import { copyFloor, exportFile, parseExport } from "./transfer.ts";
 
 function building() {
   const b = emptyBuilding();
@@ -61,4 +61,53 @@ test("share template removes local actions, media destinations and images while 
 test("share cleanup preserves numeric geometry and appearance values with reference-like names", () => {
   const b=building();b.settings.grid=.25;b.floors[0].furniture[0].tilt=45;b.floors[0].rooms[0].floor_material="wood.oak";b.floors[0].furniture[0].type="pack:custom.model";b.floors[0].furniture[0].name="lamp.personal.design";
   const copy=exportFile(b,true).building;assert.equal(copy.settings.grid,.25);assert.equal(copy.floors[0].furniture[0].tilt,45);assert.equal(copy.floors[0].rooms[0].floor_material,"wood.oak");assert.equal(copy.floors[0].furniture[0].type,"pack:custom.model");assert.equal(copy.floors[0].furniture[0].name,"lamp.personal.design");
+});
+
+test("a shareable export leaves no entity anywhere, however new the field", () => {
+  const b = building();
+  const f = b.floors[0];
+  const extra = {
+    lock: "lock.haustuer",
+    fan_entity: "fan.decke",
+    sensors: ["sensor.gas", "sensor.wasser"],
+    by_entity: { "light.decke": { x: 1 } },
+    nested: { deep: [{ rain: "binary_sensor.regen", label: "Regen" }] },
+    device_id: "abc123",
+    file: "plan.json",
+    version: "2.0.11",
+    color: "#ff00aa",
+  };
+  Object.assign(f.furniture[0], extra);
+  Object.assign(b.settings, { rain_entity: "binary_sensor.regen", outage_entity: "binary_sensor.netz" });
+  const out = exportFile(b, true).building;
+  const text = JSON.stringify(out);
+  for (const id of ["lock.haustuer", "fan.decke", "sensor.gas", "light.decke", "binary_sensor.regen", "binary_sensor.netz", "abc123", "living_room"]) assert.ok(!text.includes(id), id);
+  const m = out.floors[0].furniture[0] as unknown as Record<string, unknown>;
+  assert.deepEqual(m.sensors, []);
+  assert.deepEqual(m.by_entity, {});
+  assert.equal(m.lock, null);
+  // what is no link stays
+  assert.equal(m.file, "plan.json");
+  assert.equal(m.version, "2.0.11");
+  assert.equal(m.color, "#ff00aa");
+  assert.deepEqual(m.nested, { deep: [{ rain: null, label: "Regen" }] });
+  // the original plan is untouched
+  assert.equal((f.furniture[0] as unknown as Record<string, unknown>).lock, "lock.haustuer");
+});
+
+test("a duplicated floor gets new ids, keeps its references and loses its links (#443)", () => {
+  const b = building();
+  b.floors[0].openings = [{ id: "o", room_id: "r", edge: 0, offset: 1, width: 1, type: "window", sill: 0.9, cover: "cover.blind" } as never];
+  let n = 0;
+  const copy = copyFloor(b, "eg", (p) => `${p}_n${n++}`, "OG", 3)!;
+  assert.notEqual(copy.id, "eg");
+  assert.equal(copy.elevation, 3);
+  assert.notEqual(copy.rooms[0].id, "r");
+  assert.equal(copy.openings[0].room_id, copy.rooms[0].id, "the window stays on the copied room");
+  assert.equal(copy.rooms[0].area_id, null);
+  assert.equal(copy.furniture[0].entity, null);
+  assert.equal(copy.openings[0].cover, null);
+  assert.deepEqual(copy.placements, []);
+  // the original is untouched
+  assert.equal(b.floors[0].furniture[0].entity, "light.decke");
 });

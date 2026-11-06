@@ -1,7 +1,8 @@
-// Loads the building, follows changes made elsewhere and saves edits (debounced).
+// Loads the building of one floor plan, follows changes made elsewhere and saves edits (debounced); knows the list
+// of plans and switches between them.
 
 import type { ReactiveController, ReactiveControllerHost } from "lit";
-import { fetchBuilding, listPacks, saveBuilding, subscribeBuilding } from "./api.ts";
+import { fetchBuilding, listPacks, listPlans, MAIN_PLAN, saveBuilding, subscribeBuilding, subscribePlans, type PlanEntry } from "./api.ts";
 import { translate } from "./i18n.ts";
 import { initDiagnostics } from "./diagnostics.ts";
 import { normalizeBuilding, type Building } from "./model.ts";
@@ -26,21 +27,24 @@ export interface Draft {
 /** Unsaved edits of the earlier name (the browser may still hold them). */
 const LEGACY_DRAFT_KEY = "floorplan-3d.unsaved";
 
-function readDraft(): Draft | null {
+/** The draft of a plan: the main plan keeps the key it always had. */
+export const draftKey = (plan: string) => (plan === MAIN_PLAN ? DRAFT_KEY : `${DRAFT_KEY}.${plan}`);
+
+function readDraft(plan: string): Draft | null {
   try {
-    const raw = localStorage.getItem(DRAFT_KEY) ?? localStorage.getItem(LEGACY_DRAFT_KEY);
+    const raw = localStorage.getItem(draftKey(plan)) ?? (plan === MAIN_PLAN ? localStorage.getItem(LEGACY_DRAFT_KEY) : null);
     return raw ? (JSON.parse(raw) as Draft) : null;
   } catch {
     return null;
   }
 }
 
-function writeDraft(draft: Draft | null): void {
+function writeDraft(plan: string, draft: Draft | null): void {
   try {
-    if (draft) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    if (draft) localStorage.setItem(draftKey(plan), JSON.stringify(draft));
     else {
-      localStorage.removeItem(DRAFT_KEY);
-      localStorage.removeItem(LEGACY_DRAFT_KEY);
+      localStorage.removeItem(draftKey(plan));
+      if (plan === MAIN_PLAN) localStorage.removeItem(LEGACY_DRAFT_KEY);
     }
   } catch {
     // storage full or unavailable: the edit stays until the page is closed
@@ -53,6 +57,13 @@ export function loadDeadline<T>(promise: Promise<T>, ms = 12000): Promise<T> {
     const timer = setTimeout(() => reject(new Error("AUREON_PLAN_TIMEOUT")), ms);
     promise.then(value => {clearTimeout(timer);resolve(value);}, error => {clearTimeout(timer);reject(error);});
   });
+}
+
+/** The plan to show: the one asked for while it exists, else the main plan (a plan in the bin, a card of a deleted
+ * one). An empty list (an older backend) knows only the main plan. */
+export function choosePlan(wanted: string | null | undefined, plans: readonly { id: string }[]): string {
+  if (wanted && plans.some((p) => p.id === wanted)) return wanted;
+  return MAIN_PLAN;
 }
 
 export class BuildingController implements ReactiveController {
@@ -69,6 +80,19 @@ export class BuildingController implements ReactiveController {
   packs: FurniturePack[] = [];
   /** The packs were fetched once (what is installed is known). */
   packsLoaded = false;
+  /** The floor plan shown and edited. */
+  planId: string = MAIN_PLAN;
+  /** All floor plans in their order (empty until known; an older backend lists none). */
+  plans: PlanEntry[] = [];
+  /** Plans in the bin. */
+  trash: PlanEntry[] = [];
+  /** The plan Live Presence works on. */
+  locatePlan: string = MAIN_PLAN;
+  /** The plan list was fetched once. */
+  plansLoaded = false;
+  /** The plan asked for before the list is known (a card's `plan`, the panel's last one, a link). */
+  private wanted: string | null = null;
+  private unsubscribePlans: (() => Promise<void>) | null = null;
 
   private readonly host: ReactiveControllerHost;
   private hass: HomeAssistant | null = null;
@@ -96,6 +120,8 @@ export class BuildingController implements ReactiveController {
       ++this.loadEpoch;
       void this.unsubscribe?.();
       this.unsubscribe = null;
+      void this.unsubscribePlans?.();
+      this.unsubscribePlans = null;
       this.building = null;
       this.error = null;
       this.revision = -1;
@@ -116,6 +142,38 @@ export class BuildingController implements ReactiveController {
     void this.flush();
     void this.unsubscribe?.();
     this.unsubscribe = null;
+    void this.unsubscribePlans?.();
+    this.unsubscribePlans = null;
+  }
+
+  /** The plan to show; before the list is known it is remembered and taken once the list arrives. */
+  async switchPlan(plan: string | null | undefined): Promise<void> {
+    if (!this.plansLoaded || !this.hass) {
+      this.wanted = plan ?? null;
+      return;
+    }
+    const next = choosePlan(plan, this.plans);
+    this.wanted = next;
+    if (next === this.planId && this.building) return;
+    // the edits of the plan shown are saved to that plan first
+    await this.flush();
+    void this.unsubscribe?.();
+    this.unsubscribe = null;
+    this.planId = next;
+    this.building = null;
+    this.revision = -1;
+    this.ownRevisions = new Set();
+    this.draft = null;
+    this.saveState = "idle";
+    this.host.requestUpdate();
+    await this.reload();
+    await this.follow();
+  }
+
+  /** The name a plan is shown with (the main plan has its own word until it is named). */
+  planName(plan: string, mainWord: string): string {
+    const entry = this.plans.find((p) => p.id === plan);
+    return entry?.name || (plan === MAIN_PLAN ? mainWord : "?");
   }
 
   /** Local edit: shown immediately, saved after a short pause. */
@@ -158,7 +216,7 @@ export class BuildingController implements ReactiveController {
 
   discardDraft(): void {
     this.draft = null;
-    writeDraft(null);
+    writeDraft(this.planId, null);
     this.host.requestUpdate();
   }
 
@@ -168,6 +226,8 @@ export class BuildingController implements ReactiveController {
     const building = this.pending;
     if (!building || !this.hass) return;
     this.pending = null;
+    // the plan the edit belongs to (a switch waits for this save)
+    const plan = this.planId;
     // a mount height above what the backend accepts (10 m – "40" typed as centimetres) would refuse every save,
     // also of an edit kept from earlier: it is brought into range here
     for (const f of building.floors) for (const m of f.furniture) if (m.mount_y != null && m.mount_y > 10) m.mount_y = 10;
@@ -175,17 +235,19 @@ export class BuildingController implements ReactiveController {
     this.host.requestUpdate();
     this.saving = (async () => {
       try {
-        const revision = await saveBuilding(this.hass!, building);
-        this.ownRevisions.add(revision);
-        this.revision = revision;
+        const revision = await saveBuilding(this.hass!, building, plan);
+        if (plan === this.planId) {
+          this.ownRevisions.add(revision);
+          this.revision = revision;
+        }
         this.saveState = this.pending ? "saving" : "saved";
         this.saveError = null;
-        writeDraft(null);
+        writeDraft(plan, null);
       } catch (err) {
         this.saveState = "error";
         this.saveError = errorText(err);
         // keep the edit: after a restart it can be restored and saved
-        writeDraft({ building, savedAt: Date.now() });
+        writeDraft(plan, { building, savedAt: Date.now() });
       }
       this.host.requestUpdate();
     })();
@@ -198,22 +260,70 @@ export class BuildingController implements ReactiveController {
     // the opt-in reports: one local call per page to learn whether they are on (see diagnostics.ts)
     initDiagnostics(this.hass);
     const epoch = this.loadEpoch;
-    await Promise.all([this.reloadPacks(), this.reload()]);
+    // AUREON: the optional packs load beside the plan and never hold up the building (its own deadline counts)
+    const packs = this.reloadPacks();
+    await this.reloadPlans();
     if (epoch !== this.loadEpoch) return;
-    if (!this.unsubscribe && this.connected) {
+    this.planId = choosePlan(this.wanted ?? this.planId, this.plans);
+    await Promise.all([packs, this.reload()]);
+    if (epoch !== this.loadEpoch) return;
+    await this.follow();
+    if (!this.unsubscribePlans && this.connected) {
       try {
-        const unsubscribe = await subscribeBuilding(this.hass, (revision) => {
+        const unsubscribePlans = await subscribePlans(this.hass, (list) => {
           if (epoch !== this.loadEpoch || !this.connected) return;
+          this.takePlans(list);
+          // the plan shown went into the bin (elsewhere): back to the main plan
+          if (!this.plans.some((p) => p.id === this.planId)) void this.switchPlan(MAIN_PLAN);
+        });
+        if (epoch === this.loadEpoch && this.connected) this.unsubscribePlans = unsubscribePlans;
+        else void unsubscribePlans();
+      } catch {
+        // older backend: one plan
+      }
+    }
+  }
+
+  /** Follow the plan shown: a save elsewhere loads it again. */
+  private async follow(): Promise<void> {
+    if (this.unsubscribe || !this.connected || !this.hass) return;
+    const plan = this.planId, epoch = this.loadEpoch;
+    try {
+      const unsubscribe = await subscribeBuilding(
+        this.hass,
+        (revision) => {
+          if (epoch !== this.loadEpoch || !this.connected || plan !== this.planId) return;
           if (this.ownRevisions.has(revision) || revision === this.revision) return;
           if (this.pending || this.saving) return; // our own edits win; they are saved next
           void this.reload();
-        });
-        if (epoch === this.loadEpoch && this.connected) this.unsubscribe = unsubscribe;
-        else void unsubscribe();
-      } catch {
-        // older backend or connection loss: changes from elsewhere show after a reload
-      }
+        },
+        plan,
+      );
+      // switched again (or reconnected) while subscribing: this one is not needed any more
+      if (plan !== this.planId || this.unsubscribe || epoch !== this.loadEpoch || !this.connected) void unsubscribe();
+      else this.unsubscribe = unsubscribe;
+    } catch {
+      // older backend or connection loss: changes from elsewhere show after a reload
     }
+  }
+
+  /** Fetch the list of plans again (after one was added, renamed or deleted here). */
+  async reloadPlans(): Promise<void> {
+    if (!this.hass) return;
+    const epoch = this.loadEpoch;
+    // an older or slow backend knows only the main plan; the list never holds up the building
+    const list = await loadDeadline(listPlans(this.hass), 4000).catch(() => ({ plans: [], trash: [], locate_plan: MAIN_PLAN }));
+    if (epoch !== this.loadEpoch) return;
+    this.takePlans(list);
+  }
+
+  private takePlans(list: { plans: PlanEntry[]; trash: PlanEntry[]; locate_plan: string }): void {
+    // an older backend (or an unknown answer) lists nothing: the main plan only
+    this.plans = Array.isArray(list?.plans) ? list.plans : [];
+    this.trash = Array.isArray(list?.trash) ? list.trash : [];
+    this.locatePlan = typeof list?.locate_plan === "string" ? list.locate_plan : MAIN_PLAN;
+    this.plansLoaded = true;
+    this.host.requestUpdate();
   }
 
   /** Load the furniture packs again (after an import or removal). */
@@ -242,13 +352,14 @@ export class BuildingController implements ReactiveController {
 
   private async reload(): Promise<void> {
     if (!this.hass) return;
-    const epoch = this.loadEpoch, read = ++this.readEpoch;
+    const plan = this.planId, epoch = this.loadEpoch, read = ++this.readEpoch;
     try {
-      const res = await loadDeadline(fetchBuilding(this.hass));
-      if (epoch !== this.loadEpoch || read !== this.readEpoch || !this.connected) return;
+      const res = await loadDeadline(fetchBuilding(this.hass, plan));
+      // switched (or reconnected) while loading: the newer load wins
+      if (plan !== this.planId || epoch !== this.loadEpoch || read !== this.readEpoch || !this.connected) return;
       this.building = normalizeBuilding(res.building);
       this.backendVersion = res.version ?? null;
-      if (this.draft === null && !this.pending) this.draft = readDraft();
+      if (this.draft === null && !this.pending) this.draft = readDraft(plan);
       this.revision = res.revision;
       this.error = null;
     } catch (err) {

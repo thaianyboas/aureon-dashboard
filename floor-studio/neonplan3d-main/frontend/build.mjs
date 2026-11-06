@@ -48,19 +48,27 @@ async function checkLent() {
 }
 // the card's visual editor only loads in the dashboard's card dialog
 // the language files (lang/*.json) are fetched with a hash of their content, so a new text is never stale
-const LANGS = ["fr", "es", "nl", "it", "hu", "da", "sv", "nb", "nn", "fi", "cs", "pl", "ro", "sl", "zh", "pt"];
+const LANGS = ["fr", "es", "nl", "it", "hu", "da", "sv", "nb", "nn", "fi", "cs", "pl", "ro", "sl", "sk", "zh", "pt"];
 const langHash = createHash("sha256")
   .update(LANGS.map((l) => (existsSync(`lang/${l}.json`) ? readFileSync(`lang/${l}.json`) : "")).join("\n"))
   .digest("hex")
   .slice(0, 12);
 const cardEditorConfig = { ...common, entryPoints: ["src/card-editor.ts"], outfile: `${out}/neonplan3d-card-editor.js`, define: { __FP3D_LANG_HASH__: JSON.stringify(langHash) } };
+const version = JSON.parse(readFileSync("../custom_components/aureon_floor/manifest.json", "utf8")).version;
 // the editor is only needed by admins who open it, so it is a bundle of its own as well
-// (it draws furniture previews with the 3D bundle, so it knows that bundle's hash too)
-const editorConfig = (viewerHash, locateHash) => ({
+// (it draws furniture previews with the 3D bundle, so it knows that bundle's hash too; card templates use the card editor)
+const editorConfig = (viewerHash, locateHash, cardEditorHash) => ({
   ...common,
   entryPoints: ["src/components/editor.ts"],
   outfile: `${out}/neonplan3d-editor.js`,
-  define: { __FP3D_VIEWER_HASH__: JSON.stringify(viewerHash), __FP3D_LANG_HASH__: JSON.stringify(langHash), __FP3D_LOCATE_HASH__: JSON.stringify(locateHash) },
+  define: {
+    __FP3D_VIEWER_HASH__: JSON.stringify(viewerHash),
+    __FP3D_LANG_HASH__: JSON.stringify(langHash),
+    __FP3D_LOCATE_HASH__: JSON.stringify(locateHash),
+    __FP3D_CARD_EDITOR_HASH__: JSON.stringify(cardEditorHash),
+    // the overview of the open screens compares their versions with this one
+    __FP3D_VERSION__: JSON.stringify(version),
+  },
 });
 // the time travel (Pro) only loads when it starts; its texts come from the main bundle
 const timeTravelConfig = { ...common, entryPoints: ["src/timetravel/entry.ts"], outfile: `${out}/neonplan3d-timetravel.js` };
@@ -75,7 +83,6 @@ const importConfig = { ...common, entryPoints: ["src/import/app.ts"], outfile: "
 // The main bundle loads the 3D bundle with a hash of its content in the URL, so a new 3D bundle is
 // never taken from the browser cache (the integration version only changes after a restart).
 // the frontend knows its own version, to notice a backend that still runs an older one
-const version = JSON.parse(readFileSync("../custom_components/aureon_floor/manifest.json", "utf8")).version;
 const mainConfig = (viewerHash, editorHash, cardEditorHash, timeTravelHash, funHash, voiceHash, locateHash) => ({
   ...common,
   entryPoints: ["src/main.ts"],
@@ -114,6 +121,13 @@ function copyFonts() {
   }
 }
 
+// main 810 KB, editor 1040 KB and card editor 318 KB on 2026-11-04 for several floor plans (3.0), the overview of all plans with
+// their warnings, and cards for some rooms (the map to tap them on): the plan picker, the controller
+// switching plans, the editor's ⚙ → Floor plans (new, copy, from a file, names, icons, order, the bin) and their texts
+// editor 1012 KB on 2026-11-03 for the overview of the open screens and its texts
+// card editor 306 KB on 2026-11-03 for the template's values in its form and the link to NeonPlan's editor
+// main 780 KB and editor 1004 KB on 2026-11-03 for room actions (vacuum this room, everything off) and "here"/"there" by voice
+// main 772 KB, editor 996 KB and card editor 300 KB on 2026-11-03 for card templates (made in the editor, picked on a tablet) and their texts
 // main 674 KB and 3D 812 KB on 2026-10-22 for richer module cards (a state line, a second value, a chain, cells, a hint), module markers and solid module pipes
 // main 668 KB and 3D 808 KB on 2026-10-22 for what modules may draw: lines in the flow layer, surfaces over floors and lawns, labels, layered light on an item, a card curve, fields on furniture and module settings
 // 3D 796 KB and editor 916 KB on 2026-10-21 for roof sections that cut each other, wings meeting a roof in valleys (#466, #605) and the ends per section
@@ -161,15 +175,18 @@ function copyFonts() {
 // editor 941 KB on 2026-10-28: a camera's look as furniture follows the camera (#779)
 // main 718 KB, editor 940 KB, card editor 272 KB on 2026-10-28: the ⚙ settings over the 3D view, modules' sheets in rooms and the ⭐ menu (announcements), detection sensors chosen per camera, and their texts
 // main 722 KB, editor 944 KB, card editor 273 KB on 2026-10-28: a module's list edited entry by entry, module markers standing in rooms, the backup import's reason
-// AUREON: explicit four-module approval UI and five visual themes add code.
-// Main: 754 KiB. Viewer: 880 KiB allows bounded headroom over the 859.9 KiB
-// physically based renderer (physical material shaders, maps and PMREM environment).
-const BUDGET = { "neonplan3d-pathtrace.js": 240 * 1024 /* AUREON: photo refinement of the Real look, loaded only on "High" */, "neonplan3d.js": 770 * 1024 /* +2 KiB for merged Golden Retriever catalogue and Studio panel chrome; +16 KiB for the Floor Studio "Ajustes" sheet (former Extensions page and 3D options in one place) */, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 952 * 1024 /* AUREON: +16 KB for own .glb furniture and room finishes (was 880); +8 KB for the Real look photo refinement (lent three.js classes, its loader); +40 KB for ambient occlusion in the live Real look (GTAO + output pass, High only); +8 KB for the Golden Retriever skinning and own-model pictures */, "neonplan3d-editor.js": 980 * 1024 /* STUDIO-UI-01: +20 KiB for native workspace rail, responsive library/inspector and mobile dock; editor-only chrome stays lazy. Original tools retained. Previous 952 KiB included own furniture and wall paint. +8 KiB: Ajustes texts, folding rooms list, plan tools card, own-model pictures. */, "neonplan3d-card-editor.js": 282 * 1024 /* AUREON: +3 KB for the AUREON theme tokens and product name (was 273); +2 KB for shared editor strings (single-wall paint); +4 KB for the Ajustes strings */ };
+// editor 946 KB on 2026-10-29 … main 830 KB, 3D 870 KB, editor 1070 KB on 2026-11-05 (NeonPlan 3.0.1 budgets).
+// AUREON (merged onto 3.0.1, 2026-11-06): the AUREON additions keep their own headroom on top of the upstream budgets:
+// main +48 KiB (Golden Retriever catalogue, Studio panel chrome, Floor Studio "Ajustes" sheet), 3D +116 KiB (own .glb
+// furniture, room finishes, Real look photo refinement, ambient occlusion, pet skinning), editor +36 KiB (workspace rail,
+// responsive library/inspector, mobile dock, wall paint, Ajustes texts), card editor +9 KiB (theme tokens, product name,
+// shared strings), path tracer 240 KiB (loaded only on "High").
+const BUDGET = { "neonplan3d-pathtrace.js": 240 * 1024, "neonplan3d.js": 878 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 986 * 1024, "neonplan3d-editor.js": 1106 * 1024, "neonplan3d-card-editor.js": 327 * 1024 };
 
 copyFonts();
 if (watch) {
   // in watch mode the hash is not tracked; a dev reload fetches the bundle anyway
-  for (const c of [pathtraceConfig, viewerConfig, editorConfig("dev", "dev"), cardEditorConfig, timeTravelConfig, funConfig, voiceConfig, locateConfig, mainConfig("dev", "dev", "dev", "dev", "dev", "dev", "dev")]) await (await context(c)).watch();
+  for (const c of [pathtraceConfig, viewerConfig, editorConfig("dev", "dev", "dev"), cardEditorConfig, timeTravelConfig, funConfig, voiceConfig, locateConfig, mainConfig("dev", "dev", "dev", "dev", "dev", "dev", "dev")]) await (await context(c)).watch();
 } else {
   await checkLent();
   await build(pathtraceConfig);
@@ -177,9 +194,9 @@ if (watch) {
   copyFileSync("THIRD_PARTY_PATHTRACE.txt", `${out}/THIRD_PARTY_PATHTRACE.txt`);
   await build(viewerConfig);
   await build(locateConfig);
-  const editor = editorConfig(hashOf(viewerConfig.outfile), hashOf(locateConfig.outfile));
-  await build(editor);
   await build(cardEditorConfig);
+  const editor = editorConfig(hashOf(viewerConfig.outfile), hashOf(locateConfig.outfile), hashOf(cardEditorConfig.outfile));
+  await build(editor);
   await build(timeTravelConfig);
   await build(funConfig);
   await build(voiceConfig);

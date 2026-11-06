@@ -163,7 +163,7 @@ async def test_save_and_get_building(hass: HomeAssistant, hass_ws_client) -> Non
         event, result = result, event
     assert result["success"]
     assert result["result"]["revision"] == 1
-    assert event["event"] == {"revision": 1}
+    assert event["event"] == {"revision": 1, "plan": "main"}
 
     await client.send_json_auto_id({"type": "aureon_floor/building/get"})
     got = await client.receive_json()
@@ -220,12 +220,14 @@ async def test_opening_fields_get_defaults(hass: HomeAssistant, hass_ws_client) 
         "rain_ignore": False,
         "well": True,
         "well_rim": None,
+        "well_depth": None,
         "shut": False,
         "open_angle": None,
         "wall": None,
         "mark": None,
         "confirm": False,
         "sill_board": "auto",
+        "top_hung": False,
     }
     assert got[1]["hinge"] == "right" and got[1]["cover"] == "cover.x" and got[1]["contact"] == "none"
 
@@ -603,3 +605,38 @@ async def test_frontend_files_are_served_without_caching(hass: HomeAssistant, ha
     assert loader.status == 200
     assert 'const tag = "neonplan3d-card";' in await loader.text()
     assert not (Path(hass.config.path("www")) / "neonplan3d").exists()
+
+
+async def test_the_further_plans_of_a_neonplan3d_3_installation_are_copied(
+    hass: HomeAssistant, hass_ws_client, hass_storage
+) -> None:
+    """NeonPlan 3.x keeps further floor plans (garage, garden house) in a plan index and stores of their own: AUREON
+    takes them over once, like the main plan, and leaves the neonplan3d stores as they were."""
+    garage = copy.deepcopy(BUILDING)
+    garage["floors"][0]["name"] = "Garage"
+    index = {
+        "plans": [
+            {"id": "main", "name": None, "icon": None, "site": None, "created": None},
+            {"id": "pgarage1", "name": "Garage", "icon": None, "site": None, "created": 1.0},
+        ],
+        "trash": [],
+        "locate_plan": "main",
+    }
+    for key, data, minor in (
+        ("neonplan3d.building", {"building": copy.deepcopy(BUILDING), "revision": 4}, 2),
+        ("neonplan3d.plans", index, 1),
+        ("neonplan3d.building.pgarage1", {"building": garage, "revision": 6}, 2),
+        ("neonplan3d.history.pgarage1", {"snapshots": []}, 1),
+    ):
+        hass_storage[key] = {"version": 1, "minor_version": minor, "key": key, "data": copy.deepcopy(data)}
+    before = copy.deepcopy({k: v for k, v in hass_storage.items() if k.startswith("neonplan3d.")})
+    await _setup(hass)
+    client = await hass_ws_client(hass)
+    await client.send_json_auto_id({"type": f"{DOMAIN}/plans/list"})
+    plans = (await client.receive_json())["result"]["plans"]
+    assert [p["id"] for p in plans] == ["main", "pgarage1"]
+    await client.send_json_auto_id({"type": f"{DOMAIN}/building/get", "plan": "pgarage1"})
+    result = (await client.receive_json())["result"]
+    assert result["revision"] == 6
+    assert result["building"]["floors"][0]["name"] == "Garage"
+    assert {k: v for k, v in hass_storage.items() if k.startswith("neonplan3d.")} == before

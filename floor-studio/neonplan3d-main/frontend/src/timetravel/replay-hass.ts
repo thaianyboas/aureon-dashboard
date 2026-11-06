@@ -23,13 +23,14 @@ export class ReplayReadOnly extends Error {
 /** Websocket commands that only read (the rest is refused while replaying). */
 export const WS_ALLOWED: ReadonlySet<string> = new Set([
   "aureon_floor/building/get",
+  "aureon_floor/plans/list",
   "aureon_floor/image/get",
   "aureon_floor/packs/list",
   "aureon_floor/timetravel/history",
   "history/history_during_period",
   "recorder/statistics_during_period",
 ]);
-const SUBSCRIBE_ALLOWED: ReadonlySet<string> = new Set(["aureon_floor/building/subscribe"]);
+const SUBSCRIBE_ALLOWED: ReadonlySet<string> = new Set(["aureon_floor/building/subscribe", "aureon_floor/plans/subscribe"]);
 
 /** Attributes that change over time: the live values must not show in the past (the history has its own). */
 const DYNAMIC: Record<string, readonly string[]> = {
