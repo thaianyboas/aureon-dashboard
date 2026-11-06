@@ -1,8 +1,10 @@
 export const isAvailable=s=>!!s&&!['unavailable','unknown'].includes(s.state);
 const bit=(s,n)=>!!(Number(s.attributes?.supported_features||0)&n);
 export function actionsFor(s,services={}){
- if(!isAvailable(s))return [];
- const d=s.entity_id.split('.')[0],result=[];
+ const d=s?.entity_id?.split('.')[0];
+ // A scene or script that was never run reports 'unknown' (its state is the time of the last run); it can still run.
+ if(!isAvailable(s)&&!(s?.state==='unknown'&&['scene','script'].includes(d)))return [];
+ const result=[];
  const add=(key,service,data={},sensitive=false,condition=true)=>{if(condition&&services[d]?.[service])result.push({key,domain:d,service,data,sensitive,entityId:s.entity_id});};
  if(['light','switch','input_boolean','fan'].includes(d)){add(s.state==='on'?'off':'on',s.state==='on'?'turn_off':'turn_on');}
  if(d==='cover'){add('open','open_cover',{},false,bit(s,1));add('close','close_cover',{},false,bit(s,2));add('stop','stop_cover',{},false,bit(s,8));}
