@@ -2,6 +2,7 @@ import {html,svg,nothing} from '../../neonplan3d-main/frontend/node_modules/lit/
 import {isAvailable} from './actions.mjs';
 import {artworkUrl} from '../music/controller.mjs';
 import {syncLayer} from './layer.mjs';
+import {roomArt} from './room-art.mjs';
 // "Cinema" start page (the design approved by the owner): greeting with scenes, people, waste collection, the
 // home right now as illustrated tiles (lights, windows, curtains/blinds, robot, energy, security), cameras, music
 // and rooms. All data comes from Home Assistant; every action is a tap by the user, sensitive ones still confirm.
@@ -11,6 +12,34 @@ const WASTE_COLOURS=[[/gelb|yellow|amarel|verpack|plast/i,'#e3c03c'],[/bio|organ
 const wasteColour=type=>(WASTE_COLOURS.find(([re])=>re.test(type))||[0,'#8f897f'])[1];
 const SCENE_ICONS=[[/morgen|manh|morning|wake|acord/i,'M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'],[/kino|cinema|film|movie|tv/i,'M3 6h18v12H3zM8 21h8M10 9.5v5l4-2.5z'],[/essen|jantar|dinner|din/i,'M7 3v8M5 3v4a2 2 0 0 0 4 0V3M7 11v10M17 3c-1.7 0-3 2-3 5s1.3 4 3 4v9'],[/nacht|noite|night|sleep|schlaf/i,'M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z']];
 const sceneIcon=name=>(SCENE_ICONS.find(([re])=>re.test(name))||[0,'M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z'])[1];
+
+
+// Weather: an animated illustration of the current condition, temperature and the next days (Home Assistant's
+// forecast subscription — read only, no service call).
+const WX={sun:/sunny|clear(?!-night)|exceptional/,moon:/clear-night/,rain:/rain|pouring|hail/,snow:/snow/,storm:/lightning/,fog:/fog/,wind:/wind/,partly:/partly/};
+function wxKind(state=''){for(const [k,re] of Object.entries(WX))if(re.test(state))return k;return 'cloud';}
+function wxArt(kind,small=false){const cloud='M22 46h30a10 10 0 0 0 1-20 14 14 0 0 0-27-3 11 11 0 0 0-4 23z';
+ return svg`<svg class=${'wx-art wx-'+kind+(small?' wx-small':'')} viewBox="0 0 76 64" aria-hidden="true">
+ ${['sun','partly'].includes(kind)?svg`<g class="wx-sun"><circle cx=${kind==='sun'?38:26} cy=${kind==='sun'?30:22} r=${kind==='sun'?11:8} fill="#f3d38a"/><g class="wx-rays" style=${`transform-origin:${kind==='sun'?38:26}px ${kind==='sun'?30:22}px`} stroke="#f3d38a" stroke-width="2" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180,cx=kind==='sun'?38:26,cy=kind==='sun'?30:22,r1=kind==='sun'?16:12,r2=kind==='sun'?21:15;return svg`<line x1=${cx+r1*Math.cos(r)} y1=${cy+r1*Math.sin(r)} x2=${cx+r2*Math.cos(r)} y2=${cy+r2*Math.sin(r)}/>`;})}</g></g>`:nothing}
+ ${kind==='moon'?svg`<path d="M44 14a16 16 0 1 0 14 22 13 13 0 0 1-14-22z" fill="#efe3c4"/><circle cx="20" cy="16" r="1" fill="#efe3c4"/><circle cx="62" cy="12" r=".8" fill="#efe3c4"/><circle cx="14" cy="34" r=".7" fill="#efe3c4"/>`:nothing}
+ ${!['sun','moon'].includes(kind)?svg`<g class="wx-cloud"><path d=${cloud} fill=${kind==='storm'||kind==='rain'?'#8d949c':'#d9dde2'} opacity=".95"/><path d=${cloud} transform="translate(-10 6) scale(.7)" fill="#b8bec5" opacity=".7"/></g>`:nothing}
+ ${kind==='rain'?svg`<g class="wx-drops" stroke="#8fc3f0" stroke-width="2" stroke-linecap="round"><line x1="28" y1="50" x2="26" y2="56"/><line x1="38" y1="50" x2="36" y2="56"/><line x1="48" y1="50" x2="46" y2="56"/></g>`:nothing}
+ ${kind==='snow'?svg`<g class="wx-flakes" fill="#fff"><circle cx="28" cy="53" r="1.8"/><circle cx="38" cy="56" r="1.8"/><circle cx="48" cy="53" r="1.8"/></g>`:nothing}
+ ${kind==='storm'?svg`<path class="wx-bolt" d="M40 46l-6 9h5l-3 8 9-11h-5l3-6z" fill="#f3d38a"/>`:nothing}
+ ${kind==='fog'?svg`<g class="wx-fog" stroke="#c9ced4" stroke-width="2.4" stroke-linecap="round" opacity=".85"><line x1="16" y1="52" x2="56" y2="52"/><line x1="22" y1="58" x2="62" y2="58"/></g>`:nothing}
+ ${kind==='wind'?svg`<g class="wx-fog" stroke="#c9ced4" stroke-width="2" fill="none" stroke-linecap="round"><path d="M14 52h34a5 5 0 1 0-5-5"/><path d="M20 58h26a4 4 0 1 1-4 4"/></g>`:nothing}
+ </svg>`;}
+export function syncForecast(ui){const c=ui.c,weather=ui.page==='home'&&c?.preferences.widgets.weather?c.list(['weather'])[0]:null,conn=c?.hass?.connection,key=weather&&conn?weather.id:'';
+ if(ui._wxKey===key)return;ui._wxUnsub?.then?.(u=>u&&u()).catch(()=>{});ui._wxUnsub=null;ui._wxKey=key;if(!key)return;
+ const features=Number(c.state(key)?.attributes?.supported_features||0),type=features&1?'daily':features&4?'twice_daily':features&2?'hourly':'';if(!type)return;
+ ui._wxUnsub=conn.subscribeMessage(msg=>{c._forecast={...(c._forecast||{}),[key]:(msg?.forecast||[]).slice(0,6)};ui.requestUpdate();},{type:'weather/subscribe_forecast',entity_id:key,forecast_type:type}).catch(()=>null);}
+function weatherHero(ui,weather,ws){const c=ui.c,t=ui.t,a=ws?.attributes||{},kind=wxKind(String(ws?.state||'')),unit=a.temperature_unit||'°',fc=c._forecast?.[weather.id]||[];
+ const day=iso=>{try{return new Intl.DateTimeFormat(c.language,{weekday:'short',timeZone:c.hass?.config?.time_zone||'UTC'}).format(new Date(iso));}catch{return '';}};
+ const temp=v=>v==null||!Number.isFinite(Number(v))?'—':ui.format(Number(v),Math.abs(Number(v))<10?1:0);
+ return html`<button type="button" class="cine-wx glass" data-layout-key="cine:weather" @click=${()=>ui.native(weather.id,'weather-forecast')}>
+  <span class="cine-wx-now">${wxArt(kind)}<span class="cine-wx-text"><span class="cine-wx-temp">${temp(a.temperature)}<small>${unit.replace(/^°?/,'°').replace('°°','°')}</small></span><strong>${ui.name(weather)}</strong><small>${ui.stateText(ws)}${a.humidity!=null?` · ${a.humidity}%`:''}${a.wind_speed!=null?` · ${ui.format(Number(a.wind_speed),0)} ${a.wind_speed_unit||''}`:''}</small></span></span>
+  ${fc.length?html`<span class="cine-wx-days">${fc.slice(1,6).map(f=>html`<span class="cine-wx-day"><small>${day(f.datetime)}</small>${wxArt(wxKind(f.condition),true)}<b>${temp(f.temperature)}°</b><small>${f.templow!=null?temp(f.templow)+'°':''}</small></span>`)}</span>`:nothing}
+ </button>`;}
 
 export function homeData(ui){const c=ui.c,st=id=>c.state(id);
  const lights=c.list(['light']).filter(r=>isAvailable(st(r.id))),lightsOn=lights.filter(r=>st(r.id)?.state==='on');
@@ -57,12 +86,12 @@ export function homeCinema(ui){const c=ui.c,t=ui.t,p=c.preferences,zone=c.hass?.
  <div class="cine-glow" aria-hidden="true"></div>
  <div class="cine-hero">
   <section class="cine-welcome" aria-label=${t.cineWelcome}>
+   ${weather?weatherHero(ui,weather,ws):nothing}
    <span class="cine-eyebrow">${date}${clock?' · '+clock:''}</span>
    <h1>${t[hour<12?'morning':hour<18?'afternoon':'evening']}${first?html`,<br><em>${first}</em>`:nothing}</h1>
    ${d.scenes.length?html`<div class="cine-scenes" role="group" aria-label=${t.scenes||'Cenas'}>${d.scenes.map(r=>{const action=c.actions(r.id).find(a=>a.key==='activate');return html`<button type="button" class="cine-scene glass" data-layout-key=${'scene:'+r.id} ?disabled=${!action} title=${ui.name(r)} @click=${()=>action&&ui.invoke(r,action)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d=${sceneIcon(ui.name(r))}></path></svg><span><strong>${ui.name(r)}</strong>${r.areaId&&r.areaName?html`<small>${r.areaName}</small>`:nothing}</span></button>`;})}</div>`:nothing}
   </section>
   <div class="cine-side">
-   ${weather?html`<button type="button" class="cine-weather glass" @click=${()=>ui.native(weather.id,'weather-forecast')}><span class="cine-big">${temp??'—'}°</span><span>${ui.stateText(ws)}<small>${ui.name(weather)}</small></span></button>`:nothing}
    ${people.length?html`<section class="cine-card glass cine-people" aria-label=${t.people}><span class="cine-head">${t.cineAtHome}</span><div class="cine-people-grid">${people.map(row=>{const s=st(row.id),photo=artworkUrl(s?.attributes?.entity_picture,c.hass),home=s?.state==='home',trackers=s?.attributes?.device_trackers||[],devs=new Set(c.rows.filter(r=>trackers.includes(r.id)&&r.deviceId).map(r=>r.deviceId));if(row.deviceId)devs.add(row.deviceId);const battery=c.rows.find(r=>r.deviceId&&devs.has(r.deviceId)&&st(r.id)?.attributes?.device_class==='battery'),level=battery?Number(st(battery.id)?.state):NaN;return html`<div class=${'cine-person '+(home?'home':'')} data-person=${row.id}><span class="cine-avatar">${photo?html`<img src=${photo} alt="" referrerpolicy="no-referrer">`:html`<span>${ui.name(row).slice(0,1)}</span>`}<i aria-hidden="true"></i></span><span><strong>${ui.name(row)}</strong><small>${home?t.cineHome:s?.state==='not_home'?t.away:ui.stateText(s)}${Number.isFinite(level)?` · ${Math.round(level)}%`:''}</small></span></div>`;})}</div></section>`:nothing}
    ${p.widgets.waste?html`<button type="button" class="cine-card glass cine-waste" @click=${()=>ui.nav('Agenda')}><span class="cine-head">${t.waste}</span>${next?html`<span class="cine-waste-next"><i style=${'background:'+wasteColour(next.type)} aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></i><span><strong>${next.type}</strong><small>${when(next)}${next.tomorrow?' · '+t.cineWasteTonight:''}</small></span></span>${later.length?html`<span class="cine-waste-later">${later.map(x=>html`<span><i style=${'background:'+wasteColour(x.type)}></i>${x.type} <small>${when(x)}</small></span>`)}</span>`:nothing}`:html`<small class="cine-sub">${t.noData}</small>`}</button>`:nothing}
   </div>
@@ -79,5 +108,5 @@ export function homeCinema(ui){const c=ui.c,t=ui.t,p=c.preferences,zone=c.hass?.
   ${d.cameras.length?html`<section class="cine-card glass cine-cameras" aria-label=${t.cameras}><span class="cine-row-head"><span class="cine-head">${t.cameras}</span><button type="button" class="cine-link" @click=${()=>ui.nav('Kameras')}>${t.cineSeeAll} ›</button></span><div class="cine-cam-grid">${d.cameras.slice(0,2).map(r=>{const s=st(r.id),pic=artworkUrl(s?.attributes?.entity_picture,c.hass);return html`<button type="button" class="cine-cam" aria-label=${ui.name(r)} @click=${()=>ui.native(r.id)}>${pic?html`<img src=${pic} alt="" referrerpolicy="no-referrer" @error=${ev=>ev.target.remove()}>`:nothing}<span class="cine-live"><i></i>${t.cineLive}</span><strong>${ui.name(r)}</strong></button>`;})}</div></section>`:nothing}
   ${p.widgets.music?html`<section class="cine-card glass cine-music"><slot name="mini-player"></slot></section>`:nothing}
  </div>
- ${c.areas.length?html`<nav class="cine-rooms" aria-label=${t.rooms}>${c.areas.map(area=>{const sum=ui.areaSummary(area),img=ui.roomImage(area),lightShare=sum.lights.length?sum.on/sum.lights.length:0;return html`<button type="button" class="cine-room" data-room=${area.id} aria-label=${area.name} @click=${()=>ui.openRoom(area)}>${img.url?html`<img src=${img.url} alt="" loading="lazy" referrerpolicy="no-referrer" style=${'filter:brightness('+(.38+.62*(sum.lights.length?lightShare:.8)).toFixed(2)+')'} @error=${ev=>ev.target.remove()}>`:nothing}<span class="cine-room-text"><strong>${area.name}</strong><small>${[sum.temp!=null?ui.format(sum.temp,1)+'°':'',sum.lights.length?(sum.on?`${sum.on} ${t.lightsOn}`:t.lightsOff):''].filter(Boolean).join(' · ')}</small></span></button>`;})}</nav>`:nothing}
+ ${c.areas.length?html`<nav class="cine-rooms" aria-label=${t.rooms}>${c.areas.map(area=>{const sum=ui.areaSummary(area),img=ui.roomImage(area),lightShare=sum.lights.length?sum.on/sum.lights.length:0;return html`<button type="button" class="cine-room" data-room=${area.id} aria-label=${area.name} @click=${()=>{ui.c._cineRoom=area.id;ui.nav('Räume');}}>${!img.url?roomArt(area.name):nothing}${img.url?html`<img src=${img.url} alt="" loading="lazy" referrerpolicy="no-referrer" style=${'filter:brightness('+(.38+.62*(sum.lights.length?lightShare:.8)).toFixed(2)+')'} @error=${ev=>ev.target.remove()}>`:nothing}<span class="cine-room-text"><strong>${area.name}</strong><small>${[sum.temp!=null?ui.format(sum.temp,1)+'°':'',sum.lights.length?(sum.on?`${sum.on} ${t.lightsOn}`:t.lightsOff):''].filter(Boolean).join(' · ')}</small></span></button>`;})}</nav>`:nothing}
  </div>`;}

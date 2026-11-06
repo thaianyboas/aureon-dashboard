@@ -109,6 +109,10 @@
     ['▣','Câmeras','Kameras','Visualização protegida em preparação']
   ];
   class AureonDashboard extends HTMLElement {
+    // In the Cinema look "Dispositivos" is folded into "Cômodos" (each room lists all of its equipment).
+    _cinemaLook(){return this._platformController?.preferences?.look!=='classic';}
+    _navPages(){return this._cinemaLook()?PAGES.filter(([,name])=>name!=='Geräte'):PAGES;}
+    _primaryPages(){return this._cinemaLook()?['Início','Räume','Medien']:['Início','Geräte','Medien'];}
     constructor() {
       super();
       this.attachShadow({ mode: 'open' });
@@ -268,8 +272,8 @@
       const Page=customElements.get('aureon-platform'),labels=Page?.labels(this._platformController?.language||this._hass?.language||'en');
       main.dataset.auPage=Page?.routeNames?.[name]||'';if(header)header.hidden=['Geräte','Planta'].includes(name)||(['Räume','Sicherheit','Energie','Einstellungen'].includes(name)&&this._platformController?.preferences?.look!=='classic');
       if(header&&labels){header.querySelector('h1').textContent=labels[Page.routeNames[name]]||name;const eyebrow=header.querySelector('.small');if(eyebrow)eyebrow.textContent='AUREON / '+(name==='Einstellungen'?labels.settings.toUpperCase():'CONTROL CENTER');}
-      [...this.shadowRoot.querySelectorAll('nav .au-nav-button')].forEach((button,i)=>{const active=PAGES[i]?.[1]===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
-      this.shadowRoot.querySelector('.au-nav-more')?.classList.toggle('active',!['Início','Geräte','Medien'].includes(name));
+      [...this.shadowRoot.querySelectorAll('nav .au-nav-button')].forEach((button,i)=>{const active=this._navPages()[i]?.[1]===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
+      this.shadowRoot.querySelector('.au-nav-more')?.classList.toggle('active',!this._primaryPages().includes(name));
       this.shadowRoot.querySelectorAll('.au-more-item').forEach(item=>{if(item.dataset.route===name)item.setAttribute('aria-current','page');else item.removeAttribute('aria-current');});
       const make=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el;};
       if(keep&&name==='Início'){keep.style.display='';keep.requestUpdate?.();return;}
@@ -285,7 +289,7 @@
       this._platformController.update(this._hass,this._registry);
       const page=make('aureon-platform');page.page=route;page.controller=this._platformController;page.palettes=Object.entries(PALETTES).map(([id,p])=>({id,...p}));
       page.addEventListener('aureon-platform-navigate',e=>this._navigate(e.detail));
-      page.addEventListener('aureon-preferences-changed',e=>{this._theme={...this._theme,mode:e.detail.appearance,palette:e.detail.palette,accent:e.detail.accent||''};if(['density','widgets','labelVisibility','labelKinds','hidden'].includes(e.detail.changedKey)){const state={_settingsTab:page._settingsTab,_settingsKind:page._settingsKind,_settingsLimit:page._settingsLimit,_search:page._search,_wasteSearch:page._wasteSearch};this._render();const next=this.shadowRoot.querySelector('aureon-platform');if(next&&next.page===page.page)Object.assign(next,state);}});
+      page.addEventListener('aureon-preferences-changed',e=>{this._theme={...this._theme,mode:e.detail.appearance,palette:e.detail.palette,accent:e.detail.accent||''};if(['density','widgets','labelVisibility','labelKinds','hidden','look'].includes(e.detail.changedKey)){const state={_settingsTab:page._settingsTab,_settingsKind:page._settingsKind,_settingsLimit:page._settingsLimit,_search:page._search,_wasteSearch:page._wasteSearch};this._render();const next=this.shadowRoot.querySelector('aureon-platform');if(next&&next.page===page.page)Object.assign(next,state);}});
       target.append(page);if(route==='home')this._homeKeep=page;if(route==='home'&&this._platformController.preferences.widgets.music)this._musicSection(page,make,true);return true;
     }
     _musicSection(target, make, compact = false) {
@@ -1562,8 +1566,8 @@
       const nav = make('nav');
       nav.setAttribute('aria-label', 'AUREON navigation');
       {const logo=make('div','logo');const asset=globalThis.aureonAssetUrl;if(asset){const img=make('img','au-logo-mark');img.src=asset('logo.svg');img.alt='';logo.append(img);}else logo.textContent='A✦';logo.append(make('span','au-wordmark','AUREON'));nav.append(logo);}
-      for (const [icon, name] of PAGES) {
-        const primary=['Início','Geräte','Medien'].includes(name);
+      for (const [icon, name] of this._navPages()) {
+        const primary=this._primaryPages().includes(name);
         const button = make('button', 'au-nav-button' + (name === this._page ? ' active' : '') + (primary ? ' au-nav-primary' : ' au-nav-secondary'));
         button.append(aureonNavIcon(name));
         button.type = 'button';
@@ -1579,12 +1583,12 @@
       // Phones: four primary destinations plus "More" for the rest (sheet with every remaining page).
       {
         const Page=customElements.get('aureon-platform'),lang=this._platformController?.language||this._hass?.locale?.language||this._hass?.language||'en',labels=Page?.labels?.(lang)||{};
-        const more=make('button','au-nav-more');more.type='button';more.classList.toggle('active',!['Início','Geräte','Medien'].includes(this._page));more.setAttribute('aria-expanded','false');more.setAttribute('aria-haspopup','dialog');more.setAttribute('aria-label',labels.navMore||'More');
+        const more=make('button','au-nav-more');more.type='button';more.classList.toggle('active',!this._primaryPages().includes(this._page));more.setAttribute('aria-expanded','false');more.setAttribute('aria-haspopup','dialog');more.setAttribute('aria-label',labels.navMore||'More');
         const dots=document.createElementNS('http://www.w3.org/2000/svg','svg');dots.setAttribute('viewBox','0 0 24 24');dots.setAttribute('width','21');dots.setAttribute('height','21');dots.setAttribute('aria-hidden','true');dots.innerHTML='<path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/>';
         more.append(dots,make('span','au-nav-label',labels.navMore||'More'));
         const sheet=make('dialog','au-more-sheet');sheet.setAttribute('aria-label',labels.navMore||'More');
         const grid=make('div','au-more-grid');
-        for(const [,name] of PAGES){if(['Início','Geräte','Medien'].includes(name))continue;const label=labels[Page?.routeNames?.[name]]||name;const item=make('button','au-more-item');item.type='button';item.dataset.route=name;if(name===this._page)item.setAttribute('aria-current','page');item.append(aureonNavIcon(name),make('span','',label));item.addEventListener('click',()=>{sheet.close();this._navigate(name);});grid.append(item);}
+        for(const [,name] of this._navPages()){if(this._primaryPages().includes(name))continue;const label=labels[Page?.routeNames?.[name]]||name;const item=make('button','au-more-item');item.type='button';item.dataset.route=name;if(name===this._page)item.setAttribute('aria-current','page');item.append(aureonNavIcon(name),make('span','',label));item.addEventListener('click',()=>{sheet.close();this._navigate(name);});grid.append(item);}
         const close=make('button','au-more-close','×');close.setAttribute('aria-label',labels.close||'Close');close.type='button';close.addEventListener('click',()=>sheet.close());
         const heading=make('div','au-more-heading');heading.append(make('h2','',labels.navMore||'More'),close);sheet.append(heading,grid);sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.close();});
         more.addEventListener('click',()=>{sheet.showModal();more.setAttribute('aria-expanded','true');});sheet.addEventListener('close',()=>more.setAttribute('aria-expanded','false'));
