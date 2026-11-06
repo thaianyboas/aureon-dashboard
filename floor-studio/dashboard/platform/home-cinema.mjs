@@ -39,7 +39,7 @@ function windowSheet(ui,d){const c=ui.c,t=ui.t,st=id=>c.state(id);const groups=n
  ${!list.length?html`<p class="hint">${t.noData}</p>`:nothing}</aside></div>`;}
 
 // Called after each render (also on other pages, which closes it).
-export function syncCinemaSheet(ui){const show=ui._cineSheet&&ui.page==='home'&&ui.c?.preferences.homeLayout!=='plan';syncLayer(ui,'cine-sheet',show?windowSheet(ui,homeData(ui)):null);}
+export function syncCinemaSheet(ui){const show=ui._cineSheet&&ui.page==='home'&&ui.c?.preferences.look!=='classic';syncLayer(ui,'cine-sheet',show?windowSheet(ui,homeData(ui)):null);}
 export function homeCinema(ui){const c=ui.c,t=ui.t,p=c.preferences,zone=c.hass?.config?.time_zone||'UTC',d=homeData(ui),st=id=>c.state(id);
  let clock='',date='',hour=12;try{clock=new Intl.DateTimeFormat(c.language,{timeZone:zone,hour:'2-digit',minute:'2-digit'}).format(c.now());date=new Intl.DateTimeFormat(c.language,{timeZone:zone,weekday:'long',day:'numeric',month:'long'}).format(c.now());hour=Number(new Intl.DateTimeFormat('en',{timeZone:zone,hour:'2-digit',hourCycle:'h23'}).format(c.now()));}catch{}
  const first=c.hass?.user?.name?.split(' ')[0]||'';
