@@ -6,6 +6,10 @@ export function isSpotifyPlus(hass,id,config={}) {
   if (['native','spotifyplus'].includes(config.providers?.[id])) return config.providers[id] === 'spotifyplus';
   return hass?.entities?.[id]?.platform === 'spotifyplus' || Object.hasOwn(hass?.states?.[id]?.attributes || {},'sp_user_id');
 }
+// SpotifyPlus and Spotcast may be the originals or their copies inside AUREON Música (domain aureon_music).
+export const AUREON_MUSIC='aureon_music';
+export function spotifyPlusDomain(hass,id){return hass?.entities?.[id]?.platform===AUREON_MUSIC?AUREON_MUSIC:'spotifyplus';}
+export function spotcastDomain(hass){return hass?.services?.[AUREON_MUSIC]?.play_media?AUREON_MUSIC:'spotcast';}
 export function discoverPlayers(hass,config={}) {
   return Object.values(hass?.states || {}).filter(s => s.entity_id?.startsWith('media_player.') &&
     (!Array.isArray(config.allowedEntities) || config.allowedEntities.includes(s.entity_id)) &&
@@ -67,7 +71,7 @@ export class MusicController {
   get ready(){return available(this.state);}
   service(domain,name){return !!this.hass?.services?.[domain]?.[name];}
   can(feature){const services={play:'media_play',pause:'media_pause',previous:'media_previous_track',next:'media_next_track',volume:'volume_set',seek:'media_seek',shuffle:'shuffle_set',repeat:'repeat_set',source:'select_source',playMedia:'play_media'};return this.ready && supported(this.state,feature) && this.service('media_player',services[feature]);}
-  advanced(name){return this.ready && this.spotify && ADVANCED.has(name) && this.service('spotifyplus',name);}
+  advanced(name){return this.ready && this.spotify && ADVANCED.has(name) && this.service(spotifyPlusDomain(this.hass,this.entityId),name);}
   invalidate(){this.epoch++;this.error='';this.results=[];this.devices=[];this.favorite=null;this.pending.clear();this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};this.shelfSources={};this.native={kind:'',stack:[],items:[],title:''};this.ownPlaylists=null;this.addedTo='';}
   reset(){this.entityId='';this.view='player';this.query='';this.invalidate();}
   select(id){if(!this.players.some(p=>p.entity_id===id))return false;this.entityId=id;this.invalidate();this.emit();return true;}
@@ -81,7 +85,7 @@ export class MusicController {
   async callSpotify(name,data={},response=false){
     if(!this.advanced(name))throw new Error('SpotifyPlus service unavailable');
     // Explicit entity_id selects the configured Spotify account; never infer it from an entity name.
-    const result=await this.hass.callService('spotifyplus',name,{...data,entity_id:this.entityId},undefined,undefined,response);
+    const result=await this.hass.callService(spotifyPlusDomain(this.hass,this.entityId),name,{...data,entity_id:this.entityId},undefined,undefined,response);
     return response ? result : true;
   }
   async command(action,value){
@@ -204,8 +208,8 @@ export class MusicController {
     const name=track?'player_media_play_tracks':'player_media_play_context';
     if(this.advanced(name))return this.request('play-item',async()=>{await this.callSpotify(name,track?{uris:item.uri}:{context_uri:item.uri});return true;});
     // Optional Spotcast v6 contract: never auto-fallback after an error, never choose an arbitrary destination.
-    if(spotcastTarget && this.config.spotcastTargets?.includes(spotcastTarget) && available(this.hass?.states?.[spotcastTarget]) && this.service('spotcast','play_media'))
-      return this.request('play-item',async()=>{await this.hass.callService('spotcast','play_media',{media_player:{entity_id:spotcastTarget},spotify_uri:item.uri});return true;});
+    if(spotcastTarget && this.config.spotcastTargets?.includes(spotcastTarget) && available(this.hass?.states?.[spotcastTarget]) && this.service(spotcastDomain(this.hass),'play_media'))
+      return this.request('play-item',async()=>{await this.hass.callService(spotcastDomain(this.hass),'play_media',{media_player:{entity_id:spotcastTarget},spotify_uri:item.uri});return true;});
     if(!this.can('playMedia')||!this.service('media_player','play_media'))return false;
     return this.request('play-item',async()=>{await this.hass.callService('media_player','play_media',{entity_id:this.entityId,media_content_id:item.uri,media_content_type:track?'music':item.uri.split(':')[1]});return true;});
   }

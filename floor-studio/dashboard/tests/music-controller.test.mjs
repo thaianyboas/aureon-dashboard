@@ -86,3 +86,5 @@ test('home mini visibility requires meaningful active media and never treats una
  for(const state of ['idle','off','unavailable','unknown'])assert.equal(relevantMedia({state,attributes:{media_title:'Stale track'}}),false);
  assert.equal(relevantMedia(null),false);assert.equal(relevantMedia({state:'playing',attributes:{}}),false);
 });
+import {spotifyPlusDomain,spotcastDomain} from '../music/controller.mjs';
+test('AUREON Música (aureon_music) is used when installed, the originals otherwise',()=>{const hass={entities:{'media_player.a':{platform:'aureon_music'},'media_player.b':{platform:'spotifyplus'}},services:{aureon_music:{play_media:{}},spotcast:{play_media:{}}}};assert.equal(spotifyPlusDomain(hass,'media_player.a'),'aureon_music');assert.equal(spotifyPlusDomain(hass,'media_player.b'),'spotifyplus');assert.equal(spotcastDomain(hass),'aureon_music');assert.equal(spotcastDomain({services:{spotcast:{play_media:{}}}}),'spotcast');});
