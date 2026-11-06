@@ -1387,12 +1387,33 @@
     // in automatic mode) are handed to the editor as --aureon-ui-* tokens, light or dark. Re-applied whenever the
     // AUREON appearance, the palette or HA's dark mode change — no reload and no editor rebuild.
     _floorTheme(){
+      const tokens=this._floorTokens();
+      // not styled yet right after the first render: try again shortly (a few times)
+      if(!tokens){if((this._floorThemeTries=(this._floorThemeTries||0)+1)<=8){clearTimeout(this._floorThemeRetry);this._floorThemeRetry=setTimeout(()=>this._floorTheme(),700);}return;}
+      this._floorThemeTries=0;
+      this._publishFloorTheme(tokens);
       const host=this.shadowRoot?.querySelector('[data-aureon-floor-studio]');
       if(!host)return;
+      for(const [key,value] of Object.entries(tokens))host.style.setProperty(key,value);
+      host.dataset.aureonScheme=tokens['--aureon-ui-scheme'];
+    }
+    // The AUREON Floor Studio sidebar panel shows the same look: the resolved tokens are kept in this user's
+    // Home Assistant frontend data (frontend/set_user_data, a per-user store, not a service call); the panel reads them.
+    _publishFloorTheme(tokens){
+      const conn=this._hass?.connection;if(!conn?.sendMessagePromise)return;
+      const value=JSON.stringify(tokens);if(value===this._floorThemeSent)return;
+      clearTimeout(this._floorThemeTimer);
+      this._floorThemeTimer=setTimeout(()=>{if(value===this._floorThemeSent)return;this._floorThemeSent=value;conn.sendMessagePromise({type:'frontend/set_user_data',key:'aureon_floor_theme',value:{v:1,at:Date.now(),tokens}}).catch(()=>{this._floorThemeSent=null;});},1200);
+    }
+    _floorTokens(){
+      if(!this.shadowRoot||!this.isConnected)return null;
       const probe=document.createElement('span');probe.style.display='none';this.shadowRoot.append(probe);
-      const rgb=token=>{probe.style.color='';probe.style.color=`var(${token})`;const m=(getComputedStyle(probe).color.match(/[\d.]+/g)||['0','0','0']).map(Number);return m.slice(0,3);};
+      let failed=false;
+      const rgb=token=>{probe.style.color='';probe.style.color=`var(${token})`;const found=getComputedStyle(probe).color.match(/[\d.]+/g);if(!found)failed=true;const m=(found||['0','0','0']).map(Number);return m.slice(0,3);};
       const bg=rgb('--au-bg'),surface=rgb('--au-surface'),text=rgb('--au-surface-text'),muted=rgb('--au-muted'),accent=rgb('--au-accent'),accentText=rgb('--au-accent-text'),sage=rgb('--au-sage');
       probe.remove();
+      // not styled yet (or not in a document): nothing to hand over; text and background the same means the same
+      if(failed||(bg.join()===text.join()))return null;
       const lum=c=>{const v=c.map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;});return .2126*v[0]+.7152*v[1]+.0722*v[2];};
       const mix=(a,b,t)=>a.map((x,i)=>Math.round(x+(b[i]-x)*t));
       const hex=c=>'#'+c.map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -1409,8 +1430,7 @@
         '--aureon-ui-wall':hex(mix(surface,text,dark?.24:.5)),'--aureon-ui-wall-ext':hex(mix(surface,text,dark?.34:.62)),
         '--aureon-ui-shadow':dark?'0 8px 30px rgba(0, 0, 0, 0.45)':'0 6px 22px rgba(20, 30, 20, 0.14)','--aureon-ui-scheme':dark?'dark':'light'
       };
-      for(const [key,value] of Object.entries(tokens))host.style.setProperty(key,value);
-      host.dataset.aureonScheme=dark?'dark':'light';
+      return tokens;
     }
     _applyThemeTokens(){
       for (const [key,value] of Object.entries(themeTokens(this._theme,this._hass))) this.style.setProperty(key,value);

@@ -2,7 +2,7 @@
 // icons and the order, the bin (30 days) and the plan Live Presence works on. The main plan cannot be deleted.
 import { css, html, LitElement, nothing } from "lit";
 import { createPlan, deletePlan, MAIN_PLAN, orderPlans, restorePlan, setLocatePlan, updatePlan, type PlanEntry } from "../api.ts";
-import { translate, type I18nKey } from "../i18n.ts";
+import { translate, type I18nKey, languageReady, loadLanguage } from "../i18n.ts";
 import type { Building } from "../model.ts";
 import { controls, tokens } from "../styles.ts";
 import { parseExport } from "../transfer.ts";
@@ -54,7 +54,13 @@ export class Fp3dPlanManager extends LitElement {
     this._error = null;
   }
 
+  private langAsked = false;
   private t(key: I18nKey, vars?: Record<string, string | number>): string {
+    // AUREON: this sheet can open before the bundle has its language file: draw again once it is there
+    if (!languageReady(this.hass?.language) && !this.langAsked) {
+      this.langAsked = true;
+      void loadLanguage(this.hass?.language).then(() => this.requestUpdate());
+    }
     return translate(this.hass, key, vars);
   }
 

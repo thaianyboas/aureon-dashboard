@@ -36,6 +36,7 @@ import { directorOnHere } from "./director.ts";
 import { loadVoice, micProbeDone, screenName, voiceOnHere } from "./load-voice.ts";
 import type { ClockPos } from "./card-config.ts";
 import { MAIN_PLAN } from "./api.ts";
+import { followAureonTheme } from "./aureon-theme-sync.ts";
 import { TimeTravel } from "./load-timetravel.ts";
 import type { HistorySpec } from "./timetravel/types.ts";
 import type { Feature } from "./features.ts";
@@ -294,6 +295,7 @@ export class Floorplan3dPanel extends LitElement {
       this._aureonApprovedIds = [];
       this._settingsOpen = false;
     }
+    if (changed.has("hass")) this.syncTheme();
     if (changed.has("hass") && this.hass) {
       this.data.setHass(this.hass);
       this.tt.session?.setLive(this.hass);
@@ -699,6 +701,7 @@ export class Floorplan3dPanel extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
+    this.syncTheme();
     window.addEventListener("keydown", this.onKey);
     // the card's Pro hint links here ("?tab=extensions")
     const query = new URLSearchParams(location.search);
@@ -710,8 +713,25 @@ export class Floorplan3dPanel extends LitElement {
   /** A card template to open once the panel knows the user (from a link, see connectedCallback). */
   private pendingTemplate: string | null = null;
 
+  /** AUREON: the dashboard look the sidebar panel follows (see aureon-theme-sync.ts). */
+  private themeConn: unknown = null;
+  private themeStop: (() => void) | null = null;
+
+  /** AUREON: the sidebar panel follows the dashboard's look (embedded, the dashboard hands the tokens over itself). */
+  private syncTheme(): void {
+    if (!this.hass || this.aureonEmbedded || !this.isConnected || this.hass.connection === this.themeConn) return;
+    this.themeConn = this.hass.connection;
+    this.themeStop?.();
+    this.themeStop = null;
+    const conn = this.themeConn;
+    void followAureonTheme(this, this.hass).then((stop) => (conn === this.themeConn && this.isConnected ? (this.themeStop = stop) : stop()));
+  }
+
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    this.themeStop?.();
+    this.themeStop = null;
+    this.themeConn = null;
     window.removeEventListener("keydown", this.onKey);
     this.tt.stop();
     this.locateLab?.();

@@ -3,7 +3,7 @@
 // holiday flat far away does not). The main plan stays where it is: the others are placed around it.
 import { css, html, LitElement, svg } from "lit";
 import { fetchBuilding, MAIN_PLAN, updatePlan, type PlanEntry, type PlanSite } from "../api.ts";
-import { translate, type I18nKey } from "../i18n.ts";
+import { translate, type I18nKey, languageReady, loadLanguage } from "../i18n.ts";
 import { normalizeBuilding, type Building, type Vec2 } from "../model.ts";
 import { placePoint } from "../site.ts";
 import { controls, tokens } from "../styles.ts";
@@ -38,7 +38,13 @@ export class Fp3dSiteEditor extends LitElement {
     this._sel = null;
   }
 
+  private langAsked = false;
   private t(key: I18nKey, vars?: Record<string, string | number>): string {
+    // AUREON: this sheet can open before the bundle has its language file: draw again once it is there
+    if (!languageReady(this.hass?.language) && !this.langAsked) {
+      this.langAsked = true;
+      void loadLanguage(this.hass?.language).then(() => this.requestUpdate());
+    }
     return translate(this.hass, key, vars);
   }
 

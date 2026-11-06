@@ -826,3 +826,12 @@ screenshots (start page with 3D desk/phone, Settings appearance and music). Not 
 Validation: frontend 622 tests, backend 180 pytest, root 193, typecheck, build budgets, fidelity, migration contract,
 validate, browser tests floor/editor/contour/loading/platform/music, disposable HA 2026.2.3 (Floor Studio panel, plan
 picker, plans/property settings, card templates). Not tested on the owner's HA.
+
+## Claude batch 2026-11-06 (3) — Floor Studio panel follows the AUREON look
+
+- THEME-FLOOR: the dashboard publishes the resolved editor tokens (--aureon-ui-*, from theme/palette/accent or the
+  HA theme) to HA frontend user data `aureon_floor_theme` (frontend/set_user_data, debounced, only on change; retries
+  until styled). The standalone sidebar panel subscribes (`frontend/subscribe_user_data`, fallback get) and applies
+  only validated colour tokens (aureon-theme-sync.ts + test). Embedded mode unchanged.
+- Plan manager / site editor draw again once the editor bundle has its language file (were English first).
+- Shared files: aureon-dashboard.js (_floorTheme/_floorTokens/_publishFloorTheme), panel.ts (syncTheme).

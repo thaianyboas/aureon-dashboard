@@ -1,11 +1,11 @@
 {
   "scope": "AST printer with comments removed; runtime fidelity requires browser evidence",
   "summary": {
-    "preserved": 2304,
-    "aureon_extension": 98,
+    "preserved": 2300,
+    "aureon_extension": 102,
     "missing": 19,
     "modified": 30,
-    "added": 129
+    "added": 132
   },
   "symbols": [
     {
@@ -5519,15 +5519,15 @@
     {
       "symbol": "components/plan-manager.ts::Fp3dPlanManager.t",
       "original_line": 57,
-      "candidate_line": 57,
+      "candidate_line": 58,
       "original_sha256": "05696a8e508fc681f773069247fc1fbfd841f5eb14b731d98939d17d2f00d74a",
-      "candidate_sha256": "05696a8e508fc681f773069247fc1fbfd841f5eb14b731d98939d17d2f00d74a",
-      "status": "preserved"
+      "candidate_sha256": "47a8142b8548cf57e3a59c2c418682ba1669530db2a9bf922ed6f9932043a94f",
+      "status": "aureon_extension"
     },
     {
       "symbol": "components/plan-manager.ts::Fp3dPlanManager.fire",
       "original_line": 61,
-      "candidate_line": 61,
+      "candidate_line": 67,
       "original_sha256": "bf8f922e994d066d4069eece7a61fe7c5a980f890b3dbf1953a2a2e44b7bb686",
       "candidate_sha256": "bf8f922e994d066d4069eece7a61fe7c5a980f890b3dbf1953a2a2e44b7bb686",
       "status": "preserved"
@@ -5535,7 +5535,7 @@
     {
       "symbol": "components/plan-manager.ts::Fp3dPlanManager.run",
       "original_line": 66,
-      "candidate_line": 66,
+      "candidate_line": 72,
       "original_sha256": "11ff6098df3454462b00975fc390b91ffb7759a24cb0b8135441f6d4aa623b75",
       "candidate_sha256": "11ff6098df3454462b00975fc390b91ffb7759a24cb0b8135441f6d4aa623b75",
       "status": "preserved"
@@ -5543,7 +5543,7 @@
     {
       "symbol": "components/plan-manager.ts::Fp3dPlanManager.create",
       "original_line": 79,
-      "candidate_line": 79,
+      "candidate_line": 85,
       "original_sha256": "d14d6fc1cd4e306bd6a7731bf205bab644b519b7d977ee4026ce77c08f8bd722",
       "candidate_sha256": "d14d6fc1cd4e306bd6a7731bf205bab644b519b7d977ee4026ce77c08f8bd722",
       "status": "preserved"
@@ -5551,7 +5551,7 @@
     {
       "symbol": "components/plan-manager.ts::Fp3dPlanManager.move",
       "original_line": 101,
-      "candidate_line": 101,
+      "candidate_line": 107,
       "original_sha256": "76600b4271b9b3d9b2ad42e8bc8587017957026d3946c37cabb07dd8cca2a3dd",
       "candidate_sha256": "76600b4271b9b3d9b2ad42e8bc8587017957026d3946c37cabb07dd8cca2a3dd",
       "status": "preserved"
@@ -5559,7 +5559,7 @@
     {
       "symbol": "components/plan-manager.ts::Fp3dPlanManager.trashPlan",
       "original_line": 110,
-      "candidate_line": 110,
+      "candidate_line": 116,
       "original_sha256": "a0f7289c65772663d413fafd025f43e333707f52a84549912eddc5267a4321e4",
       "candidate_sha256": "a0f7289c65772663d413fafd025f43e333707f52a84549912eddc5267a4321e4",
       "status": "preserved"
@@ -5567,7 +5567,7 @@
     {
       "symbol": "components/plan-manager.ts::Fp3dPlanManager.daysLeft",
       "original_line": 118,
-      "candidate_line": 118,
+      "candidate_line": 124,
       "original_sha256": "70fea573e66a4f31b1952696ccbfaaeb205e1d48e6fadc3541c3bae0993e0b29",
       "candidate_sha256": "70fea573e66a4f31b1952696ccbfaaeb205e1d48e6fadc3541c3bae0993e0b29",
       "status": "preserved"
@@ -5575,7 +5575,7 @@
     {
       "symbol": "components/plan-manager.ts::Fp3dPlanManager.render",
       "original_line": 123,
-      "candidate_line": 123,
+      "candidate_line": 129,
       "original_sha256": "1b6fdd14b089225f11ccc241775daf4a7baca103512d28febff3316607268158",
       "candidate_sha256": "1b6fdd14b089225f11ccc241775daf4a7baca103512d28febff3316607268158",
       "status": "preserved"
@@ -6079,15 +6079,15 @@
     {
       "symbol": "components/site-editor.ts::Fp3dSiteEditor.t",
       "original_line": 41,
-      "candidate_line": 41,
+      "candidate_line": 42,
       "original_sha256": "05696a8e508fc681f773069247fc1fbfd841f5eb14b731d98939d17d2f00d74a",
-      "candidate_sha256": "05696a8e508fc681f773069247fc1fbfd841f5eb14b731d98939d17d2f00d74a",
-      "status": "preserved"
+      "candidate_sha256": "47a8142b8548cf57e3a59c2c418682ba1669530db2a9bf922ed6f9932043a94f",
+      "status": "aureon_extension"
     },
     {
       "symbol": "components/site-editor.ts::Fp3dSiteEditor.willUpdate",
       "original_line": 45,
-      "candidate_line": 45,
+      "candidate_line": 51,
       "original_sha256": "9e571069fc6aa952889a52494d5adb00edb8220b55fda211732b8fc0f65bf900",
       "candidate_sha256": "9e571069fc6aa952889a52494d5adb00edb8220b55fda211732b8fc0f65bf900",
       "status": "preserved"
@@ -6095,7 +6095,7 @@
     {
       "symbol": "components/site-editor.ts::Fp3dSiteEditor.siteOf",
       "original_line": 56,
-      "candidate_line": 56,
+      "candidate_line": 62,
       "original_sha256": "31dbb23487391db7bc5d033d562335fd19e491831875c7c16d2ec338822750b5",
       "candidate_sha256": "31dbb23487391db7bc5d033d562335fd19e491831875c7c16d2ec338822750b5",
       "status": "preserved"
@@ -6103,7 +6103,7 @@
     {
       "symbol": "components/site-editor.ts::Fp3dSiteEditor.shapes",
       "original_line": 63,
-      "candidate_line": 63,
+      "candidate_line": 69,
       "original_sha256": "a193a9a76779b0b628194d9c3dd10c486ed12811048ab1b1cf27b2803fdc7967",
       "candidate_sha256": "a193a9a76779b0b628194d9c3dd10c486ed12811048ab1b1cf27b2803fdc7967",
       "status": "preserved"
@@ -6111,7 +6111,7 @@
     {
       "symbol": "components/site-editor.ts::Fp3dSiteEditor.save",
       "original_line": 70,
-      "candidate_line": 70,
+      "candidate_line": 76,
       "original_sha256": "44b105026df6e25c2dac0b5761963e9bd409c13b407d0f62b12f0b0345da68b5",
       "candidate_sha256": "44b105026df6e25c2dac0b5761963e9bd409c13b407d0f62b12f0b0345da68b5",
       "status": "preserved"
@@ -6119,7 +6119,7 @@
     {
       "symbol": "components/site-editor.ts::Fp3dSiteEditor.firstPlace",
       "original_line": 76,
-      "candidate_line": 76,
+      "candidate_line": 82,
       "original_sha256": "1e1077ccb556cd50e9c6a7fcd39cdbb9df1bd069aefe29dadcfcf27a24b05512",
       "candidate_sha256": "1e1077ccb556cd50e9c6a7fcd39cdbb9df1bd069aefe29dadcfcf27a24b05512",
       "status": "preserved"
@@ -6127,7 +6127,7 @@
     {
       "symbol": "components/site-editor.ts::Fp3dSiteEditor.toPlan",
       "original_line": 81,
-      "candidate_line": 81,
+      "candidate_line": 87,
       "original_sha256": "af65fe59700be0ec100ca8a1dad19338f0101084176c936abae2a54ba5e96808",
       "candidate_sha256": "af65fe59700be0ec100ca8a1dad19338f0101084176c936abae2a54ba5e96808",
       "status": "preserved"
@@ -6135,7 +6135,7 @@
     {
       "symbol": "components/site-editor.ts::Fp3dSiteEditor.onDown",
       "original_line": 89,
-      "candidate_line": 89,
+      "candidate_line": 95,
       "original_sha256": "ecf1f5c516d1c923791408aacffc435f26a32b494813cdd55452e5510ff061b2",
       "candidate_sha256": "ecf1f5c516d1c923791408aacffc435f26a32b494813cdd55452e5510ff061b2",
       "status": "preserved"
@@ -6143,7 +6143,7 @@
     {
       "symbol": "components/site-editor.ts::Fp3dSiteEditor.onMove",
       "original_line": 99,
-      "candidate_line": 99,
+      "candidate_line": 105,
       "original_sha256": "778e482095a6cbdde04f648f1e365949f511d2522f6c1e8ba916002c65979654",
       "candidate_sha256": "778e482095a6cbdde04f648f1e365949f511d2522f6c1e8ba916002c65979654",
       "status": "preserved"
@@ -6151,7 +6151,7 @@
     {
       "symbol": "components/site-editor.ts::Fp3dSiteEditor.onUp",
       "original_line": 107,
-      "candidate_line": 107,
+      "candidate_line": 113,
       "original_sha256": "d92ca0a32f256d4fe51f6452d1edc9cc57876a93b6fb1ed238be9496e647fe8f",
       "candidate_sha256": "d92ca0a32f256d4fe51f6452d1edc9cc57876a93b6fb1ed238be9496e647fe8f",
       "status": "preserved"
@@ -6159,7 +6159,7 @@
     {
       "symbol": "components/site-editor.ts::Fp3dSiteEditor.render",
       "original_line": 114,
-      "candidate_line": 114,
+      "candidate_line": 120,
       "original_sha256": "b454af362dcd1a814456a7c35654efc92986b69421863630080b4c5937686240",
       "candidate_sha256": "b454af362dcd1a814456a7c35654efc92986b69421863630080b4c5937686240",
       "status": "preserved"
@@ -12235,7 +12235,7 @@
     {
       "symbol": "panel.ts::get",
       "original_line": 49,
-      "candidate_line": 51,
+      "candidate_line": 52,
       "original_sha256": "9510ab2cc1480f68376619abcdb7e48b5efe46276cf9cdfb93d43a349ea39bc5",
       "candidate_sha256": "9510ab2cc1480f68376619abcdb7e48b5efe46276cf9cdfb93d43a349ea39bc5",
       "status": "preserved"
@@ -12243,7 +12243,7 @@
     {
       "symbol": "panel.ts::set",
       "original_line": 56,
-      "candidate_line": 58,
+      "candidate_line": 59,
       "original_sha256": "ac5de38bebb02928c50682908716af02aff3e98b20198af1df31e91243167a91",
       "candidate_sha256": "ac5de38bebb02928c50682908716af02aff3e98b20198af1df31e91243167a91",
       "status": "preserved"
@@ -12251,7 +12251,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.t",
       "original_line": 271,
-      "candidate_line": 285,
+      "candidate_line": 286,
       "original_sha256": "05696a8e508fc681f773069247fc1fbfd841f5eb14b731d98939d17d2f00d74a",
       "candidate_sha256": "05696a8e508fc681f773069247fc1fbfd841f5eb14b731d98939d17d2f00d74a",
       "status": "preserved"
@@ -12259,15 +12259,15 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.willUpdate",
       "original_line": 275,
-      "candidate_line": 289,
+      "candidate_line": 290,
       "original_sha256": "3bc4de77d6d7b16533eeb6b567ad8a3b9a3fd363a6a54dd26a0cb3f0296f236a",
-      "candidate_sha256": "8bad8e11b66cf7b51b8587965ca964d866c36c5b5dece5493950fe80170e0e6f",
+      "candidate_sha256": "5c61495824a665b6ff9b45136cf41950965d1b15de068c4d4dabd87ee5c10e86",
       "status": "modified"
     },
     {
       "symbol": "panel.ts::Floorplan3dPanel.isAdmin",
       "original_line": 289,
-      "candidate_line": 310,
+      "candidate_line": 312,
       "original_sha256": "0c6f2e31565c7b6a504b2c90a7d4020c8aaff3951306ad22c667f001e2d4e7f8",
       "candidate_sha256": "0c6f2e31565c7b6a504b2c90a7d4020c8aaff3951306ad22c667f001e2d4e7f8",
       "status": "preserved"
@@ -12275,7 +12275,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.setMode",
       "original_line": 293,
-      "candidate_line": 314,
+      "candidate_line": 316,
       "original_sha256": "44ec921ac2bc25de66a4bbbc6ffceccd5cb9dc17355d0609ca8eda1312d5ae4f",
       "candidate_sha256": "e10ee9e1db1eb8b78b01ceecfd888cf8a1ffc6c78ede6ba18f419a2b2bb1b886",
       "status": "aureon_extension"
@@ -12283,7 +12283,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.onRoomTap",
       "original_line": 302,
-      "candidate_line": 322,
+      "candidate_line": 324,
       "original_sha256": "d23ec8d4ba3c3a35644b71b586e4c9be576c85a8de3a80292b58a10eb9db766e",
       "candidate_sha256": "d23ec8d4ba3c3a35644b71b586e4c9be576c85a8de3a80292b58a10eb9db766e",
       "status": "preserved"
@@ -12291,7 +12291,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.setWallMode",
       "original_line": 324,
-      "candidate_line": 344,
+      "candidate_line": 346,
       "original_sha256": "ebb5ab134d3bbeb4da2e184e8bc565c844a75305d85acc3c6a2c00aa0e5c7965",
       "candidate_sha256": "ebb5ab134d3bbeb4da2e184e8bc565c844a75305d85acc3c6a2c00aa0e5c7965",
       "status": "preserved"
@@ -12299,7 +12299,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.setRoomBar",
       "original_line": 329,
-      "candidate_line": 349,
+      "candidate_line": 351,
       "original_sha256": "d1dbbaf1dd747f647565433525a8f99ecf11497c0d63f494a5b5e7005fafa162",
       "candidate_sha256": "d1dbbaf1dd747f647565433525a8f99ecf11497c0d63f494a5b5e7005fafa162",
       "status": "preserved"
@@ -12307,7 +12307,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.setPlain",
       "original_line": 334,
-      "candidate_line": 354,
+      "candidate_line": 356,
       "original_sha256": "051becdc8d8aed87a1c5f40b195d5a9c9c24fdfe982f1c1925f70b5861725679",
       "candidate_sha256": "051becdc8d8aed87a1c5f40b195d5a9c9c24fdfe982f1c1925f70b5861725679",
       "status": "preserved"
@@ -12315,7 +12315,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.setKeepRoof",
       "original_line": 339,
-      "candidate_line": 359,
+      "candidate_line": 361,
       "original_sha256": "011aa412d3d88426bac3660ccc04e693994caab893ba1271d4a8f338765f0fd0",
       "candidate_sha256": "011aa412d3d88426bac3660ccc04e693994caab893ba1271d4a8f338765f0fd0",
       "status": "preserved"
@@ -12323,7 +12323,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.setExplode",
       "original_line": 344,
-      "candidate_line": 364,
+      "candidate_line": 366,
       "original_sha256": "70f836badf0b2431e900dbfed6e12e75a5e3eaac3dedee415e26620a9f046753",
       "candidate_sha256": "70f836badf0b2431e900dbfed6e12e75a5e3eaac3dedee415e26620a9f046753",
       "status": "preserved"
@@ -12331,7 +12331,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.setQuality",
       "original_line": 349,
-      "candidate_line": 369,
+      "candidate_line": 371,
       "original_sha256": "6e448a8eea01a23a2d8362a534d8a94c3ce54a0e39ab1b18464cb2c344584a12",
       "candidate_sha256": "6e448a8eea01a23a2d8362a534d8a94c3ce54a0e39ab1b18464cb2c344584a12",
       "status": "preserved"
@@ -12339,7 +12339,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.editFurniture",
       "original_line": 355,
-      "candidate_line": 375,
+      "candidate_line": 377,
       "original_sha256": "5e0eab57be01d169a0dbde7b53f22236e076007ca436993aaa834dbcfebff3e8",
       "candidate_sha256": "5e0eab57be01d169a0dbde7b53f22236e076007ca436993aaa834dbcfebff3e8",
       "status": "preserved"
@@ -12347,7 +12347,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.editDevice",
       "original_line": 367,
-      "candidate_line": 387,
+      "candidate_line": 389,
       "original_sha256": "fd6b46e211ef8ea0d822cb937a1791471227e0138c58aca70ca354d2e13bf75e",
       "candidate_sha256": "fd6b46e211ef8ea0d822cb937a1791471227e0138c58aca70ca354d2e13bf75e",
       "status": "preserved"
@@ -12355,7 +12355,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.moveDevice",
       "original_line": 378,
-      "candidate_line": 398,
+      "candidate_line": 400,
       "original_sha256": "5c6d9f211f9856ab7abf7496d85c4fc190dcdb8740d8e2734ec2ab6cf9b3bf7b",
       "candidate_sha256": "5c6d9f211f9856ab7abf7496d85c4fc190dcdb8740d8e2734ec2ab6cf9b3bf7b",
       "status": "preserved"
@@ -12363,7 +12363,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.turnStep",
       "original_line": 388,
-      "candidate_line": 408,
+      "candidate_line": 410,
       "original_sha256": "f41a77d52e098af3f32e4cc5d7e10b94f71d1bbb6cc049ec507b8ace48adcc02",
       "candidate_sha256": "f41a77d52e098af3f32e4cc5d7e10b94f71d1bbb6cc049ec507b8ace48adcc02",
       "status": "preserved"
@@ -12371,7 +12371,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.turnDevice",
       "original_line": 392,
-      "candidate_line": 412,
+      "candidate_line": 414,
       "original_sha256": "92a5b420f851e8476f6c15ac97ef60d50cf8337a4c962e8f425802e760860c78",
       "candidate_sha256": "92a5b420f851e8476f6c15ac97ef60d50cf8337a4c962e8f425802e760860c78",
       "status": "preserved"
@@ -12379,7 +12379,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.deleteDevice",
       "original_line": 397,
-      "candidate_line": 417,
+      "candidate_line": 419,
       "original_sha256": "ad11fa0fcccfffc1009f3b23aaee637ac1ae00b48fce0d8458c60e03ded2008a",
       "candidate_sha256": "ad11fa0fcccfffc1009f3b23aaee637ac1ae00b48fce0d8458c60e03ded2008a",
       "status": "preserved"
@@ -12387,7 +12387,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.renderDeviceFields",
       "original_line": 408,
-      "candidate_line": 428,
+      "candidate_line": 430,
       "original_sha256": "881a4311ea24fd6560dfcfc37c139ebd8d3638e37b6e876b56c387298ccc300e",
       "candidate_sha256": "881a4311ea24fd6560dfcfc37c139ebd8d3638e37b6e876b56c387298ccc300e",
       "status": "preserved"
@@ -12395,7 +12395,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.furnitureName",
       "original_line": 465,
-      "candidate_line": 485,
+      "candidate_line": 487,
       "original_sha256": "ea967052e024476bbc65b03eb0cafc81c6b283379631531033d52790e9348e6b",
       "candidate_sha256": "ea967052e024476bbc65b03eb0cafc81c6b283379631531033d52790e9348e6b",
       "status": "preserved"
@@ -12403,7 +12403,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.moveFurniture",
       "original_line": 470,
-      "candidate_line": 490,
+      "candidate_line": 492,
       "original_sha256": "ccaa54c74fc6bf82c7a1d434fc0610bf4509164d890c7ad503494cd14f07dc23",
       "candidate_sha256": "ccaa54c74fc6bf82c7a1d434fc0610bf4509164d890c7ad503494cd14f07dc23",
       "status": "preserved"
@@ -12411,7 +12411,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.renderSizeFields",
       "original_line": 484,
-      "candidate_line": 504,
+      "candidate_line": 506,
       "original_sha256": "9b7e0e8f67bba91ca4c321ca1cba1c7c0a83271fdc2597126c53a741c910b2ff",
       "candidate_sha256": "9b7e0e8f67bba91ca4c321ca1cba1c7c0a83271fdc2597126c53a741c910b2ff",
       "status": "preserved"
@@ -12419,7 +12419,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.turnFurniture",
       "original_line": 524,
-      "candidate_line": 544,
+      "candidate_line": 546,
       "original_sha256": "cb38406a58b90aafd40e1ec96c4ba43f659b0316f37a5a2c29cc943ed2a47508",
       "candidate_sha256": "cb38406a58b90aafd40e1ec96c4ba43f659b0316f37a5a2c29cc943ed2a47508",
       "status": "preserved"
@@ -12427,7 +12427,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.deleteFurniture",
       "original_line": 529,
-      "candidate_line": 549,
+      "candidate_line": 551,
       "original_sha256": "89ea26dc66e3005140d2a052589bb0bc82af15947ef16ab16ddae45712fa2eff",
       "candidate_sha256": "89ea26dc66e3005140d2a052589bb0bc82af15947ef16ab16ddae45712fa2eff",
       "status": "preserved"
@@ -12435,7 +12435,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.rememberStartView",
       "original_line": 540,
-      "candidate_line": 560,
+      "candidate_line": 562,
       "original_sha256": "e092ed8fde9327ba029ecd62f0db19086d1f49e583488b3ec669575db78d593b",
       "candidate_sha256": "e092ed8fde9327ba029ecd62f0db19086d1f49e583488b3ec669575db78d593b",
       "status": "preserved"
@@ -12443,7 +12443,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.openFunSettings",
       "original_line": 552,
-      "candidate_line": 572,
+      "candidate_line": 574,
       "original_sha256": "d34126b44981c803475cb70adf88d64409f0dc2a699dbfb50a1143e5a2187806",
       "candidate_sha256": "d34126b44981c803475cb70adf88d64409f0dc2a699dbfb50a1143e5a2187806",
       "status": "preserved"
@@ -12451,7 +12451,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.siteBuilding",
       "original_line": 564,
-      "candidate_line": 584,
+      "candidate_line": 586,
       "original_sha256": "60c77f0b2f52f2f1d9c6d63e1776175e56eea16585a928e8da7efdd9eea236a5",
       "candidate_sha256": "60c77f0b2f52f2f1d9c6d63e1776175e56eea16585a928e8da7efdd9eea236a5",
       "status": "preserved"
@@ -12459,7 +12459,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.showSite",
       "original_line": 569,
-      "candidate_line": 589,
+      "candidate_line": 591,
       "original_sha256": "5ef6c690e93f8cbbdbc45ea2d479c39353fe8c1e0677b22ec790a11ba611b58b",
       "candidate_sha256": "5ef6c690e93f8cbbdbc45ea2d479c39353fe8c1e0677b22ec790a11ba611b58b",
       "status": "preserved"
@@ -12467,7 +12467,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.planBuildings",
       "original_line": 578,
-      "candidate_line": 598,
+      "candidate_line": 600,
       "original_sha256": "8e40aae9d48c5db60b8e72906600914537c42a8abc2911c272880fb63899a641",
       "candidate_sha256": "8e40aae9d48c5db60b8e72906600914537c42a8abc2911c272880fb63899a641",
       "status": "preserved"
@@ -12475,7 +12475,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.alertsElsewhere",
       "original_line": 583,
-      "candidate_line": 603,
+      "candidate_line": 605,
       "original_sha256": "383fb8c08e9a25e7a04ca91da2974059275c850ed0a89a46b3a5b244e21f8b5d",
       "candidate_sha256": "383fb8c08e9a25e7a04ca91da2974059275c850ed0a89a46b3a5b244e21f8b5d",
       "status": "preserved"
@@ -12483,7 +12483,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.alertCounts",
       "original_line": 593,
-      "candidate_line": 613,
+      "candidate_line": 615,
       "original_sha256": "16ee06cbb6bf8bfb6eb24653f20d5cf1b0c69daa4c54673180cdbdf2de509036",
       "candidate_sha256": "16ee06cbb6bf8bfb6eb24653f20d5cf1b0c69daa4c54673180cdbdf2de509036",
       "status": "preserved"
@@ -12491,7 +12491,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.pickPlan",
       "original_line": 600,
-      "candidate_line": 620,
+      "candidate_line": 622,
       "original_sha256": "fc4be4c34911a93ac49f0243930082a793b8db183bc7717e63f7c71f7b35ebc9",
       "candidate_sha256": "fc4be4c34911a93ac49f0243930082a793b8db183bc7717e63f7c71f7b35ebc9",
       "status": "preserved"
@@ -12499,7 +12499,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.showElsewhere",
       "original_line": 615,
-      "candidate_line": 635,
+      "candidate_line": 637,
       "original_sha256": "772fcf34ef1471ea01da70d0862d1e3863a364ee58c16c32c1c578a9c8dfc5c5",
       "candidate_sha256": "772fcf34ef1471ea01da70d0862d1e3863a364ee58c16c32c1c578a9c8dfc5c5",
       "status": "preserved"
@@ -12507,7 +12507,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.view3d",
       "original_line": 620,
-      "candidate_line": 640,
+      "candidate_line": 642,
       "original_sha256": "1d352aea74c6a77d3717e2d9e078b2d8aa8ec83516a1114533a730ac3661714a",
       "candidate_sha256": "1d352aea74c6a77d3717e2d9e078b2d8aa8ec83516a1114533a730ac3661714a",
       "status": "preserved"
@@ -12515,7 +12515,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.toggleTimeTravel",
       "original_line": 625,
-      "candidate_line": 645,
+      "candidate_line": 647,
       "original_sha256": "f9ba50e1dfad263a4d1e1ee93cfd6033366efa6d3edc1e2a0a245be968112a9e",
       "candidate_sha256": "f9ba50e1dfad263a4d1e1ee93cfd6033366efa6d3edc1e2a0a245be968112a9e",
       "status": "preserved"
@@ -12523,7 +12523,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.updated",
       "original_line": 642,
-      "candidate_line": 662,
+      "candidate_line": 664,
       "original_sha256": "749b6faecf5e7bc601df98fa352f7b377f9c83c1c52335ef25da8e82427bcadc",
       "candidate_sha256": "749b6faecf5e7bc601df98fa352f7b377f9c83c1c52335ef25da8e82427bcadc",
       "status": "preserved"
@@ -12531,7 +12531,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.back",
       "original_line": 667,
-      "candidate_line": 687,
+      "candidate_line": 689,
       "original_sha256": "64f422d54bae6de9ac39cf78e0d635a4a32298e7ff51c7cf1185c900ed9efbf2",
       "candidate_sha256": "64f422d54bae6de9ac39cf78e0d635a4a32298e7ff51c7cf1185c900ed9efbf2",
       "status": "preserved"
@@ -12539,7 +12539,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.onKey",
       "original_line": 673,
-      "candidate_line": 693,
+      "candidate_line": 695,
       "original_sha256": "8e45e151a6e5b0ff69cdaa1a51beb637788d568bf966339dd109d3e0d32b305c",
       "candidate_sha256": "8e45e151a6e5b0ff69cdaa1a51beb637788d568bf966339dd109d3e0d32b305c",
       "status": "preserved"
@@ -12547,10 +12547,10 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.connectedCallback",
       "original_line": 680,
-      "candidate_line": 700,
+      "candidate_line": 702,
       "original_sha256": "19dabdb8b9f0ed0ddfb0024a961c537342f0b2e972b2b321e6e61aa05b0e960e",
-      "candidate_sha256": "19dabdb8b9f0ed0ddfb0024a961c537342f0b2e972b2b321e6e61aa05b0e960e",
-      "status": "preserved"
+      "candidate_sha256": "e64827763143cd12fccf24a210c83dbe95a9654bcd3d08e4502728d8f95f7ead",
+      "status": "aureon_extension"
     },
     {
       "symbol": "panel.ts::Floorplan3dPanel.checkOffers",
@@ -12567,15 +12567,15 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.disconnectedCallback",
       "original_line": 718,
-      "candidate_line": 713,
+      "candidate_line": 730,
       "original_sha256": "6b187808171eeaa894d8bb01625e4078717f7be4e94333f91fdda18967ef5f82",
-      "candidate_sha256": "6b187808171eeaa894d8bb01625e4078717f7be4e94333f91fdda18967ef5f82",
-      "status": "preserved"
+      "candidate_sha256": "126396ae2d0c739df021404a921560aaa863fc94626c48ca2e92d1f6bb85b1c8",
+      "status": "aureon_extension"
     },
     {
       "symbol": "panel.ts::Floorplan3dPanel.render",
       "original_line": 726,
-      "candidate_line": 721,
+      "candidate_line": 741,
       "original_sha256": "59606ba6be061ae99a97a3e2644f9c7db5584f89cf2025a164accd7558dfcdfa",
       "candidate_sha256": "3652df280b88fec2d376bb8ef2a4b8f28dc60c9e3f2a68d2b3da853ef098af70",
       "status": "modified"
@@ -12589,7 +12589,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.renderNotices",
       "original_line": 1002,
-      "candidate_line": 1046,
+      "candidate_line": 1066,
       "original_sha256": "c4bd287af76aef07e6dc2a11ad136df61f1217514a324022567af0727a9fba67",
       "candidate_sha256": "c4bd287af76aef07e6dc2a11ad136df61f1217514a324022567af0727a9fba67",
       "status": "preserved"
@@ -12597,7 +12597,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.renderExtensions",
       "original_line": 1044,
-      "candidate_line": 1088,
+      "candidate_line": 1108,
       "original_sha256": "06dce926c5add11a4dbce2c890e277f1fb19594ae6c63887fdfeddda81cbfc43",
       "candidate_sha256": "670fa2645373468e820afef47bfa88342a7d923d100b7d413e213a624e39bcb4",
       "status": "modified"
@@ -12605,7 +12605,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.renderEditor",
       "original_line": 1065,
-      "candidate_line": 1107,
+      "candidate_line": 1127,
       "original_sha256": "e1d4eeab9ed46ec80b390ae99bf4bcd030f08eab3387559f6831145b560b62f0",
       "candidate_sha256": "59a744be37970b97dfe53ad1fa2fc592bf4daef0632273da374e4dc9cc9e751e",
       "status": "aureon_extension"
@@ -12613,7 +12613,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.onNavWheel",
       "original_line": 1098,
-      "candidate_line": 1140,
+      "candidate_line": 1160,
       "original_sha256": "cec921f34aeb2b14ce3ef38963f6d281c2f52c7f792d2d7784e2ddd07d18c505",
       "candidate_sha256": "cec921f34aeb2b14ce3ef38963f6d281c2f52c7f792d2d7784e2ddd07d18c505",
       "status": "preserved"
@@ -12621,7 +12621,7 @@
     {
       "symbol": "panel.ts::Floorplan3dPanel.renderView",
       "original_line": 1106,
-      "candidate_line": 1148,
+      "candidate_line": 1168,
       "original_sha256": "d87f804a7b4d3c9d2b1594b2df122bddd2d2acca6bd4ac18b386dc733e66bdd3",
       "candidate_sha256": "661445ab3f5dc6e382f4b7f28b41b3c356f18e3d0d0dd9c931f8c78e5b9a51ec",
       "status": "aureon_extension"
@@ -19627,6 +19627,18 @@
       "status": "added"
     },
     {
+      "symbol": "aureon-theme-sync.ts::themeTokens",
+      "candidate_line": 17,
+      "candidate_sha256": "5800034981b90a447bd24091c55c4f1a0ca7fdd1c1651646cba27fffd026ba92",
+      "status": "added"
+    },
+    {
+      "symbol": "aureon-theme-sync.ts::followAureonTheme",
+      "candidate_line": 26,
+      "candidate_sha256": "bea3ad160c97685a80c4547319ce1c8bb5f9ebe1173838957bfed89f405c10d7",
+      "status": "added"
+    },
+    {
       "symbol": "building-controller.ts::loadDeadline",
       "candidate_line": 55,
       "candidate_sha256": "49c4bbe7fbac8c4d19d8c5e8313c7917efff76a18aac48d2d174b5cc8ada1165",
@@ -19808,19 +19820,25 @@
     },
     {
       "symbol": "panel.ts::Floorplan3dPanel.toggleAureonModule",
-      "candidate_line": 135,
+      "candidate_line": 136,
       "candidate_sha256": "3149586ad6b0a7ade5484ab6d1cf9ec687d7886558f8c5a62161d1be6b4cc331",
       "status": "added"
     },
     {
+      "symbol": "panel.ts::Floorplan3dPanel.syncTheme",
+      "candidate_line": 721,
+      "candidate_sha256": "ff14955aaddd169d3cb4323cd95e1a3e1fab20cf05092bb6f437b42cfb2c307e",
+      "status": "added"
+    },
+    {
       "symbol": "panel.ts::Floorplan3dPanel.openSettings",
-      "candidate_line": 807,
+      "candidate_line": 827,
       "candidate_sha256": "6a8eed54deae39af792baa71f552bf80a0dfbd002a0fd979426d22dfb1a1ff84",
       "status": "added"
     },
     {
       "symbol": "panel.ts::Floorplan3dPanel.renderSettings",
-      "candidate_line": 822,
+      "candidate_line": 842,
       "candidate_sha256": "e34a81062ee72d016f7181fa0c94d8c1552fc7a0d54ac6a149f5e03b816f3ac9",
       "status": "added"
     },
