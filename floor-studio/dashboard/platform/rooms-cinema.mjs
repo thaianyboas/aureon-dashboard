@@ -18,6 +18,19 @@ export function roomData(ui,area){const c=ui.c,st=id=>c.state(id),rows=c.rows.fi
  return {rows,lights,on,level,climate,covers,coverPos,scenes};}
 async function setLights(ui,d,value){const c=ui.c;for(const r of d.lights){const s=c.state(r.id);if(value<=0){if(s?.state==='on')await c.act(r.id,'off');continue;}if(parameterAction(s,c.hass?.services,'brightness',value))await c.act(r.id,'brightness',{value});else if(s?.state!=='on')await c.act(r.id,'on');}}
 async function setCovers(ui,d,mode){const c=ui.c;for(const r of d.covers){const s=c.state(r.id);if(mode==='half'){if(parameterAction(s,c.hass?.services,'position',50))await c.act(r.id,'position',{value:50});continue;}if(c.actions(r.id).some(a=>a.key===mode))await c.act(r.id,mode);}}
+
+// Compact equipment row: name, state and the one control that matters; the full controls open with a tap on the name.
+function deviceRow(ui,r){const c=ui.c,t=ui.t,s=c.state(r.id),acts=c.actions(r.id),on=s?.state==='on'||s?.state==='open'||s?.state==='playing'||s?.state==='cleaning';
+ const toggle=acts.find(a=>a.key==='on'||a.key==='off');const bri=r.domain==='light'&&on&&Number.isFinite(Number(s?.attributes?.brightness))?Math.round(Number(s.attributes.brightness)/2.55):null;
+ const cover=r.domain==='cover'?['open','stop','close'].map(k=>acts.find(a=>a.key===k)).filter(Boolean):[];
+ const cs=r.domain==='climate'?s?.attributes:null,target=Number(cs?.temperature),step=Number(cs?.target_temp_step)||.5;
+ const icons={open:'M6 15l6-6 6 6',close:'M6 9l6 6 6-6',stop:'M7 7h10v10H7z'};
+ return html`<div class=${'cine-dev glass '+(on?'on':'')}>
+  <button type="button" class="cine-dev-main" @click=${()=>{ui._modal={kind:'equipment',row:r};ui.requestUpdate();}}><span class="cine-dev-icon">${ui.roomIcon(r)}</span><span class="cine-dev-text"><strong>${ui.name(r)}</strong><small>${ui.stateText(s)}${bri!=null?` · ${bri}%`:''}${cs&&Number.isFinite(Number(cs.current_temperature))?` · ${ui.format(Number(cs.current_temperature),1)}°`:''}</small></span></button>
+  ${toggle?html`<button type="button" class="cine-dev-switch" role="switch" aria-checked=${String(s?.state==='on')} aria-label=${ui.name(r)} @click=${()=>ui.invoke(r,toggle)}><i></i></button>`:nothing}
+  ${cover.length?html`<span class="cine-dev-btns">${cover.map(a=>html`<button type="button" aria-label=${ui.controlLabel(a.key)} @click=${()=>ui.invoke(r,a)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d=${icons[a.key]}></path></svg></button>`)}</span>`:nothing}
+  ${Number.isFinite(target)?html`<span class="cine-dev-btns"><button type="button" aria-label=${t.cineCooler} @click=${()=>c.act(r.id,'temperature',{value:target-step})}>−</button><b>${ui.format(target,1)}°</b><button type="button" aria-label=${t.cineWarmer} @click=${()=>c.act(r.id,'temperature',{value:target+step})}>+</button></span>`:nothing}
+ </div>`;}
 export function roomsCinema(ui){const c=ui.c,t=ui.t;
  // Every piece of equipment has a place: rooms, plus one for equipment without a room.
  const areas=[...c.areas,...(c.rows.some(r=>!r.areaId)?[{id:NO_AREA,name:t.cineNoRoom}]:[])];if(!areas.length)return ui.empty();
@@ -47,6 +60,6 @@ export function roomsCinema(ui){const c=ui.c,t=ui.t;
  </div>
  <nav class="cine-room-strip" aria-label=${t.rooms}>${areas.map(a=>{const s=a.id===NO_AREA?{temp:null,lights:[],on:0}:ui.areaSummary(a),im=a.id===NO_AREA?{url:''}:ui.roomImage(a),sel=a.id===area.id;return html`<button type="button" class="cine-room" data-room=${a.id} aria-pressed=${String(sel)} aria-label=${a.name} @click=${()=>{ui.c._cineRoom=a.id;ui.requestUpdate();}}>${!im.url?roomArt(a.name):nothing}${im.url?html`<img src=${im.url} alt="" loading="lazy" referrerpolicy="no-referrer" style=${'filter:brightness('+(s.lights.length?(.38+.62*s.on/s.lights.length):.8).toFixed(2)+')'} @error=${e=>e.target.remove()}>`:nothing}<span class="cine-room-text"><strong>${a.name}</strong><small>${[s.temp!=null?ui.format(s.temp,1)+'°':'',s.lights.length?(s.on?`${s.on} ${t.lightsOn}`:t.lightsOff):''].filter(Boolean).join(' · ')}</small></span></button>`;})}</nav>
  <section class="cine-room-devices" aria-label=${t.cineAllDevices}><div class="cine-row-head"><span class="cine-head">${area.name} · ${d.rows.length} ${t.cineDevicesLower}</span></div>
- ${equipmentKinds.map(k=>[k,d.rows.filter(r=>equipmentKind(r,c.state(r.id),c.preferences,c.labels)===k)]).filter(([,rows])=>rows.length).map(([k,rows])=>html`<div class="section-head"><h2>${t['equipment_'+k]||k}</h2><span class="cine-sub">${rows.length}</span></div><div class="grid">${rows.map(r=>ui.entity(r))}</div>`)}
+ ${equipmentKinds.map(k=>[k,d.rows.filter(r=>equipmentKind(r,c.state(r.id),c.preferences,c.labels)===k)]).filter(([,rows])=>rows.length).map(([k,rows])=>{const open=ui._roomOpenKinds?.has(k),shown=open?rows:rows.slice(0,8);return html`<div class="cine-dev-group"><div class="cine-dev-head"><h3>${t['equipment_'+k]||k}</h3><span class="cine-sub">${rows.length}</span></div><div class="cine-dev-grid">${shown.map(r=>deviceRow(ui,r))}</div>${rows.length>8?html`<button type="button" class="cine-link cine-dev-more" @click=${()=>{ui._roomOpenKinds??=new Set();open?ui._roomOpenKinds.delete(k):ui._roomOpenKinds.add(k);ui.requestUpdate();}}>${open?t.cineShowLess:`${t.cineShowAll} (${rows.length})`}</button>`:nothing}</div>`;})}
  ${!d.rows.length?html`<small class="cine-sub">${t.empty}</small>`:nothing}</section>
  </div>`;}

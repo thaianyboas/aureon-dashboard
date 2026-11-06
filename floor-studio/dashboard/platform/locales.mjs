@@ -52,6 +52,15 @@ Object.assign(pt,{"cineNoRoom": "Sem cômodo", "cineDevicesLower": "equipamentos
 Object.assign(en,{"setSearchLabels": "Search Labels …", "setLabelsAvailable": "Labels in your Home Assistant"});
 Object.assign(de,{"setSearchLabels": "Labels suchen …", "setLabelsAvailable": "Labels in deinem Home Assistant"});
 Object.assign(pt,{"setSearchLabels": "Procurar Labels …", "setLabelsAvailable": "Labels no seu Home Assistant"});
+Object.assign(en,{"preset_pool": "Pool", "preset_office": "Office", "preset_hobby": "Hobby room"});
+Object.assign(de,{"preset_pool": "Pool", "preset_office": "Büro", "preset_hobby": "Hobbyraum"});
+Object.assign(pt,{"preset_pool": "Piscina", "preset_office": "Escritório", "preset_hobby": "Sala de hobby"});
+Object.assign(en,{"cineShowAll": "Show all", "cineShowLess": "Show less"});
+Object.assign(de,{"cineShowAll": "Alle anzeigen", "cineShowLess": "Weniger anzeigen"});
+Object.assign(pt,{"cineShowAll": "Mostrar todos", "cineShowLess": "Mostrar menos"});
+Object.assign(en,{"toTop": "Back to top"});
+Object.assign(de,{"toTop": "Nach oben"});
+Object.assign(pt,{"toTop": "Voltar ao topo"});
 export const dictionaries={en,de,pt};
 export function platformLabels(language='en'){return language.toLowerCase().startsWith('de')?de:language.toLowerCase().startsWith('pt')?pt:en;}
 export const routeNames={'Início':'home','Räume':'rooms','Geräte':'devices','Energie':'energy','Sicherheit':'security','Kameras':'cameras','Automationen':'automation','Agenda':'calendar','Einstellungen':'settings','JARVIS':'assistant','Planta':'floor','Medien':'media'};
