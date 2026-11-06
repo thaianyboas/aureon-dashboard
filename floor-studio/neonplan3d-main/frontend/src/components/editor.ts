@@ -1471,12 +1471,36 @@ export class Fp3dEditor extends LitElement {
             ? html`<button class="fp3d-btn" @click=${() => this.aureonRemoveDivider(false)}>↺ ${this.t("aureon_wall_restore")}</button>`
             : html`<button class="fp3d-btn fp3d-aureon-danger" @click=${() => this.aureonRemoveDivider(true)}>✕ ${this.t("wall_none")}</button>`}
       </div>
+      ${info.height === 0 ? nothing : this.renderAureonWallPaint(room, w.index, info.shared.length ? this.t("aureon_paint_side", { room: room.name }) : undefined)}
+      ${info.height === 0 ? nothing : this.aureonOtherSides(room, w.index).map(([other, j]) => this.renderAureonWallPaint(other, j, this.t("aureon_paint_side", { room: other.name })))}
       <p class="fp3d-muted fp3d-aureon-wall-hint">${this.t("aureon_wall_hint")}</p>
     </div>`;
   }
 
+  /** AUREON: the neighbours' edges lying on the same wall (their side of a shared wall), as [room, edge index]. */
+  private aureonOtherSides(room: Room, index: number): [Room, number][] {
+    const a = room.points[index], b = room.points[(index + 1) % room.points.length];
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (!this.floor || L < 0.05) return [];
+    const u = [(b[0] - a[0]) / L, (b[1] - a[1]) / L];
+    const off = (p: number[]) => Math.abs((p[0] - a[0]) * u[1] - (p[1] - a[1]) * u[0]);
+    const along = (p: number[]) => (p[0] - a[0]) * u[0] + (p[1] - a[1]) * u[1];
+    const out: [Room, number][] = [];
+    for (const other of this.floor.rooms) {
+      if (other.id === room.id) continue;
+      other.points.forEach((c, j) => {
+        const d = other.points[(j + 1) % other.points.length];
+        // a wall is shared when the other edge lies on this one's line (within half a thick wall) and overlaps it
+        if (off(c) > 0.3 || off(d) > 0.3) return;
+        const lo = Math.max(0, Math.min(along(c), along(d))), hi = Math.min(L, Math.max(along(c), along(d)));
+        if (hi - lo > 0.05) out.push([other, j]);
+      });
+    }
+    return out;
+  }
+
   /** AUREON: colour of only this wall (this room's side of it), over the room colour; undo like any room change. */
-  private renderAureonWallPaint(room: Room, index: number) {
+  private renderAureonWallPaint(room: Room, index: number, title?: string) {
     const finish = (room as Room & { aureon_finish?: Record<string, unknown> | null }).aureon_finish ?? null;
     const own = wallPaints(finish, room.points.length)[index];
     const set = (color: string | null) => {
@@ -1486,10 +1510,12 @@ export class Fp3dEditor extends LitElement {
       const next: Record<string, unknown> = { ...(finish ?? {}) };
       if (list.some((c) => c !== null)) next.wall_paints = list;
       else delete next.wall_paints;
-      this.updateRoom({ aureon_finish: Object.keys(next).length ? next : null } as unknown as Partial<Room>);
+      // by its id: this also paints the neighbour's side of a selected wall (not only the room that is open)
+      const patch = { aureon_finish: Object.keys(next).length ? next : null } as unknown as Partial<Room>;
+      this.change((_, floor) => patchItem(floor.rooms.find((r) => r.id === room.id), patch));
     };
     return html`<div class="fp3d-aureon-paint fp3d-aureon-wall-paint" data-wall-paint=${index}>
-      <h4>${this.t("aureon_paint_wall_title")}</h4>
+      <h4>${title ?? this.t("aureon_paint_wall_title")}</h4>
       <div class="fp3d-aureon-swatches" role="radiogroup" aria-label=${this.t("aureon_paint_wall_title")}>
         ${AUREON_WALL_PAINTS.map(
           (p) => html`<button
