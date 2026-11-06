@@ -14,11 +14,17 @@ export function equipmentKind(row,state,preferences={},labels=[]){
  if(d==='media_player')return 'media';
  return equipmentKinds.includes(d)?d:'other';
 }
-export function labelVisible(row,preferences,labels=[]){
+// Labels chosen by the owner in Settings decide what AUREON shows:
+//  - never shown: any "hide" Label (and the semantic no_dboard Label);
+//  - "show only": when set, only equipment with one of those Labels;
+//  - per kind (lights, music, …): when set for a kind, only equipment of that kind with one of those Labels.
+export function labelVisible(row,preferences,labels=[],kind=''){
  if(hasSemanticLabel(row,labels,'no_dboard'))return false;
  const v=preferences.labelVisibility||{},ids=row.labels||[];
  if((v.exclude||[]).some(id=>ids.includes(id)))return false;
- return !(v.include||[]).length||(v.include||[]).some(id=>ids.includes(id));
+ if((v.include||[]).length&&!(v.include||[]).some(id=>ids.includes(id)))return false;
+ const perKind=kind&&preferences.labelKinds?.[kind];
+ return !perKind?.length||perKind.some(id=>ids.includes(id));
 }
 export function equipmentMatches(row,state,{kind='',availability='',label=''}={},preferences={},labels=[]){
  return (!kind||equipmentKind(row,state,preferences,labels)===kind)&&(!label||(row.labels||[]).includes(label))&&(!availability||(availability==='available'?!['unknown','unavailable'].includes(state?.state):['unknown','unavailable'].includes(state?.state)));

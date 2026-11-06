@@ -266,7 +266,7 @@
       for(const child of [...main.childNodes])if(child!==header&&child!==keep)child.remove();
       wrap.classList.toggle('au-home',name==='Início'||name==='Medien');wrap.classList.toggle('au-media',name==='Medien');
       const Page=customElements.get('aureon-platform'),labels=Page?.labels(this._platformController?.language||this._hass?.language||'en');
-      main.dataset.auPage=Page?.routeNames?.[name]||'';if(header)header.hidden=['Geräte','Planta'].includes(name)||(['Räume','Sicherheit','Energie'].includes(name)&&this._platformController?.preferences?.look!=='classic');
+      main.dataset.auPage=Page?.routeNames?.[name]||'';if(header)header.hidden=['Geräte','Planta'].includes(name)||(['Räume','Sicherheit','Energie','Einstellungen'].includes(name)&&this._platformController?.preferences?.look!=='classic');
       if(header&&labels){header.querySelector('h1').textContent=labels[Page.routeNames[name]]||name;const eyebrow=header.querySelector('.small');if(eyebrow)eyebrow.textContent='AUREON / '+(name==='Einstellungen'?labels.settings.toUpperCase():'CONTROL CENTER');}
       [...this.shadowRoot.querySelectorAll('nav .au-nav-button')].forEach((button,i)=>{const active=PAGES[i]?.[1]===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
       this.shadowRoot.querySelector('.au-nav-more')?.classList.toggle('active',!['Início','Geräte','Medien'].includes(name));
@@ -285,14 +285,15 @@
       this._platformController.update(this._hass,this._registry);
       const page=make('aureon-platform');page.page=route;page.controller=this._platformController;page.palettes=Object.entries(PALETTES).map(([id,p])=>({id,...p}));
       page.addEventListener('aureon-platform-navigate',e=>this._navigate(e.detail));
-      page.addEventListener('aureon-preferences-changed',e=>{this._theme={...this._theme,mode:e.detail.appearance,palette:e.detail.palette,accent:e.detail.accent||''};if(['density','widgets'].includes(e.detail.changedKey)){const state={_settingsTab:page._settingsTab,_settingsKind:page._settingsKind,_settingsLimit:page._settingsLimit,_search:page._search,_wasteSearch:page._wasteSearch};this._render();const next=this.shadowRoot.querySelector('aureon-platform');if(next&&next.page===page.page)Object.assign(next,state);}});
+      page.addEventListener('aureon-preferences-changed',e=>{this._theme={...this._theme,mode:e.detail.appearance,palette:e.detail.palette,accent:e.detail.accent||''};if(['density','widgets','labelVisibility','labelKinds','hidden'].includes(e.detail.changedKey)){const state={_settingsTab:page._settingsTab,_settingsKind:page._settingsKind,_settingsLimit:page._settingsLimit,_search:page._search,_wasteSearch:page._wasteSearch};this._render();const next=this.shadowRoot.querySelector('aureon-platform');if(next&&next.page===page.page)Object.assign(next,state);}});
       target.append(page);if(route==='home')this._homeKeep=page;if(route==='home'&&this._platformController.preferences.widgets.music)this._musicSection(page,make,true);return true;
     }
     _musicSection(target, make, compact = false) {
       const Player = customElements.get('aureon-music-player');
       if (!Player?.createController) return;
       if (!this._musicController) this._musicController = Player.createController();
-      const allowed = this._registry?.entityRows?.map(row => row.id);
+      // Players follow the AUREON visibility rules (hidden equipment, Labels chosen in Settings).
+      const allowed = this._platformController?.registry ? this._platformController.rows.map(row => row.id) : this._registry?.entityRows?.map(row => row.id);
       this._musicController.configure({ language:this._platformController?.language, ...this._musicConfig, ...this._platformController?.preferences?.music, ...(allowed ? { allowedEntities: allowed } : {}) });
       this._musicController.setHass(this._hass);
       const player = make('aureon-music-player');
@@ -323,7 +324,7 @@
         ]);
         if (!Array.isArray(areas) || !Array.isArray(devices) || !Array.isArray(entities)) throw new Error('Resposta inesperada dos registros do Home Assistant');
         const labelNames = new Map((Array.isArray(labels) ? labels : []).map(l => [l.label_id, String(l.name || '').toLowerCase()]));
-        const allLabels=(Array.isArray(labels)?labels:[]).map(l=>({id:l.label_id,name:String(l.name||l.label_id)})).sort((a,b)=>a.name.localeCompare(b.name));
+        const allLabels=(Array.isArray(labels)?labels:[]).map(l=>({id:l.label_id,name:String(l.name||l.label_id),color:typeof l.color==='string'?l.color:''})).sort((a,b)=>a.name.localeCompare(b.name));
         const deviceById = new Map(devices.map(d => [d.id, d]));
         const areaById = new Map(areas.map(a => [a.area_id, a]));
         const getArea = entity => {
@@ -1596,7 +1597,7 @@
         if(typeof pic==='string'&&pic.startsWith('/')&&!pic.startsWith('//')){const img=make('img');img.src=h.hassUrl?h.hassUrl(pic):pic;img.alt='';box.append(img);}else box.append(make('span','au-rail-initial',(person.attributes.friendly_name||'?').trim().charAt(0).toUpperCase()));
         const home=person.state==='home';box.classList.toggle('home',home);box.append(make('strong','',person.attributes.friendly_name||person.entity_id),make('small','',home?(labels.homeState||'Home'):(labels.away||person.state)));nav.append(box);}}
       const main = make('main');main.dataset.auPage=customElements.get('aureon-platform')?.routeNames?.[this._page]||'';
-      const header = make('header');header.hidden=['Geräte','Planta'].includes(this._page);
+      const header = make('header');header.hidden=['Geräte','Planta'].includes(this._page)||(['Räume','Sicherheit','Energie','Einstellungen'].includes(this._page)&&this._platformController?.preferences?.look!=='classic');
       const heading = make('div');
       heading.append(make('div','small','AUREON / '+(this._page==='Einstellungen'?(customElements.get('aureon-platform')?.labels(this._platformController?.language)?.settings||'Settings').toUpperCase():'CONTROL CENTER')));
       const Page=customElements.get('aureon-platform');
