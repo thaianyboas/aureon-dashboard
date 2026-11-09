@@ -112,6 +112,8 @@ export function furnitureSymbol(type: string, w: number, d: number): Part[] | ty
       for (let i = 0; i < pillows; i++) out.push(rect(-w / 2 + 0.13 + pw * i, -d / 2 + 0.12, -w / 2 + 0.07 + pw * (i + 1), -d / 2 + 0.12 + Math.min(0.4, d * 0.18)));
       return out;
     }
+    case "column":
+      return [rect(-w / 2, -d / 2, w / 2, d / 2, "fp3d-sym-fill")];
     case "nightstand":
     case "wardrobe":
     case "dresser":

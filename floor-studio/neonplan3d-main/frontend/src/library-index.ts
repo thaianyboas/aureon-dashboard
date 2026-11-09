@@ -136,6 +136,7 @@ const BASIC: Record<string, [Kind, Room[]]> = {
   desk: ["office", ["office", "kids", "bedroom"]],
   office_chair: ["office", ["office", "kids"]],
   tall_cabinet: ["storage", ["office", "hall", "utility", "bath"]],
+  column: ["deco", ["living", "dining", "hall", "office"]],
   coat_rack: ["household", ["hall"]],
   stairs: ["stairs", ["hall", "living"]],
   stairs_u: ["stairs", ["hall", "living"]],

@@ -234,7 +234,7 @@ type SettingsTopic = "plans" | "house" | "weather" | "director" | "voice" | "loc
 const WALL_CATS: Record<string, string[]> = {
   base: ["kitchen", "sink", "stove", "dishwasher", "sideboard", "dresser", "tv_board", "nightstand", "washbasin", "washer", "dryer", "worktop", "desk"],
   hang: ["kitchen_wall", "tv_wall", "shelf", "lamp_wall", "radiator", "ac_unit", "led_strip"],
-  tall: ["kitchen_tall", "fridge", "wardrobe", "tall_cabinet", "shelf", "coat_rack"],
+  tall: ["kitchen_tall", "fridge", "wardrobe", "tall_cabinet", "column", "shelf", "coat_rack"],
   living: ["sofa", "armchair", "bed", "bunk_bed", "bench", "corner_bench", "plant"],
   light: ["lamp_wall", "lamp_floor", "led_strip", "lamp_table"],
   switches: ["wall_switch", "wall_socket", "wifi_ap", "water_heater"],

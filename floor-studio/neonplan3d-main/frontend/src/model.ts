@@ -1418,6 +1418,8 @@ export const FURNITURE_TYPES = [
   "desk",
   "office_chair",
   "tall_cabinet",
+  // AUREON: a column against a wall (or free-standing), as tall as the room
+  "column",
   "coat_rack",
   "stairs",
   "stairs_u",
@@ -1453,7 +1455,7 @@ export const FURNITURE_GROUPS: Record<string, FurnitureType[]> = {
   kitchen: ["kitchen", "kitchen_wall", "kitchen_tall", "island", "worktop", "sink", "stove", "dishwasher", "fridge"],
   sleeping: ["bed", "bunk_bed", "nightstand", "wardrobe", "dresser"],
   bath: ["bathtub", "shower", "wc", "washbasin", "washer", "dryer"],
-  work: ["desk", "worktop", "office_chair", "tall_cabinet", "coat_rack", "radiator", "ac_unit", "stairs", "stairs_u", "robot_vacuum"],
+  work: ["desk", "worktop", "office_chair", "tall_cabinet", "column", "coat_rack", "radiator", "ac_unit", "stairs", "stairs_u", "robot_vacuum"],
   vehicles: ["parking"],
   outdoor: ["awning"],
   household: ["waste_bin", "mailbox"],
@@ -1817,6 +1819,7 @@ export const FURNITURE_SIZE: Record<FurnitureType, [number, number, number]> = {
   dryer: [0.6, 0.6, 0.85],
   office_chair: [0.65, 0.65, 1.1],
   tall_cabinet: [0.6, 0.6, 2.1],
+  column: [0.3, 0.3, 2.6],
   coat_rack: [1.0, 0.35, 1.9],
 };
 

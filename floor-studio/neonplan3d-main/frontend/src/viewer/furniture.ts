@@ -1734,6 +1734,10 @@ function buildFurniture(buf: GeoBuffer, lines: LineBuffer, shadow: GeoBuffer, f:
     case "tall_cabinet":
       cabinet(b, w, d, h, 1, h * 0.5);
       break;
+    case "column":
+      // AUREON: a plain column, painted like the walls
+      b.box(-w / 2, w / 2, 0, h, -d / 2, d / 2, C.white, C.whiteTop, EDGE_FURN);
+      break;
     case "coat_rack":
       coatRack(b, w, d, h);
       break;

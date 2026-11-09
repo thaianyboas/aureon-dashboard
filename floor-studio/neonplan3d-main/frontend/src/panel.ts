@@ -28,8 +28,8 @@ import type { Theme } from "./themes.ts";
 import { keepInRoom, snapToWall } from "./geometry/snap.ts";
 import { furnitureName } from "./furniture-names.ts";
 import { confirmEntities, defaultHeight, entityName, kindOf } from "./devices.ts";
-import { canLift, zonesOf, type LampMount } from "./model.ts";
-import { mountBase, packsVersion } from "./packs.ts";
+import { canLift, FURNITURE_GROUPS, zonesOf, type LampMount } from "./model.ts";
+import { furnitureSize, getPacks, mountBase, packItemName, packsVersion, packType } from "./packs.ts";
 import { hasFeature, labOn, released } from "./features.ts";
 import { mountLocateLab } from "./locate-lab.ts";
 import { directorOnHere } from "./director.ts";
@@ -541,6 +541,51 @@ export class Floorplan3dPanel extends LitElement {
           /></label>
           ${f.mount_y != null ? html`<button class="fp3d-chip" @click=${() => this.editFurniture(id, (m) => (m.mount_y = null))}>${this.t("height_auto")}</button>` : nothing}`
       : nothing}`;
+  }
+
+  /** AUREON: swaps the selected piece for another kind; it keeps its place and direction, the size is the new kind's. */
+  private swapFurniture(type: string): void {
+    const id = this._selFurniture;
+    if (!id || !type) return;
+    const [w, d, h] = furnitureSize(type);
+    this.editFurniture(id, (f) => Object.assign(f, { type, w, d, h, variant: null, mount_y: null }));
+  }
+
+  /** AUREON: the kinds the selected piece can become – the built-in ones by group, then each installed pack. */
+  private renderSwap() {
+    const lang = this.hass?.language ?? "en";
+    return html`<label class="fp3d-size" title=${this.t("aureon_swap")}
+      >⇄
+      <select
+        aria-label=${this.t("aureon_swap")}
+        @change=${(e: Event) => {
+          const sel = e.target as HTMLSelectElement;
+          this.swapFurniture(sel.value);
+          sel.value = "";
+        }}
+      >
+        <option value="">${this.t("aureon_swap")} …</option>
+        ${Object.entries(FURNITURE_GROUPS).map(
+          ([group, types]) => html`<optgroup label=${group}>${types.map((t) => html`<option value=${t}>${furnitureName(this.hass, t)}</option>`)}</optgroup>`,
+        )}
+        ${getPacks().map(
+          (p) => html`<optgroup label=${p.name ?? p.id}>${p.items.map((it) => html`<option value=${packType(p.id, it.id)}>${packItemName(it, lang)}</option>`)}</optgroup>`,
+        )}
+      </select></label
+    >`;
+  }
+
+  /** AUREON: the editor, with this piece selected for the finer work. */
+  private openInEditor(id: string): void {
+    this._furnish = false;
+    this.setMode("editor");
+    let tries = 0;
+    const open = () => {
+      const ed = this.renderRoot.querySelector("fp3d-editor") as (HTMLElement & { selectItem?(kind: string, id: string): void }) | null;
+      if (ed?.selectItem) ed.selectItem("furniture", id);
+      else if (tries++ < 60) setTimeout(open, 100);
+    };
+    void this.updateComplete.then(open);
   }
 
   private turnFurniture(delta: number): void {
@@ -1438,6 +1483,12 @@ export class Floorplan3dPanel extends LitElement {
                   </div>`
               : nothing}
           </div>
+          ${this.isAdmin && !tt
+            ? html`<button class="fp3d-chip" aria-pressed=${this._furnish} title=${this.t("furnish_hint")} @click=${() => {
+                this._furnish = !this._furnish;
+                if (!this._furnish) this._selFurniture = this._selDevice = null;
+              }}>✎ ${this.t("aureon_arrange")}</button>`
+            : nothing}
           <button class="fp3d-chip fp3d-tt-chip" aria-pressed=${tt} title=${this.t("tt_hint")} @click=${() => this.toggleTimeTravel()}>
             ${hasFeature("time_travel") ? "⏪" : "🔒"} ${this.t("tt_chip")}
           </button>
@@ -1453,6 +1504,8 @@ export class Floorplan3dPanel extends LitElement {
                     <button class="fp3d-chip" @click=${() => this.turnFurniture(-45)}>↺ 45°</button>
                     <button class="fp3d-chip" @click=${() => this.turnFurniture(45)}>↻ 45°</button>
                     <button class="fp3d-chip" title=${this.t("furn_mirror_hint")} @click=${() => this.editFurniture(this._selFurniture!, (f) => (f.mirror = !f.mirror))}>⇋ ${this.t("furn_mirror")}</button>
+                    ${this.renderSwap()}
+                    <button class="fp3d-chip" @click=${() => this.openInEditor(this._selFurniture!)}>✎ ${this.t("aureon_open_editor")}</button>
                     <button class="fp3d-chip fp3d-danger-chip" @click=${() => this.deleteFurniture()}>${this.t("delete")}</button>`
                 : this._selDevice
                   ? html`<span>${entityName(this.hass, this._selDevice)}</span>

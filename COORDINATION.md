@@ -889,3 +889,14 @@ Validation: root 194 tests, typecheck, validate, test:browser, disposable HA scr
 - Assets in custom_components/aureon_floor/frontend/images/aureon-sky, aureon-nature (credits file there).
 Validation: frontend 628 tests, typecheck, build budgets, backend 180 pytest, fidelity re-audit, repo tests 194,
 validate, migration contract, test:browser, disposable HA screenshots (day/sunset/night/rain, walk). Not on owner's HA.
+
+## Claude batch 2026-11-09 (4) — Floor Studio: arrange in 3D, swap, column (not published yet)
+
+- ARRANGE (owner): "✎ Arrumar" chip in the 3D view (admins only, not during time travel) turns on the existing furnish
+  mode (drag to move, turn ±45°, size, mount height, mirror, delete). New in its bar: "Trocar por …" (swap for any
+  built-in kind or installed pack item; keeps place and direction, takes the new kind's size) and "Abrir no editor"
+  (editor with that piece selected).
+- COLUMN (owner): new furniture type `column` (0.3×0.3×2.6 m, plain, wall-coloured; Real look "architecture"); in the
+  work group, the wall view's tall items and the library (deco). pt/en/de names.
+Validation: frontend 628, typecheck, build budgets, backend 180, fidelity re-audit, repo tests, validate, test:browser,
+disposable HA screenshot (arrange bar with a test column; test item removed again). Not on owner's HA.
