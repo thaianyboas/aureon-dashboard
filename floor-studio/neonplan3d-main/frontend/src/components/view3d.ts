@@ -5246,6 +5246,15 @@ export class Fp3dView3d extends LitElement {
         </header>
         ${admin ? nothing : html`<p class="fp3d-set-note">${t("view_settings_admin")}</p>`}
         <h4>${t("view_settings_look")}</h4>
+        <label class="fp3d-set-field" title=${t("aureon_outdoor_hint")}
+          >${t("aureon_outdoor")}
+          <select ?disabled=${!admin} @change=${(e: Event) => { const v = (e.target as HTMLSelectElement).value; this.setPlanSettings({ aureon_outdoor: v === "sky" || v === "off" ? v : null }); }}>
+            <option value="garden" ?selected=${st.aureon_outdoor !== "sky" && st.aureon_outdoor !== "off"}>${t("aureon_outdoor_garden")}</option>
+            <option value="sky" ?selected=${st.aureon_outdoor === "sky"}>${t("aureon_outdoor_sky")}</option>
+            <option value="off" ?selected=${st.aureon_outdoor === "off"}>${t("aureon_outdoor_off")}</option>
+          </select></label
+        >
+        ${st.aureon_outdoor !== "off" ? check("aureon_sun_arc", !!st.aureon_sun_arc, (v) => ({ aureon_sun_arc: v })) : nothing}
         ${check("sun_shadow", st.sun_shadow !== false, (v) => ({ sun_shadow: v }), "sun_shadow_hint")}
         ${st.sun_shadow !== false
           ? html`<label class="fp3d-set-field" title=${t("sun_arc_hint")}

@@ -57,6 +57,7 @@ import {
 } from "three";
 import {aureonMark,AureonModels} from './aureon-models.ts';
 import {buildFinishes} from './aureon-finishes.ts';
+import {AureonOutdoor,pickSky,type OutdoorFrame} from './aureon-outdoor.ts';
 import {AureonPathTrace,TRACE_IDLE_MS} from './aureon-pathtrace.ts';
 import {RealPbrRenderer,furniturePbrKind,floorPbrKind,type PbrGroup,type PbrKind,type PbrLamp} from './real-pbr.ts';
 import type { Building, Floor, Furniture, Room, StartView } from "../model.ts";
@@ -327,6 +328,20 @@ export interface ScreenState {
 }
 
 /** Position of the sun (from sun.sun): degrees above the horizon and clockwise from north. */
+/** AUREON: under the living sky the house view looks from lower down, and the picture is shifted up by this share. */
+/** AUREON: where the frontend's pictures are served (next to this bundle; the integration's path otherwise). */
+function aureonAssetBase(): string {
+  try {
+    return new URL("./", import.meta.url).href;
+  } catch {
+    return new URL("/aureon_floor_static/", location.href).href;
+  }
+}
+const AUREON_SKY_PHI = 1.3;
+const AUREON_SKY_SHIFT = 0.25;
+/** AUREON: the plan fills the picture up to this height (-1 bottom … 1 top); the sky shows above it. */
+const AUREON_SKY_TOP = 0.3;
+
 export interface SunState {
   elevation: number;
   azimuth: number;
@@ -612,6 +627,9 @@ export class FloorplanViewer {
   private aureonTraceRaf = 0;
   /** AUREON: own .glb furniture models (see aureon-models.ts). */
   private aureonModels: AureonModels | null = null;
+  /** AUREON: the living sky and the garden in the realistic looks (see aureon-outdoor.ts). */
+  private aureonOutdoor: AureonOutdoor | null = null;
+  private aureonSkySig = "";
   private aureonModelTimer = 0;
   private readonly host: HTMLElement;
   private readonly options: ViewerOptions;
@@ -1003,6 +1021,7 @@ export class FloorplanViewer {
     const next = Number.isFinite(scale) ? Math.min(1.5, Math.max(0.5, scale)) : 1;
     if (next === this.frameScale) return;
     this.frameScale = next;
+    this.updateAureonOutdoor();
     // the stage may have changed shape together with the frame: fit to its current aspect
     const w = this.host.clientWidth || 1, h = this.host.clientHeight || 1;
     this.camera.aspect = w / h;
@@ -1025,6 +1044,7 @@ export class FloorplanViewer {
     this.applyHouseLines();
     this.applyTargets(!animate);
     this.applyHighlight();
+    this.applyAureonShift();
     this.fit(animate ? 700 : 0);
   }
 
@@ -1062,6 +1082,7 @@ export class FloorplanViewer {
     this.roomId = roomId;
     this.labelsDirty = true;
     this.applyHighlight();
+    this.applyAureonShift();
     if (!roomId) {
       this.fit(700);
       return;
@@ -1579,6 +1600,7 @@ export class FloorplanViewer {
     // the neon ground grid would vanish on the light background anyway
     this.placeGround();
     this.buildSunFx();
+    this.updateAureonOutdoor();
     this.invalidate();
   }
 
@@ -1640,6 +1662,7 @@ export class FloorplanViewer {
     }
     this.placeSky();
     this.buildSunFx();
+    this.updateAureonOutdoor();
     this.invalidate();
   }
 
@@ -1655,6 +1678,7 @@ export class FloorplanViewer {
   /** Weather outside: particles over the plot, fog, a dimmer sun; nothing on the tablet level but the dimming. */
   setWeather(weather: WeatherView | null): void {
     this.weather = weather;
+    this.updateAureonOutdoor();
     for (const fv of this.floors) this.buildSun(fv);
     this.applyWeather();
     this.placeSky();
@@ -1768,7 +1792,7 @@ export class FloorplanViewer {
     const w = this.weather;
     const cloud = w?.cloud ?? 0;
     const night = !sun || sun.elevation < -3;
-    if (!sun || !w || w.disc === false || cloud > 0.85 || (!night && sun.elevation < 1)) {
+    if (!sun || !w || w.disc === false || cloud > 0.85 || (!night && sun.elevation < 1) || this.aureonOutdoorMode() !== "off") {
       this.skyDisc.visible = false;
       return;
     }
@@ -1810,7 +1834,7 @@ export class FloorplanViewer {
       else this.sunFx.hideShadow();
     }
     const path = this.sunPath;
-    const arc = on && !!path && path.points.length > 1 && sun.elevation > -3;
+    const arc = on && !!path && path.points.length > 1 && sun.elevation > -3 && (this.aureonOutdoorMode() === "off" || !!b?.settings.aureon_sun_arc);
     const frame = arc ? this.arcFrame() : null;
     const arcSig = arc && frame ? `${this.theme},${sun.elevation.toFixed(1)},${sun.azimuth.toFixed(1)},${this.compassLetters.join("")},${this.hourCycle.hourCycle ?? ""},${path.points[0].t},${north},${frame.x.toFixed(2)},${frame.z.toFixed(2)},${frame.y.toFixed(2)},${frame.r.toFixed(2)},${cloud.toFixed(1)}` : "";
     if (arcSig === this.arcSig) return;
@@ -2248,7 +2272,7 @@ export class FloorplanViewer {
   dispose(): void {
     this.realPbr?.dispose();this.realPbr=null;
     this.stopAureonTrace();
-    clearTimeout(this.aureonModelTimer);this.aureonModels?.dispose();this.aureonModels=null;
+    clearTimeout(this.aureonModelTimer);this.aureonModels?.dispose();this.aureonModels=null;this.aureonOutdoor?.dispose();this.aureonOutdoor=null;
     this.projections.dispose();
     this.disposed = true;
     cancelAnimationFrame(this.frame);
@@ -2358,7 +2382,7 @@ export class FloorplanViewer {
     this.labelsDirty = true;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-    this.camera.updateProjectionMatrix();
+    this.applyAureonShift();
     // AUREON presentation fit: while the camera still shows the fitted view, a new stage shape re-fits it
     if (this.frameScale !== 1 && this.aureonFitted && Math.abs(this.controls.view.radius - this.aureonFitted) < 1e-3) this.fit(0);
     this.invalidate();
@@ -4364,7 +4388,9 @@ export class FloorplanViewer {
     // a floor may have a start view of its own (#182): it opens from that side and distance
     const own = !house ? (this.floorMap.get(this.floorId!)?.floor.start_view ?? null) : null;
     const start = own ?? this.startView;
-    const useRadius = !!start && (house || !!own);
+    // AUREON: under the living sky the whole plan is framed from the start view's side, a little lower, with the sky
+    const skyFit = this.aureonOutdoorMode() !== "off" && this.roomId === null && (house || this.floors.length === 1);
+    const useRadius = !!start && (house || !!own) && !skyFit;
     if (start && useRadius) this.controls.maxRadius = Math.max(this.controls.maxRadius, start.radius * 1.5);
     // the start view's framing (#206): the point it looks at, counted from the opened floor
     const at = useRadius ? start!.target : null;
@@ -4378,16 +4404,17 @@ export class FloorplanViewer {
     }
     // AUREON presentation (frameScale ≠ 1, never the original default): fit the projected building box to the
     // stage instead of its bounding sphere, so elongated plans fill wide and tall stages; frameScale is the margin.
-    if (this.frameScale !== 1 && !useRadius) {
-      const phi = start ? start.phi : 0.85, base = start ? start.theta : -0.6;
+    if ((this.frameScale !== 1 || skyFit) && !useRadius) {
+      const phi = skyFit ? Math.max(start?.phi ?? 0, AUREON_SKY_PHI) : start ? start.phi : 0.85, base = start ? start.theta : -0.6;
       // the presentation may turn the camera (never the building) to the quarter that fills the stage best;
       // the original side wins unless another one is clearly larger (>6 %)
-      let theta = base, tight = this.projectedFit(box, center, phi, base);
+      const top = skyFit ? AUREON_SKY_TOP : 1;
+      let theta = base, tight = this.projectedFit(box, center, phi, base, top);
       if (!start) for (const k of [1, 2, 3]) {
-        const t = base + (k * Math.PI) / 2, f = this.projectedFit(box, center, phi, t);
+        const t = base + (k * Math.PI) / 2, f = this.projectedFit(box, center, phi, t, top);
         if (f.radius < tight.radius * 0.94) { theta = t; tight = f; }
       }
-      this.aureonFitted = tight.radius * this.frameScale;
+      this.aureonFitted = tight.radius * (this.frameScale !== 1 ? this.frameScale : 1.06);
       this.controls.flyTo({ target: tight.target, radius: this.aureonFitted, phi, theta }, duration, !!start);
       return;
     }
@@ -4395,7 +4422,7 @@ export class FloorplanViewer {
   }
 
   /** AUREON: the smallest orbit radius whose view contains all box corners, with the target re-centred on screen. */
-  private projectedFit(box: Box3, center: Vector3, phi: number, theta: number): { target: Vector3; radius: number } {
+  private projectedFit(box: Box3, center: Vector3, phi: number, theta: number, top = 1): { target: Vector3; radius: number } {
     const cam = this.camera.clone();
     const corners: Vector3[] = [];
     // rooms end at the inner face of exterior walls: the walls themselves (up to ~0.5 m) stand outside the box
@@ -4414,7 +4441,7 @@ export class FloorplanViewer {
     };
     const solve = () => {
       let lo = 0.5, hi = 400;
-      for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2, b = place(mid); if (b.x0 >= -1 && b.x1 <= 1 && b.y0 >= -1 && b.y1 <= 1) hi = mid; else lo = mid; }
+      for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2, b = place(mid); if (b.x0 >= -1 && b.x1 <= 1 && b.y0 >= -1 && b.y1 <= top) hi = mid; else lo = mid; }
       return hi;
     };
     let radius = solve();
@@ -4422,13 +4449,90 @@ export class FloorplanViewer {
       const b = place(radius);
       const dist = cam.position.distanceTo(target), halfH = dist * Math.tan((cam.fov * DEG) / 2), halfW = halfH * cam.aspect;
       const right = new Vector3().setFromMatrixColumn(cam.matrixWorld, 0), up = new Vector3().setFromMatrixColumn(cam.matrixWorld, 1);
-      target.addScaledVector(right, ((b.x0 + b.x1) / 2) * halfW).addScaledVector(up, ((b.y0 + b.y1) / 2) * halfH);
+      target.addScaledVector(right, ((b.x0 + b.x1) / 2) * halfW).addScaledVector(up, ((b.y0 + b.y1) / 2 - (top - 1) / 2) * halfH);
       radius = solve();
     }
     return { target, radius: Math.max(radius, 2) };
   }
 
   /** The ground grid lies under the lowest floor and reaches well beyond the building. */
+  /** AUREON: living sky and garden – in the realistic looks unless switched off in the plan's settings. */
+  private aureonOutdoorMode(): "garden" | "sky" | "off" {
+    const b = this.building;
+    // the dashboard's presentation stage (frameScale ≠ 1) keeps its own look
+    if (!b || !["day", "real"].includes(this.theme) || this.frameScale !== 1) return "off";
+    const m = b.settings.aureon_outdoor;
+    return m === "sky" || m === "off" ? m : "garden";
+  }
+
+  /**
+   * AUREON: the architect's shift lens – the picture moves up so the sky shows above the plan, the camera does not
+   * tilt. Only for the whole house under the living sky; the projected fit then frames the plan in what is left.
+   */
+  private applyAureonShift(): void {
+    const w = this.size.w || 1, h = this.size.h || 1;
+    if (this.aureonOutdoorMode() !== "off" && (this.floorId === null || this.floors.length === 1) && this.roomId === null) this.camera.setViewOffset(w, h, 0, -h * AUREON_SKY_SHIFT, w, h);
+    else this.camera.clearViewOffset();
+    this.camera.updateProjectionMatrix();
+  }
+
+  /** AUREON: builds, updates or removes the living sky and the garden. */
+  private updateAureonOutdoor(): void {
+    const mode = this.aureonOutdoorMode();
+    if (mode === "off") {
+      if (this.aureonOutdoor) {
+        this.scene.remove(this.aureonOutdoor.group);
+        this.aureonOutdoor.dispose();
+        this.aureonOutdoor = null;
+        this.aureonSkySig = "";
+        this.applyAureonShift();
+      }
+      return;
+    }
+    if (!this.aureonOutdoor) {
+      this.aureonOutdoor = new AureonOutdoor(aureonAssetBase(), () => this.invalidate());
+      this.scene.add(this.aureonOutdoor.group);
+      this.applyAureonShift();
+    }
+    const b = this.building!;
+    let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity, y = Infinity;
+    let entrance: [number, number] | null = null;
+    for (const fv of this.floors) {
+      y = Math.min(y, fv.floor.elevation + Math.min(0, fv.ty));
+      for (const room of fv.floor.rooms) {
+        for (const [x, z] of room.points) {
+          x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z);
+        }
+        if (!entrance && /corr|flur|diele|hall|entr|eingang|vest|foyer/i.test(room.name ?? "")) entrance = centroid(room.points);
+      }
+    }
+    if (!Number.isFinite(x0)) return;
+    // the entrance is the outer edge nearest to the hall's middle
+    if (entrance) {
+      const [ex, ez] = entrance, d = [ex - x0, x1 - ex, ez - z0, z1 - ez], k = d.indexOf(Math.min(...d));
+      entrance = k === 0 ? [x0, ez] : k === 1 ? [x1, ez] : k === 2 ? [ex, z0] : [ex, z1];
+    }
+    const frame: OutdoorFrame = {
+      x0, x1, z0, z1,
+      floorY: y - SLAB,
+      groundY: y - SLAB - 0.22,
+      entrance,
+      viewTheta: this.startView?.theta ?? -0.6,
+      garden: this.aureonOutdoorMode() === "garden",
+    };
+    this.aureonOutdoor.setFrame(frame);
+    const sun = this.sun, w = this.weather;
+    const choice = pickSky(sun ? sun.elevation : null, sun?.azimuth ?? 180, w);
+    const north = b.settings.north ?? 0;
+    const az = sun ? (choice.key === "night" ? sun.azimuth + 180 : sun.azimuth) : 180;
+    const sig = `${choice.key},${choice.stars.toFixed(2)},${choice.light},${(north + az).toFixed(0)}`;
+    this.aureonOutdoor.setGround(Math.min(1, (w?.rain ?? 0) * 1.4), Math.min(1, (w?.snow ?? 0) * 1.4));
+    if (sig !== this.aureonSkySig) {
+      this.aureonSkySig = sig;
+      void this.aureonOutdoor.setSky(choice, north + az);
+    }
+  }
+
   private placeGround(): void {
     const box = new Box3();
     let y = Infinity;
@@ -4438,6 +4542,7 @@ export class FloorplanViewer {
       for (const a of fv.floor.outdoor ?? []) for (const [x, z] of a.points) box.expandByPoint(new Vector3(x, 0, z));
     }
     this.ground.visible = !box.isEmpty() && !this.lowQuality && !["day","real"].includes(this.theme);
+    this.updateAureonOutdoor();
     if (box.isEmpty()) return;
     if (this.ground.visible && !this.groundTexture) {
       this.groundTexture = makeGroundTexture();
@@ -5276,7 +5381,7 @@ export class FloorplanViewer {
 
   /** AUREON: refinement is for the Real look on "High", on screen. */
   private traceWanted(): boolean {
-    return AureonPathTrace.enabled && this.theme === "real" && !this.lowQuality && this.highQuality && !this.disposed && !document.hidden && this.onScreen;
+    return AureonPathTrace.enabled && this.aureonOutdoorMode() === "off" && this.theme === "real" && !this.lowQuality && this.highQuality && !this.disposed && !document.hidden && this.onScreen;
   }
   private armAureonTrace(moving: boolean): void {
     if (!this.traceWanted() || this.aureonTrace?.off) return;
@@ -5402,7 +5507,8 @@ export class FloorplanViewer {
     const robotsMoving = this.stepRobots(now);
     const fansTurning = this.stepFans(now);
     const weatherMoving = this.stepWeather(now);
-    const moving = cameraMoving || floorsMoving || openingsMoving || flashing || roofMoving;
+    const skyBlending = this.aureonOutdoor?.tick(now) ?? false;
+    const moving = cameraMoving || floorsMoving || openingsMoving || flashing || roofMoving || skyBlending;
     const busy: string[] = [];
     // a finger or the mouse turning the view draws frames too, though no inertia runs yet
     if (cameraMoving || this.controls.busy) busy.push("camera");

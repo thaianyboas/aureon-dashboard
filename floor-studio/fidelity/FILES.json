@@ -4,10 +4,10 @@
   "zip_members_crc_verified": 679,
   "version": "3.0.1",
   "summary": {
-    "identical": 317,
+    "identical": 315,
     "missing": 183,
-    "modified": 140,
-    "added": 122
+    "modified": 142,
+    "added": 138
   },
   "files": [
     {
@@ -300,7 +300,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/lang/pt.json",
       "original_sha256": "532ebff5da2b52132a4c14673a71519b0d68bf31c065ec0f76cdee3627a156af",
-      "candidate_sha256": "12cf7788c2cb354da4c184937b1acd7c16a3dcb514cf342f63dd00b30143e3d0",
+      "candidate_sha256": "17ad94b5ee5bb1e8908e740c777897b072645184668cf4c90454f237244e55c5",
       "bytes": 151166,
       "status": "modified"
     },
@@ -342,21 +342,21 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-3d.js",
       "original_sha256": "2d16eaadced3d87d4acd24af83694c6aa179b611093121ffec4e696b4d8daeb3",
-      "candidate_sha256": "2a55d3d7c6007fb8dbed8358cf0066d2723578714e2fea8261697e63560a7d9b",
+      "candidate_sha256": "17cfe5a5441874db7a32afa196f3ed5a627dfaf74e25eee4e36254ba6a985556",
       "bytes": 873164,
       "status": "modified"
     },
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-card-editor.js",
       "original_sha256": "ff77086109abcaeb329711a87bd1ca85686c833b004d501e3e2791db1386bd9f",
-      "candidate_sha256": "b0a439bd086ff4e1aa2bf69ea61a64c2839223e05964a9ad42494f4265bed423",
+      "candidate_sha256": "75006a789a7e7beefe54756962fbe94b536be75fa6869f06c428faf05922fbc5",
       "bytes": 323143,
       "status": "modified"
     },
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-editor.js",
       "original_sha256": "c5ea0f02630abdc4e8166e7273215d319d8c72c0466a1c13966e68407f2db5c3",
-      "candidate_sha256": "41bdef19d217b88cf2ef51ff69e123f505d551ee97462827dea45ecc8fbbbb41",
+      "candidate_sha256": "7267efc44f98bcebefe30678ece55ce5a08d22420e98a8585bdee1421b201c45",
       "bytes": 1067764,
       "status": "modified"
     },
@@ -391,7 +391,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d.js",
       "original_sha256": "a2ecf30a957cc66557fd0286d6b0da2fb3b2785c8c8b19819ca17d0a58afc154",
-      "candidate_sha256": "2d6feb9c1b965097d3673eb34db66c2a7953d7df128e5aefd5e49f77977b2100",
+      "candidate_sha256": "c048abebf7aebacf613a8fc6180ebb8aa4db1c2f075a10cbbd4b20c22875ae90",
       "bytes": 834792,
       "status": "modified"
     },
@@ -475,9 +475,9 @@
     {
       "path": "custom_components/neonplan3d/schema.py",
       "original_sha256": "60fcdf00bcac8acc0e0d956928f3df3626a0cf92ed6eb53940bc9c4ca4561c3b",
-      "candidate_sha256": "60fcdf00bcac8acc0e0d956928f3df3626a0cf92ed6eb53940bc9c4ca4561c3b",
+      "candidate_sha256": "1027bc1017116210568e330214c0c1f1298f671707b8739a5c2cdb6d32ceb79b",
       "bytes": 61963,
-      "status": "identical"
+      "status": "modified"
     },
     {
       "path": "custom_components/neonplan3d/screens.py",
@@ -1896,7 +1896,7 @@
     {
       "path": "frontend/lang/pt.json",
       "original_sha256": "532ebff5da2b52132a4c14673a71519b0d68bf31c065ec0f76cdee3627a156af",
-      "candidate_sha256": "12cf7788c2cb354da4c184937b1acd7c16a3dcb514cf342f63dd00b30143e3d0",
+      "candidate_sha256": "17ad94b5ee5bb1e8908e740c777897b072645184668cf4c90454f237244e55c5",
       "bytes": 151166,
       "status": "modified"
     },
@@ -2204,7 +2204,7 @@
     {
       "path": "frontend/src/components/view3d.ts",
       "original_sha256": "ee2ed1538a4aef566b685ccb4782bfaff2f8161e9dac5fb6fe1c34718a7efee6",
-      "candidate_sha256": "273890e71767029f379c1dac474d91090293be00834685d43bb66d7175834a9c",
+      "candidate_sha256": "843365078e9190b37c4ba9120529f0ba2b8ece4c5d72fbd6220572bf4164eea6",
       "bytes": 392928,
       "status": "modified"
     },
@@ -2470,7 +2470,7 @@
     {
       "path": "frontend/src/i18n.ts",
       "original_sha256": "b8c8d7bf9812e50635271613098d8513ea35c227a06a36980db6ad9fccf75e9e",
-      "candidate_sha256": "9f0bbb3b2cdf462d37082b527add30cd3a2fe6d668f2ad3e73daf56b68376647",
+      "candidate_sha256": "b9286ec2832ec87fc50ea7e843dd8a9ad45b44bf304817386b0e7660998783b8",
       "bytes": 293510,
       "status": "modified"
     },
@@ -2778,9 +2778,9 @@
     {
       "path": "frontend/src/model.ts",
       "original_sha256": "7b7b2bbb5a7dfb65028f7eaa47120824015d3fb17ad612eac201fd85a686da82",
-      "candidate_sha256": "7b7b2bbb5a7dfb65028f7eaa47120824015d3fb17ad612eac201fd85a686da82",
+      "candidate_sha256": "60e1cc1e8f0e8b9546c1179f34701d9cd7955bef08af945095e04127d7f857b5",
       "bytes": 91751,
-      "status": "identical"
+      "status": "modified"
     },
     {
       "path": "frontend/src/module-scene.test.ts",
@@ -3681,7 +3681,7 @@
     {
       "path": "frontend/src/viewer/viewer3d.ts",
       "original_sha256": "24e243d7cbddf2c8ed95dab480d593f96f0c153b3256e7f92377fa4812265231",
-      "candidate_sha256": "72cd0c2def941a99081a1273877a7e1d4c4f77b4b7602b951fa6639c96685ebb",
+      "candidate_sha256": "8933f9a2a6e35667082b061fe288797e1ac382493ad5ff8c8e00b85172e69d30",
       "bytes": 278673,
       "status": "modified"
     },
@@ -4576,6 +4576,76 @@
       "status": "added"
     },
     {
+      "path": "custom_components/aureon_floor/frontend/images/AUREON_OUTDOOR_CREDITS.md",
+      "candidate_sha256": "131c830296d92519f58937f69f3627944e0404a9646eeb523b534aafe493f9ab",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-nature/bush.webp",
+      "candidate_sha256": "6d2e746cd63319718a65e068d0c39bd92c9547aa365b6024a35369bcb944a5cd",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-nature/grass-normal.jpg",
+      "candidate_sha256": "daf315b48d2dbd16d2b3a6302f2d15df8ecec9760d5e2c977ef9fbc6c232d62d",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-nature/grass.jpg",
+      "candidate_sha256": "3315501ed02505882b7452aeabaa6ce009a8ef80f5b94b6206ef0c54645f58ce",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-nature/tree-a.webp",
+      "candidate_sha256": "341b23ee7ed9280c21dc3abe8d4a11737a2fd8bea406bad2c9adb3581a81f1e6",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-nature/tree-b.webp",
+      "candidate_sha256": "47148d30a7adf6c5aad4f34cd22e663309875c56fbc400c538a18ba3a7be55c0",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-sky/clear.jpg",
+      "candidate_sha256": "43f1fbb9796d2e66123a996d2b148b0876a72c3a4e03b303de447b5f774d4c20",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-sky/dawn.jpg",
+      "candidate_sha256": "27efeb133eb8bdcec51a9ff5837e00ab8cb241f33831c386300886b541179a37",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-sky/day.jpg",
+      "candidate_sha256": "c89bf2892f1c96069a128b7d06984b676de0b77fe20103612ed492617ad9564e",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-sky/dusk.jpg",
+      "candidate_sha256": "d9c2539219a1a9c447aacf21ed3ac58b98652fe03bbc0a4f0f56e84aa44d5265",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-sky/mist.jpg",
+      "candidate_sha256": "75e5948e98778e71b06a24b959fe2d20c5a3bdd35b6f5fd1cd67bb20a2392049",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-sky/night.jpg",
+      "candidate_sha256": "a2b379464787677b69daaed2d154d2f06ac1b529c554693a5b9766383a8aab59",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-sky/overcast.jpg",
+      "candidate_sha256": "a3f2bf9dadef39e3efce49f6dd4fec6d8b53d6784ea9463808c4010b6cba9790",
+      "status": "added"
+    },
+    {
+      "path": "custom_components/aureon_floor/frontend/images/aureon-sky/sunset.jpg",
+      "candidate_sha256": "c7de75cf71401b1c001a21245c96e1395ce9f12817e28ce35b94e4b5d969ab60",
+      "status": "added"
+    },
+    {
       "path": "custom_components/aureon_floor/frontend/images/solar-pro.jpg",
       "candidate_sha256": "5e1d3e8f9b3ccf8dbdfa87baf80367d52652e5091ec3f64c41f8b53a54cb3b34",
       "status": "added"
@@ -4637,7 +4707,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/lang/pt.json",
-      "candidate_sha256": "12cf7788c2cb354da4c184937b1acd7c16a3dcb514cf342f63dd00b30143e3d0",
+      "candidate_sha256": "17ad94b5ee5bb1e8908e740c777897b072645184668cf4c90454f237244e55c5",
       "status": "added"
     },
     {
@@ -4667,17 +4737,17 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-3d.js",
-      "candidate_sha256": "2a55d3d7c6007fb8dbed8358cf0066d2723578714e2fea8261697e63560a7d9b",
+      "candidate_sha256": "17cfe5a5441874db7a32afa196f3ed5a627dfaf74e25eee4e36254ba6a985556",
       "status": "added"
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-card-editor.js",
-      "candidate_sha256": "b0a439bd086ff4e1aa2bf69ea61a64c2839223e05964a9ad42494f4265bed423",
+      "candidate_sha256": "75006a789a7e7beefe54756962fbe94b536be75fa6869f06c428faf05922fbc5",
       "status": "added"
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-editor.js",
-      "candidate_sha256": "41bdef19d217b88cf2ef51ff69e123f505d551ee97462827dea45ecc8fbbbb41",
+      "candidate_sha256": "7267efc44f98bcebefe30678ece55ce5a08d22420e98a8585bdee1421b201c45",
       "status": "added"
     },
     {
@@ -4707,7 +4777,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d.js",
-      "candidate_sha256": "2d6feb9c1b965097d3673eb34db66c2a7953d7df128e5aefd5e49f77977b2100",
+      "candidate_sha256": "c048abebf7aebacf613a8fc6180ebb8aa4db1c2f075a10cbbd4b20c22875ae90",
       "status": "added"
     },
     {
@@ -4777,7 +4847,7 @@
     },
     {
       "path": "custom_components/aureon_floor/schema.py",
-      "candidate_sha256": "60fcdf00bcac8acc0e0d956928f3df3626a0cf92ed6eb53940bc9c4ca4561c3b",
+      "candidate_sha256": "1027bc1017116210568e330214c0c1f1298f671707b8739a5c2cdb6d32ceb79b",
       "status": "added"
     },
     {
@@ -5038,6 +5108,16 @@
     {
       "path": "frontend/src/viewer/aureon-models.ts",
       "candidate_sha256": "adf5eefd0217f58a1f6acc9e46064cb36346607ff50ff2d4e4423f570e7d9b90",
+      "status": "added"
+    },
+    {
+      "path": "frontend/src/viewer/aureon-outdoor.test.ts",
+      "candidate_sha256": "5e25ec412057de0155691379f40eb0aa1557c6747394197856c06a09a9218b9d",
+      "status": "added"
+    },
+    {
+      "path": "frontend/src/viewer/aureon-outdoor.ts",
+      "candidate_sha256": "be382e429c7fca3ac43fd232ef7137b62e93ce5ac2d151d88368822fde304c12",
       "status": "added"
     },
     {

@@ -1,11 +1,11 @@
 {
   "scope": "AST printer with comments removed; runtime fidelity requires browser evidence",
   "summary": {
-    "preserved": 2300,
-    "aureon_extension": 102,
+    "preserved": 2293,
+    "aureon_extension": 109,
     "missing": 19,
     "modified": 30,
-    "added": 133
+    "added": 149
   },
   "symbols": [
     {
@@ -7537,13 +7537,13 @@
       "original_line": 5203,
       "candidate_line": 5218,
       "original_sha256": "9e5b3c294a011db1b3504a17a7c7df2f8bdf24b51fdacb9f1b426cd31425f97d",
-      "candidate_sha256": "9e5b3c294a011db1b3504a17a7c7df2f8bdf24b51fdacb9f1b426cd31425f97d",
-      "status": "preserved"
+      "candidate_sha256": "b9594920c92b9f90b949d0f5fb891004fe5fc5053a0e08813ddb0a41ff7e1f7a",
+      "status": "aureon_extension"
     },
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderGlassSize",
       "original_line": 5264,
-      "candidate_line": 5279,
+      "candidate_line": 5288,
       "original_sha256": "427394206a539fa31c3e3c3d02d800dac1b09b8b153f8322f064803bbdac9069",
       "candidate_sha256": "427394206a539fa31c3e3c3d02d800dac1b09b8b153f8322f064803bbdac9069",
       "status": "preserved"
@@ -7551,7 +7551,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderViewField",
       "original_line": 5277,
-      "candidate_line": 5292,
+      "candidate_line": 5301,
       "original_sha256": "eb9795426dd0b165bf95bb43b1298f613279f48c2e09f2028a77fa308381baa2",
       "candidate_sha256": "eb9795426dd0b165bf95bb43b1298f613279f48c2e09f2028a77fa308381baa2",
       "status": "preserved"
@@ -7559,7 +7559,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderNote",
       "original_line": 5314,
-      "candidate_line": 5329,
+      "candidate_line": 5338,
       "original_sha256": "0df7a03b67c17b09bdd5f38b3ef84969575c1d79a5a75064fc2a0432c40a2456",
       "candidate_sha256": "0df7a03b67c17b09bdd5f38b3ef84969575c1d79a5a75064fc2a0432c40a2456",
       "status": "preserved"
@@ -7567,7 +7567,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.spokenAlerts",
       "original_line": 5318,
-      "candidate_line": 5333,
+      "candidate_line": 5342,
       "original_sha256": "6d2d79c6ca7c4be7bdf3f50bfab126fe6d728a4ff3069c7140fcaa78850eaa1f",
       "candidate_sha256": "6d2d79c6ca7c4be7bdf3f50bfab126fe6d728a4ff3069c7140fcaa78850eaa1f",
       "status": "preserved"
@@ -7575,7 +7575,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.spokenCars",
       "original_line": 5324,
-      "candidate_line": 5339,
+      "candidate_line": 5348,
       "original_sha256": "839a89ad3179ab6232f557075abe40ef6aac7ee867fd219e22b3bf64ce56e90c",
       "candidate_sha256": "839a89ad3179ab6232f557075abe40ef6aac7ee867fd219e22b3bf64ce56e90c",
       "status": "preserved"
@@ -7583,7 +7583,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderSwipe",
       "original_line": 5340,
-      "candidate_line": 5355,
+      "candidate_line": 5364,
       "original_sha256": "ff22726c5d7920bc2db83a949a9df94c3be0a78d1a06e7ac40b9a9a81d71a26d",
       "candidate_sha256": "ff22726c5d7920bc2db83a949a9df94c3be0a78d1a06e7ac40b9a9a81d71a26d",
       "status": "preserved"
@@ -7591,7 +7591,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.lookThrough",
       "original_line": 5352,
-      "candidate_line": 5367,
+      "candidate_line": 5376,
       "original_sha256": "d4405fb20bf2ee56b5a5263f6b9715488393e34c1381b0b0f5a3f2de82fa940c",
       "candidate_sha256": "d4405fb20bf2ee56b5a5263f6b9715488393e34c1381b0b0f5a3f2de82fa940c",
       "status": "preserved"
@@ -7599,7 +7599,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.endThrough",
       "original_line": 5378,
-      "candidate_line": 5393,
+      "candidate_line": 5402,
       "original_sha256": "551c55ce6eb9f6020829dbfdbe06219a411db47bb64cb879764a84bb26e8414a",
       "candidate_sha256": "551c55ce6eb9f6020829dbfdbe06219a411db47bb64cb879764a84bb26e8414a",
       "status": "preserved"
@@ -7607,7 +7607,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderProHint",
       "original_line": 5392,
-      "candidate_line": 5407,
+      "candidate_line": 5416,
       "original_sha256": "19350cd6cf81100b5fe77395c49fe55fa4ce4f9f67019f4ee5f29cc54e01efe6",
       "candidate_sha256": "f83f47d9e80cebc34692f87b02d7e16b993b4c9f6c1ead7fab9b5b0ed53b3e4b",
       "status": "modified"
@@ -7615,7 +7615,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderCameraWall",
       "original_line": 5408,
-      "candidate_line": 5422,
+      "candidate_line": 5431,
       "original_sha256": "8d4b79970b52e3c332a2fa63c0c2ad5265587228032d10128346b3396b1af816",
       "candidate_sha256": "8d4b79970b52e3c332a2fa63c0c2ad5265587228032d10128346b3396b1af816",
       "status": "preserved"
@@ -7623,7 +7623,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.liveFor",
       "original_line": 5488,
-      "candidate_line": 5502,
+      "candidate_line": 5511,
       "original_sha256": "7820416c6c361a391c010c8d15cdea15be7ae15ec467f6234f8c21823e3ee318",
       "candidate_sha256": "7820416c6c361a391c010c8d15cdea15be7ae15ec467f6234f8c21823e3ee318",
       "status": "preserved"
@@ -7631,7 +7631,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.popOnDetection",
       "original_line": 5512,
-      "candidate_line": 5526,
+      "candidate_line": 5535,
       "original_sha256": "bfa69a4aeb4a9ba38a6ce899616e65f2330526f80d1b2e02e85ae8b102abf4cc",
       "candidate_sha256": "bfa69a4aeb4a9ba38a6ce899616e65f2330526f80d1b2e02e85ae8b102abf4cc",
       "status": "preserved"
@@ -7639,7 +7639,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderCamPop",
       "original_line": 5535,
-      "candidate_line": 5549,
+      "candidate_line": 5558,
       "original_sha256": "97a65f0604a6149bb6b5a12bb64d5c0f855ed8d5862926e1243e3a0e0ac6a258",
       "candidate_sha256": "97a65f0604a6149bb6b5a12bb64d5c0f855ed8d5862926e1243e3a0e0ac6a258",
       "status": "preserved"
@@ -7647,7 +7647,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderThrough",
       "original_line": 5546,
-      "candidate_line": 5560,
+      "candidate_line": 5569,
       "original_sha256": "3931f934424b1e9246fd0070a296af57a51103cf40c0dd1f0873650a29fb7c41",
       "candidate_sha256": "3931f934424b1e9246fd0070a296af57a51103cf40c0dd1f0873650a29fb7c41",
       "status": "preserved"
@@ -7655,7 +7655,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.throughFull",
       "original_line": 5577,
-      "candidate_line": 5591,
+      "candidate_line": 5600,
       "original_sha256": "d2444345717230813855d4c41370843454d4e4ec3cac81667c2e4d7d5d17136d",
       "candidate_sha256": "d2444345717230813855d4c41370843454d4e4ec3cac81667c2e4d7d5d17136d",
       "status": "preserved"
@@ -7663,7 +7663,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderMenu",
       "original_line": 5583,
-      "candidate_line": 5597,
+      "candidate_line": 5606,
       "original_sha256": "b141a5a555d3cdd9d1941549c5c83f3970ddae6380fc82f1cceae72b95efec9b",
       "candidate_sha256": "b141a5a555d3cdd9d1941549c5c83f3970ddae6380fc82f1cceae72b95efec9b",
       "status": "preserved"
@@ -7671,7 +7671,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.moduleMarkers",
       "original_line": 5608,
-      "candidate_line": 5622,
+      "candidate_line": 5631,
       "original_sha256": "5e6a8dc5e7b812d3791d90e4b1fe4da3f2654e351d4fd4e148b1735e891ca6f5",
       "candidate_sha256": "5e6a8dc5e7b812d3791d90e4b1fe4da3f2654e351d4fd4e148b1735e891ca6f5",
       "status": "preserved"
@@ -7679,7 +7679,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.openModuleCard",
       "original_line": 5644,
-      "candidate_line": 5658,
+      "candidate_line": 5667,
       "original_sha256": "2c0a7add6a977e73f295ebcaf1726f40d76e4f00b356393ec3138ecab458c5a1",
       "candidate_sha256": "2c0a7add6a977e73f295ebcaf1726f40d76e4f00b356393ec3138ecab458c5a1",
       "status": "preserved"
@@ -7687,7 +7687,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.onDeviceTap",
       "original_line": 5666,
-      "candidate_line": 5680,
+      "candidate_line": 5689,
       "original_sha256": "9fcd020ee34208bff3acd693c3765ce1a14333d28777eb6b13a15e0f7e0bb449",
       "candidate_sha256": "9fcd020ee34208bff3acd693c3765ce1a14333d28777eb6b13a15e0f7e0bb449",
       "status": "preserved"
@@ -7695,7 +7695,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.onOpeningTap",
       "original_line": 5738,
-      "candidate_line": 5752,
+      "candidate_line": 5761,
       "original_sha256": "99161d9f4a4ef5f815dd3f09b2f0211af07566f27fb56408356b9941b1948d49",
       "candidate_sha256": "99161d9f4a4ef5f815dd3f09b2f0211af07566f27fb56408356b9941b1948d49",
       "status": "preserved"
@@ -7703,7 +7703,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.effectiveTheme",
       "original_line": 5768,
-      "candidate_line": 5782,
+      "candidate_line": 5791,
       "original_sha256": "d39fe9b36eeb0d5db7238d72e66bf2d4c6e43d8c68c89b93999a0cb0c56e43c5",
       "candidate_sha256": "d39fe9b36eeb0d5db7238d72e66bf2d4c6e43d8c68c89b93999a0cb0c56e43c5",
       "status": "preserved"
@@ -7711,7 +7711,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.startViewOf",
       "original_line": 5774,
-      "candidate_line": 5788,
+      "candidate_line": 5797,
       "original_sha256": "45cce27cea65cc044405af9349e5610be821dd8def8e2152b91a06101c04996b",
       "candidate_sha256": "45cce27cea65cc044405af9349e5610be821dd8def8e2152b91a06101c04996b",
       "status": "preserved"
@@ -7719,7 +7719,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.currentView",
       "original_line": 5779,
-      "candidate_line": 5793,
+      "candidate_line": 5802,
       "original_sha256": "b09609bc858ed04701bbe3a907a6893e60ba401ddc513cf9714c181a1d26a40a",
       "candidate_sha256": "b09609bc858ed04701bbe3a907a6893e60ba401ddc513cf9714c181a1d26a40a",
       "status": "preserved"
@@ -7727,7 +7727,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.resetView",
       "original_line": 5783,
-      "candidate_line": 5797,
+      "candidate_line": 5806,
       "original_sha256": "90a19461a8c51bc206e670b5368a654eaf6a562580301c3e9fc93573ddc1c33c",
       "candidate_sha256": "90a19461a8c51bc206e670b5368a654eaf6a562580301c3e9fc93573ddc1c33c",
       "status": "preserved"
@@ -7735,7 +7735,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.fire",
       "original_line": 5788,
-      "candidate_line": 5802,
+      "candidate_line": 5811,
       "original_sha256": "176c3f2371aeef220856d0ee54f126ea152526e056474c7b11cae673abf9a755",
       "candidate_sha256": "176c3f2371aeef220856d0ee54f126ea152526e056474c7b11cae673abf9a755",
       "status": "preserved"
@@ -7743,7 +7743,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.toggleHolos",
       "original_line": 5793,
-      "candidate_line": 5807,
+      "candidate_line": 5816,
       "original_sha256": "ad8dc247562f3d7881e0362327352cfbea621e9a6dcc1f0d713a9e0628e084f3",
       "candidate_sha256": "ad8dc247562f3d7881e0362327352cfbea621e9a6dcc1f0d713a9e0628e084f3",
       "status": "preserved"
@@ -7751,7 +7751,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.holoVisible",
       "original_line": 5802,
-      "candidate_line": 5816,
+      "candidate_line": 5825,
       "original_sha256": "4ef25305db2e3ff7ab1c767a66d8cabaf5c13fdea976fac22ac6eba8ce5a4feb",
       "candidate_sha256": "4ef25305db2e3ff7ab1c767a66d8cabaf5c13fdea976fac22ac6eba8ce5a4feb",
       "status": "preserved"
@@ -7759,7 +7759,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.toggleFlows",
       "original_line": 5806,
-      "candidate_line": 5820,
+      "candidate_line": 5829,
       "original_sha256": "ca1b5d905df71815f8730152baf65b2997783a93d75dd4237f69e97bb77565d9",
       "candidate_sha256": "ca1b5d905df71815f8730152baf65b2997783a93d75dd4237f69e97bb77565d9",
       "status": "preserved"
@@ -7767,7 +7767,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderEnergy",
       "original_line": 5816,
-      "candidate_line": 5830,
+      "candidate_line": 5839,
       "original_sha256": "cf391e26c8208d8510e79a78c5bc89cfe09e5f766e17a11de334937638f785aa",
       "candidate_sha256": "cf391e26c8208d8510e79a78c5bc89cfe09e5f766e17a11de334937638f785aa",
       "status": "preserved"
@@ -7775,7 +7775,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.renderLegend",
       "original_line": 5847,
-      "candidate_line": 5861,
+      "candidate_line": 5870,
       "original_sha256": "143d40528a05eb461b33d77661a2d3bdf3e806285eca1054a7927c502cd98123",
       "candidate_sha256": "143d40528a05eb461b33d77661a2d3bdf3e806285eca1054a7927c502cd98123",
       "status": "preserved"
@@ -7783,7 +7783,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.sunPathToday",
       "original_line": 5866,
-      "candidate_line": 5880,
+      "candidate_line": 5889,
       "original_sha256": "eb1dc6671f9b15b17ccee56a2035f413bdba604e885f2577759383eef8f76e5b",
       "candidate_sha256": "eb1dc6671f9b15b17ccee56a2035f413bdba604e885f2577759383eef8f76e5b",
       "status": "preserved"
@@ -7791,7 +7791,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.skyColor",
       "original_line": 5878,
-      "candidate_line": 5892,
+      "candidate_line": 5901,
       "original_sha256": "c4d6fe6a57cdd0c66cbc02520be3f11d9614e48c90f99ea17e0b1338efcbfbdd",
       "candidate_sha256": "c4d6fe6a57cdd0c66cbc02520be3f11d9614e48c90f99ea17e0b1338efcbfbdd",
       "status": "preserved"
@@ -7799,7 +7799,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.watchLightning",
       "original_line": 5885,
-      "candidate_line": 5899,
+      "candidate_line": 5908,
       "original_sha256": "f14049923bc8baddabfa3e3a16e6bc61a90fa28abaf3d989ac4a27981cce0b89",
       "candidate_sha256": "f14049923bc8baddabfa3e3a16e6bc61a90fa28abaf3d989ac4a27981cce0b89",
       "status": "preserved"
@@ -7807,7 +7807,7 @@
     {
       "symbol": "components/view3d.ts::Fp3dView3d.render",
       "original_line": 5904,
-      "candidate_line": 5918,
+      "candidate_line": 5927,
       "original_sha256": "b5cc0a2d7c597cb45fd818b7f49a3cd3122e7ca52182c38901ea91b0224ba334",
       "candidate_sha256": "b5cc0a2d7c597cb45fd818b7f49a3cd3122e7ca52182c38901ea91b0224ba334",
       "status": "preserved"
@@ -7815,7 +7815,7 @@
     {
       "symbol": "components/view3d.ts::waterHeaterText",
       "original_line": 8255,
-      "candidate_line": 8276,
+      "candidate_line": 8285,
       "original_sha256": "4e2e02a77f5081e8ac8213c58cb98d3a9e594287e8c736dd36b8987bf7ca028a",
       "candidate_sha256": "4e2e02a77f5081e8ac8213c58cb98d3a9e594287e8c736dd36b8987bf7ca028a",
       "status": "preserved"
@@ -7823,7 +7823,7 @@
     {
       "symbol": "components/view3d.ts::formatPower",
       "original_line": 8262,
-      "candidate_line": 8283,
+      "candidate_line": 8292,
       "original_sha256": "d7710b9eb82317f6a192c3c8c1aa16784eda1f8f50d86b021815aa17bd68983f",
       "candidate_sha256": "d7710b9eb82317f6a192c3c8c1aa16784eda1f8f50d86b021815aa17bd68983f",
       "status": "preserved"
@@ -7831,7 +7831,7 @@
     {
       "symbol": "components/view3d.ts::runGlow",
       "original_line": 8268,
-      "candidate_line": 8289,
+      "candidate_line": 8298,
       "original_sha256": "8b47e1270b925f6def4b6cba2c379958b89c56a617b14a0ff218c77f996ed3e4",
       "candidate_sha256": "8b47e1270b925f6def4b6cba2c379958b89c56a617b14a0ff218c77f996ed3e4",
       "status": "preserved"
@@ -7839,7 +7839,7 @@
     {
       "symbol": "components/view3d.ts::markerHeight",
       "original_line": 8276,
-      "candidate_line": 8297,
+      "candidate_line": 8306,
       "original_sha256": "29433efe6ff7f345fc2e06870f2dac6f81587c749202f1b0e2a6f6eecfc25661",
       "candidate_sha256": "29433efe6ff7f345fc2e06870f2dac6f81587c749202f1b0e2a6f6eecfc25661",
       "status": "preserved"
@@ -10051,7 +10051,7 @@
     {
       "symbol": "i18n.ts::languageCode",
       "original_line": 4726,
-      "candidate_line": 4864,
+      "candidate_line": 4876,
       "original_sha256": "3b6478907cc52acb187657c94c6b96a38128de187d5bf3abae9534257d067f40",
       "candidate_sha256": "3b6478907cc52acb187657c94c6b96a38128de187d5bf3abae9534257d067f40",
       "status": "preserved"
@@ -10059,7 +10059,7 @@
     {
       "symbol": "i18n.ts::languageReady",
       "original_line": 4734,
-      "candidate_line": 4872,
+      "candidate_line": 4884,
       "original_sha256": "322bc3acc812731bb724545958d1b0bdee28c61e7c4c9db36bd6be363c77d439",
       "candidate_sha256": "322bc3acc812731bb724545958d1b0bdee28c61e7c4c9db36bd6be363c77d439",
       "status": "preserved"
@@ -10067,7 +10067,7 @@
     {
       "symbol": "i18n.ts::loadLanguage",
       "original_line": 4740,
-      "candidate_line": 4878,
+      "candidate_line": 4890,
       "original_sha256": "ac5302157d9aa029be63760969e4beea21eb910c715aa9ed8f4c6f9d05522e8a",
       "candidate_sha256": "ac5302157d9aa029be63760969e4beea21eb910c715aa9ed8f4c6f9d05522e8a",
       "status": "preserved"
@@ -10075,7 +10075,7 @@
     {
       "symbol": "i18n.ts::translate",
       "original_line": 4756,
-      "candidate_line": 4894,
+      "candidate_line": 4906,
       "original_sha256": "a638c7644fce338606b3ddbfaf1484899aca3c33a44588578f8ad98d1a41e599",
       "candidate_sha256": "a638c7644fce338606b3ddbfaf1484899aca3c33a44588578f8ad98d1a41e599",
       "status": "preserved"
@@ -10083,7 +10083,7 @@
     {
       "symbol": "i18n.ts::formatNumber",
       "original_line": 4765,
-      "candidate_line": 4903,
+      "candidate_line": 4915,
       "original_sha256": "cd4b97b45c85b7556926efb429ebe3f195a7d52888d27a1a04418bc705756101",
       "candidate_sha256": "cd4b97b45c85b7556926efb429ebe3f195a7d52888d27a1a04418bc705756101",
       "status": "preserved"
@@ -11283,7 +11283,7 @@
     {
       "symbol": "model.ts::isFixed",
       "original_line": 805,
-      "candidate_line": 805,
+      "candidate_line": 809,
       "original_sha256": "2386afabdd5ecc7e1de86d00b87715055a08ba831c9f532c06bfaceff86232f3",
       "candidate_sha256": "2386afabdd5ecc7e1de86d00b87715055a08ba831c9f532c06bfaceff86232f3",
       "status": "preserved"
@@ -11291,7 +11291,7 @@
     {
       "symbol": "model.ts::outdoorStanding",
       "original_line": 835,
-      "candidate_line": 835,
+      "candidate_line": 839,
       "original_sha256": "77e83e7ba6f685ce390a2d8831d3c8a2cfc0182b88d5ff0eea8d4accb855a6df",
       "candidate_sha256": "77e83e7ba6f685ce390a2d8831d3c8a2cfc0182b88d5ff0eea8d4accb855a6df",
       "status": "preserved"
@@ -11299,7 +11299,7 @@
     {
       "symbol": "model.ts::outdoorZones",
       "original_line": 844,
-      "candidate_line": 844,
+      "candidate_line": 848,
       "original_sha256": "1ff9ef1c0204930b7c7011e9771ec4187cca63559b491257148c78eb66a2dfd0",
       "candidate_sha256": "1ff9ef1c0204930b7c7011e9771ec4187cca63559b491257148c78eb66a2dfd0",
       "status": "preserved"
@@ -11307,7 +11307,7 @@
     {
       "symbol": "model.ts::zonesOf",
       "original_line": 851,
-      "candidate_line": 851,
+      "candidate_line": 855,
       "original_sha256": "b6231737a61ffa75f78c29d52c7290e5f3b4813259151331efcd6d2f4046ab63",
       "candidate_sha256": "b6231737a61ffa75f78c29d52c7290e5f3b4813259151331efcd6d2f4046ab63",
       "status": "preserved"
@@ -11315,7 +11315,7 @@
     {
       "symbol": "model.ts::outdoorDrop",
       "original_line": 863,
-      "candidate_line": 863,
+      "candidate_line": 867,
       "original_sha256": "e9a2801798be1e0a07eb2e8c4870f44757d17e2f839ed59c7716b908b4d04101",
       "candidate_sha256": "e9a2801798be1e0a07eb2e8c4870f44757d17e2f839ed59c7716b908b4d04101",
       "status": "preserved"
@@ -11323,7 +11323,7 @@
     {
       "symbol": "model.ts::outdoorTopAt",
       "original_line": 881,
-      "candidate_line": 881,
+      "candidate_line": 885,
       "original_sha256": "adfb88bc62e41cf4347867bf8efde3fe33fccc0ac558da2d9411ea170d2ce0d6",
       "candidate_sha256": "adfb88bc62e41cf4347867bf8efde3fe33fccc0ac558da2d9411ea170d2ce0d6",
       "status": "preserved"
@@ -11331,7 +11331,7 @@
     {
       "symbol": "model.ts::setTerrain",
       "original_line": 902,
-      "candidate_line": 902,
+      "candidate_line": 906,
       "original_sha256": "45d373dea526bfcddf74ffcee4a5e20e2d70a8f6f82f07c396612b86dca5c557",
       "candidate_sha256": "45d373dea526bfcddf74ffcee4a5e20e2d70a8f6f82f07c396612b86dca5c557",
       "status": "preserved"
@@ -11339,7 +11339,7 @@
     {
       "symbol": "model.ts::terrainAt",
       "original_line": 908,
-      "candidate_line": 908,
+      "candidate_line": 912,
       "original_sha256": "9e0cf9d02a4e9bc291135438fc894e0206f777e4ebe25d2800e489c0c72b8758",
       "candidate_sha256": "9e0cf9d02a4e9bc291135438fc894e0206f777e4ebe25d2800e489c0c72b8758",
       "status": "preserved"
@@ -11347,7 +11347,7 @@
     {
       "symbol": "model.ts::groundLevel",
       "original_line": 913,
-      "candidate_line": 913,
+      "candidate_line": 917,
       "original_sha256": "f217474874d4380f67fea72d5811e76e5890717c2f8e269354547eb47ffadc1f",
       "candidate_sha256": "f217474874d4380f67fea72d5811e76e5890717c2f8e269354547eb47ffadc1f",
       "status": "preserved"
@@ -11355,7 +11355,7 @@
     {
       "symbol": "model.ts::areaGround",
       "original_line": 919,
-      "candidate_line": 919,
+      "candidate_line": 923,
       "original_sha256": "abcb49cd8817b68fbf1c3a39f81208cab7279a91c62b2e2e8a219ad609644459",
       "candidate_sha256": "abcb49cd8817b68fbf1c3a39f81208cab7279a91c62b2e2e8a219ad609644459",
       "status": "preserved"
@@ -11363,7 +11363,7 @@
     {
       "symbol": "model.ts::groundDrop",
       "original_line": 924,
-      "candidate_line": 924,
+      "candidate_line": 928,
       "original_sha256": "9c918d5a0690af508ccca46cd7857b6e314e72e403a669579369e150f8018785",
       "candidate_sha256": "9c918d5a0690af508ccca46cd7857b6e314e72e403a669579369e150f8018785",
       "status": "preserved"
@@ -11371,7 +11371,7 @@
     {
       "symbol": "model.ts::outdoorGround",
       "original_line": 929,
-      "candidate_line": 929,
+      "candidate_line": 933,
       "original_sha256": "058f582747d463cb964f7779e600d0de5a4ce1c018f90260694c116b9178efdd",
       "candidate_sha256": "058f582747d463cb964f7779e600d0de5a4ce1c018f90260694c116b9178efdd",
       "status": "preserved"
@@ -11379,7 +11379,7 @@
     {
       "symbol": "model.ts::outdoorSurface",
       "original_line": 940,
-      "candidate_line": 940,
+      "candidate_line": 944,
       "original_sha256": "77c26ab2a554477ccb9c1b7c47723d361176ec6a934bf2e443d4ffd86bf59d31",
       "candidate_sha256": "77c26ab2a554477ccb9c1b7c47723d361176ec6a934bf2e443d4ffd86bf59d31",
       "status": "preserved"
@@ -11387,7 +11387,7 @@
     {
       "symbol": "model.ts::gateSpans",
       "original_line": 995,
-      "candidate_line": 995,
+      "candidate_line": 999,
       "original_sha256": "b34e6233a9c883a5a52deb6799bd7ec1f671622329f9ac1b0d48036762e419b7",
       "candidate_sha256": "b34e6233a9c883a5a52deb6799bd7ec1f671622329f9ac1b0d48036762e419b7",
       "status": "preserved"
@@ -11395,7 +11395,7 @@
     {
       "symbol": "model.ts::poolRimY",
       "original_line": 1146,
-      "candidate_line": 1146,
+      "candidate_line": 1150,
       "original_sha256": "aa632ebca5a128810d18bbe5b1f50f78c56fdb9cc6e46f2b922364779a90d45e",
       "candidate_sha256": "aa632ebca5a128810d18bbe5b1f50f78c56fdb9cc6e46f2b922364779a90d45e",
       "status": "preserved"
@@ -11403,7 +11403,7 @@
     {
       "symbol": "model.ts::poolDepth",
       "original_line": 1152,
-      "candidate_line": 1152,
+      "candidate_line": 1156,
       "original_sha256": "8554b7951c4a47d2932e2f11198454dbb5599df7ea0059f433ab4d6f8dceaddf",
       "candidate_sha256": "8554b7951c4a47d2932e2f11198454dbb5599df7ea0059f433ab4d6f8dceaddf",
       "status": "preserved"
@@ -11411,7 +11411,7 @@
     {
       "symbol": "model.ts::poolSunken",
       "original_line": 1160,
-      "candidate_line": 1160,
+      "candidate_line": 1164,
       "original_sha256": "eef160fa32e2d4f342e339a2a29dc49825b4cbc9fd70f3e13cac4fbdae1a11f6",
       "candidate_sha256": "eef160fa32e2d4f342e339a2a29dc49825b4cbc9fd70f3e13cac4fbdae1a11f6",
       "status": "preserved"
@@ -11419,7 +11419,7 @@
     {
       "symbol": "model.ts::poolFloorY",
       "original_line": 1168,
-      "candidate_line": 1168,
+      "candidate_line": 1172,
       "original_sha256": "0dd83ace32a9d23eeee99c14c0379ec6c2a4e8b566b208cfc39d6889aee04add",
       "candidate_sha256": "0dd83ace32a9d23eeee99c14c0379ec6c2a4e8b566b208cfc39d6889aee04add",
       "status": "preserved"
@@ -11427,7 +11427,7 @@
     {
       "symbol": "model.ts::poolWaterY",
       "original_line": 1174,
-      "candidate_line": 1174,
+      "candidate_line": 1178,
       "original_sha256": "63dba7a457615d7d8372e0c3c1c8ee406be84c56dcb5a5153292baa7243f8d1b",
       "candidate_sha256": "63dba7a457615d7d8372e0c3c1c8ee406be84c56dcb5a5153292baa7243f8d1b",
       "status": "preserved"
@@ -11435,7 +11435,7 @@
     {
       "symbol": "model.ts::poolHeight",
       "original_line": 1179,
-      "candidate_line": 1179,
+      "candidate_line": 1183,
       "original_sha256": "723d155da3bbbd3c3827daf6c2b74f79cc275ce4ee36b31dcdae995e8dd82a09",
       "candidate_sha256": "723d155da3bbbd3c3827daf6c2b74f79cc275ce4ee36b31dcdae995e8dd82a09",
       "status": "preserved"
@@ -11443,7 +11443,7 @@
     {
       "symbol": "model.ts::poolShapePoints",
       "original_line": 1184,
-      "candidate_line": 1184,
+      "candidate_line": 1188,
       "original_sha256": "2eff552162ebf10ab31730ba2997f65c8388a7962bb442df6ab5e437b00ac621",
       "candidate_sha256": "2eff552162ebf10ab31730ba2997f65c8388a7962bb442df6ab5e437b00ac621",
       "status": "preserved"
@@ -11451,7 +11451,7 @@
     {
       "symbol": "model.ts::emptyBuilding",
       "original_line": 1283,
-      "candidate_line": 1283,
+      "candidate_line": 1287,
       "original_sha256": "fc25888bc49e79ceb8ca22ee39d2345b899e962b93625682eb96a7d6eac79212",
       "candidate_sha256": "fc25888bc49e79ceb8ca22ee39d2345b899e962b93625682eb96a7d6eac79212",
       "status": "preserved"
@@ -11459,7 +11459,7 @@
     {
       "symbol": "model.ts::newFloor",
       "original_line": 1287,
-      "candidate_line": 1287,
+      "candidate_line": 1291,
       "original_sha256": "5252c28bc4ca04a6873d21bbd95abfbc712e0b95a19cd9b56099c99009f8c161",
       "candidate_sha256": "5252c28bc4ca04a6873d21bbd95abfbc712e0b95a19cd9b56099c99009f8c161",
       "status": "preserved"
@@ -11467,7 +11467,7 @@
     {
       "symbol": "model.ts::floorElevation",
       "original_line": 1309,
-      "candidate_line": 1309,
+      "candidate_line": 1313,
       "original_sha256": "c23c4d53b1722846bf3da4a4ded2aa71e91d5b5c9f930f5e6e72a446e54f2073",
       "candidate_sha256": "c23c4d53b1722846bf3da4a4ded2aa71e91d5b5c9f930f5e6e72a446e54f2073",
       "status": "preserved"
@@ -11475,7 +11475,7 @@
     {
       "symbol": "model.ts::roomTiles",
       "original_line": 1319,
-      "candidate_line": 1319,
+      "candidate_line": 1323,
       "original_sha256": "32fa63c5f1e4e76d40af5785a239272bd20f4c611032a5e1410f91175048b2ac",
       "candidate_sha256": "32fa63c5f1e4e76d40af5785a239272bd20f4c611032a5e1410f91175048b2ac",
       "status": "preserved"
@@ -11483,7 +11483,7 @@
     {
       "symbol": "model.ts::furnitureCorner",
       "original_line": 1336,
-      "candidate_line": 1336,
+      "candidate_line": 1340,
       "original_sha256": "7531d273775ecde599b631e9b189752c20ebebc0d3d68b00029cd85769f5463d",
       "candidate_sha256": "7531d273775ecde599b631e9b189752c20ebebc0d3d68b00029cd85769f5463d",
       "status": "preserved"
@@ -11491,7 +11491,7 @@
     {
       "symbol": "model.ts::resizeFurniture",
       "original_line": 1344,
-      "candidate_line": 1344,
+      "candidate_line": 1348,
       "original_sha256": "ba1638423d144df127eb3f8aab97ea9819119063c9068419b95361d1974b3b1d",
       "candidate_sha256": "ba1638423d144df127eb3f8aab97ea9819119063c9068419b95361d1974b3b1d",
       "status": "preserved"
@@ -11499,7 +11499,7 @@
     {
       "symbol": "model.ts::canLift",
       "original_line": 1493,
-      "candidate_line": 1493,
+      "candidate_line": 1497,
       "original_sha256": "11dc5c61c5a279c0b211980f0d0b35b6c9156654f04cefc41f8a739a2fe7a563",
       "candidate_sha256": "11dc5c61c5a279c0b211980f0d0b35b6c9156654f04cefc41f8a739a2fe7a563",
       "status": "preserved"
@@ -11507,7 +11507,7 @@
     {
       "symbol": "model.ts::spotDepth",
       "original_line": 1506,
-      "candidate_line": 1506,
+      "candidate_line": 1510,
       "original_sha256": "f071522100f6d28c2df1f9ab5e8e629c423fd19092ae682f9e8cab2705ef57c8",
       "candidate_sha256": "f071522100f6d28c2df1f9ab5e8e629c423fd19092ae682f9e8cab2705ef57c8",
       "status": "preserved"
@@ -11515,7 +11515,7 @@
     {
       "symbol": "model.ts::stairsULayout",
       "original_line": 1519,
-      "candidate_line": 1519,
+      "candidate_line": 1523,
       "original_sha256": "a35ddf91dc0817eb3ac180895caebfa9f51e540fc189e06bd108865be3cd98d7",
       "candidate_sha256": "a35ddf91dc0817eb3ac180895caebfa9f51e540fc189e06bd108865be3cd98d7",
       "status": "preserved"
@@ -11523,7 +11523,7 @@
     {
       "symbol": "model.ts::isLamp",
       "original_line": 1531,
-      "candidate_line": 1531,
+      "candidate_line": 1535,
       "original_sha256": "38efd488b9bc3e4c45f2bf0d9e2cc3b908a7f5f3d9a12e5c9d4e5d208d9ec32c",
       "candidate_sha256": "38efd488b9bc3e4c45f2bf0d9e2cc3b908a7f5f3d9a12e5c9d4e5d208d9ec32c",
       "status": "preserved"
@@ -11531,7 +11531,7 @@
     {
       "symbol": "model.ts::spotGrid",
       "original_line": 1557,
-      "candidate_line": 1557,
+      "candidate_line": 1561,
       "original_sha256": "d5107b8ccbbcb0339addb1740c9845c5a931d04abd42ef80d26c53bf79628bf4",
       "candidate_sha256": "d5107b8ccbbcb0339addb1740c9845c5a931d04abd42ef80d26c53bf79628bf4",
       "status": "preserved"
@@ -11539,7 +11539,7 @@
     {
       "symbol": "model.ts::step",
       "original_line": 1574,
-      "candidate_line": 1574,
+      "candidate_line": 1578,
       "original_sha256": "edc848586b9394cce321d04904e6c80c8dab5806e39a20dd5e17bd29ec23cdc4",
       "candidate_sha256": "edc848586b9394cce321d04904e6c80c8dab5806e39a20dd5e17bd29ec23cdc4",
       "status": "preserved"
@@ -11547,7 +11547,7 @@
     {
       "symbol": "model.ts::clearFirstState",
       "original_line": 1589,
-      "candidate_line": 1589,
+      "candidate_line": 1593,
       "original_sha256": "2f6d89a9baa377c689a1363222d1fb6f5ddbb1b668e0c97f84a05493ff4242bf",
       "candidate_sha256": "2f6d89a9baa377c689a1363222d1fb6f5ddbb1b668e0c97f84a05493ff4242bf",
       "status": "preserved"
@@ -11555,7 +11555,7 @@
     {
       "symbol": "model.ts::builtinBase",
       "original_line": 1595,
-      "candidate_line": 1595,
+      "candidate_line": 1599,
       "original_sha256": "f0f02ea8e4243395b2c66ff7d35d6d7b1d4f3e0d203ffd43a8b39c8d47bccc86",
       "candidate_sha256": "f0f02ea8e4243395b2c66ff7d35d6d7b1d4f3e0d203ffd43a8b39c8d47bccc86",
       "status": "preserved"
@@ -11563,7 +11563,7 @@
     {
       "symbol": "model.ts::surfaceHeight",
       "original_line": 1640,
-      "candidate_line": 1640,
+      "candidate_line": 1644,
       "original_sha256": "762f5edcba7cdb31ee1d4e669b81ba408293d2bd85b1282f6d2039cafb0b2663",
       "candidate_sha256": "762f5edcba7cdb31ee1d4e669b81ba408293d2bd85b1282f6d2039cafb0b2663",
       "status": "preserved"
@@ -11571,7 +11571,7 @@
     {
       "symbol": "model.ts::splitAliases",
       "original_line": 1651,
-      "candidate_line": 1651,
+      "candidate_line": 1655,
       "original_sha256": "b461e4031b92b5bf5b024c844a3ff64a27c2f564642e3bbde3364e826e1054cb",
       "candidate_sha256": "b461e4031b92b5bf5b024c844a3ff64a27c2f564642e3bbde3364e826e1054cb",
       "status": "preserved"
@@ -11579,7 +11579,7 @@
     {
       "symbol": "model.ts::gangsOf",
       "original_line": 1661,
-      "candidate_line": 1661,
+      "candidate_line": 1665,
       "original_sha256": "72acb07f575af9531c80ae53ee3cc84ec5205c7558c3ccc56f721a4799805daf",
       "candidate_sha256": "72acb07f575af9531c80ae53ee3cc84ec5205c7558c3ccc56f721a4799805daf",
       "status": "preserved"
@@ -11587,7 +11587,7 @@
     {
       "symbol": "model.ts::gangPlateWidth",
       "original_line": 1667,
-      "candidate_line": 1667,
+      "candidate_line": 1671,
       "original_sha256": "0e305686876cb072d91d8c921e45eca4e1aef30d0203036be5e9ec3cf9024267",
       "candidate_sha256": "0e305686876cb072d91d8c921e45eca4e1aef30d0203036be5e9ec3cf9024267",
       "status": "preserved"
@@ -11595,7 +11595,7 @@
     {
       "symbol": "model.ts::gangEntities",
       "original_line": 1672,
-      "candidate_line": 1672,
+      "candidate_line": 1676,
       "original_sha256": "43fcd15d76a4b38f2a68091d55e13a8bad8ece74f51a669142807c74b9691cc2",
       "candidate_sha256": "43fcd15d76a4b38f2a68091d55e13a8bad8ece74f51a669142807c74b9691cc2",
       "status": "preserved"
@@ -11603,7 +11603,7 @@
     {
       "symbol": "model.ts::techBase",
       "original_line": 1687,
-      "candidate_line": 1687,
+      "candidate_line": 1691,
       "original_sha256": "090168606dd92d499b9172034f677677b0bfce6f1bba47d4ee24e2d8ae8e9ac9",
       "candidate_sha256": "090168606dd92d499b9172034f677677b0bfce6f1bba47d4ee24e2d8ae8e9ac9",
       "status": "preserved"
@@ -11611,7 +11611,7 @@
     {
       "symbol": "model.ts::openingStyle",
       "original_line": 1834,
-      "candidate_line": 1834,
+      "candidate_line": 1838,
       "original_sha256": "d79a1d0649b6bc04737b131427529f1e42b52979ffccb3f4a1faafdd7ca762bf",
       "candidate_sha256": "d79a1d0649b6bc04737b131427529f1e42b52979ffccb3f4a1faafdd7ca762bf",
       "status": "preserved"
@@ -11619,7 +11619,7 @@
     {
       "symbol": "model.ts::sidelightLayout",
       "original_line": 1844,
-      "candidate_line": 1844,
+      "candidate_line": 1848,
       "original_sha256": "601dd653ee24f5da01d3b0fd961dd1a6591dbaad8f876c70838b1a673d4949ac",
       "candidate_sha256": "601dd653ee24f5da01d3b0fd961dd1a6591dbaad8f876c70838b1a673d4949ac",
       "status": "preserved"
@@ -11627,7 +11627,7 @@
     {
       "symbol": "model.ts::lockAlong",
       "original_line": 1875,
-      "candidate_line": 1875,
+      "candidate_line": 1879,
       "original_sha256": "39cc659032eeed49c8ed002841f7978b3abaafa7972857147d2d172d05f8c912",
       "candidate_sha256": "39cc659032eeed49c8ed002841f7978b3abaafa7972857147d2d172d05f8c912",
       "status": "preserved"
@@ -11635,7 +11635,7 @@
     {
       "symbol": "model.ts::isFrontDoor",
       "original_line": 1885,
-      "candidate_line": 1885,
+      "candidate_line": 1889,
       "original_sha256": "46530efd038c2153e6f86d416de785c427bd42f28297078f2c2488e1d1a20163",
       "candidate_sha256": "46530efd038c2153e6f86d416de785c427bd42f28297078f2c2488e1d1a20163",
       "status": "preserved"
@@ -11643,7 +11643,7 @@
     {
       "symbol": "model.ts::openingPreset",
       "original_line": 1906,
-      "candidate_line": 1906,
+      "candidate_line": 1910,
       "original_sha256": "7634ecae2d6e73b7caee36d4d2dbb6ed4606806fb77eb6aaa94a322f17713c79",
       "candidate_sha256": "7634ecae2d6e73b7caee36d4d2dbb6ed4606806fb77eb6aaa94a322f17713c79",
       "status": "preserved"
@@ -11651,7 +11651,7 @@
     {
       "symbol": "model.ts::normalizeBuilding",
       "original_line": 1920,
-      "candidate_line": 1920,
+      "candidate_line": 1924,
       "original_sha256": "bddb560a0dfee640d572bf6987b82d6354121454e203cd1289a8be087dc49dec",
       "candidate_sha256": "bddb560a0dfee640d572bf6987b82d6354121454e203cd1289a8be087dc49dec",
       "status": "preserved"
@@ -11659,7 +11659,7 @@
     {
       "symbol": "model.ts::uid",
       "original_line": 1958,
-      "candidate_line": 1958,
+      "candidate_line": 1962,
       "original_sha256": "451a2ed34ea0c9145d0113af9260d4e64d20fd484f4245b5794cb8ffa576402d",
       "candidate_sha256": "451a2ed34ea0c9145d0113af9260d4e64d20fd484f4245b5794cb8ffa576402d",
       "status": "preserved"
@@ -11667,7 +11667,7 @@
     {
       "symbol": "model.ts::signedArea",
       "original_line": 1963,
-      "candidate_line": 1963,
+      "candidate_line": 1967,
       "original_sha256": "a621a4dd84ad0cc16c97d68550f1ae8c475e9289510200e76d459aa37c090dc2",
       "candidate_sha256": "a621a4dd84ad0cc16c97d68550f1ae8c475e9289510200e76d459aa37c090dc2",
       "status": "preserved"
@@ -11675,7 +11675,7 @@
     {
       "symbol": "model.ts::polygonArea",
       "original_line": 1973,
-      "candidate_line": 1973,
+      "candidate_line": 1977,
       "original_sha256": "6a35fa8fc7b6364c7e33172030ab271f2a6a2b80c12f058b12f1da0a0d6af49c",
       "candidate_sha256": "6a35fa8fc7b6364c7e33172030ab271f2a6a2b80c12f058b12f1da0a0d6af49c",
       "status": "preserved"
@@ -11683,7 +11683,7 @@
     {
       "symbol": "model.ts::centroid",
       "original_line": 1978,
-      "candidate_line": 1978,
+      "candidate_line": 1982,
       "original_sha256": "2819c913e50d3144ed7b52b02159fb31fcc61bc5db55520137b8622f87556802",
       "candidate_sha256": "2819c913e50d3144ed7b52b02159fb31fcc61bc5db55520137b8622f87556802",
       "status": "preserved"
@@ -11691,7 +11691,7 @@
     {
       "symbol": "model.ts::isAxisRect",
       "original_line": 1997,
-      "candidate_line": 1997,
+      "candidate_line": 2001,
       "original_sha256": "1a105937d819b86ea6e7f1aaa2b37870968bf5c5d4a890f828f5247128551a8f",
       "candidate_sha256": "1a105937d819b86ea6e7f1aaa2b37870968bf5c5d4a890f828f5247128551a8f",
       "status": "preserved"
@@ -11699,7 +11699,7 @@
     {
       "symbol": "model.ts::bounds",
       "original_line": 2007,
-      "candidate_line": 2007,
+      "candidate_line": 2011,
       "original_sha256": "9e37b98c097510e6c4d7d3b1788e3b2757881d238145105335b07b87d63de1af",
       "candidate_sha256": "9e37b98c097510e6c4d7d3b1788e3b2757881d238145105335b07b87d63de1af",
       "status": "preserved"
@@ -11707,7 +11707,7 @@
     {
       "symbol": "model.ts::furnitureFootprint",
       "original_line": 2022,
-      "candidate_line": 2022,
+      "candidate_line": 2026,
       "original_sha256": "2d2f8a345a186acb99ce1ae3dc00d0e488d22b377ef4af2d27a2f970c4dbe01e",
       "candidate_sha256": "2d2f8a345a186acb99ce1ae3dc00d0e488d22b377ef4af2d27a2f970c4dbe01e",
       "status": "preserved"
@@ -11715,7 +11715,7 @@
     {
       "symbol": "model.ts::pointInPolygon",
       "original_line": 2036,
-      "candidate_line": 2036,
+      "candidate_line": 2040,
       "original_sha256": "14fb9707e9faed31c6629d4db3fa0bce35ec22a42df9ce9951e2f743e286fd49",
       "candidate_sha256": "14fb9707e9faed31c6629d4db3fa0bce35ec22a42df9ce9951e2f743e286fd49",
       "status": "preserved"
@@ -11723,7 +11723,7 @@
     {
       "symbol": "model.ts::syncCameraLooks",
       "original_line": 2067,
-      "candidate_line": 2067,
+      "candidate_line": 2071,
       "original_sha256": "491f11e244d89390ac61590b250981192ecf93272967258a3e55b7747c95eec1",
       "candidate_sha256": "491f11e244d89390ac61590b250981192ecf93272967258a3e55b7747c95eec1",
       "status": "preserved"
@@ -17501,7 +17501,7 @@
     {
       "symbol": "viewer/viewer3d.ts::distanceToRing",
       "original_line": 331,
-      "candidate_line": 398,
+      "candidate_line": 405,
       "original_sha256": "3c2e470854b5bb081e9a37fdb7c6d666535f862e3c2264873dd09cd1829354d7",
       "candidate_sha256": "3c2e470854b5bb081e9a37fdb7c6d666535f862e3c2264873dd09cd1829354d7",
       "status": "preserved"
@@ -17509,7 +17509,7 @@
     {
       "symbol": "viewer/viewer3d.ts::movesOn",
       "original_line": 352,
-      "candidate_line": 419,
+      "candidate_line": 426,
       "original_sha256": "437b23ec1430538688229a182a0aca87b166b9ed5df2bc4dbcd47b8cd9cb2eca",
       "candidate_sha256": "437b23ec1430538688229a182a0aca87b166b9ed5df2bc4dbcd47b8cd9cb2eca",
       "status": "preserved"
@@ -17517,7 +17517,7 @@
     {
       "symbol": "viewer/viewer3d.ts::isLowEnd",
       "original_line": 524,
-      "candidate_line": 591,
+      "candidate_line": 598,
       "original_sha256": "67f53283a4132dc01d4b5e671c03055e8af77f042fdbc1a33a5f3bfed5f8bfeb",
       "candidate_sha256": "67f53283a4132dc01d4b5e671c03055e8af77f042fdbc1a33a5f3bfed5f8bfeb",
       "status": "preserved"
@@ -17525,7 +17525,7 @@
     {
       "symbol": "viewer/viewer3d.ts::measuredSlow",
       "original_line": 531,
-      "candidate_line": 598,
+      "candidate_line": 605,
       "original_sha256": "f84e07f912bf87d680a4c209c9c4141985252f7e61637b225584d15e5bb800de",
       "candidate_sha256": "f84e07f912bf87d680a4c209c9c4141985252f7e61637b225584d15e5bb800de",
       "status": "preserved"
@@ -17533,7 +17533,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.low",
       "original_line": 811,
-      "candidate_line": 886,
+      "candidate_line": 896,
       "original_sha256": "1b5517eb20547fbaf7f1e6de43bcd740544f5f928001348c30e1573f85652a86",
       "candidate_sha256": "1b5517eb20547fbaf7f1e6de43bcd740544f5f928001348c30e1573f85652a86",
       "status": "preserved"
@@ -17541,7 +17541,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.resting",
       "original_line": 816,
-      "candidate_line": 891,
+      "candidate_line": 901,
       "original_sha256": "ccd3b0c1ec406b999136b2d56f865af6395d28fd6cb3db491a9cce476c7cb813",
       "candidate_sha256": "ccd3b0c1ec406b999136b2d56f865af6395d28fd6cb3db491a9cce476c7cb813",
       "status": "preserved"
@@ -17549,7 +17549,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.wake",
       "original_line": 821,
-      "candidate_line": 896,
+      "candidate_line": 906,
       "original_sha256": "7fe14a85fd3f820427d1900359d191fbda4acfc3403b0ba07132641e509fccbb",
       "candidate_sha256": "7fe14a85fd3f820427d1900359d191fbda4acfc3403b0ba07132641e509fccbb",
       "status": "preserved"
@@ -17557,7 +17557,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.animate",
       "original_line": 828,
-      "candidate_line": 903,
+      "candidate_line": 913,
       "original_sha256": "5de325ba8e0a84e0e66f10fa8ee859271f55f748c7b5948288e52731bb1a774b",
       "candidate_sha256": "5de325ba8e0a84e0e66f10fa8ee859271f55f748c7b5948288e52731bb1a774b",
       "status": "preserved"
@@ -17565,7 +17565,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.decor",
       "original_line": 840,
-      "candidate_line": 915,
+      "candidate_line": 925,
       "original_sha256": "4ac81faeab30d5fa597fdbf68e08392ad13baf14ae53fd425f26b2d90a987f5d",
       "candidate_sha256": "4ac81faeab30d5fa597fdbf68e08392ad13baf14ae53fd425f26b2d90a987f5d",
       "status": "preserved"
@@ -17573,7 +17573,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.onInput",
       "original_line": 844,
-      "candidate_line": 919,
+      "candidate_line": 929,
       "original_sha256": "2c593c08515e324cf3ecb1f6ce8e7fce6c5690e48515df4b1a630ac6c3c21a96",
       "candidate_sha256": "2c593c08515e324cf3ecb1f6ce8e7fce6c5690e48515df4b1a630ac6c3c21a96",
       "status": "preserved"
@@ -17581,7 +17581,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setParked",
       "original_line": 847,
-      "candidate_line": 922,
+      "candidate_line": 932,
       "original_sha256": "bd9fcf06c9fceefff13e61c65551c71454fc2fb56d371083b81b125b0bb103bc",
       "candidate_sha256": "bd9fcf06c9fceefff13e61c65551c71454fc2fb56d371083b81b125b0bb103bc",
       "status": "preserved"
@@ -17589,7 +17589,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setStats",
       "original_line": 862,
-      "candidate_line": 937,
+      "candidate_line": 947,
       "original_sha256": "be2f9864df68ddd29b06df4fa7dd576574af5bf62489289f116fbed926dbaa6c",
       "candidate_sha256": "be2f9864df68ddd29b06df4fa7dd576574af5bf62489289f116fbed926dbaa6c",
       "status": "preserved"
@@ -17597,7 +17597,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setLabelInset",
       "original_line": 867,
-      "candidate_line": 942,
+      "candidate_line": 952,
       "original_sha256": "4cbdd33802ffd8a657ffebce368e44a6cffbea2f56a1bfcac1640eaa2dd420c7",
       "candidate_sha256": "4cbdd33802ffd8a657ffebce368e44a6cffbea2f56a1bfcac1640eaa2dd420c7",
       "status": "preserved"
@@ -17605,7 +17605,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setAutoOrbit",
       "original_line": 875,
-      "candidate_line": 950,
+      "candidate_line": 960,
       "original_sha256": "547907b4d7528542feed96ea1e02ec66e01a3ca1411484f0d13edc55d80b39b6",
       "candidate_sha256": "547907b4d7528542feed96ea1e02ec66e01a3ca1411484f0d13edc55d80b39b6",
       "status": "preserved"
@@ -17613,7 +17613,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setQuality",
       "original_line": 881,
-      "candidate_line": 956,
+      "candidate_line": 966,
       "original_sha256": "c49baa563e77f35d3510b5e0f6a610711ad460236e792d3f8f844612edf07300",
       "candidate_sha256": "9a6fef2c61a69aed02bdea1ccbaa8b1a6ea7c7bc9dac9ce3fcbdf1a0eb3f2726",
       "status": "modified"
@@ -17621,7 +17621,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setPacks",
       "original_line": 898,
-      "candidate_line": 975,
+      "candidate_line": 985,
       "original_sha256": "18333b4ba4d9570dd103ac55170584d747f6d91bc378197389296235f1a0bd5e",
       "candidate_sha256": "18333b4ba4d9570dd103ac55170584d747f6d91bc378197389296235f1a0bd5e",
       "status": "preserved"
@@ -17629,7 +17629,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setBuilding",
       "original_line": 906,
-      "candidate_line": 983,
+      "candidate_line": 993,
       "original_sha256": "388c92c77f4af2debf716471176b2ae9541bea54603a2badc750dcafb778101a",
       "candidate_sha256": "388c92c77f4af2debf716471176b2ae9541bea54603a2badc750dcafb778101a",
       "status": "preserved"
@@ -17637,7 +17637,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setKeepView",
       "original_line": 920,
-      "candidate_line": 997,
+      "candidate_line": 1007,
       "original_sha256": "c16b3719663e8595af51171d37f388f3cf0711dcf5a2b1508080028ee7f3b525",
       "candidate_sha256": "c16b3719663e8595af51171d37f388f3cf0711dcf5a2b1508080028ee7f3b525",
       "status": "preserved"
@@ -17645,7 +17645,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setAngleLock",
       "original_line": 925,
-      "candidate_line": 1015,
+      "candidate_line": 1026,
       "original_sha256": "9f13941e8841425f1ef513dbc7d0335f01072c5ca949cc95e283b9cbc6ab6cd1",
       "candidate_sha256": "9f13941e8841425f1ef513dbc7d0335f01072c5ca949cc95e283b9cbc6ab6cd1",
       "status": "preserved"
@@ -17653,15 +17653,15 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setFloor",
       "original_line": 929,
-      "candidate_line": 1019,
+      "candidate_line": 1030,
       "original_sha256": "884ad0da929bd878aea0bae41a0b2c1514b0eab8ac12af08dd0611d35a883fe1",
-      "candidate_sha256": "884ad0da929bd878aea0bae41a0b2c1514b0eab8ac12af08dd0611d35a883fe1",
-      "status": "preserved"
+      "candidate_sha256": "92c90b11d351bc687a54ba52859640f13dd308a6486b00e7a57b5e429e65b97a",
+      "status": "aureon_extension"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setFloorStack",
       "original_line": 943,
-      "candidate_line": 1033,
+      "candidate_line": 1045,
       "original_sha256": "515a6f8299c5c314a37b8b1937d20fe6485feec9355373498bd8d2950ea3dbe0",
       "candidate_sha256": "515a6f8299c5c314a37b8b1937d20fe6485feec9355373498bd8d2950ea3dbe0",
       "status": "preserved"
@@ -17669,7 +17669,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setHideRoof",
       "original_line": 950,
-      "candidate_line": 1040,
+      "candidate_line": 1052,
       "original_sha256": "15cc1add0e4fcccb82c62bfed66f82d24974e4a57d3fd7fc6a07e6fc8976ec5f",
       "candidate_sha256": "15cc1add0e4fcccb82c62bfed66f82d24974e4a57d3fd7fc6a07e6fc8976ec5f",
       "status": "preserved"
@@ -17677,7 +17677,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setKeepRoof",
       "original_line": 956,
-      "candidate_line": 1046,
+      "candidate_line": 1058,
       "original_sha256": "0e77ac8922892fd7ddfd3c23884af15f312aa606f60c4bbd2cf5ed507b5dc3d7",
       "candidate_sha256": "0e77ac8922892fd7ddfd3c23884af15f312aa606f60c4bbd2cf5ed507b5dc3d7",
       "status": "preserved"
@@ -17685,7 +17685,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setExplode",
       "original_line": 962,
-      "candidate_line": 1052,
+      "candidate_line": 1064,
       "original_sha256": "67ee074ef8097fbf85da8f817e61ec7c9ddf5ffc3613279035c82e6aa24178ce",
       "candidate_sha256": "67ee074ef8097fbf85da8f817e61ec7c9ddf5ffc3613279035c82e6aa24178ce",
       "status": "preserved"
@@ -17693,15 +17693,15 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.selectRoom",
       "original_line": 970,
-      "candidate_line": 1060,
+      "candidate_line": 1072,
       "original_sha256": "d013b5d70577c67f122bbf2ac1bef5abf6050269797ef00b0efff5111e383da3",
-      "candidate_sha256": "d013b5d70577c67f122bbf2ac1bef5abf6050269797ef00b0efff5111e383da3",
-      "status": "preserved"
+      "candidate_sha256": "97f02db6ecec458a58c7e90ef0ae63cbb2fe722e46638dbb391990f823ecbbb2",
+      "status": "aureon_extension"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setWallMode",
       "original_line": 999,
-      "candidate_line": 1089,
+      "candidate_line": 1102,
       "original_sha256": "61722f1f99ee37a573c29d29bf8b8b17f9c36200cf1d58cf3f50952a5a86bc2d",
       "candidate_sha256": "61722f1f99ee37a573c29d29bf8b8b17f9c36200cf1d58cf3f50952a5a86bc2d",
       "status": "preserved"
@@ -17709,7 +17709,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setDevices",
       "original_line": 1007,
-      "candidate_line": 1097,
+      "candidate_line": 1110,
       "original_sha256": "da3674afbb5b65df371fbb7c7e19a400eeca343b3d69b23ae6b0bd050c5d0c9f",
       "candidate_sha256": "da3674afbb5b65df371fbb7c7e19a400eeca343b3d69b23ae6b0bd050c5d0c9f",
       "status": "preserved"
@@ -17717,7 +17717,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setRoofWindows",
       "original_line": 1077,
-      "candidate_line": 1167,
+      "candidate_line": 1180,
       "original_sha256": "1085186164fdaeb7f6b6eaf25f257b9f1b1de6e030e358225568b26c52e8790a",
       "candidate_sha256": "1085186164fdaeb7f6b6eaf25f257b9f1b1de6e030e358225568b26c52e8790a",
       "status": "preserved"
@@ -17725,7 +17725,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setAnchorCallback",
       "original_line": 1089,
-      "candidate_line": 1179,
+      "candidate_line": 1192,
       "original_sha256": "19ab68059b36cb10f4cb103a438ba94719051e42cc0150ad2cdb090f547b4858",
       "candidate_sha256": "19ab68059b36cb10f4cb103a438ba94719051e42cc0150ad2cdb090f547b4858",
       "status": "preserved"
@@ -17733,7 +17733,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setAnchors",
       "original_line": 1099,
-      "candidate_line": 1189,
+      "candidate_line": 1202,
       "original_sha256": "f737113fb037a2ecf38b1b6254962365542be457a6417dabdc056683dafb015b",
       "candidate_sha256": "f737113fb037a2ecf38b1b6254962365542be457a6417dabdc056683dafb015b",
       "status": "preserved"
@@ -17741,7 +17741,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setSolarLevels",
       "original_line": 1106,
-      "candidate_line": 1196,
+      "candidate_line": 1209,
       "original_sha256": "7f42b7fc79a9bfffbbab1de91a2b5b0a6f700e58e9a0aa6a5c21578971080eee",
       "candidate_sha256": "7f42b7fc79a9bfffbbab1de91a2b5b0a6f700e58e9a0aa6a5c21578971080eee",
       "status": "preserved"
@@ -17749,7 +17749,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setPools",
       "original_line": 1116,
-      "candidate_line": 1206,
+      "candidate_line": 1219,
       "original_sha256": "96d2bb27b10e03e1039af436b1b214026efc510e15a4cc945ff7e3acec77244d",
       "candidate_sha256": "96d2bb27b10e03e1039af436b1b214026efc510e15a4cc945ff7e3acec77244d",
       "status": "preserved"
@@ -17757,7 +17757,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildPoolWater",
       "original_line": 1126,
-      "candidate_line": 1216,
+      "candidate_line": 1229,
       "original_sha256": "115f6c41c6c3884f0c7de022ac45436be4134a74a149f6a1914ecb6dcf0d12ed",
       "candidate_sha256": "115f6c41c6c3884f0c7de022ac45436be4134a74a149f6a1914ecb6dcf0d12ed",
       "status": "preserved"
@@ -17765,7 +17765,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setSound",
       "original_line": 1139,
-      "candidate_line": 1229,
+      "candidate_line": 1242,
       "original_sha256": "6d8ec3f8043f6abb54de68c0f65f79fa8a593a04070df7fc476f15cf960eccf2",
       "candidate_sha256": "6d8ec3f8043f6abb54de68c0f65f79fa8a593a04070df7fc476f15cf960eccf2",
       "status": "preserved"
@@ -17773,7 +17773,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.animateSound",
       "original_line": 1198,
-      "candidate_line": 1288,
+      "candidate_line": 1301,
       "original_sha256": "330843bf371c00933a65ee9999a031e0bd492567aea32002aedab438a8b50fdc",
       "candidate_sha256": "330843bf371c00933a65ee9999a031e0bd492567aea32002aedab438a8b50fdc",
       "status": "preserved"
@@ -17781,7 +17781,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setFlows",
       "original_line": 1213,
-      "candidate_line": 1303,
+      "candidate_line": 1316,
       "original_sha256": "72ca359a790e4723a3c80ab7d702982d7af2c81349c9e3ef5383a3ee5edf1cf9",
       "candidate_sha256": "72ca359a790e4723a3c80ab7d702982d7af2c81349c9e3ef5383a3ee5edf1cf9",
       "status": "preserved"
@@ -17789,7 +17789,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setPipes",
       "original_line": 1231,
-      "candidate_line": 1321,
+      "candidate_line": 1334,
       "original_sha256": "9ec0dc72979c1418a19143a7effbc2509593c8ee83425e71998c8161fcb1857f",
       "candidate_sha256": "9ec0dc72979c1418a19143a7effbc2509593c8ee83425e71998c8161fcb1857f",
       "status": "preserved"
@@ -17797,7 +17797,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setRoofSnow",
       "original_line": 1239,
-      "candidate_line": 1329,
+      "candidate_line": 1342,
       "original_sha256": "68e03d2fdf407dc52cd595315be5ddc82c5669c44d6cd503db2281db5e8f5cff",
       "candidate_sha256": "68e03d2fdf407dc52cd595315be5ddc82c5669c44d6cd503db2281db5e8f5cff",
       "status": "preserved"
@@ -17805,7 +17805,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setRoofLights",
       "original_line": 1248,
-      "candidate_line": 1338,
+      "candidate_line": 1351,
       "original_sha256": "6a7b8af5b5e5a7cebdfb77101da2fb88270b37a79333f3feaa6b6eb4048aa32d",
       "candidate_sha256": "6a7b8af5b5e5a7cebdfb77101da2fb88270b37a79333f3feaa6b6eb4048aa32d",
       "status": "preserved"
@@ -17813,7 +17813,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setFirework",
       "original_line": 1257,
-      "candidate_line": 1347,
+      "candidate_line": 1360,
       "original_sha256": "66250e676b1b63083bd2aafcb8cd346054f023fbc65842c50c821366118f52b3",
       "candidate_sha256": "66250e676b1b63083bd2aafcb8cd346054f023fbc65842c50c821366118f52b3",
       "status": "preserved"
@@ -17821,7 +17821,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setPatches",
       "original_line": 1276,
-      "candidate_line": 1366,
+      "candidate_line": 1379,
       "original_sha256": "853193a06be7d45bfdc3cc7902308f375a2998e8017d01ff43a602479f38b3b0",
       "candidate_sha256": "853193a06be7d45bfdc3cc7902308f375a2998e8017d01ff43a602479f38b3b0",
       "status": "preserved"
@@ -17829,7 +17829,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildPatches",
       "original_line": 1282,
-      "candidate_line": 1372,
+      "candidate_line": 1385,
       "original_sha256": "ae08d2f7ef60749176a882606a5d0d55252ea519cf2b86cc780c41ea9bdca0b7",
       "candidate_sha256": "ae08d2f7ef60749176a882606a5d0d55252ea519cf2b86cc780c41ea9bdca0b7",
       "status": "preserved"
@@ -17837,7 +17837,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildPipes",
       "original_line": 1311,
-      "candidate_line": 1401,
+      "candidate_line": 1414,
       "original_sha256": "7904ee69467d720d6c74d20254ee62c214d29b4dad8c4251667cb901fe54bd93",
       "candidate_sha256": "7904ee69467d720d6c74d20254ee62c214d29b4dad8c4251667cb901fe54bd93",
       "status": "preserved"
@@ -17845,7 +17845,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setPersonLook",
       "original_line": 1325,
-      "candidate_line": 1415,
+      "candidate_line": 1428,
       "original_sha256": "e0f8764c827fc880651cfce83b246bbdd3df3bb996252245fb21a06f3bd2cfeb",
       "candidate_sha256": "e0f8764c827fc880651cfce83b246bbdd3df3bb996252245fb21a06f3bd2cfeb",
       "status": "preserved"
@@ -17853,7 +17853,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.makeFigure",
       "original_line": 1335,
-      "candidate_line": 1425,
+      "candidate_line": 1438,
       "original_sha256": "8f150cb652a0f6140cf374439cf06630b22309a5d7c5fcb9f3e3da40171cec2b",
       "candidate_sha256": "8f150cb652a0f6140cf374439cf06630b22309a5d7c5fcb9f3e3da40171cec2b",
       "status": "preserved"
@@ -17861,7 +17861,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.dropFigure",
       "original_line": 1373,
-      "candidate_line": 1463,
+      "candidate_line": 1476,
       "original_sha256": "5eecd22efaccfa282e1e2fece0edf703f5e3f868dcb7f1aecc14d039178e46ea",
       "candidate_sha256": "5eecd22efaccfa282e1e2fece0edf703f5e3f868dcb7f1aecc14d039178e46ea",
       "status": "preserved"
@@ -17869,7 +17869,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setPersons",
       "original_line": 1384,
-      "candidate_line": 1474,
+      "candidate_line": 1487,
       "original_sha256": "8aa4ecb860bfa44f3f927012943d78c86a0722f569fcac6965824ce733cad4ae",
       "candidate_sha256": "8aa4ecb860bfa44f3f927012943d78c86a0722f569fcac6965824ce733cad4ae",
       "status": "preserved"
@@ -17877,7 +17877,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setPickTargets",
       "original_line": 1457,
-      "candidate_line": 1547,
+      "candidate_line": 1560,
       "original_sha256": "3edcbf41429b5c888a5820f235fc9ff07111b37dc57a3a7475cbe8ec53b94948",
       "candidate_sha256": "3edcbf41429b5c888a5820f235fc9ff07111b37dc57a3a7475cbe8ec53b94948",
       "status": "preserved"
@@ -17885,7 +17885,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setAccent",
       "original_line": 1464,
-      "candidate_line": 1554,
+      "candidate_line": 1567,
       "original_sha256": "f0ee85b892e3bdf81d3eefd07492114d9fb099ef7aa5393d10a3245224588cff",
       "candidate_sha256": "f0ee85b892e3bdf81d3eefd07492114d9fb099ef7aa5393d10a3245224588cff",
       "status": "preserved"
@@ -17893,15 +17893,15 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setTheme",
       "original_line": 1473,
-      "candidate_line": 1563,
+      "candidate_line": 1576,
       "original_sha256": "753517cd17d41ae4b1e900de79687ef8c4ad60f2b5bf7f6fcd3639c02d77a6ac",
-      "candidate_sha256": "7e97cb87be90d43611a81cfd2ce196f8ea010fa2b50a68d10736a00ce1f8023e",
+      "candidate_sha256": "72e680deb9e9f12c8a5ef14354941645eb8484489d82eac3f8077a6b86b35821",
       "status": "modified"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setFurnishMode",
       "original_line": 1494,
-      "candidate_line": 1611,
+      "candidate_line": 1625,
       "original_sha256": "19676a8b929f45529a1296d219ce839b582033c72356925bd18b42d64af6a9b3",
       "candidate_sha256": "19676a8b929f45529a1296d219ce839b582033c72356925bd18b42d64af6a9b3",
       "status": "preserved"
@@ -17909,7 +17909,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.selectFurniture",
       "original_line": 1501,
-      "candidate_line": 1618,
+      "candidate_line": 1632,
       "original_sha256": "0a468148bc2a3c6f0109496d48973a5c240b14d2a2719515ba95532ed8205977",
       "candidate_sha256": "0a468148bc2a3c6f0109496d48973a5c240b14d2a2719515ba95532ed8205977",
       "status": "preserved"
@@ -17917,7 +17917,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.selectFurnitureSet",
       "original_line": 1509,
-      "candidate_line": 1626,
+      "candidate_line": 1640,
       "original_sha256": "2b8852fa1979c6aab1a723dc597fc5e2bbeaa52dae656670f6ccd1376480fecf",
       "candidate_sha256": "2b8852fa1979c6aab1a723dc597fc5e2bbeaa52dae656670f6ccd1376480fecf",
       "status": "preserved"
@@ -17925,15 +17925,15 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setSun",
       "original_line": 1516,
-      "candidate_line": 1633,
+      "candidate_line": 1647,
       "original_sha256": "47a3470ec6a117806668715ce5dc8d252addcca0096958e70c71d7b30edb6dad",
-      "candidate_sha256": "47a3470ec6a117806668715ce5dc8d252addcca0096958e70c71d7b30edb6dad",
-      "status": "preserved"
+      "candidate_sha256": "bd6fec4fe358ab0a5e5b0ad03d38d40486c65242f03e7d2d4f479b50f0345c6d",
+      "status": "aureon_extension"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setSunPath",
       "original_line": 1530,
-      "candidate_line": 1647,
+      "candidate_line": 1662,
       "original_sha256": "93d93156fbb1a95054850b4249f7aaef8b60a0e2fbe31494fbfd575c999a1d81",
       "candidate_sha256": "93d93156fbb1a95054850b4249f7aaef8b60a0e2fbe31494fbfd575c999a1d81",
       "status": "preserved"
@@ -17941,15 +17941,15 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setWeather",
       "original_line": 1539,
-      "candidate_line": 1656,
+      "candidate_line": 1671,
       "original_sha256": "114b2861a79a8aff4d617b03ef819cadd3fd872935d3feb8c8e8512f4258262a",
-      "candidate_sha256": "114b2861a79a8aff4d617b03ef819cadd3fd872935d3feb8c8e8512f4258262a",
-      "status": "preserved"
+      "candidate_sha256": "90eef8d198e42a17f60397d9d4e004f080f0a9050b59aef903f2971ead021d56",
+      "status": "aureon_extension"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.applyWeather",
       "original_line": 1548,
-      "candidate_line": 1665,
+      "candidate_line": 1681,
       "original_sha256": "a2bd59313ed24a487cf3e3ca558b2808e40225923e25022a643b125b33b7130c",
       "candidate_sha256": "a2bd59313ed24a487cf3e3ca558b2808e40225923e25022a643b125b33b7130c",
       "status": "preserved"
@@ -17957,7 +17957,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.placeFog",
       "original_line": 1564,
-      "candidate_line": 1681,
+      "candidate_line": 1697,
       "original_sha256": "74c6c0295ab6967bb09b88e0171c3bc58fb15d649cbb5b8a40d2c480020fde20",
       "candidate_sha256": "74c6c0295ab6967bb09b88e0171c3bc58fb15d649cbb5b8a40d2c480020fde20",
       "status": "preserved"
@@ -17965,7 +17965,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.seedParticles",
       "original_line": 1576,
-      "candidate_line": 1693,
+      "candidate_line": 1709,
       "original_sha256": "53c30ea9365af09394709d7d2620331aea324e59ee0bd9ff8e5ddfa8eb1937d7",
       "candidate_sha256": "53c30ea9365af09394709d7d2620331aea324e59ee0bd9ff8e5ddfa8eb1937d7",
       "status": "preserved"
@@ -17973,7 +17973,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.stepWeather",
       "original_line": 1596,
-      "candidate_line": 1713,
+      "candidate_line": 1729,
       "original_sha256": "2c44c57ed46346a9247d50f903b6feb3f1f9a9c14794afec982da759144163e0",
       "candidate_sha256": "2c44c57ed46346a9247d50f903b6feb3f1f9a9c14794afec982da759144163e0",
       "status": "preserved"
@@ -17981,15 +17981,15 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.placeSky",
       "original_line": 1649,
-      "candidate_line": 1766,
+      "candidate_line": 1782,
       "original_sha256": "a3e9566e69abdfdfdf8540c3471dffd01eae34beb877678fa0f8a96acf2c0cd5",
-      "candidate_sha256": "a3e9566e69abdfdfdf8540c3471dffd01eae34beb877678fa0f8a96acf2c0cd5",
-      "status": "preserved"
+      "candidate_sha256": "f7e9cbcefdec2f640b8eecc90ec3f35cdf6c331d21117b6cd416ff6a87173305",
+      "status": "aureon_extension"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.skyFrame",
       "original_line": 1673,
-      "candidate_line": 1790,
+      "candidate_line": 1806,
       "original_sha256": "42667640da662d438af9ce6af6c0e46fa754c62253f3048cb239c7f13c6592ba",
       "candidate_sha256": "42667640da662d438af9ce6af6c0e46fa754c62253f3048cb239c7f13c6592ba",
       "status": "preserved"
@@ -17997,15 +17997,15 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildSunFx",
       "original_line": 1682,
-      "candidate_line": 1799,
+      "candidate_line": 1815,
       "original_sha256": "31e5cb5f32f4e7e97f5af5e0035cb5b09c9a02003cfc71071fe3ddeb6b98d26e",
-      "candidate_sha256": "31e5cb5f32f4e7e97f5af5e0035cb5b09c9a02003cfc71071fe3ddeb6b98d26e",
-      "status": "preserved"
+      "candidate_sha256": "da527789e8bacb581e337d6d8cdc3738cdc38319d4534094c943b125f1020ee7",
+      "status": "aureon_extension"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.arcFrame",
       "original_line": 1726,
-      "candidate_line": 1843,
+      "candidate_line": 1859,
       "original_sha256": "e138d53428e7efddf2b5593c5af27331611d250913ae3d4fe5cb1b58de4a0569",
       "candidate_sha256": "e138d53428e7efddf2b5593c5af27331611d250913ae3d4fe5cb1b58de4a0569",
       "status": "preserved"
@@ -18013,7 +18013,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.nightFactor",
       "original_line": 1731,
-      "candidate_line": 1848,
+      "candidate_line": 1864,
       "original_sha256": "3522ab0a64f2872fc0e5269a7357b20747214bae7707838527fe539870ad7361",
       "candidate_sha256": "3522ab0a64f2872fc0e5269a7357b20747214bae7707838527fe539870ad7361",
       "status": "preserved"
@@ -18021,7 +18021,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildSpill",
       "original_line": 1741,
-      "candidate_line": 1858,
+      "candidate_line": 1874,
       "original_sha256": "64c065b1e1f39e8da1f0fc4bdb1b0e2bdb6bc5fd6bfb22b757f7ec4fb7ca9315",
       "candidate_sha256": "64c065b1e1f39e8da1f0fc4bdb1b0e2bdb6bc5fd6bfb22b757f7ec4fb7ca9315",
       "status": "preserved"
@@ -18029,7 +18029,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.drawShadow",
       "original_line": 1833,
-      "candidate_line": 1950,
+      "candidate_line": 1966,
       "original_sha256": "5a64ce6ad010433c31874a32c1eb60648562a6b0b619bd8fc846ae8d764bc389",
       "candidate_sha256": "5a64ce6ad010433c31874a32c1eb60648562a6b0b619bd8fc846ae8d764bc389",
       "status": "preserved"
@@ -18037,7 +18037,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setRoomTint",
       "original_line": 1855,
-      "candidate_line": 1972,
+      "candidate_line": 1988,
       "original_sha256": "1470eddaf096f74fdf59dede36b85162190c04037ecbd15d06c4b0a9550772a1",
       "candidate_sha256": "1470eddaf096f74fdf59dede36b85162190c04037ecbd15d06c4b0a9550772a1",
       "status": "preserved"
@@ -18045,7 +18045,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setScreens",
       "original_line": 1872,
-      "candidate_line": 1989,
+      "candidate_line": 2005,
       "original_sha256": "cc77a866232c27536919d3118ae1d8a58afc684b4ff2377725c511155573809a",
       "candidate_sha256": "cc77a866232c27536919d3118ae1d8a58afc684b4ff2377725c511155573809a",
       "status": "preserved"
@@ -18053,7 +18053,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.fillRoomPin",
       "original_line": 1879,
-      "candidate_line": 1996,
+      "candidate_line": 2012,
       "original_sha256": "ef65b8366615e98e0f4f3c7ba1f394a327cacd7d3163b8ef8072d89b8c9f78ee",
       "candidate_sha256": "ef65b8366615e98e0f4f3c7ba1f394a327cacd7d3163b8ef8072d89b8c9f78ee",
       "status": "preserved"
@@ -18061,7 +18061,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setRoomInfo",
       "original_line": 1895,
-      "candidate_line": 2012,
+      "candidate_line": 2028,
       "original_sha256": "44ac0520bd227556c9ce1b26d86bc5cd135bddbe5a6aa901721363cd119be04e",
       "candidate_sha256": "44ac0520bd227556c9ce1b26d86bc5cd135bddbe5a6aa901721363cd119be04e",
       "status": "preserved"
@@ -18069,7 +18069,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setFloorInfo",
       "original_line": 1903,
-      "candidate_line": 2020,
+      "candidate_line": 2036,
       "original_sha256": "527fa1e942d898a2687a31780311b797a42bc96dbaa2a09cf2a7136098d8658f",
       "candidate_sha256": "527fa1e942d898a2687a31780311b797a42bc96dbaa2a09cf2a7136098d8658f",
       "status": "preserved"
@@ -18077,7 +18077,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setOpeningStates",
       "original_line": 1918,
-      "candidate_line": 2035,
+      "candidate_line": 2051,
       "original_sha256": "167206c8a36cd4e24177bc37e0fd3d573aa33bfaf0e5ddcbdcb3f206053a0be7",
       "candidate_sha256": "167206c8a36cd4e24177bc37e0fd3d573aa33bfaf0e5ddcbdcb3f206053a0be7",
       "status": "preserved"
@@ -18085,7 +18085,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setFridgeDoors",
       "original_line": 1941,
-      "candidate_line": 2058,
+      "candidate_line": 2074,
       "original_sha256": "01b1f54014998669e749f0d7de4f8553a9ff4a59705abb879027983267f4d908",
       "candidate_sha256": "01b1f54014998669e749f0d7de4f8553a9ff4a59705abb879027983267f4d908",
       "status": "preserved"
@@ -18093,7 +18093,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setAwnings",
       "original_line": 1962,
-      "candidate_line": 2079,
+      "candidate_line": 2095,
       "original_sha256": "69a1cd58a5f21e342281848d5bfa34d68cd2a764144b2eb2108707755aa4f498",
       "candidate_sha256": "69a1cd58a5f21e342281848d5bfa34d68cd2a764144b2eb2108707755aa4f498",
       "status": "preserved"
@@ -18101,7 +18101,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.showFresh",
       "original_line": 1987,
-      "candidate_line": 2104,
+      "candidate_line": 2120,
       "original_sha256": "ef4b9fa5e14cc46dbdd34a5dc13002d846e30d3177332cd0e07ce03e5e322f7e",
       "candidate_sha256": "ef4b9fa5e14cc46dbdd34a5dc13002d846e30d3177332cd0e07ce03e5e322f7e",
       "status": "preserved"
@@ -18109,7 +18109,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.stepAwnings",
       "original_line": 1992,
-      "candidate_line": 2109,
+      "candidate_line": 2125,
       "original_sha256": "f8e963370f7968953e048f556248dabfa28eb4cfd7f78bb5e9f586c322f33d10",
       "candidate_sha256": "f8e963370f7968953e048f556248dabfa28eb4cfd7f78bb5e9f586c322f33d10",
       "status": "preserved"
@@ -18117,7 +18117,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.stepFridges",
       "original_line": 2011,
-      "candidate_line": 2128,
+      "candidate_line": 2144,
       "original_sha256": "d0f9ba7c89544339a1353dab6ef99388eea81149025ba018a1e54803f5a8a281",
       "candidate_sha256": "d0f9ba7c89544339a1353dab6ef99388eea81149025ba018a1e54803f5a8a281",
       "status": "preserved"
@@ -18125,7 +18125,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildFridges",
       "original_line": 2034,
-      "candidate_line": 2151,
+      "candidate_line": 2167,
       "original_sha256": "3b4f8b4fbea88c837604350dcde29184a5dfe588372f9bdc594f67da0b3a6d80",
       "candidate_sha256": "3b4f8b4fbea88c837604350dcde29184a5dfe588372f9bdc594f67da0b3a6d80",
       "status": "preserved"
@@ -18133,7 +18133,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.resetView",
       "original_line": 2063,
-      "candidate_line": 2180,
+      "candidate_line": 2196,
       "original_sha256": "36b5c14b71548aed1a86ae882d1d2573d7c71d3793d2b6e614ed312bf0218bf4",
       "candidate_sha256": "36b5c14b71548aed1a86ae882d1d2573d7c71d3793d2b6e614ed312bf0218bf4",
       "status": "preserved"
@@ -18141,7 +18141,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setStartView",
       "original_line": 2068,
-      "candidate_line": 2185,
+      "candidate_line": 2201,
       "original_sha256": "0bbb8d36614e4a15a32c6d9b3bf294c3ebba7b0198001db03eec5e94d5f5a944",
       "candidate_sha256": "0bbb8d36614e4a15a32c6d9b3bf294c3ebba7b0198001db03eec5e94d5f5a944",
       "status": "preserved"
@@ -18149,7 +18149,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.currentView",
       "original_line": 2076,
-      "candidate_line": 2193,
+      "candidate_line": 2209,
       "original_sha256": "0802d865ee9ebfb0154489d39cd97837fd9135dd9a7d6f2ec7d685dd54882026",
       "candidate_sha256": "0802d865ee9ebfb0154489d39cd97837fd9135dd9a7d6f2ec7d685dd54882026",
       "status": "preserved"
@@ -18157,7 +18157,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.floorBase",
       "original_line": 2085,
-      "candidate_line": 2202,
+      "candidate_line": 2218,
       "original_sha256": "c9505dc3f63b638296307603473e8f8a2f2390bc02775d6cf091d70613caeb56",
       "candidate_sha256": "c9505dc3f63b638296307603473e8f8a2f2390bc02775d6cf091d70613caeb56",
       "status": "preserved"
@@ -18165,7 +18165,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setProjections",
       "original_line": 2093,
-      "candidate_line": 2210,
+      "candidate_line": 2226,
       "original_sha256": "81f185b2231576fd909f7e5ab94fa7210f4497eb39267d3eabc7cfaefdfb179b",
       "candidate_sha256": "81f185b2231576fd909f7e5ab94fa7210f4497eb39267d3eabc7cfaefdfb179b",
       "status": "preserved"
@@ -18173,7 +18173,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.projectorPose",
       "original_line": 2099,
-      "candidate_line": 2216,
+      "candidate_line": 2232,
       "original_sha256": "b4ea0345d24bb5bdf0bb0460b61b96235d75d95de014e434c7256fa80c2e4627",
       "candidate_sha256": "b4ea0345d24bb5bdf0bb0460b61b96235d75d95de014e434c7256fa80c2e4627",
       "status": "preserved"
@@ -18181,7 +18181,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.updateProjections",
       "original_line": 2117,
-      "candidate_line": 2234,
+      "candidate_line": 2250,
       "original_sha256": "77970134756b07eddf4cb212af3678bd27e15609f50e333103d22d47cd5d2cc4",
       "candidate_sha256": "77970134756b07eddf4cb212af3678bd27e15609f50e333103d22d47cd5d2cc4",
       "status": "preserved"
@@ -18189,15 +18189,15 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.dispose",
       "original_line": 2131,
-      "candidate_line": 2248,
+      "candidate_line": 2264,
       "original_sha256": "f07cfc687583440ff21d881664009f8d373eeaa53e7543054789c70f23c5595e",
-      "candidate_sha256": "9de205cd17dc5691b27f0d038b8dedd08c73e56a16d2eccf11f47f3fe83c034d",
+      "candidate_sha256": "67f87bb2b3edc72c9a78099486f0be4a208ddb10351ee124722c7b60ecd930bf",
       "status": "modified"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.invalidate",
       "original_line": 2185,
-      "candidate_line": 2305,
+      "candidate_line": 2321,
       "original_sha256": "6a39876a588c640458634b6101e44df89516e3c97737f9075ebcefe3b61a845f",
       "candidate_sha256": "6a39876a588c640458634b6101e44df89516e3c97737f9075ebcefe3b61a845f",
       "status": "preserved"
@@ -18205,7 +18205,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.makeRenderer",
       "original_line": 2192,
-      "candidate_line": 2312,
+      "candidate_line": 2328,
       "original_sha256": "424357df9134c0ef41088547008d94334b6e326bed8e3051cffdb903799b74bb",
       "candidate_sha256": "424357df9134c0ef41088547008d94334b6e326bed8e3051cffdb903799b74bb",
       "status": "preserved"
@@ -18213,7 +18213,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.makeControls",
       "original_line": 2207,
-      "candidate_line": 2327,
+      "candidate_line": 2343,
       "original_sha256": "9602995140e8e459138e974dd56f741bc9754ec9cc8434df77a1d47ac3bb0ee4",
       "candidate_sha256": "9602995140e8e459138e974dd56f741bc9754ec9cc8434df77a1d47ac3bb0ee4",
       "status": "preserved"
@@ -18221,7 +18221,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.onVisibility",
       "original_line": 2230,
-      "candidate_line": 2350,
+      "candidate_line": 2366,
       "original_sha256": "e3589d46340980e4280c527fb1bcf42ad18327f60dec6c3bfc2b3b025dd2ed97",
       "candidate_sha256": "e3589d46340980e4280c527fb1bcf42ad18327f60dec6c3bfc2b3b025dd2ed97",
       "status": "preserved"
@@ -18229,15 +18229,15 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.resize",
       "original_line": 2234,
-      "candidate_line": 2354,
+      "candidate_line": 2370,
       "original_sha256": "2f43831b3cc3b52091fa8764511d829ad454f6c96111d8751f6743c1573a74ca",
-      "candidate_sha256": "bf08bd584d742499b51ee0d1efc697f35822d788c4fa198ead2e05a1a0450e1f",
+      "candidate_sha256": "0534efa68509f4367a67a153b762c43292a4de96c942140bd53a71bdac407530",
       "status": "aureon_extension"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.disposeRetired",
       "original_line": 2248,
-      "candidate_line": 2373,
+      "candidate_line": 2389,
       "original_sha256": "e3a4e2237d8775bcb3bcd2708653964d449ada06c69b3d56b595f8dfd9bc401b",
       "candidate_sha256": "e3a4e2237d8775bcb3bcd2708653964d449ada06c69b3d56b595f8dfd9bc401b",
       "status": "preserved"
@@ -18245,7 +18245,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.clear",
       "original_line": 2254,
-      "candidate_line": 2379,
+      "candidate_line": 2395,
       "original_sha256": "2e9fa5acff95786dcd1c3633a5a61bfac5d61091cb83c1fbf3d3226e7781ea51",
       "candidate_sha256": "2e9fa5acff95786dcd1c3633a5a61bfac5d61091cb83c1fbf3d3226e7781ea51",
       "status": "preserved"
@@ -18253,7 +18253,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.makeDevicePin",
       "original_line": 2279,
-      "candidate_line": 2404,
+      "candidate_line": 2420,
       "original_sha256": "be888e6c177af43b767210651995ef0743338d19d2bba971223018e1794c7c93",
       "candidate_sha256": "be888e6c177af43b767210651995ef0743338d19d2bba971223018e1794c7c93",
       "status": "preserved"
@@ -18261,7 +18261,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildLightSurface",
       "original_line": 2349,
-      "candidate_line": 2474,
+      "candidate_line": 2490,
       "original_sha256": "bc357df8d52c4ba75c8ef2ed67ba0d2bec43a4fd423b4a7e68ba706ddbdc8240",
       "candidate_sha256": "bc357df8d52c4ba75c8ef2ed67ba0d2bec43a4fd423b4a7e68ba706ddbdc8240",
       "status": "preserved"
@@ -18269,7 +18269,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.packLightAt",
       "original_line": 2390,
-      "candidate_line": 2515,
+      "candidate_line": 2531,
       "original_sha256": "57ab9b375b326e3a224a0c82ce27fb90d5c4672fd32ad2b27cdc6bbbd74e9758",
       "candidate_sha256": "57ab9b375b326e3a224a0c82ce27fb90d5c4672fd32ad2b27cdc6bbbd74e9758",
       "status": "preserved"
@@ -18277,7 +18277,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.lightSources",
       "original_line": 2399,
-      "candidate_line": 2524,
+      "candidate_line": 2540,
       "original_sha256": "ea2214e98f075983fa6888c3bcdf04b80481e601e3d6ab3ab2206e44955cd5c1",
       "candidate_sha256": "ea2214e98f075983fa6888c3bcdf04b80481e601e3d6ab3ab2206e44955cd5c1",
       "status": "preserved"
@@ -18285,7 +18285,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.lightFromAbove",
       "original_line": 2456,
-      "candidate_line": 2581,
+      "candidate_line": 2597,
       "original_sha256": "5b761b51cfaf1bfd2c160bc5095d512e2846930bfa9958d1328d12affa350f37",
       "candidate_sha256": "5b761b51cfaf1bfd2c160bc5095d512e2846930bfa9958d1328d12affa350f37",
       "status": "preserved"
@@ -18293,7 +18293,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildGlow",
       "original_line": 2492,
-      "candidate_line": 2617,
+      "candidate_line": 2633,
       "original_sha256": "3344b37b1093017b810297d5e4e080efe74f327ec1660e2ceaf6bc66cb4f69fb",
       "candidate_sha256": "3344b37b1093017b810297d5e4e080efe74f327ec1660e2ceaf6bc66cb4f69fb",
       "status": "preserved"
@@ -18301,7 +18301,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.makeMaterials",
       "original_line": 2541,
-      "candidate_line": 2666,
+      "candidate_line": 2682,
       "original_sha256": "75d0ee571512a0605b9a75d27a71c3efa32dae470c49242f2d4c6edf58ff48ac",
       "candidate_sha256": "75d0ee571512a0605b9a75d27a71c3efa32dae470c49242f2d4c6edf58ff48ac",
       "status": "preserved"
@@ -18309,7 +18309,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.rebuild",
       "original_line": 2613,
-      "candidate_line": 2738,
+      "candidate_line": 2754,
       "original_sha256": "0d017a71b50527415879aa476237b4454077368ae2a61095f3a3ebafece03246",
       "candidate_sha256": "9386da955659ae7364bebe5c3ea5181fe195e9a70ddf82f4ce6128838391a0c6",
       "status": "modified"
@@ -18317,7 +18317,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildRoofMesh",
       "original_line": 2883,
-      "candidate_line": 3030,
+      "candidate_line": 3046,
       "original_sha256": "bb04f3743f7865d6caedafa8d4e10bed0720492d3b54759266ac98e1cb5b0718",
       "candidate_sha256": "f61577a37496afbe11514560aa5219210ad360c9f7eb962130ddfe964ce1f764",
       "status": "modified"
@@ -18325,7 +18325,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.roofLift",
       "original_line": 2998,
-      "candidate_line": 3147,
+      "candidate_line": 3163,
       "original_sha256": "301c34c59ff9aa320f230febff35488a9664388bae20ce36cb936880ce0eebca",
       "candidate_sha256": "301c34c59ff9aa320f230febff35488a9664388bae20ce36cb936880ce0eebca",
       "status": "preserved"
@@ -18333,7 +18333,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.placeRoof",
       "original_line": 3006,
-      "candidate_line": 3155,
+      "candidate_line": 3171,
       "original_sha256": "e1070bc22ec7bd58a33e3c98ff465ffbf84b940a28c7da2d2557a65281ca64d7",
       "candidate_sha256": "e1070bc22ec7bd58a33e3c98ff465ffbf84b940a28c7da2d2557a65281ca64d7",
       "status": "preserved"
@@ -18341,7 +18341,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.applyTierFlags",
       "original_line": 3053,
-      "candidate_line": 3202,
+      "candidate_line": 3218,
       "original_sha256": "f3379fcab15e419e55be0f8a40151a10c74bcf6703a5a74031ef03dcad50029b",
       "candidate_sha256": "805119d9262a000bce875cc002dca1133e5fd9e1cc993fd88a7f62e53771c5a7",
       "status": "modified"
@@ -18349,7 +18349,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.rebuildTier",
       "original_line": 3064,
-      "candidate_line": 3213,
+      "candidate_line": 3229,
       "original_sha256": "92e91e394b5070c8f49beff181d959e2f8ba89e5896f21959ee75b251affabcf",
       "candidate_sha256": "92e91e394b5070c8f49beff181d959e2f8ba89e5896f21959ee75b251affabcf",
       "status": "preserved"
@@ -18357,7 +18357,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.houseView",
       "original_line": 3075,
-      "candidate_line": 3224,
+      "candidate_line": 3240,
       "original_sha256": "957b29dfeb891d02a40525a9886c373478d29788fb83ab2a8de0852391825322",
       "candidate_sha256": "957b29dfeb891d02a40525a9886c373478d29788fb83ab2a8de0852391825322",
       "status": "preserved"
@@ -18365,7 +18365,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.applyTargets",
       "original_line": 3080,
-      "candidate_line": 3229,
+      "candidate_line": 3245,
       "original_sha256": "dadb9530c22c9e8a299611d76ef61cc98567e81b0a1e49f1bf62f40575cc20cd",
       "candidate_sha256": "dadb9530c22c9e8a299611d76ef61cc98567e81b0a1e49f1bf62f40575cc20cd",
       "status": "preserved"
@@ -18373,7 +18373,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.applyFloor",
       "original_line": 3116,
-      "candidate_line": 3265,
+      "candidate_line": 3281,
       "original_sha256": "efa84f0a855b405523025f7726d9cbdaf6171d54a1d4b0d94ca082f015dc5c3e",
       "candidate_sha256": "efa84f0a855b405523025f7726d9cbdaf6171d54a1d4b0d94ca082f015dc5c3e",
       "status": "preserved"
@@ -18381,7 +18381,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.stepFloors",
       "original_line": 3161,
-      "candidate_line": 3310,
+      "candidate_line": 3326,
       "original_sha256": "a2dc87170e042478790e43fd53b11ff0392b0e01b0ece7df788cd3da6e43639e",
       "candidate_sha256": "a2dc87170e042478790e43fd53b11ff0392b0e01b0ece7df788cd3da6e43639e",
       "status": "preserved"
@@ -18389,7 +18389,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.stepOpenings",
       "original_line": 3185,
-      "candidate_line": 3334,
+      "candidate_line": 3350,
       "original_sha256": "16877608420829b533bab17723c22fb47eb06cf8693c9f80e2930be37834ec03",
       "candidate_sha256": "16877608420829b533bab17723c22fb47eb06cf8693c9f80e2930be37834ec03",
       "status": "preserved"
@@ -18397,7 +18397,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.glowOf",
       "original_line": 3240,
-      "candidate_line": 3389,
+      "candidate_line": 3405,
       "original_sha256": "88556d773fe89ab87f9db3695809e0decdc7f8e33432c0ee4967b9792a476809",
       "candidate_sha256": "88556d773fe89ab87f9db3695809e0decdc7f8e33432c0ee4967b9792a476809",
       "status": "preserved"
@@ -18405,7 +18405,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildLamps",
       "original_line": 3258,
-      "candidate_line": 3407,
+      "candidate_line": 3423,
       "original_sha256": "5801264363c4afad7d05f9b3ab477f4967c7f3bc8ba8e237879fc59c4eb9ee36",
       "candidate_sha256": "934d21692b10719c2c7d72451b834e5b1a78ac04672f6115d98602e1f91e9c5c",
       "status": "aureon_extension"
@@ -18413,7 +18413,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildSun",
       "original_line": 3336,
-      "candidate_line": 3487,
+      "candidate_line": 3503,
       "original_sha256": "bff89596022572ae45f217f1ef3dd4437e76364aab6e0117fab677a41f18c694",
       "candidate_sha256": "bff89596022572ae45f217f1ef3dd4437e76364aab6e0117fab677a41f18c694",
       "status": "preserved"
@@ -18421,7 +18421,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.pushRoofSun",
       "original_line": 3424,
-      "candidate_line": 3575,
+      "candidate_line": 3591,
       "original_sha256": "550ab760c1461ef8a39756475da5f1776bffe2cf9cb83f0b8e1ab9e9c6e2b96c",
       "candidate_sha256": "550ab760c1461ef8a39756475da5f1776bffe2cf9cb83f0b8e1ab9e9c6e2b96c",
       "status": "preserved"
@@ -18429,7 +18429,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildHalos",
       "original_line": 3477,
-      "candidate_line": 3628,
+      "candidate_line": 3644,
       "original_sha256": "3b49cba966d9e6adba9b469439904f9f61d1f4cf6eaed2625191ba740ee302a3",
       "candidate_sha256": "3b49cba966d9e6adba9b469439904f9f61d1f4cf6eaed2625191ba740ee302a3",
       "status": "preserved"
@@ -18437,7 +18437,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildScreens",
       "original_line": 3627,
-      "candidate_line": 3778,
+      "candidate_line": 3794,
       "original_sha256": "8ed0d211d399281f0de3d8042df970a3b1075c464a32d99bc89accf6a645f2c7",
       "candidate_sha256": "8ed0d211d399281f0de3d8042df970a3b1075c464a32d99bc89accf6a645f2c7",
       "status": "preserved"
@@ -18445,7 +18445,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.updateScreenPictures",
       "original_line": 3915,
-      "candidate_line": 4066,
+      "candidate_line": 4082,
       "original_sha256": "c180a17fa1488da007255fc31fee96ac7defac02dcf3ac6b30a61d836ebd2959",
       "candidate_sha256": "c180a17fa1488da007255fc31fee96ac7defac02dcf3ac6b30a61d836ebd2959",
       "status": "preserved"
@@ -18453,7 +18453,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.placeScreenPicture",
       "original_line": 3964,
-      "candidate_line": 4115,
+      "candidate_line": 4131,
       "original_sha256": "3d7642dc4318828a56a89544c81c9faca0e66c7b401ee4c7ddd9e4f42641aa97",
       "candidate_sha256": "3d7642dc4318828a56a89544c81c9faca0e66c7b401ee4c7ddd9e4f42641aa97",
       "status": "preserved"
@@ -18461,7 +18461,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.flowSeconds",
       "original_line": 3977,
-      "candidate_line": 4128,
+      "candidate_line": 4144,
       "original_sha256": "50c5d1c49c5732c36d3230a121a6a88494995ec91f9295ccf76d86516618f155",
       "candidate_sha256": "50c5d1c49c5732c36d3230a121a6a88494995ec91f9295ccf76d86516618f155",
       "status": "preserved"
@@ -18469,7 +18469,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildFlows",
       "original_line": 3982,
-      "candidate_line": 4133,
+      "candidate_line": 4149,
       "original_sha256": "c9c70e1bd3e0e13ecdfdc12701481e4d8b4b96ec3cd29403af399e9a24f553ab",
       "candidate_sha256": "c9c70e1bd3e0e13ecdfdc12701481e4d8b4b96ec3cd29403af399e9a24f553ab",
       "status": "preserved"
@@ -18477,7 +18477,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildPipeLines",
       "original_line": 4067,
-      "candidate_line": 4218,
+      "candidate_line": 4234,
       "original_sha256": "e57726ddce76cba13f4b92f91097aeab819af5090f85889741ea12c614a29820",
       "candidate_sha256": "e57726ddce76cba13f4b92f91097aeab819af5090f85889741ea12c614a29820",
       "status": "preserved"
@@ -18485,7 +18485,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.applyHouseLines",
       "original_line": 4134,
-      "candidate_line": 4285,
+      "candidate_line": 4301,
       "original_sha256": "99393110dc0666055dad8785d68796e614fdd04733724e370f45373c677ce580",
       "candidate_sha256": "99393110dc0666055dad8785d68796e614fdd04733724e370f45373c677ce580",
       "status": "preserved"
@@ -18493,7 +18493,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.buildOpenings",
       "original_line": 4142,
-      "candidate_line": 4293,
+      "candidate_line": 4309,
       "original_sha256": "99dcf832690fd5db7bd9f22fb58ec46347cee12264a4e8bf2066ce0cdcb593f6",
       "candidate_sha256": "99dcf832690fd5db7bd9f22fb58ec46347cee12264a4e8bf2066ce0cdcb593f6",
       "status": "preserved"
@@ -18501,7 +18501,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.activeFloors",
       "original_line": 4159,
-      "candidate_line": 4310,
+      "candidate_line": 4326,
       "original_sha256": "541771fb93e9087a62673c2c06e119bd29549bd9e362d2b5c7f2a1367a1184fa",
       "candidate_sha256": "541771fb93e9087a62673c2c06e119bd29549bd9e362d2b5c7f2a1367a1184fa",
       "status": "preserved"
@@ -18509,7 +18509,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.applyHighlight",
       "original_line": 4163,
-      "candidate_line": 4314,
+      "candidate_line": 4330,
       "original_sha256": "6faf9ae7192a7a5ebe325c136c9ee33b56cd08a6e467df436d1e85d75f90763a",
       "candidate_sha256": "6faf9ae7192a7a5ebe325c136c9ee33b56cd08a6e467df436d1e85d75f90763a",
       "status": "preserved"
@@ -18517,23 +18517,23 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.fit",
       "original_line": 4186,
-      "candidate_line": 4337,
+      "candidate_line": 4353,
       "original_sha256": "f05fdb1ffaa701612329f0082906de8c06efdfcea4bb6b6af4ec75f430ce48b0",
-      "candidate_sha256": "ff62ab5448140955db9daec9e4eea2c811c68d4d920410f8f1de20cd3f9b64ce",
+      "candidate_sha256": "e9ea37a482e476c9d86db5d1cde57faf314ac5e672ee3ec78dfe81c14f1acb72",
       "status": "aureon_extension"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.placeGround",
       "original_line": 4232,
-      "candidate_line": 4432,
+      "candidate_line": 4528,
       "original_sha256": "27467d8311a1eb8201108eddced0cfbf411e46170adf5baaf58cf1fbfba4801b",
-      "candidate_sha256": "48ce7b0924efbab7ba50a7f408af4a7fbd416415fdcc192a957d5088310c428a",
+      "candidate_sha256": "6ba937d1edbcc29e8c4fc4bc0ab5ef56f9d957d495697affc1c2527b98697b0d",
       "status": "modified"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.distanceFor",
       "original_line": 4257,
-      "candidate_line": 4457,
+      "candidate_line": 4554,
       "original_sha256": "55f5e8bb3c83032a1e08732754ba4923eca452fc6d1ab83d9cf74fbe68cde536",
       "candidate_sha256": "55f5e8bb3c83032a1e08732754ba4923eca452fc6d1ab83d9cf74fbe68cde536",
       "status": "preserved"
@@ -18541,7 +18541,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.rayAt",
       "original_line": 4268,
-      "candidate_line": 4468,
+      "candidate_line": 4565,
       "original_sha256": "cf983701b6353f8b7c1dba4ac9d203ce15e9fa5b14eec2384499142fcb537357",
       "candidate_sha256": "cf983701b6353f8b7c1dba4ac9d203ce15e9fa5b14eec2384499142fcb537357",
       "status": "preserved"
@@ -18549,7 +18549,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.pick",
       "original_line": 4275,
-      "candidate_line": 4475,
+      "candidate_line": 4572,
       "original_sha256": "b8948a6f74cf8d13752e6ba0d81e43f84e50bbf7298ea2750d507e8ae3181d58",
       "candidate_sha256": "b8948a6f74cf8d13752e6ba0d81e43f84e50bbf7298ea2750d507e8ae3181d58",
       "status": "preserved"
@@ -18557,7 +18557,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.tapOpens",
       "original_line": 4338,
-      "candidate_line": 4538,
+      "candidate_line": 4635,
       "original_sha256": "9255bf2ffad122b6c2a11213cac179ae45980007d91e601a5c1239a2f43e12a6",
       "candidate_sha256": "9255bf2ffad122b6c2a11213cac179ae45980007d91e601a5c1239a2f43e12a6",
       "status": "preserved"
@@ -18565,7 +18565,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.onTap",
       "original_line": 4342,
-      "candidate_line": 4542,
+      "candidate_line": 4639,
       "original_sha256": "c446973f9010ad1791435606129eee10fdc20580f6658b158b9d7ca2953ecbdd",
       "candidate_sha256": "c446973f9010ad1791435606129eee10fdc20580f6658b158b9d7ca2953ecbdd",
       "status": "preserved"
@@ -18573,7 +18573,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.furnitureAt",
       "original_line": 4359,
-      "candidate_line": 4559,
+      "candidate_line": 4656,
       "original_sha256": "0261a6359c604c3c8c700f9fff40095c4ed33710c1413c4a80506e4408524451",
       "candidate_sha256": "0261a6359c604c3c8c700f9fff40095c4ed33710c1413c4a80506e4408524451",
       "status": "preserved"
@@ -18581,7 +18581,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.furnitureNear",
       "original_line": 4382,
-      "candidate_line": 4582,
+      "candidate_line": 4679,
       "original_sha256": "5d578cd23783a0e09e9de8bdb330578eb5134bdffa2a5eff2f4679cace10bc07",
       "candidate_sha256": "5d578cd23783a0e09e9de8bdb330578eb5134bdffa2a5eff2f4679cace10bc07",
       "status": "preserved"
@@ -18589,7 +18589,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.floorPoint",
       "original_line": 4397,
-      "candidate_line": 4597,
+      "candidate_line": 4694,
       "original_sha256": "eae52f7514b05f3dc37b4a77a1498f29a78855cb28683bfeeb62728af07e5215",
       "candidate_sha256": "eae52f7514b05f3dc37b4a77a1498f29a78855cb28683bfeeb62728af07e5215",
       "status": "preserved"
@@ -18597,7 +18597,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setFurnishTypes",
       "original_line": 4408,
-      "candidate_line": 4608,
+      "candidate_line": 4705,
       "original_sha256": "b9baa04bd9c949e391e16b41a38a3df1af6f7cfc06b7f229c21ea46c89fe0e9a",
       "candidate_sha256": "b9baa04bd9c949e391e16b41a38a3df1af6f7cfc06b7f229c21ea46c89fe0e9a",
       "status": "preserved"
@@ -18605,7 +18605,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setSurfaceGrab",
       "original_line": 4413,
-      "candidate_line": 4613,
+      "candidate_line": 4710,
       "original_sha256": "00ca914ad5e03b3949757e33314d2460b374ec4b651801295af6de7c052a3d7c",
       "candidate_sha256": "00ca914ad5e03b3949757e33314d2460b374ec4b651801295af6de7c052a3d7c",
       "status": "preserved"
@@ -18613,7 +18613,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.pointerRay",
       "original_line": 4418,
-      "candidate_line": 4618,
+      "candidate_line": 4715,
       "original_sha256": "43d18f90b6d5a70a2ea9986e894c8137f3ce13450cb4a59a69e2ecb579d80ca3",
       "candidate_sha256": "43d18f90b6d5a70a2ea9986e894c8137f3ce13450cb4a59a69e2ecb579d80ca3",
       "status": "preserved"
@@ -18621,7 +18621,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.furnitureIdAt",
       "original_line": 4422,
-      "candidate_line": 4622,
+      "candidate_line": 4719,
       "original_sha256": "0f71f1a27dbcc6ae8cedc3374b7c462a935bd3a12b2e412f91a57043c0d5b3e2",
       "candidate_sha256": "0f71f1a27dbcc6ae8cedc3374b7c462a935bd3a12b2e412f91a57043c0d5b3e2",
       "status": "preserved"
@@ -18629,7 +18629,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.surfaceRay",
       "original_line": 4426,
-      "candidate_line": 4626,
+      "candidate_line": 4723,
       "original_sha256": "dad2ffedebb97cc9e12813eff3d0c9db533397bb243269869476a07f2b8d7a7b",
       "candidate_sha256": "dad2ffedebb97cc9e12813eff3d0c9db533397bb243269869476a07f2b8d7a7b",
       "status": "preserved"
@@ -18637,7 +18637,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.grabFurniture",
       "original_line": 4431,
-      "candidate_line": 4631,
+      "candidate_line": 4728,
       "original_sha256": "a207aaf866a38c1c8b5a5bf767b663d002e5079f56c6184859478dc792d64380",
       "candidate_sha256": "a207aaf866a38c1c8b5a5bf767b663d002e5079f56c6184859478dc792d64380",
       "status": "preserved"
@@ -18645,7 +18645,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.grabItem",
       "original_line": 4485,
-      "candidate_line": 4685,
+      "candidate_line": 4782,
       "original_sha256": "709ddfb16c239d1a417b78be9aea80a2db84cbb6c87b8891bf44723d881c6c9b",
       "candidate_sha256": "709ddfb16c239d1a417b78be9aea80a2db84cbb6c87b8891bf44723d881c6c9b",
       "status": "preserved"
@@ -18653,7 +18653,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.grabDevice",
       "original_line": 4519,
-      "candidate_line": 4719,
+      "candidate_line": 4816,
       "original_sha256": "4fd98da066ba6df998e44712d0fc09e1dcc521343f9376e748da3b5cb4e09f39",
       "candidate_sha256": "4fd98da066ba6df998e44712d0fc09e1dcc521343f9376e748da3b5cb4e09f39",
       "status": "preserved"
@@ -18661,7 +18661,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setSelectedDevice",
       "original_line": 4536,
-      "candidate_line": 4736,
+      "candidate_line": 4833,
       "original_sha256": "2de88a8ad08d0e98008fe452f5322aa9a1f42dfbd3420478e0b56c46cc4f4da0",
       "candidate_sha256": "2de88a8ad08d0e98008fe452f5322aa9a1f42dfbd3420478e0b56c46cc4f4da0",
       "status": "preserved"
@@ -18669,7 +18669,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.selectDevice",
       "original_line": 4542,
-      "candidate_line": 4742,
+      "candidate_line": 4839,
       "original_sha256": "86e3c9ecd46bef84e3f2b8b0b279f78e1eec2a80cc7fb27e2d50f06d4e6c5af1",
       "candidate_sha256": "86e3c9ecd46bef84e3f2b8b0b279f78e1eec2a80cc7fb27e2d50f06d4e6c5af1",
       "status": "preserved"
@@ -18677,7 +18677,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.dragFurniture",
       "original_line": 4551,
-      "candidate_line": 4751,
+      "candidate_line": 4848,
       "original_sha256": "4c72572718451a79d5c80888d471ea5ab1c3bda3be925a37674c75dac04b8d5f",
       "candidate_sha256": "4c72572718451a79d5c80888d471ea5ab1c3bda3be925a37674c75dac04b8d5f",
       "status": "preserved"
@@ -18685,7 +18685,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.dropFurniture",
       "original_line": 4592,
-      "candidate_line": 4792,
+      "candidate_line": 4889,
       "original_sha256": "123183c62de36fbc438348dce05d3d43e7a9695a254b59001ba3c44d217a822e",
       "candidate_sha256": "123183c62de36fbc438348dce05d3d43e7a9695a254b59001ba3c44d217a822e",
       "status": "preserved"
@@ -18693,7 +18693,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.updateGhost",
       "original_line": 4608,
-      "candidate_line": 4808,
+      "candidate_line": 4905,
       "original_sha256": "b75ab6c213c5942c60c1231fb62bd8e655133b527cb62a6b3c841184dc0dc5ee",
       "candidate_sha256": "b75ab6c213c5942c60c1231fb62bd8e655133b527cb62a6b3c841184dc0dc5ee",
       "status": "preserved"
@@ -18701,7 +18701,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.ghostBox",
       "original_line": 4633,
-      "candidate_line": 4833,
+      "candidate_line": 4930,
       "original_sha256": "a4f34f62e1e8e57038fbba7784c37a0e828e4021e2ff750ef96d9b1fc9e2f056",
       "candidate_sha256": "a4f34f62e1e8e57038fbba7784c37a0e828e4021e2ff750ef96d9b1fc9e2f056",
       "status": "preserved"
@@ -18709,7 +18709,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.onHold",
       "original_line": 4668,
-      "candidate_line": 4868,
+      "candidate_line": 4965,
       "original_sha256": "84ce23e138769e784b854cf7ac63d408fd871b85f48a466330ba1664fd987396",
       "candidate_sha256": "84ce23e138769e784b854cf7ac63d408fd871b85f48a466330ba1664fd987396",
       "status": "preserved"
@@ -18717,7 +18717,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.swipeStart",
       "original_line": 4675,
-      "candidate_line": 4875,
+      "candidate_line": 4972,
       "original_sha256": "62dc7be52646f589c473345a178c3b52b80abf74adcaa26a02ad3bf9259276d8",
       "candidate_sha256": "62dc7be52646f589c473345a178c3b52b80abf74adcaa26a02ad3bf9259276d8",
       "status": "preserved"
@@ -18725,7 +18725,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.floorThumbnails",
       "original_line": 4689,
-      "candidate_line": 4889,
+      "candidate_line": 4986,
       "original_sha256": "336fa8e31a0fa1a812bb0521a617be7adc5b9fae88fc546e3cc77adfd9bbe63b",
       "candidate_sha256": "2e388f304fec1245bc998a86edfa58e12ccd78b2d404917a8d729b4f774f0776",
       "status": "modified"
@@ -18733,7 +18733,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setRobots",
       "original_line": 4785,
-      "candidate_line": 4985,
+      "candidate_line": 5082,
       "original_sha256": "3602a4994a52b1fe1f6fbdfcd5d4c4ffa0bbe65e8c27407d0fb01dcf58691dca",
       "candidate_sha256": "3602a4994a52b1fe1f6fbdfcd5d4c4ffa0bbe65e8c27407d0fb01dcf58691dca",
       "status": "preserved"
@@ -18741,7 +18741,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.robotModelKey",
       "original_line": 4836,
-      "candidate_line": 5036,
+      "candidate_line": 5133,
       "original_sha256": "d93f24be93f47d74d12e404f750945dad814d75452f69895b72cc9ad70b76ced",
       "candidate_sha256": "d93f24be93f47d74d12e404f750945dad814d75452f69895b72cc9ad70b76ced",
       "status": "preserved"
@@ -18749,7 +18749,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.makeRobot",
       "original_line": 4841,
-      "candidate_line": 5041,
+      "candidate_line": 5138,
       "original_sha256": "fa0ede30b29d928f62976096e76c13f87d75c19570cebf0f15c54da0564c910e",
       "candidate_sha256": "fa0ede30b29d928f62976096e76c13f87d75c19570cebf0f15c54da0564c910e",
       "status": "preserved"
@@ -18757,7 +18757,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.syncFans",
       "original_line": 4882,
-      "candidate_line": 5082,
+      "candidate_line": 5179,
       "original_sha256": "a38ea768e991655db898bd873771c697c8774b8886855e1bfcd692cb80bfebbc",
       "candidate_sha256": "a38ea768e991655db898bd873771c697c8774b8886855e1bfcd692cb80bfebbc",
       "status": "preserved"
@@ -18765,7 +18765,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.stepFans",
       "original_line": 4924,
-      "candidate_line": 5124,
+      "candidate_line": 5221,
       "original_sha256": "479ae3fe1d3630a8223686fbdc7db380e6cb518d4ec3420ae002ae6d7f372b39",
       "candidate_sha256": "479ae3fe1d3630a8223686fbdc7db380e6cb518d4ec3420ae002ae6d7f372b39",
       "status": "preserved"
@@ -18773,7 +18773,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.stepRobots",
       "original_line": 4945,
-      "candidate_line": 5145,
+      "candidate_line": 5242,
       "original_sha256": "6b9dffc67cc0e119650de5cac0ddcd8a9ae1d972f853fcb3266638cb1766d44d",
       "candidate_sha256": "6b9dffc67cc0e119650de5cac0ddcd8a9ae1d972f853fcb3266638cb1766d44d",
       "status": "preserved"
@@ -18781,7 +18781,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setTrail",
       "original_line": 4968,
-      "candidate_line": 5168,
+      "candidate_line": 5265,
       "original_sha256": "1f5f0cd6a7271b625669633eedac1565de560e3dba9a203aa9ab1458c4fff049",
       "candidate_sha256": "1f5f0cd6a7271b625669633eedac1565de560e3dba9a203aa9ab1458c4fff049",
       "status": "preserved"
@@ -18789,7 +18789,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.getView",
       "original_line": 5020,
-      "candidate_line": 5220,
+      "candidate_line": 5317,
       "original_sha256": "e0a56464fe4bc7cea6cfb2df2c9ffe112fe0e657a694bd6e72b6bb954db2bca4",
       "candidate_sha256": "e0a56464fe4bc7cea6cfb2df2c9ffe112fe0e657a694bd6e72b6bb954db2bca4",
       "status": "preserved"
@@ -18797,7 +18797,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.flyTo",
       "original_line": 5024,
-      "candidate_line": 5224,
+      "candidate_line": 5321,
       "original_sha256": "a6a27b8270e12465e3f70fdc1e877b054d642024b4f1837ef68a4cf4f2baae1b",
       "candidate_sha256": "a6a27b8270e12465e3f70fdc1e877b054d642024b4f1837ef68a4cf4f2baae1b",
       "status": "preserved"
@@ -18805,7 +18805,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.lookThrough",
       "original_line": 5032,
-      "candidate_line": 5232,
+      "candidate_line": 5329,
       "original_sha256": "ecafd3dca7996a4a7f346a4705c923c580a71b7b5d9a6ce18c1c47305479e169",
       "candidate_sha256": "ecafd3dca7996a4a7f346a4705c923c580a71b7b5d9a6ce18c1c47305479e169",
       "status": "preserved"
@@ -18813,7 +18813,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.flashDevices",
       "original_line": 5047,
-      "candidate_line": 5247,
+      "candidate_line": 5344,
       "original_sha256": "e2000bc6073ca9dcee67123e0a9bdec8c1e91928908b483b9745df901d1672a1",
       "candidate_sha256": "e2000bc6073ca9dcee67123e0a9bdec8c1e91928908b483b9745df901d1672a1",
       "status": "preserved"
@@ -18821,7 +18821,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.focus",
       "original_line": 5054,
-      "candidate_line": 5254,
+      "candidate_line": 5351,
       "original_sha256": "969b6e2b1998929030cbbf8a6ce98cd4c41a6c956014eda03199fd05be19114c",
       "candidate_sha256": "969b6e2b1998929030cbbf8a6ce98cd4c41a6c956014eda03199fd05be19114c",
       "status": "preserved"
@@ -18829,15 +18829,15 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.render",
       "original_line": 5067,
-      "candidate_line": 5376,
+      "candidate_line": 5473,
       "original_sha256": "ef4869ea58bae1775c02cded652dc573a8111a87a99e723dced810816eb869fb",
-      "candidate_sha256": "e25e66dac00f810f37eff0a455f7cf8d72ea09e0f291552c142c44d4dbd8d823",
+      "candidate_sha256": "79ba216681cc290e17932657b5a6f81f67f99a6fc4b5421574188804121b6ed9",
       "status": "modified"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.updateWalls",
       "original_line": 5220,
-      "candidate_line": 5529,
+      "candidate_line": 5627,
       "original_sha256": "5a37d6e24f0d0e3fd33048af02e0917129b41cdedc606d742ff634a4272af33b",
       "candidate_sha256": "5a37d6e24f0d0e3fd33048af02e0917129b41cdedc606d742ff634a4272af33b",
       "status": "preserved"
@@ -18845,7 +18845,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.viewChanged",
       "original_line": 5241,
-      "candidate_line": 5550,
+      "candidate_line": 5648,
       "original_sha256": "f505fbadd7b94b68ba32a1b337e8cbd247009d86069df7d46483e5a7497b8dc7",
       "candidate_sha256": "f505fbadd7b94b68ba32a1b337e8cbd247009d86069df7d46483e5a7497b8dc7",
       "status": "preserved"
@@ -18853,7 +18853,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.place",
       "original_line": 5255,
-      "candidate_line": 5564,
+      "candidate_line": 5662,
       "original_sha256": "65a731ef78ae6afc1ff07015f2e953aeff36c68e176b474c3690794c1e6058a1",
       "candidate_sha256": "65a731ef78ae6afc1ff07015f2e953aeff36c68e176b474c3690794c1e6058a1",
       "status": "preserved"
@@ -18861,7 +18861,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.updateLabels",
       "original_line": 5264,
-      "candidate_line": 5573,
+      "candidate_line": 5671,
       "original_sha256": "7f3b220beff5196396435147689e0bb914c897bbb83b3473022a289898b5bfac",
       "candidate_sha256": "7f3b220beff5196396435147689e0bb914c897bbb83b3473022a289898b5bfac",
       "status": "preserved"
@@ -18869,7 +18869,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.otherFloor",
       "original_line": 5360,
-      "candidate_line": 5669,
+      "candidate_line": 5767,
       "original_sha256": "c35951b233a60b4fff7c4863c297c0443b6e739a3091795db46790db265ef2b7",
       "candidate_sha256": "c35951b233a60b4fff7c4863c297c0443b6e739a3091795db46790db265ef2b7",
       "status": "preserved"
@@ -18877,7 +18877,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.updateDevicePins",
       "original_line": 5364,
-      "candidate_line": 5673,
+      "candidate_line": 5771,
       "original_sha256": "ed9d17a25468180ee3ee1d86c136053445172af6ef08a1de4e9c0ba8dd9afe60",
       "candidate_sha256": "ed9d17a25468180ee3ee1d86c136053445172af6ef08a1de4e9c0ba8dd9afe60",
       "status": "preserved"
@@ -18885,7 +18885,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.watchSlow",
       "original_line": 5438,
-      "candidate_line": 5747,
+      "candidate_line": 5845,
       "original_sha256": "713e38cf58f67f61ac8471cac8dd4d5c5881b768d9faef346c1b229d59be8771",
       "candidate_sha256": "713e38cf58f67f61ac8471cac8dd4d5c5881b768d9faef346c1b229d59be8771",
       "status": "preserved"
@@ -18893,7 +18893,7 @@
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.reportStats",
       "original_line": 5462,
-      "candidate_line": 5771,
+      "candidate_line": 5869,
       "original_sha256": "f530e7e4bece5a1bf4c4fe354303a0c4264d60771dd46a1d739507740bf3497d",
       "candidate_sha256": "f530e7e4bece5a1bf4c4fe354303a0c4264d60771dd46a1d739507740bf3497d",
       "status": "preserved"
@@ -18901,7 +18901,7 @@
     {
       "symbol": "viewer/viewer3d.ts::gpuNameOf",
       "original_line": 5490,
-      "candidate_line": 5799,
+      "candidate_line": 5897,
       "original_sha256": "7e8626e7dd42ba666c7eb2f85c28f5aa426565917d258b21ac76012c822e604d",
       "candidate_sha256": "7e8626e7dd42ba666c7eb2f85c28f5aa426565917d258b21ac76012c822e604d",
       "status": "preserved"
@@ -18909,7 +18909,7 @@
     {
       "symbol": "viewer/viewer3d.ts::makePatternTexture",
       "original_line": 5502,
-      "candidate_line": 5811,
+      "candidate_line": 5909,
       "original_sha256": "3ab5abaa14e068752c947dd3447b8f257c5d26b22ab20532fa226e7ac0ab6a51",
       "candidate_sha256": "3ab5abaa14e068752c947dd3447b8f257c5d26b22ab20532fa226e7ac0ab6a51",
       "status": "preserved"
@@ -18917,7 +18917,7 @@
     {
       "symbol": "viewer/viewer3d.ts::patternMaterial",
       "original_line": 5577,
-      "candidate_line": 5886,
+      "candidate_line": 5984,
       "original_sha256": "d31974fc2e402e690272d1edb2ce0218c67cfc2541c5b92fedefe1f3a3c39386",
       "candidate_sha256": "d31974fc2e402e690272d1edb2ce0218c67cfc2541c5b92fedefe1f3a3c39386",
       "status": "preserved"
@@ -18925,7 +18925,7 @@
     {
       "symbol": "viewer/viewer3d.ts::makeBlindTexture",
       "original_line": 5606,
-      "candidate_line": 5915,
+      "candidate_line": 6013,
       "original_sha256": "1bc304379df22d6a087caf42e736710d72acb907e1d6e42fe38e4d1351b40a3a",
       "candidate_sha256": "1bc304379df22d6a087caf42e736710d72acb907e1d6e42fe38e4d1351b40a3a",
       "status": "preserved"
@@ -18933,7 +18933,7 @@
     {
       "symbol": "viewer/viewer3d.ts::flowKey",
       "original_line": 5624,
-      "candidate_line": 5933,
+      "candidate_line": 6031,
       "original_sha256": "db1fd0f2868e14d336b11123502a70e8db1490f583da48820756bd5119fbac69",
       "candidate_sha256": "db1fd0f2868e14d336b11123502a70e8db1490f583da48820756bd5119fbac69",
       "status": "preserved"
@@ -18941,7 +18941,7 @@
     {
       "symbol": "viewer/viewer3d.ts::flowSpeed",
       "original_line": 5630,
-      "candidate_line": 5939,
+      "candidate_line": 6037,
       "original_sha256": "a74c1c75fc0b83db1ca1a781d7b2c583fa55db5a43ce216f78ad3e6a1569a1ed",
       "candidate_sha256": "a74c1c75fc0b83db1ca1a781d7b2c583fa55db5a43ce216f78ad3e6a1569a1ed",
       "status": "preserved"
@@ -18949,7 +18949,7 @@
     {
       "symbol": "viewer/viewer3d.ts::pipeLineMaterial",
       "original_line": 5638,
-      "candidate_line": 5947,
+      "candidate_line": 6045,
       "original_sha256": "b158cc91aec6f1d223bf09512aeb237353324d86a737180720d131d2d6a0dd1f",
       "candidate_sha256": "b158cc91aec6f1d223bf09512aeb237353324d86a737180720d131d2d6a0dd1f",
       "status": "preserved"
@@ -18957,7 +18957,7 @@
     {
       "symbol": "viewer/viewer3d.ts::flowMaterial",
       "original_line": 5665,
-      "candidate_line": 5974,
+      "candidate_line": 6072,
       "original_sha256": "2ca1d0ee736a433b2c033a6a1d859aa00d1f93bacd97e7f3e985ad6a53d3e840",
       "candidate_sha256": "2ca1d0ee736a433b2c033a6a1d859aa00d1f93bacd97e7f3e985ad6a53d3e840",
       "status": "preserved"
@@ -18965,7 +18965,7 @@
     {
       "symbol": "viewer/viewer3d.ts::lightZonesOf",
       "original_line": 5692,
-      "candidate_line": 6001,
+      "candidate_line": 6099,
       "original_sha256": "49e8ca8ae321b77829bdd6e176047261e7113bdfddc10ed52072062a379506b3",
       "candidate_sha256": "49e8ca8ae321b77829bdd6e176047261e7113bdfddc10ed52072062a379506b3",
       "status": "preserved"
@@ -18973,7 +18973,7 @@
     {
       "symbol": "viewer/viewer3d.ts::makeHaloTexture",
       "original_line": 5707,
-      "candidate_line": 6016,
+      "candidate_line": 6114,
       "original_sha256": "f198cbdc6de262935ec15ed6108f2f513d15c5fa4f332450dc5075619910c155",
       "candidate_sha256": "f198cbdc6de262935ec15ed6108f2f513d15c5fa4f332450dc5075619910c155",
       "status": "preserved"
@@ -18981,7 +18981,7 @@
     {
       "symbol": "viewer/viewer3d.ts::makeGroundTexture",
       "original_line": 5726,
-      "candidate_line": 6035,
+      "candidate_line": 6133,
       "original_sha256": "c2f94233d7c22c28128619e05ad1922ce7f61d09ea54c6164597b46d0ba2525e",
       "candidate_sha256": "c2f94233d7c22c28128619e05ad1922ce7f61d09ea54c6164597b46d0ba2525e",
       "status": "preserved"
@@ -18989,7 +18989,7 @@
     {
       "symbol": "viewer/viewer3d.ts::createViewer",
       "original_line": 5759,
-      "candidate_line": 6070,
+      "candidate_line": 6168,
       "original_sha256": "44c6d8fb170da9cd50367150d4a2b0715c2f5c391848b3acea1a2eacda612ad9",
       "candidate_sha256": "44c6d8fb170da9cd50367150d4a2b0715c2f5c391848b3acea1a2eacda612ad9",
       "status": "preserved"
@@ -18997,7 +18997,7 @@
     {
       "symbol": "viewer/viewer3d.ts::fanBladeY",
       "original_line": 5764,
-      "candidate_line": 6075,
+      "candidate_line": 6173,
       "original_sha256": "59a6e47bf137e4ce62931bab1516efc78e77955c0046130fe06c7891ae45bc21",
       "candidate_sha256": "59a6e47bf137e4ce62931bab1516efc78e77955c0046130fe06c7891ae45bc21",
       "status": "preserved"
@@ -19005,7 +19005,7 @@
     {
       "symbol": "viewer/viewer3d.ts::pushFanBlades",
       "original_line": 5769,
-      "candidate_line": 6080,
+      "candidate_line": 6178,
       "original_sha256": "c31b8a3ff56bbb6af3b314fc5b2afa6cf9e489f3e80533bd545dad3da0d1ccea",
       "candidate_sha256": "c31b8a3ff56bbb6af3b314fc5b2afa6cf9e489f3e80533bd545dad3da0d1ccea",
       "status": "preserved"
@@ -19013,7 +19013,7 @@
     {
       "symbol": "viewer/viewer3d.ts::pushLampModel",
       "original_line": 5784,
-      "candidate_line": 6095,
+      "candidate_line": 6193,
       "original_sha256": "a858f2bc964b257e51e34fd1726d77c04270365feb778d1c06dfa60b064de997",
       "candidate_sha256": "a858f2bc964b257e51e34fd1726d77c04270365feb778d1c06dfa60b064de997",
       "status": "preserved"
@@ -20113,6 +20113,84 @@
       "status": "added"
     },
     {
+      "symbol": "viewer/aureon-outdoor.ts::pickSky",
+      "candidate_line": 68,
+      "candidate_sha256": "6fa87e952856ca6b2fdbabca6b3543bc980d7f7ac0058a6334bb2735751b2c41",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::skyTurn",
+      "candidate_line": 84,
+      "candidate_sha256": "d24f83cee3a85b1995155d3536251ec5a7a3dd77282a339d26774175fc552219",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::gardenLayout",
+      "candidate_line": 146,
+      "candidate_sha256": "442a2665ecaaa01a46aaed2334c1e383a86bf46e66e8ecf90e4d2bf9d28b7826",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::sprites",
+      "candidate_line": 177,
+      "candidate_sha256": "8aa90e4348a5725251bbfa400f021f9de98f4be9701efea246dcdea7b79b6aad",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::blobTexture",
+      "candidate_line": 198,
+      "candidate_sha256": "5700ef8966a4ac1977ec6653d37d548d0ac83cfe12f17ff33eb082dacf014c8d",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::AureonOutdoor.url",
+      "candidate_line": 263,
+      "candidate_sha256": "f2ff43d4a6018c7e53da6e0563d130662f2ca2286eb48ac815620ae8c78aae57",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::AureonOutdoor.texture",
+      "candidate_line": 267,
+      "candidate_sha256": "990e3de43b3d7c2933a09187b514441b50ced6862414499b1eb60a07707d78c9",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::AureonOutdoor.setSky",
+      "candidate_line": 289,
+      "candidate_sha256": "db0e61bbc4c0e19c4e6dd3eac9894f4aa6b89afd3d6d65494e118ac518f0829b",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::AureonOutdoor.tick",
+      "candidate_line": 326,
+      "candidate_sha256": "8ea481fbe78ac4b35e753279abc58fafb16699238dfdaf9d29ff5bb0a45b5d96",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::AureonOutdoor.setGround",
+      "candidate_line": 334,
+      "candidate_sha256": "d6242c55f47f7e0d367b2832be4979ffa418725ab38ae76ba571dd834e8ef01f",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::AureonOutdoor.setFrame",
+      "candidate_line": 340,
+      "candidate_sha256": "a55a1c7a2a153a00a15f62822047152b632abcb678f0d83984db45dc7c71e4fc",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::AureonOutdoor.clearGarden",
+      "candidate_line": 416,
+      "candidate_sha256": "42b03ff3ceabc42fcd0afad0d6a6b12cb0f07383453ae7a763c4307c29a1154a",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/aureon-outdoor.ts::AureonOutdoor.dispose",
+      "candidate_line": 429,
+      "candidate_sha256": "0dfd7df18b1ffd89be41c2842d0ddbb831a24bf76d7562df2dd98fbb39af986e",
+      "status": "added"
+    },
+    {
       "symbol": "viewer/aureon-pathtrace.ts::loadTracer",
       "candidate_line": 15,
       "candidate_sha256": "5f25c61122ef1d8729dad8b6cd7f2438cee199fa003346b6907f9a3684154360",
@@ -20312,67 +20390,85 @@
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.setFrameScale",
-      "candidate_line": 1002,
-      "candidate_sha256": "adad1d7a606501491695e1fe0721b6b3b2480ceefa40e55ddfd63629a9b367dc",
+      "candidate_line": 1012,
+      "candidate_sha256": "97eb9bd739d62b96dc17c6f0cc3cd66fe07971045c74dadda37623837af97951",
       "status": "added"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.walkGrab",
-      "candidate_line": 1590,
+      "candidate_line": 1604,
       "candidate_sha256": "439f390a9fde9009fc6a4e15cf81c24d1308e122fe8e7e141fa288117112bdc9",
       "status": "added"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.walkDrag",
-      "candidate_line": 1600,
+      "candidate_line": 1614,
       "candidate_sha256": "5a6ef3a5bccd42c1260eb103b625ff64cca9668ac95123e13eaee4ae1916b8ac",
       "status": "added"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.walkDrop",
-      "candidate_line": 1606,
+      "candidate_line": 1620,
       "candidate_sha256": "cb521fc79afd46c207dfc3c955f82dd3b0e6d3ccbe911740b6419ff92d8d248c",
       "status": "added"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.projectedFit",
-      "candidate_line": 4398,
-      "candidate_sha256": "f6639eac857e32a037ae9a962dd96948aa046742b978984adf1285c15b2c3a22",
+      "candidate_line": 4417,
+      "candidate_sha256": "223d719900a0d6606a3606188ac1b9cdc7c536ddec856819019c323bd6500f9d",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/viewer3d.ts::FloorplanViewer.aureonOutdoorMode",
+      "candidate_line": 4452,
+      "candidate_sha256": "419c988ee997053aee15a89a00c7f4b14e75636c6ab23de68ee68b42f40fe1ce",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/viewer3d.ts::FloorplanViewer.applyAureonShift",
+      "candidate_line": 4464,
+      "candidate_sha256": "93ef482a12d8397d2582673c83c2f48c95106c7aa25ba53f310db61ef3571636",
+      "status": "added"
+    },
+    {
+      "symbol": "viewer/viewer3d.ts::FloorplanViewer.updateAureonOutdoor",
+      "candidate_line": 4472,
+      "candidate_sha256": "2f09e3b212c49e2df25eebf96036665173eb8493c4630a1c6bdd094c668e3ea4",
       "status": "added"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.realLamps",
-      "candidate_line": 5268,
+      "candidate_line": 5365,
       "candidate_sha256": "122ca72f1ac7fbdd1b57a6472c9bf2ed3185c4210b3fa01d8a29ba4a109a693a",
       "status": "added"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.traceWanted",
-      "candidate_line": 5278,
-      "candidate_sha256": "209dc337c2bfd56c79690b5a3afc413f0d97510afaf94ea02fcd652a2de2fd01",
+      "candidate_line": 5375,
+      "candidate_sha256": "c0b41461424df6f74095bf064659e4bcbb5d8619524059cef941dbd7b9d15c8b",
       "status": "added"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.armAureonTrace",
-      "candidate_line": 5281,
+      "candidate_line": 5378,
       "candidate_sha256": "2d0414cd78e8aed9c521bd71201912b4e46c35885fbf6883fb1e2a7aa80dbcfb",
       "status": "added"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.aureonTraceStep",
-      "candidate_line": 5293,
+      "candidate_line": 5390,
       "candidate_sha256": "1e4e1d08869b8c3519d75373147eac129dc00f0594dcdacf553a05fe2685a94b",
       "status": "added"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.stopAureonTrace",
-      "candidate_line": 5329,
+      "candidate_line": 5426,
       "candidate_sha256": "6801e410a46c335ce57e68380a24e186ee8b0a5ed7962eedfbe20ec31fb83225",
       "status": "added"
     },
     {
       "symbol": "viewer/viewer3d.ts::FloorplanViewer.renderScene",
-      "candidate_line": 5338,
+      "candidate_line": 5435,
       "candidate_sha256": "02845a12a11307897f3b41b9cddda3fb53e8724301f26a89544f796c20ef7209",
       "status": "added"
     }

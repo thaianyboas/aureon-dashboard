@@ -760,6 +760,10 @@ export interface BuildingSettings {
   sun_shadow?: boolean;
   /** What the sun's arc and its compass ring stand around: the house (null, default) or everything drawn on the plot (#833). */
   sun_arc?: "house" | "plot" | null;
+  /** AUREON: living sky and garden in the realistic looks – garden (null, default), sky only, or off. */
+  aureon_outdoor?: "garden" | "sky" | "off" | null;
+  /** AUREON: the sun arc also under the living sky (hidden there by default). */
+  aureon_sun_arc?: boolean | null;
   /** At night lit rooms throw their light out of the windows onto the ground in front (default on). */
   window_glow?: boolean;
   /** Devices switch only in an opened room: in the house and floor views a tap opens the room instead (default off). */

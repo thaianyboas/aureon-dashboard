@@ -873,3 +873,19 @@ overview/page, calendar desk+phone, appearance wheel scroll probe, music setting
 - Room page back pill reads "‹ Voltar" (key `back`).
 - Calendar Cinema: events from the selected waste calendars use wasteName() too ("Abfuhr …" dropped).
 Validation: root 194 tests, typecheck, validate, test:browser, disposable HA screenshot. Not tested on the owner's HA.
+
+## Claude batch 2026-11-09 (3) — Floor Studio: living sky and garden (not published yet)
+
+- OUTDOOR (owner): new frontend/src/viewer/aureon-outdoor.ts (+test). In the Day and Real looks of the Floor Studio
+  panel: a real sky photo (8 CC0 Poly Haven skies, ~0.9 MB, only the one in use loads) picked by sun height and HA
+  weather (pickSky), turned so its sun stands at the real sun (skyTurn), blended in ~2 s; a drawn clear night with
+  three star layers, a faint milky way and a moon; lawn to the horizon fading into the sky's horizon colour (wet/snow
+  tint), light stone base, shrub row with a gap at the hall side, a few trees (sprites of CC0 models, crossed quads:
+  a handful of draw calls). Sun arc hidden there unless `aureon_sun_arc`; setting `aureon_outdoor` garden|sky|off
+  (schema + view settings select, pt/en/de). Path tracer off under the sky.
+- Framing: house view under the sky fits the whole plan from a lower angle (phi 1.3) into the lower part of the
+  picture with a shift lens (setViewOffset) so the sky shows above; rooms/floors/walk unchanged. The dashboard's
+  embedded presentation (frameScale ≠ 1) is unchanged (mode off).
+- Assets in custom_components/aureon_floor/frontend/images/aureon-sky, aureon-nature (credits file there).
+Validation: frontend 628 tests, typecheck, build budgets, backend 180 pytest, fidelity re-audit, repo tests 194,
+validate, migration contract, test:browser, disposable HA screenshots (day/sunset/night/rain, walk). Not on owner's HA.
