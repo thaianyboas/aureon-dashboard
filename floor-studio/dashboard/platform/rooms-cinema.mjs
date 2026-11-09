@@ -49,7 +49,7 @@ export function roomsCinema(ui){const c=ui.c,t=ui.t;
  <div class="cine-hero-photo" aria-hidden="true">${!img.url?roomArt(area.name):nothing}${img.url?html`<img src=${img.url} alt="" referrerpolicy="no-referrer" style=${'filter:brightness('+(d.lights.length?(.45+.55*(d.on.length?d.level/100:0)):.8).toFixed(2)+')'} @error=${e=>e.target.remove()}>`:nothing}<span></span></div>
  <div class="cine-room-stage">
   <section class="cine-room-intro" aria-label=${area.name}>
-   <button type="button" class="cine-room-back" @click=${()=>{c._roomDetail=false;ui.requestUpdate();ui.scrollToTop?.();}}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>${t.rooms}</button>
+   <button type="button" class="cine-room-back" @click=${()=>{c._roomDetail=false;ui.requestUpdate();ui.scrollToTop?.();}}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>${t.back}</button>
    <span class="cine-eyebrow">${litRooms?`${litRooms} ${t.cineRoomsLit}`:t.cineHouseDark}</span>
    <h1>${area.name}</h1>
    ${story?html`<p>${story}.</p>`:nothing}

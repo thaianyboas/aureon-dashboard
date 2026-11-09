@@ -1,4 +1,5 @@
 import {html,nothing} from '../../neonplan3d-main/frontend/node_modules/lit/index.js';
+import {wasteName} from '../integrations/waste.mjs';
 // Calendar in the Cinema look: one agenda across all visible Home Assistant calendars, grouped by day, with a
 // month overview and the waste pickups. Events are only read (GET /api/calendars/...); nothing is changed here.
 const HUES=['var(--p-accent)','#7fb4e6','#e59a8c','#8fd0a8','#c39be8','#e8c26a','#6fcfcf','#e88fb8'];
@@ -32,6 +33,7 @@ export function calendarCinema(ui){
  const groups=agenda(rows.filter(r=>!hidden.has(r.id)).map(r=>[r.id,c.events[r.id]]),{timeZone,todayKey,days:period});
  const total=[...groups.values()].reduce((n,g)=>n+g.length,0);
  const next=[...groups.values()].flat().find(r=>!r.allDay&&(r.endMs??r.ms)>=now.getTime())||[...groups.values()].flat()[0];
+ const wasteIds=new Set(c.preferences.waste||[]),title=r=>{const raw=r.e.summary||r.e.message||'—';return wasteIds.has(r.calendar)?wasteName(raw):raw;};
  const nameOf=id=>{const r=rows.find(x=>x.id===id);return r?ui.name(r):id;};
  const time=ms=>fmt(lang,{hour:'2-digit',minute:'2-digit'},new Date(ms),timeZone);
  const dayTitle=key=>key===todayKey?t.today:key===addDays(todayKey,1)?t.tomorrow:cap(fmt(lang,{weekday:'long'},new Date(key+'T12:00:00Z'),'UTC'));
@@ -45,7 +47,7 @@ export function calendarCinema(ui){
  const event=r=>html`<li class="cal-event" style=${'--cal:'+color.get(r.calendar)}>
    <span class="cal-time">${r.allDay?html`<b>${t.calAllDay}</b>`:html`<b>${time(r.ms)}</b>${r.endMs?html`<small>${time(r.endMs)}</small>`:nothing}`}</span>
    <span class="cal-bar" aria-hidden="true"></span>
-   <span class="cal-text"><strong>${r.e.summary||r.e.message||'—'}</strong>${r.e.location?html`<small class="cal-loc">${r.e.location}</small>`:nothing}<small class="cal-src">${nameOf(r.calendar)}</small></span>
+   <span class="cal-text"><strong>${title(r)}</strong>${r.e.location?html`<small class="cal-loc">${r.e.location}</small>`:nothing}<small class="cal-src">${nameOf(r.calendar)}</small></span>
   </li>`;
  return html`<div class="cine cine-calendar">
  <div class="cine-glow" aria-hidden="true"></div>
@@ -53,7 +55,7 @@ export function calendarCinema(ui){
   <div class="cal-hero-text"><span class="cine-eyebrow">AUREON · ${t.calendar}</span>
    <h1>${cap(fmt(lang,{weekday:'long'},now,timeZone))}<em>${fmt(lang,{day:'numeric',month:'long'},now,timeZone)}</em></h1>
    <p class="cal-summary">${loading&&!total?t.loading:total?`${total} ${total===1?t.calEvent:t.calEvents} · ${period} ${t.days}`:t.calFree}</p></div>
-  ${next?html`<section class="cal-next glass" style=${'--cal:'+color.get(next.calendar)} aria-label=${t.calNext}><span class="cine-head">${t.calNext}</span><strong>${next.e.summary||next.e.message||'—'}</strong><span class="cal-next-when">${next.allDay?`${dayTitle(next.key)} · ${t.calAllDay}`:`${dayTitle(next.key)} · ${time(next.ms)}`}${until(next)?html` <i>${until(next)}</i>`:nothing}</span>${next.e.location?html`<small>${next.e.location}</small>`:nothing}</section>`:nothing}
+  ${next?html`<section class="cal-next glass" style=${'--cal:'+color.get(next.calendar)} aria-label=${t.calNext}><span class="cine-head">${t.calNext}</span><strong>${title(next)}</strong><span class="cal-next-when">${next.allDay?`${dayTitle(next.key)} · ${t.calAllDay}`:`${dayTitle(next.key)} · ${time(next.ms)}`}${until(next)?html` <i>${until(next)}</i>`:nothing}</span>${next.e.location?html`<small>${next.e.location}</small>`:nothing}</section>`:nothing}
  </header>
  <div class="cal-controls">
   <div class="cal-seg" role="group" aria-label=${t.calendarPeriod}>${PERIODS.map(d=>html`<button type="button" aria-pressed=${String(period===d)} @click=${()=>{ui._period=d;ui.requestUpdate();}}>${d} ${t.days}</button>`)}</div>

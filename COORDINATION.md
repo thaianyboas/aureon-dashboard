@@ -864,3 +864,12 @@ picker, plans/property settings, card templates). Not tested on the owner's HA.
   "‹ Voltar/Back/Zurück" (new key `back`).
 Validation: root 194 tests, typecheck, validate, test:browser (all suites pass), disposable HA screenshots (rooms
 overview/page, calendar desk+phone, appearance wheel scroll probe, music settings). Not tested on the owner's HA.
+
+## Claude batch 2026-11-09 (2) — sharp HA area pictures, "Voltar", waste names in the calendar
+
+- ROOM-PHOTO-SHARP (owner): HA area pictures (and own uploads) are `/api/image/serve/<id>/512x512` thumbnails; the
+  room hero stretched them to ~1000 px and they looked blurry. `fullImage()` (page.mjs) now asks for
+  `/api/image/serve/<id>/original`. Verified on the disposable HA with an uploaded 1672×941 picture.
+- Room page back pill reads "‹ Voltar" (key `back`).
+- Calendar Cinema: events from the selected waste calendars use wasteName() too ("Abfuhr …" dropped).
+Validation: root 194 tests, typecheck, validate, test:browser, disposable HA screenshot. Not tested on the owner's HA.
