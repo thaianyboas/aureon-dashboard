@@ -270,7 +270,7 @@
       for(const child of [...main.childNodes])if(child!==header&&child!==keep)child.remove();
       wrap.classList.toggle('au-home',name==='Início'||name==='Medien');wrap.classList.toggle('au-media',name==='Medien');
       const Page=customElements.get('aureon-platform'),labels=Page?.labels(this._platformController?.language||this._hass?.language||'en');
-      main.dataset.auPage=Page?.routeNames?.[name]||'';if(header)header.hidden=['Geräte','Planta'].includes(name)||(['Räume','Sicherheit','Energie','Einstellungen'].includes(name)&&this._platformController?.preferences?.look!=='classic');
+      main.dataset.auPage=Page?.routeNames?.[name]||'';if(header)header.hidden=['Geräte','Planta'].includes(name)||(['Räume','Sicherheit','Energie','Einstellungen','Agenda'].includes(name)&&this._platformController?.preferences?.look!=='classic');
       if(header&&labels){header.querySelector('h1').textContent=labels[Page.routeNames[name]]||name;const eyebrow=header.querySelector('.small');if(eyebrow)eyebrow.textContent='AUREON / '+(name==='Einstellungen'?labels.settings.toUpperCase():'CONTROL CENTER');}
       [...this.shadowRoot.querySelectorAll('nav .au-nav-button')].forEach((button,i)=>{const active=this._navPages()[i]?.[1]===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
       this.shadowRoot.querySelector('.au-nav-more')?.classList.toggle('active',!this._primaryPages().includes(name));
@@ -1604,7 +1604,8 @@
         // the rail is narrow: the Floor Studio is "Floor Studio" there (full name in the tooltip)
         button.append(make('span','au-nav-label',name==='Planta'?pageLabel.replace(/^AUREON\s+/,''):pageLabel));
         if(name==='JARVIS'||name==='Einstellungen'){const sep=make('div','au-nav-sep');sep.setAttribute('aria-hidden','true');nav.append(sep);}
-        button.addEventListener('click', () => this._navigate(name));
+        // the rooms entry always starts at the overview of all rooms
+        button.addEventListener('click', () => {if(name==='Räume'&&this._platformController)this._platformController._roomDetail=false;this._navigate(name);});
         nav.append(button);
       }
       // Phones: four primary destinations plus "More" for the rest (sheet with every remaining page).
@@ -1615,7 +1616,7 @@
         more.append(dots,make('span','au-nav-label',labels.navMore||'More'));
         const sheet=make('dialog','au-more-sheet');sheet.setAttribute('aria-label',labels.navMore||'More');
         const grid=make('div','au-more-grid');
-        for(const [,name] of this._navPages()){if(this._primaryPages().includes(name))continue;const label=labels[Page?.routeNames?.[name]]||name;const item=make('button','au-more-item');item.type='button';item.dataset.route=name;if(name===this._page)item.setAttribute('aria-current','page');item.append(aureonNavIcon(name),make('span','',label));item.addEventListener('click',()=>{sheet.close();this._navigate(name);});grid.append(item);}
+        for(const [,name] of this._navPages()){if(this._primaryPages().includes(name))continue;const label=labels[Page?.routeNames?.[name]]||name;const item=make('button','au-more-item');item.type='button';item.dataset.route=name;if(name===this._page)item.setAttribute('aria-current','page');item.append(aureonNavIcon(name),make('span','',label));item.addEventListener('click',()=>{sheet.close();if(name==='Räume'&&this._platformController)this._platformController._roomDetail=false;this._navigate(name);});grid.append(item);}
         const close=make('button','au-more-close','×');close.setAttribute('aria-label',labels.close||'Close');close.type='button';close.addEventListener('click',()=>sheet.close());
         const heading=make('div','au-more-heading');heading.append(make('h2','',labels.navMore||'More'),close);sheet.append(heading,grid);sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.close();});
         more.addEventListener('click',()=>{sheet.showModal();more.setAttribute('aria-expanded','true');});sheet.addEventListener('close',()=>more.setAttribute('aria-expanded','false'));
@@ -1628,7 +1629,7 @@
         if(typeof pic==='string'&&pic.startsWith('/')&&!pic.startsWith('//')){const img=make('img');img.src=h.hassUrl?h.hassUrl(pic):pic;img.alt='';box.append(img);}else box.append(make('span','au-rail-initial',(person.attributes.friendly_name||'?').trim().charAt(0).toUpperCase()));
         const home=person.state==='home';box.classList.toggle('home',home);box.append(make('strong','',person.attributes.friendly_name||person.entity_id),make('small','',home?(labels.homeState||'Home'):(labels.away||person.state)));nav.append(box);}}
       const main = make('main');main.dataset.auPage=customElements.get('aureon-platform')?.routeNames?.[this._page]||'';
-      const header = make('header');header.hidden=['Geräte','Planta'].includes(this._page)||(['Räume','Sicherheit','Energie','Einstellungen'].includes(this._page)&&this._platformController?.preferences?.look!=='classic');
+      const header = make('header');header.hidden=['Geräte','Planta'].includes(this._page)||(['Räume','Sicherheit','Energie','Einstellungen','Agenda'].includes(this._page)&&this._platformController?.preferences?.look!=='classic');
       const heading = make('div');
       heading.append(make('div','small','AUREON / '+(this._page==='Einstellungen'?(customElements.get('aureon-platform')?.labels(this._platformController?.language)?.settings||'Settings').toUpperCase():'CONTROL CENTER')));
       const Page=customElements.get('aureon-platform');

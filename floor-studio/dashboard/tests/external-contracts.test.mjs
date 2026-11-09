@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {wasteCollections,fetchWasteCalendar} from '../integrations/waste.mjs';
+import {wasteCollections,fetchWasteCalendar,wasteName} from '../integrations/waste.mjs';
 import {floorPosition} from '../integrations/vacuum-position.mjs';
 test('waste today/tomorrow respect HA timezone and DST civil dates',()=>{
  const state={entity_id:'sensor.waste',state:'available',attributes:{'2026-10-25':'Paper','2026-10-26':'Organic'}};
@@ -18,3 +18,8 @@ test('calendar reads only a selected visible calendar through HA, never arbitrar
 const stamp='2026-10-30T10:00:00Z',now=Date.parse(stamp),sample={x:1000,y:2000,mapId:'map',units:'mm',updatedAt:stamp},calibration={mapId:'map',units:'mm',floorId:'floor',matrix:[.001,0,0,.001,3,4]};
 test('vacuum coordinates require explicit map calibration and units',()=>{assert.deepEqual(floorPosition(sample,calibration,{now}),{x:4,z:6,floorId:'floor',mapId:'map',updatedAt:stamp});assert.equal(floorPosition(sample,{...calibration,units:'pixels'},{now}),null);assert.equal(floorPosition(sample,{...calibration,mapId:'other'},{now}),null);});
 test('stale, future, missing, singular and non-finite vacuum positions are never displayed',()=>{for(const [s,c,n] of [[sample,calibration,now+16000],[{...sample,updatedAt:'2026-10-31'},calibration,now],[sample,{...calibration,matrix:[0,0,0,0,0,0]},now],[{...sample,x:NaN},calibration,now],[null,calibration,now]])assert.equal(floorPosition(s,c,{now:n}),null);});
+
+test('waste names drop the generic collection word',()=>{
+ assert.equal(wasteName('Abfuhr blaue Papiertonne'),'Blaue Papiertonne');assert.equal(wasteName('Abfuhr Laubsäcke'),'Laubsäcke');assert.equal(wasteName('Restmüll-Abfuhr'),'Restmüll');assert.equal(wasteName('Paper'),'Paper');assert.equal(wasteName('Abfuhr'),'Abfuhr');
+ const state={entity_id:'calendar.waste',state:'on',attributes:{}};const rows=wasteCollections(state,{events:[{start:{date:'2026-10-30'},summary:'Abfuhr grüne Biotonne'}],now:'2026-10-30T10:00:00Z'});assert.equal(rows[0].type,'Grüne Biotonne');assert.equal(rows[0].today,true);
+});

@@ -71,6 +71,6 @@ export function settingsCinema(ui,items,content){const c=ui.c,t=ui.t,tab=ui._set
  return html`<div class="cine cine-settings">
  <div class="cine-glow" aria-hidden="true"></div>
  <header class="set-hero"><span class="cine-eyebrow">AUREON · ${t.settings}</span><h1>${current?current[2]:html`${t.settings}<br><em>${t.setSubtitle}</em>`}</h1><span class=${'set-saved '+(c.storageError?'warn':'')}><i aria-hidden="true"></i>${c.storageError?t.storageError:t.setSavedEverywhere}</span></header>
- ${current?html`<button type="button" class="set-back" @click=${()=>go('')}>‹ ${t.settings}</button><div class="set-detail">${panels[tab]||nothing}</div>`
+ ${current?html`<button type="button" class="set-back" @click=${()=>go('')}>‹ ${t.back}</button><div class="set-detail">${panels[tab]||nothing}</div>`
  :html`<div class="set-grid">${cats.map(([id,ic,label,hint])=>html`<button type="button" class="set-cat glass" data-settings-tab=${id} @click=${()=>go(id)}><span class="set-cat-icon">${icon(ic)}</span><span class="set-cat-text"><strong>${label}</strong><small>${hint}</small></span><span class="set-cat-now">${summary(ui,id)}</span><span class="set-cat-arrow" aria-hidden="true">›</span></button>`)}</div>`}
  </div>`;}

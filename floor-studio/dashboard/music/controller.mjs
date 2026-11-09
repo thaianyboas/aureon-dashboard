@@ -3,7 +3,7 @@ export const FEATURES = { pause:1, seek:2, volume:4, previous:16, next:32, playM
 export const supported = (state, feature) => !!(Number(state?.attributes?.supported_features || 0) & FEATURES[feature]);
 export const available = state => !!state && !['unknown','unavailable'].includes(state.state);
 export function isSpotifyPlus(hass,id,config={}) {
-  if (['native','spotifyplus'].includes(config.providers?.[id])) return config.providers[id] === 'spotifyplus';
+  // Detected from the entity itself; an old stored provider choice no longer hides Spotify.
   return hass?.entities?.[id]?.platform === 'spotifyplus' || Object.hasOwn(hass?.states?.[id]?.attributes || {},'sp_user_id');
 }
 // SpotifyPlus and Spotcast may be the originals or their copies inside AUREON Música (domain aureon_music).

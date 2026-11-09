@@ -13,7 +13,8 @@ function fixture(){
 test('discovery uses actual metadata, prioritizes SpotifyPlus, and never guesses by entity name',()=>{
  const {hass,state}=fixture();hass.states['media_player.spotifyplus_fake']={...state,entity_id:'media_player.spotifyplus_fake',attributes:{}};
  assert.equal(isSpotifyPlus(hass,'media_player.spotifyplus_fake'),false);assert.equal(discoverPlayers(hass)[0].entity_id,'media_player.music');assert.equal(discoverPlayers(hass,{allowedEntities:[]}).length,0);
- assert.equal(discoverPlayers(hass,{excluded:['media_player.music']}).length,1);assert.equal(isSpotifyPlus(hass,'media_player.music',{providers:{'media_player.music':'native'}}),false);
+ assert.equal(discoverPlayers(hass,{excluded:['media_player.music']}).length,1);// The Integration selector was removed: an old stored 'native' choice must not hide a real Spotify account.
+ assert.equal(isSpotifyPlus(hass,'media_player.music',{providers:{'media_player.music':'native'}}),isSpotifyPlus(hass,'media_player.music'));
 });
 test('hass updates and two subscribers synchronize without any service calls',()=>{
  const {c,hass,calls}=fixture();let full=0,compact=0;const a=c.subscribe(()=>full++),b=c.subscribe(()=>compact++);c.setHass(hass);assert.equal(full,1);assert.equal(compact,1);assert.equal(calls.length,0);a();b();assert.equal(c.listeners.size,0);

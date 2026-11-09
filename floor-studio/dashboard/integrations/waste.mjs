@@ -6,11 +6,15 @@ function dayKey(value,zone){
   const date=new Date(value);if(!Number.isFinite(date.getTime()))return null;
   try {const parts=new Intl.DateTimeFormat('en',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);return ['year','month','day'].map(key=>parts.find(p=>p.type===key)?.value).join('-');} catch{return null;}
 }
+// "Abfuhr blaue Papiertonne" -> "Blaue Papiertonne": drop the generic collection word, keep what goes out.
+const GENERIC=/^\s*(?:abfuhr|abholung|leerung|entleerung|müllabfuhr|collection(?:\s+of)?|pickup|pick-up|coleta(?:\s+de)?|recolha(?:\s+de)?)\b[\s:–—-]*/i;
+const GENERIC_END=/[\s:–—-]*\b(?:abfuhr|abholung|leerung|collection|pickup)\s*$/i;
+export function wasteName(raw){const text=String(raw||'').trim(),clean=text.replace(GENERIC,'').replace(GENERIC_END,'').trim();if(!clean)return text;return clean.charAt(0).toLocaleUpperCase('de')+clean.slice(1);}
 const dayNumber=key=>Date.parse(key+'T12:00:00Z')/86400000;
 export function wasteCollections(state,{events=[],now=new Date().toISOString(),timeZone='UTC'}={}){
   const today=dayKey(now,timeZone);if(!today||!state||['unknown','unavailable'].includes(state.state))return [];
   const rows=[],a=state.attributes || {};
-  const add=(date,type)=>{const key=dayKey(date,timeZone);if(!key || typeof type!=='string' || !type.trim())return;const days=Math.round(dayNumber(key)-dayNumber(today));if(days>=0)rows.push({entityId:state.entity_id,date:key,type:type.trim(),days,today:days===0,tomorrow:days===1});};
+  const add=(date,type)=>{const key=dayKey(date,timeZone);if(!key || typeof type!=='string' || !type.trim())return;const days=Math.round(dayNumber(key)-dayNumber(today));if(days>=0)rows.push({entityId:state.entity_id,date:key,type:wasteName(type),days,today:days===0,tomorrow:days===1});};
   if(state.entity_id?.startsWith('calendar.')){
     if(events.length)for(const e of events)add(e.start?.date || e.start?.dateTime || e.start,e.summary || e.message);
     else add(a.start_time,a.message);

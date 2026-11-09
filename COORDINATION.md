@@ -841,3 +841,26 @@ picker, plans/property settings, card templates). Not tested on the owner's HA.
 - ROOMS-HERO: no empty band above the room title (page no longer stretched to window height).
 - ROOM-PHOTOS: presets re-encoded from the 1672×941 design originals (q90) and pool/office/hobby re-cut at
   2560×1440 from the Pexels photos with the earlier grade (assets/PHOTOS.md).
+
+## Claude batch 2026-11-09 — Cômodos as pages, Calendar, Music provider, settings scroll, waste names
+
+- ROOMS-PAGES (owner): Cômodos opens on an overview of large room photo cards; tapping one opens that room as its
+  own page (hero, controls, equipment) with a "‹ Cômodos" back pill. The room strip is gone. Home tiles open the
+  room directly (`_roomOpenNext`); the rail/"more" entry for Räume returns to the overview (`_roomDetail=false`).
+- CALENDAR-CINEMA (owner): new platform/calendar-cinema.mjs for the Cinema look — date hero, "Up next" card,
+  period segments (7/14/30/90), per-calendar colour chips (filter), agenda grouped by day (multi-day all-day events
+  on each day), month overview with event dots (jumps to the day), waste widget aside. Events load automatically on
+  open (read-only GET /api/calendars). Classic look keeps the old page. Shell header hidden for 'Agenda' in Cinema.
+- loadCalendars now starts 24 h back so today's pickups/events that already began still show (past days dropped).
+- WASTE-NAMES (owner): wasteName() drops the generic word ("Abfuhr blaue Papiertonne" → "Blaue Papiertonne",
+  also Abholung/Leerung/Collection/Coleta); colours still match. Test added.
+- MUSIC-PROVIDER (owner): the "Integração: Home Assistant/Spotify" select is removed. Spotify is detected from the
+  entity (platform spotifyplus or sp_user_id, which covers aureon_music); a stored 'native' choice no longer hides it
+  (music-controller test updated to this contract). Spotify accounts are listed first with "· Spotify"; a status
+  line says connected / choose your Spotify account / add AUREON Música. (Old select only enabled Spotify when the
+  `spotifyplus` domain existed, so aureon_music users could not pick it.)
+- SETTINGS (owner): theme gallery in Settings no longer traps the mouse wheel (overflow/overscroll contain on a
+  non-scrolling box); smaller theme cards (auto-fill 190px) and start-page choice art (max 150px); back button says
+  "‹ Voltar/Back/Zurück" (new key `back`).
+Validation: root 194 tests, typecheck, validate, test:browser (all suites pass), disposable HA screenshots (rooms
+overview/page, calendar desk+phone, appearance wheel scroll probe, music settings). Not tested on the owner's HA.
