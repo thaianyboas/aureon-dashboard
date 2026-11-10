@@ -1057,3 +1057,5 @@ walk shows the ceiling). Integration not yet packaged/published.
 Validation: root + frontend 630 (new overlap test), typecheck, build budgets, backend 180, fidelity re-audit,
 validate, test:browser, migration contract; disposable HA with real mouse clicks (Pintar → tap wall → colour saved,
 Delete ignored) and 3D (Sala's green wall that was hidden before now shows).
+- Published 2026-11-10 15:1x: dashboard 20feaa7 (CI green) and aureon-integration 54ed1b0 (SOURCE_COMMIT 20feaa7, CI green).
+  Owner must update both in HACS and restart HA. Not yet tested on the owner's HA.
