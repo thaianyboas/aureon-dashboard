@@ -98,3 +98,20 @@ test('Spotify Connect devices: duplicates merged by name, restricted/nameless dr
   {Id:'s2',Name:'sala de estar',IsInDeviceList:false},{Id:'w',Name:'Wohnzimmer',IsActiveDevice:true,IsInDeviceList:true}]}}});
  assert.deepEqual(list.map(d=>[d.id,d.ready,d.active]),[['w',true,true],['tv',true,false],['a2',true,false],['s',false,false]]);
 });
+
+test('the heart shows the liked status of a new song with one read-only lookup',async()=>{
+ const calls=[],id='media_player.account';
+ const state=track=>({entity_id:id,state:'playing',attributes:{friendly_name:'Account',sp_user_id:'me',media_content_id:'spotify:track:'+track}});
+ const hass={user:{id:'u'},connection:{},entities:{[id]:{platform:'aureon_music'}},states:{[id]:state('liked1')},services:{aureon_music:{check_track_favorites:{},save_track_favorites:{},remove_track_favorites:{}}},
+  callService:async(...a)=>{calls.push(a);const ids=a[2]?.ids;return {response:{result:{[ids]:ids==='liked1'}}};}};
+ const c=new MusicController();c.setHass(hass);
+ assert.equal(c.favorite,null);
+ await new Promise(r=>setTimeout(r,900));
+ assert.equal(c.favorite,true);
+ assert.deepEqual(calls.map(x=>[x[0],x[1],x[2].ids]),[['aureon_music','check_track_favorites','liked1']]);
+ hass.states[id]=state('other2');c.setHass({...hass});
+ assert.equal(c.favorite,null);
+ await new Promise(r=>setTimeout(r,900));
+ assert.equal(c.favorite,false);
+ assert.ok(calls.every(x=>x[1]==='check_track_favorites'));// never saves or removes by itself
+});

@@ -987,3 +987,18 @@ Validation: root 207 + frontend 628, typecheck, build, validate, migration contr
 - QUICK-ACTIONS removed (owner: repeated controls). Unique actions kept: "Pausar todos" in the Volume box header,
   "Adicionar à playlist" as a "+" button next to the heart on the cover (only when the services exist).
   data-action names unchanged (pause-all, to-playlist).
+
+## Claude batch 2026-11-10 (8) — music page cleanup (owner screenshots)
+
+- FAVORITE HEART: shows whether the playing song is a liked song. MusicController.checkFavorite(): one read-only
+  `check_track_favorites` per new song on a Spotify account (700 ms after the song changes); saving/removing still
+  needs a tap. This is the single automatic service call of the player — owner request; the browser guard test now
+  asserts exactly this one read call on mount and nothing else.
+- LAYOUT: "Reproduzir em" and per-speaker "Volume" boxes removed (owner); speakers are chosen from the cover chip
+  (opens the speaker panel: Spotify Connect, or HA speakers without Spotify) with "Pausar todos" in its header.
+  Mídia uses the normal wide sidebar (the compressed 92 px rail rules were removed).
+- SETTINGS: account cards by Spotify display name (sp_user_display_name, e.g. "Thaiany", "Marvin") instead of a
+  select of all players; appearance as segmented buttons; Cast/Alexa target under "Avançado"; "✓ Salvo" in the footer.
+  scripts/capture-media-reference.mjs (not a gate) updated: per-speaker volume check dropped (feature removed).
+Validation: root 207 + frontend 628 + music unit (new liked-status test), typecheck, build, validate, migration
+contract, test:browser (music browser test 4× stable), fixture screenshots, disposable HA Mídia page.

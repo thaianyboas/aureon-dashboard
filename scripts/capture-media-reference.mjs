@@ -47,11 +47,8 @@ try{
  for(const [width,height] of [[1440,1024],[1180,820],[820,1180],[390,844]]){await page.setViewport({width,height});await new Promise(r=>setTimeout(r,500));const w=await page.evaluate(()=>{const s=dashboard.shadowRoot.querySelector('aureon-music-player').shadowRoot.querySelector('.shell');return {doc:document.documentElement.scrollWidth,vw:innerWidth,client:s.clientWidth,scroll:s.scrollWidth};});assert.ok(w.doc<=w.vw&&w.scroll<=w.client+1,JSON.stringify({width,...w}));await page.screenshot({path:`${out}/medien-${width}x${height}.png`,fullPage:true});}
  checks.push('Medien without horizontal overflow at 1440/1180/820/390');
  await page.setViewport({width:1440,height:1024});
- const before=await page.evaluate(()=>calls.length);
- await page.$eval(full,el=>{const input=el.shadowRoot.querySelectorAll('.vol-row input')[1];input.value='0.8';input.dispatchEvent(new Event('change'));});
- await page.waitForFunction(n=>calls.length===n+1,{},before);
- assert.deepEqual(await page.evaluate(()=>calls.at(-1)),['media_player','volume_set',{entity_id:'media_player.bedroom',volume_level:.8}]);
- checks.push('per-player volume targets only that player');
+ // Owner 2026-11-10: the per-speaker volume box was removed; pause all lives in the speaker panel (cover chip).
+ await page.click(`${full} >>> .dest-chip`);await new Promise(r=>setTimeout(r,600));
  await page.click(`${full} >>> [data-action="pause-all"]`);
  await page.waitForFunction(()=>calls.at(-1)[1]==='media_pause');
  assert.deepEqual(await page.evaluate(()=>calls.at(-1)[2].entity_id),['media_player.apartment']);

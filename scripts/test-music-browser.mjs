@@ -27,7 +27,7 @@ try{
   const compact=document.createElement('aureon-music-player');compact.id='compact';compact.compact=true;compact.controller=controller;document.body.append(full,compact);
  });
  await page.waitForFunction(()=>document.querySelector('#full')?.shadowRoot?.querySelector('.title'));
- assert.equal(await page.evaluate(()=>calls.length),0);checks.push('mount performs no service calls');
+ await page.waitForFunction(()=>calls.length>0,{timeout:5000});await new Promise(r=>setTimeout(r,300));{const auto=await page.evaluate(()=>calls.map(c=>[c[1],c[2]?.ids]));assert.deepEqual(auto,[['check_track_favorites','abc']]);await page.evaluate(()=>{calls.length=0;});checks.push('mount performs no service calls except one read-only liked-song lookup for the playing song');}
  await page.click('#full >>> [data-action="pause"]');assert.equal(await page.evaluate(()=>calls.at(-1)[1]),'media_pause');checks.push('pause service payload');
  await page.evaluate(()=>{hass.states['media_player.fixture']={...hass.states['media_player.fixture'],state:'paused'};controller.setHass(hass);});
  await page.waitForFunction(()=>document.querySelector('#compact').shadowRoot.querySelector('[data-action="play"]'));checks.push('Full and Compact synchronize backend state');

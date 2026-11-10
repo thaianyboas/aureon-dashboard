@@ -72,7 +72,7 @@ export class MusicController {
     if(!players.some(p=>p.entity_id===this.entityId)){
       this.entityId=players.find(p=>p.entity_id===this.config.entity)?.entity_id || players[0]?.entity_id || ''; this.invalidate();
     }
-    const track=trackId(this.state);if(track!==this._track){this._track=track;this.favorite=null;}
+    const track=trackId(this.state);if(track!==this._track){this._track=track;this.favorite=null;clearTimeout(this._favoriteTimer);if(track&&this.spotify&&this.advanced('check_track_favorites'))this._favoriteTimer=setTimeout(()=>this.checkFavorite(),700);}
     this.emit();
   }
   get state(){return this.hass?.states?.[this.entityId];}
@@ -204,6 +204,13 @@ export class MusicController {
   async selectSource(source){
     if(!this.can('source')||!this.service('media_player','select_source')||typeof source!=='string'||!this.state?.attributes?.source_list?.includes(source))return false;
     return this.request('source',async()=>{await this.hass.callService('media_player','select_source',{entity_id:this.entityId,source});return true;});
+  }
+  // Owner 2026-11-10: the heart shows whether the playing song is one of the liked songs. One read-only lookup
+  // (check_track_favorites) per new song on a Spotify account; saving or removing still needs a tap.
+  async checkFavorite(){
+    const id=trackId(this.state),epoch=this.epoch;if(!id||!this.spotify||!this.advanced('check_track_favorites')||this.pending.has('favorite'))return false;
+    try{const response=await this.callSpotify('check_track_favorites',{ids:id},true);if(epoch!==this.epoch||trackId(this.state)!==id||this.pending.has('favorite'))return false;
+      const saved=resultOf(response)?.[id];if(typeof saved!=='boolean')return false;this.favorite=saved;this.emit();return true;}catch{return false;}
   }
   async toggleFavorite(){
     const id=trackId(this.state);if(!id||!this.advanced('check_track_favorites')||!this.advanced('save_track_favorites')||!this.advanced('remove_track_favorites'))return false;
