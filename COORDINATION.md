@@ -900,3 +900,9 @@ validate, migration contract, test:browser, disposable HA screenshots (day/sunse
   work group, the wall view's tall items and the library (deco). pt/en/de names.
 Validation: frontend 628, typecheck, build budgets, backend 180, fidelity re-audit, repo tests, validate, test:browser,
 disposable HA screenshot (arrange bar with a test column; test item removed again). Not on owner's HA.
+
+## Claude batch 2026-11-10 — sharper room photos
+
+- ROOM-PHOTOS (owner): the nine design-package room pictures (1672×941, soft when stretched over the room hero) are
+  upscaled with Real-ESRGAN x2plus to 2560×1440 (same elegant style; the owner rejected Pexels replacements as not
+  elegant). Pool, office, hobby were already 2560×1440. Validation: root tests, validate, disposable HA room page.
