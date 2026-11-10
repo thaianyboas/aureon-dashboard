@@ -21,6 +21,9 @@ export interface AureonRoomFinish {
   walls?: (AureonFinishRef & { edges?: number[] | null }) | null;
   /** Colour of single walls (index = room edge), over the room colour; see aureon-paints.ts. */
   wall_paints?: (string | null)[] | null;
+  /** Paint of the ceiling (owner 2026-11-10; warm white when unset). Drawn facing down only, so it shows from inside
+   * (walk, low views) and never covers the plan when looking from above. */
+  ceiling?: { color?: string | null } | null;
 }
 interface RoomLike {
   id: string;
@@ -307,6 +310,11 @@ export function buildFinishes(floor: FloorLike, interior: number): Group {
   const group = new Group();
   group.name = "aureon-finishes";
   for (const room of floor.rooms) {
+    // every room gets a ceiling (owner 2026-11-10: walking through the flat showed the open sky above the rooms);
+    // it faces down only, so views from above never see it
+    const H = room.ceiling_height ?? floor.height;
+    const ceilingMat = H > 0.3 ? material("paint", false, paintColor(room.aureon_finish?.ceiling?.color) ?? DEFAULT_CEILING) : null;
+    if (ceilingMat) group.add(ceilingMesh(innerFaces(room, floor.rooms, interior).map((face) => face.a), H - 0.004, ceilingMat));
     const f = room.aureon_finish;
     if (!f) continue;
     if (f.floor && FINISHES[f.floor.material]) {
@@ -361,6 +369,35 @@ function floorMesh(points: Vec2[], ref: AureonFinishRef, mat: MeshStandardMateri
   g.setAttribute("normal", new BufferAttribute(new Float32Array(nor), 3));
   g.setAttribute("uv", new BufferAttribute(new Float32Array(uv), 2));
   const mesh = new Mesh(g, mat);
+  mesh.receiveShadow = true;
+  mesh.userData.aureonModelMaterial = mat;
+  return mesh;
+}
+
+/** Ceiling colour when the owner chose none: a warm white. */
+export const DEFAULT_CEILING = "#f2efe9";
+
+/** The ceiling: the room's inner outline at ceiling height, facing down (one-sided). */
+export function ceilingMesh(points: Vec2[], y: number, mat: MeshStandardMaterial): Mesh {
+  const tris = triangulate(points);
+  const pos: number[] = [], nor: number[] = [], uv: number[] = [];
+  for (const [i, j, k] of tris) {
+    const P = [points[i], points[j], points[k]];
+    const cross = (P[1][0] - P[0][0]) * (P[2][1] - P[0][1]) - (P[1][1] - P[0][1]) * (P[2][0] - P[0][0]);
+    // the opposite winding of the floor: the face looks down (-y)
+    const order = cross < 0 ? [0, 2, 1] : [0, 1, 2];
+    for (const o of order) {
+      pos.push(P[o][0], y, P[o][1]);
+      nor.push(0, -1, 0);
+      uv.push(P[o][0], P[o][1]);
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute("position", new BufferAttribute(new Float32Array(pos), 3));
+  g.setAttribute("normal", new BufferAttribute(new Float32Array(nor), 3));
+  g.setAttribute("uv", new BufferAttribute(new Float32Array(uv), 2));
+  const mesh = new Mesh(g, mat);
+  mesh.name = "aureon-ceiling";
   mesh.receiveShadow = true;
   mesh.userData.aureonModelMaterial = mat;
   return mesh;

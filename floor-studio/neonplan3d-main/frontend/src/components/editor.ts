@@ -11274,25 +11274,77 @@ export class Fp3dEditor extends LitElement {
       </div>
       <p class="fp3d-sub">${current ? this.t("aureon_paint_hint") : finish?.walls ? this.t("aureon_cover_hint") : this.t("aureon_paint_none")}</p>
       <h4>${this.t("aureon_paint_one_wall_title")}</h4>
-      <div class="fp3d-aureon-wall-pick" role="group" aria-label=${this.t("aureon_paint_one_wall_title")}>
-        ${room.points.map((a, i) => {
-          const b = room.points[(i + 1) % room.points.length];
-          const on = this._aureonWall?.roomId === room.id && this._aureonWall.index === i;
-          const own = wallPaints(finish, room.points.length)[i];
-          return html`<button class="fp3d-btn" data-paint-wall=${i} aria-pressed=${on ? "true" : "false"} ?disabled=${!this.isAdmin}
-            @click=${() => {
-              this._aureonWall = on ? null : { roomId: room.id, index: i };
-              this._vertex = null;
-            }}
-            >${own ? html`<i class="fp3d-aureon-wall-dot" style="background:${own}"></i>` : nothing}${i + 1} · ${this.m(Math.hypot(b[0] - a[0], b[1] - a[1]), 2)}</button
-          >`;
-        })}
-      </div>
+      ${this.renderAureonWallPick(room, finish)}
       ${this._aureonWall?.roomId === room.id && this._aureonWall.index < room.points.length
         ? this.renderAureonWallPaint(room, this._aureonWall.index)
         : html`<p class="fp3d-sub">${this.t("aureon_paint_one_wall")}</p>`}
       ${current || finish?.walls ? html`<button class="fp3d-btn" ?disabled=${!this.isAdmin} @click=${() => set(null)}>${this.t("aureon_paint_clear")}</button>` : nothing}
+      ${this.renderAureonCeiling(room)}
     </div>`;
+  }
+
+  /** AUREON (owner 2026-11-10): pick the wall on a small drawing of the room instead of numbered buttons. */
+  private renderAureonWallPick(room: Room, finish: unknown) {
+    const pts = room.points;
+    if (pts.length < 3) return nothing;
+    const xs = pts.map((p) => p[0]), zs = pts.map((p) => p[1]);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs);
+    const W = 260, H = 190, pad = 26, k = Math.min((W - 2 * pad) / Math.max(0.1, maxX - minX), (H - 2 * pad) / Math.max(0.1, maxZ - minZ));
+    const ox = (W - (maxX - minX) * k) / 2, oz = (H - (maxZ - minZ) * k) / 2;
+    const P = (p: [number, number]): [number, number] => [ox + (p[0] - minX) * k, oz + (p[1] - minZ) * k];
+    const cx = pts.reduce((a, p) => a + P(p)[0], 0) / pts.length, cz = pts.reduce((a, p) => a + P(p)[1], 0) / pts.length;
+    const paints = wallPaints(finish, pts.length);
+    const roomColor = (finish as { walls?: { material?: string; color?: string | null } | null } | null)?.walls;
+    const base = roomColor?.material === "paint" ? (paintColor(roomColor.color) ?? "#d9d4cb") : "#8d877c";
+    return svg`<svg class="fp3d-aureon-wall-map" viewBox="0 0 ${W} ${H}" role="group" aria-label=${this.t("aureon_paint_one_wall_title")}>
+      <polygon class="fp3d-aureon-wall-room" points=${pts.map((p) => P(p).join(",")).join(" ")}></polygon>
+      ${pts.map((a, i) => {
+        const b = pts[(i + 1) % pts.length], A = P(a), B = P(b);
+        const on = this._aureonWall?.roomId === room.id && this._aureonWall.index === i;
+        const own = paints[i];
+        const mx = (A[0] + B[0]) / 2, mz = (A[1] + B[1]) / 2, dx = mx - cx, dz = mz - cz, dl = Math.hypot(dx, dz) || 1;
+        const lx = mx + (dx / dl) * 14, lz = mz + (dz / dl) * 14;
+        const pick = () => {
+          if (!this.isAdmin) return;
+          this._aureonWall = on ? null : { roomId: room.id, index: i };
+          this._vertex = null;
+        };
+        return svg`<g class="fp3d-aureon-wall-edge ${on ? "on" : ""}" data-paint-wall=${i} role="button" tabindex="0" aria-pressed=${on ? "true" : "false"}
+            aria-label=${`${this.t("aureon_paint_wall_title")} ${i + 1} · ${this.m(Math.hypot(b[0] - a[0], b[1] - a[1]), 2)}`}
+            @click=${pick} @keydown=${(e: KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } }}>
+          <line class="hit" x1=${A[0]} y1=${A[1]} x2=${B[0]} y2=${B[1]}></line>
+          <line class="paint" x1=${A[0]} y1=${A[1]} x2=${B[0]} y2=${B[1]} style=${`stroke:${own ?? base}`}></line>
+          <text x=${lx} y=${lz} text-anchor="middle" dominant-baseline="central">${this.m(Math.hypot(b[0] - a[0], b[1] - a[1]), 1)}</text>
+        </g>`;
+      })}
+    </svg>`;
+  }
+
+  /** AUREON (owner 2026-11-10): the ceiling colour of the room (drawn in 3D facing down only). */
+  private renderAureonCeiling(room: Room) {
+    type Finish = { ceiling?: { color?: string | null } | null };
+    const finish = ((room as Room & { aureon_finish?: Finish | null }).aureon_finish ?? null) as Finish | null;
+    const current = paintColor(finish?.ceiling?.color) ?? null;
+    const set = (color: string | null) => {
+      if (!this.isAdmin) return;
+      const next: Finish = { ...(finish ?? {}) };
+      if (color) next.ceiling = { color };
+      else delete next.ceiling;
+      this.updateRoom({ aureon_finish: Object.keys(next).length ? next : null } as Partial<Room>);
+    };
+    return html`<h4>${this.t("aureon_ceiling_title")}</h4>
+      <div class="fp3d-aureon-swatches" role="radiogroup" aria-label=${this.t("aureon_ceiling_title")}>
+        ${AUREON_WALL_PAINTS.map(
+          (p) => html`<button class="fp3d-aureon-swatch ${current === p.color ? "fp3d-aureon-swatch-on" : ""}" role="radio" data-ceiling-paint=${p.id}
+            aria-checked=${current === p.color ? "true" : "false"} title=${this.t(`aureon_paint_${p.id}` as I18nKey)} style="background:${p.color}" ?disabled=${!this.isAdmin}
+            @click=${() => set(p.color)}></button>`,
+        )}
+        <label class="fp3d-aureon-swatch fp3d-aureon-swatch-free" title=${this.t("aureon_paint_custom")}
+          >+<input type="color" .value=${current ?? "#f4f1ea"} ?disabled=${!this.isAdmin} @change=${(e: Event) => set(paintColor((e.target as HTMLInputElement).value))}
+        /></label>
+      </div>
+      <p class="fp3d-sub">${current ? this.t("aureon_ceiling_hint") : this.t("aureon_ceiling_none")}</p>
+      ${current ? html`<button class="fp3d-btn" ?disabled=${!this.isAdmin} @click=${() => set(null)}>${this.t("aureon_ceiling_clear")}</button>` : nothing}`;
   }
 
   private renderRoomForm(room: Room, areas: { area_id: string; name: string }[]) {
@@ -16773,6 +16825,50 @@ export class Fp3dEditor extends LitElement {
     .fp3d-aureon-own-import[aria-disabled] {
       opacity: 0.6;
       pointer-events: none;
+    }
+    .fp3d-aureon-wall-map {
+      display: block;
+      width: 100%;
+      max-width: 320px;
+      margin: 6px 0 10px;
+      background: color-mix(in srgb, var(--fp3d-fg, #fff) 4%, transparent);
+      border-radius: 12px;
+    }
+    .fp3d-aureon-wall-room {
+      fill: color-mix(in srgb, var(--fp3d-accent, #d9b77e) 8%, transparent);
+      stroke: none;
+    }
+    .fp3d-aureon-wall-edge {
+      cursor: pointer;
+      outline: none;
+    }
+    .fp3d-aureon-wall-edge .hit {
+      stroke: transparent;
+      stroke-width: 22;
+      stroke-linecap: round;
+    }
+    .fp3d-aureon-wall-edge .paint {
+      stroke-width: 7;
+      stroke-linecap: round;
+      transition: stroke-width 0.15s;
+    }
+    .fp3d-aureon-wall-edge:hover .paint,
+    .fp3d-aureon-wall-edge:focus-visible .paint {
+      stroke-width: 10;
+    }
+    .fp3d-aureon-wall-edge.on .paint {
+      stroke-width: 11;
+      filter: drop-shadow(0 0 4px var(--fp3d-accent, #d9b77e));
+    }
+    .fp3d-aureon-wall-edge text {
+      fill: currentColor;
+      opacity: 0.7;
+      font-size: 10px;
+      pointer-events: none;
+    }
+    .fp3d-aureon-wall-edge.on text {
+      opacity: 1;
+      font-weight: 700;
     }
     .fp3d-aureon-wall-pick {
       display: flex;

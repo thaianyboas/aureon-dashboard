@@ -9,6 +9,7 @@ test("only solid lit surfaces are path traced", () => {
   assert.equal(traceable(new Mesh(new BoxGeometry(), new MeshPhysicalMaterial())), true);
   // glows, window spill and helpers keep their unlit material: they stay out of the photo
   assert.equal(traceable(new Mesh(new BoxGeometry(), new MeshBasicMaterial())), false);
+  { const ceiling = new Mesh(new BoxGeometry(), new MeshStandardMaterial()); ceiling.name = "aureon-ceiling"; assert.equal(traceable(ceiling), false); }
   assert.equal(traceable(new Mesh(new BoxGeometry(), [new MeshStandardMaterial(), new MeshBasicMaterial()])), false);
   const hidden = new MeshStandardMaterial();
   hidden.visible = false;

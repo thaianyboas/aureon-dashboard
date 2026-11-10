@@ -37,7 +37,8 @@ export const TRACE_SAMPLES = 160;
 /** Only lit, solid surfaces take part: glows, lines, labels, contact planes and see-through helpers stay out. */
 export function traceable(object: Object3D): boolean {
   const mesh = object as Mesh;
-  if (!mesh.isMesh || object.userData.aureonContact) return false;
+  // contact planes and the one-sided ceilings (seen from above the tracer might not cull them) stay out
+  if (!mesh.isMesh || object.userData.aureonContact || object.name === "aureon-ceiling") return false;
   const m = mesh.material as Material | Material[];
   const list = Array.isArray(m) ? m : [m];
   return list.length > 0 && list.every((x) => !!x && (x as Material & { isMeshStandardMaterial?: boolean }).isMeshStandardMaterial === true && x.visible);

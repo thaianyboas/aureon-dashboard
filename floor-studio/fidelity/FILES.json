@@ -300,7 +300,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/lang/pt.json",
       "original_sha256": "532ebff5da2b52132a4c14673a71519b0d68bf31c065ec0f76cdee3627a156af",
-      "candidate_sha256": "9a97e004e1ca3f54f0e77566fad4e911e3235c69186bc561e235f0dc4cac9369",
+      "candidate_sha256": "6121082bd5f77d201346b6dbc939a062b1c87ebd3c084fb69f0eb356a1f5e41a",
       "bytes": 151166,
       "status": "modified"
     },
@@ -342,21 +342,21 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-3d.js",
       "original_sha256": "2d16eaadced3d87d4acd24af83694c6aa179b611093121ffec4e696b4d8daeb3",
-      "candidate_sha256": "5289a46aa4183d668212fd9c5592a78976eb3080525de3856a4f5f19fa9b05dc",
+      "candidate_sha256": "991c8a9e7ef3d68b937f8164a89834de7f880456c92819ec5cb2ed87662e47a4",
       "bytes": 873164,
       "status": "modified"
     },
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-card-editor.js",
       "original_sha256": "ff77086109abcaeb329711a87bd1ca85686c833b004d501e3e2791db1386bd9f",
-      "candidate_sha256": "4cdd6b9fb12e8bc060fa6cf7c83f48ac3d6be2a2d19b9f1240264093833d4baf",
+      "candidate_sha256": "a7bf2a9df0fe5e796d43a811edba52a993efb98b49d2d95ab0cbcfc08c0ee321",
       "bytes": 323143,
       "status": "modified"
     },
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-editor.js",
       "original_sha256": "c5ea0f02630abdc4e8166e7273215d319d8c72c0466a1c13966e68407f2db5c3",
-      "candidate_sha256": "3c56b83ae348765a77eb8cfd69485ed95f72dbc49763c0eb716e1d6cb8f15a85",
+      "candidate_sha256": "9d01f05a55d217e7448836410507b7f118fb672088f67b36d421c3f0806d45e3",
       "bytes": 1067764,
       "status": "modified"
     },
@@ -391,7 +391,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d.js",
       "original_sha256": "a2ecf30a957cc66557fd0286d6b0da2fb3b2785c8c8b19819ca17d0a58afc154",
-      "candidate_sha256": "5952e40e1037484f2fb774bc115d90986ebe7187a2b5b0500b545c1ecbce562b",
+      "candidate_sha256": "5531364e1c724677ee93f35430e0c7cf111e7614b72f24a4a651f50d40762f0b",
       "bytes": 834792,
       "status": "modified"
     },
@@ -1896,7 +1896,7 @@
     {
       "path": "frontend/lang/pt.json",
       "original_sha256": "532ebff5da2b52132a4c14673a71519b0d68bf31c065ec0f76cdee3627a156af",
-      "candidate_sha256": "9a97e004e1ca3f54f0e77566fad4e911e3235c69186bc561e235f0dc4cac9369",
+      "candidate_sha256": "6121082bd5f77d201346b6dbc939a062b1c87ebd3c084fb69f0eb356a1f5e41a",
       "bytes": 151166,
       "status": "modified"
     },
@@ -2099,7 +2099,7 @@
     {
       "path": "frontend/src/components/editor.ts",
       "original_sha256": "6d6b7d0f0e50fefe9e9e110af9e02d668bc98def8fef9cfc3c0dcb164a140da3",
-      "candidate_sha256": "8ee097123b2d4209612fe9a33c313f4d9861cdc0ebd34d4b7fdbf77e413b1ccc",
+      "candidate_sha256": "d32aaf37698282daaafb2b8522eb509861196820519bc20853cae5bcd9583c97",
       "bytes": 824582,
       "status": "modified"
     },
@@ -2470,7 +2470,7 @@
     {
       "path": "frontend/src/i18n.ts",
       "original_sha256": "b8c8d7bf9812e50635271613098d8513ea35c227a06a36980db6ad9fccf75e9e",
-      "candidate_sha256": "a173adbb46d709ead4fb74bb32687be308abe595fe82a93521ca307ff56b0759",
+      "candidate_sha256": "f4a75d1eabcb69e57ecfb33751b5505a10e906a6039772d73467fab7e4852539",
       "bytes": 293510,
       "status": "modified"
     },
@@ -4707,7 +4707,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/lang/pt.json",
-      "candidate_sha256": "9a97e004e1ca3f54f0e77566fad4e911e3235c69186bc561e235f0dc4cac9369",
+      "candidate_sha256": "6121082bd5f77d201346b6dbc939a062b1c87ebd3c084fb69f0eb356a1f5e41a",
       "status": "added"
     },
     {
@@ -4737,17 +4737,17 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-3d.js",
-      "candidate_sha256": "5289a46aa4183d668212fd9c5592a78976eb3080525de3856a4f5f19fa9b05dc",
+      "candidate_sha256": "991c8a9e7ef3d68b937f8164a89834de7f880456c92819ec5cb2ed87662e47a4",
       "status": "added"
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-card-editor.js",
-      "candidate_sha256": "4cdd6b9fb12e8bc060fa6cf7c83f48ac3d6be2a2d19b9f1240264093833d4baf",
+      "candidate_sha256": "a7bf2a9df0fe5e796d43a811edba52a993efb98b49d2d95ab0cbcfc08c0ee321",
       "status": "added"
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-editor.js",
-      "candidate_sha256": "3c56b83ae348765a77eb8cfd69485ed95f72dbc49763c0eb716e1d6cb8f15a85",
+      "candidate_sha256": "9d01f05a55d217e7448836410507b7f118fb672088f67b36d421c3f0806d45e3",
       "status": "added"
     },
     {
@@ -4777,7 +4777,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d.js",
-      "candidate_sha256": "5952e40e1037484f2fb774bc115d90986ebe7187a2b5b0500b545c1ecbce562b",
+      "candidate_sha256": "5531364e1c724677ee93f35430e0c7cf111e7614b72f24a4a651f50d40762f0b",
       "status": "added"
     },
     {
@@ -5092,12 +5092,12 @@
     },
     {
       "path": "frontend/src/viewer/aureon-finishes.test.ts",
-      "candidate_sha256": "f87041e226c29dfcbd45dc8c421f1715e37f11379fd38030a297474a4dcd79e2",
+      "candidate_sha256": "eeef0ca6a8af5fb55ea37a477b18b12230d99a3dbf0ca8199c0b2e808cfc881f",
       "status": "added"
     },
     {
       "path": "frontend/src/viewer/aureon-finishes.ts",
-      "candidate_sha256": "55012aa59212eb82c143eeb49494cd99a45325fbc5a12005e93f432ea98ad084",
+      "candidate_sha256": "085fc8c317ee87329f97655a1ee2915d024eefb84ed5b657ad3b2a1869b3492c",
       "status": "added"
     },
     {
@@ -5122,12 +5122,12 @@
     },
     {
       "path": "frontend/src/viewer/aureon-pathtrace.test.ts",
-      "candidate_sha256": "40807c79f2df188cfda384a8a56c3baa7fbb2ccdbfd4f9a37a96c1314e66d4a0",
+      "candidate_sha256": "cd43fb25594f0351d0b0b4a7e0b85609d8ffc9a8736512c13f9127bac78352ff",
       "status": "added"
     },
     {
       "path": "frontend/src/viewer/aureon-pathtrace.ts",
-      "candidate_sha256": "14e8abfc712ea7a2bc65d064c3949b12a9837479e6f3a624c1d5f8ff049eef90",
+      "candidate_sha256": "00c46c372f675e336b107971c37ae31dd1b3427988ddd9f86be7bf7c24adc414",
       "status": "added"
     },
     {

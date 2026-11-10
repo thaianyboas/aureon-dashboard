@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { AUREON_FINISH_IDS, buildFinishes, innerFaces } from "./aureon-finishes.ts";
+import { MeshStandardMaterial } from "three";
+import { AUREON_FINISH_IDS, buildFinishes, ceilingMesh, innerFaces } from "./aureon-finishes.ts";
 
 const room = (id: string, x0: number, x1: number) => ({ id, points: [[x0, 0], [x1, 0], [x1, 3], [x0, 3]] as [number, number][] });
 
@@ -60,4 +61,20 @@ test("bathroom tiles: white tiles with a navy band at mid height, the band once 
   assert.ok(TILE_BAND.repeat >= 2.3, "no second band below a normal ceiling");
   assert.ok(TILE_BAND.bottom > 0.9 && TILE_BAND.top < 1.5 && TILE_BAND.top > TILE_BAND.bottom);
   assert.ok(F.white_tiles_navy_band.period[1] * F.white_tiles_navy_band.ppm <= 1024);
+});
+
+test("a painted ceiling is drawn at ceiling height, facing down only", () => {
+  const pts: [number, number][] = [[0, 0], [4, 0], [4, 3], [0, 3]];
+  for (const order of [pts, [...pts].reverse()]) {
+    const mesh = ceilingMesh(order, 2.596, new MeshStandardMaterial());
+    const pos = mesh.geometry.attributes.position.array as Float32Array, nor = mesh.geometry.attributes.normal.array as Float32Array;
+    assert.equal(pos.length, 18);
+    for (let i = 1; i < pos.length; i += 3) assert.ok(Math.abs(pos[i] - 2.596) < 1e-6);
+    for (let i = 1; i < nor.length; i += 3) assert.equal(nor[i], -1);
+    // each triangle winds so that its geometric normal points down (-y), whatever the room's point order
+    for (let t = 0; t < pos.length; t += 9) {
+      const ax = pos[t + 3] - pos[t], az = pos[t + 5] - pos[t + 2], bx = pos[t + 6] - pos[t], bz = pos[t + 8] - pos[t + 2];
+      assert.ok(az * bx - ax * bz < 0);
+    }
+  }
 });

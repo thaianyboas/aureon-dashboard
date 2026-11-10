@@ -1025,3 +1025,20 @@ Validation: root 208 + frontend 628, typecheck, build, validate, migration contr
   the separate devices panel is gone (devices view renders settings). Light theme removed from the music choices.
 Validation: root 210 + frontend 628, typecheck, build, validate, migration contract, test:browser (music 3×),
 fixture screenshot. Not tested with the owner's real account (Forbidden behaviour reproduced in a unit test).
+
+## Claude batch 2026-11-10 (11) — speakers to choose; paint one wall on a drawing; ceilings
+
+- MUSIC (owner): Settings > Alto-falantes "Escolher": tick which speakers the player shows (prefs
+  music.hiddenSpeakers: 'sc:<name>' for Spotify Connect, media_player ids otherwise; validated, max 80).
+- FLOOR STUDIO wall paint (owner: "não consigo pintar apenas uma parede"): the numbered wall buttons are replaced by a
+  small drawing of the room (editor.renderAureonWallPick): tap a wall (large hit area, lengths shown, painted walls
+  drawn in their colour, keyboard Enter/Space), then pick its colour (existing wall_paints).
+- CEILINGS (owner: "não consigo pintar o teto"): every room now has a ceiling in 3D (aureon-finishes ceilingMesh:
+  inner outline at ceiling height, one-sided facing down, so views from above never see it; walk shows a ceiling
+  instead of the open sky). Colour from room.aureon_finish.ceiling.color (editor "Cor do teto"), warm white
+  #f2efe9 by default. Kept out of the path tracer (traceable()). Backend passes the field through (ALLOW_EXTRA).
+- Private furniture delivered (not in git): Alexa_Dot_Esfera, Google_TV_Streamer_Branco, Apple_TV_Preto,
+  Bar_Piano_Fechado / Bar_Piano_Em_Uso (owner's bar + hidden piano reference, 1.60 × 2.50 m assumed).
+Validation: root 211 + frontend 629, typecheck, build budgets, backend 180, fidelity re-audit, validate, migration
+contract, test:browser, disposable HA (editor drawing + wall/ceiling paint saved; 3D overview unchanged from above;
+walk shows the ceiling). Integration not yet packaged/published.
