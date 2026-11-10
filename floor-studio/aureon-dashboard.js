@@ -298,7 +298,10 @@
       if (!Player?.createController) return;
       if (!this._musicController) this._musicController = Player.createController();
       // Players follow the AUREON visibility rules (hidden equipment, Labels chosen in Settings).
-      const allowed = this._platformController?.registry ? this._platformController.rows.map(row => row.id) : this._registry?.entityRows?.map(row => row.id);
+      // A Spotify account (SpotifyPlus / AUREON Música) is not equipment in a room: room or Label rules do not hide it from
+      // the music player; only hiding that entity itself (Settings → Equipamentos) does.
+      const hiddenIds=new Set(this._platformController?.preferences?.hidden||[]),accounts=Object.entries(this._hass?.entities||{}).filter(([id,e])=>id.startsWith('media_player.')&&['spotifyplus','aureon_music'].includes(e?.platform)&&!e.hidden&&!hiddenIds.has(id)).map(([id])=>id);
+      const visible = this._platformController?.registry ? this._platformController.rows.map(row => row.id) : this._registry?.entityRows?.map(row => row.id),allowed=visible?[...new Set([...visible,...accounts])]:visible;
       this._musicController.configure({ language:this._platformController?.language, ...this._musicConfig, ...this._platformController?.preferences?.music, ...(allowed ? { allowedEntities: allowed } : {}) });
       this._musicController.setHass(this._hass);
       const player = make('aureon-music-player');

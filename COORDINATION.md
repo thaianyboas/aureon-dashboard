@@ -952,3 +952,16 @@ Next: stage 2 — robot on the Floor Studio plan (3-point calibration map ↔ pl
   "Medidores manuais (opcional)" disclosure.
 Validation: root 206 + frontend 628, typecheck, build, validate, migration contract, test:browser, disposable HA
 screenshot (Sem cômodo unticked → gone from Cômodos). Not tested on the owner's HA.
+
+## Claude batch 2026-11-10 (5) — music settings keep the choice; Spotify account always reachable
+
+- MUSIC-SAVE (owner: "não salva, volta pro lugar"): the choices were saved, but Lit set `<select>.value` before the
+  options existed, so the player / appearance / Spotcast selects always showed the first option. Options now carry
+  `?selected`. A green "✓ Salvo" pill appears for 2.5 s after each change.
+- MUSIC-ACCOUNT (owner: AUREON Música installed, page said "Nenhuma conta Spotify"): the account's device sits in the
+  owner's ControlRoom area, which the dashboard filters (room/Label rules) hid from the music player. Spotify account
+  players (platform spotifyplus / aureon_music) are now always offered to the music player unless that entity itself
+  is hidden in Settings → Equipamentos. Detection itself unchanged (platform spotifyplus or `sp_user_id`).
+Validation: root 206 + frontend 628, typecheck, build, validate, migration contract, test:browser, disposable HA
+(choose player + appearance, leave and return: still shown; "Salvo" visible). The owner's real AUREON Música account
+was not available in the test HA.
