@@ -139,3 +139,9 @@ test('liked songs from the Favoritos list fill the heart when the check is not a
  await c.browse('favorites');
  assert.equal(c.favorite,true);
 });
+
+test('hidden speakers are validated and kept in the music preferences',async()=>{
+ const {validatePreferences,defaults}=await import('../platform/preferences.mjs');
+ const out=validatePreferences({...defaults(),music:{...defaults().music,hiddenSpeakers:['sc:alexa - küche','media_player.tv','sc:alexa - küche','<script>',' ',42]}});
+ assert.deepEqual(out.music.hiddenSpeakers,['sc:alexa - küche','media_player.tv']);
+});
