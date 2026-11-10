@@ -984,3 +984,6 @@ with the owner's device mix (22 → 4 ready + 3 other). Not tested with her real
   only speakers. Cover chip / compact destination show the Spotify device (source) or "Escolher alto-falante",
   never the account name. The account stays selectable under Player / conta.
 Validation: root 207 + frontend 628, typecheck, build, validate, migration contract, test:browser; fixture screenshot.
+- QUICK-ACTIONS removed (owner: repeated controls). Unique actions kept: "Pausar todos" in the Volume box header,
+  "Adicionar à playlist" as a "+" button next to the heart on the cover (only when the services exist).
+  data-action names unchanged (pause-all, to-playlist).
