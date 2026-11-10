@@ -39,9 +39,19 @@ export function mediaItems(response) {
   const result=resultOf(response); const list=Array.isArray(result)?result:result.items || result.tracks?.items || result.albums?.items || result.playlists?.items || [];
   const seen=new Set();return (Array.isArray(list)?list:[]).map(x=>x.track || x.album || x.show || x).filter(x=>x && typeof x.name==='string' && /^spotify:(track|album|playlist|show):[A-Za-z0-9]+$/.test(x.uri || '') && !seen.has(x.uri) && seen.add(x.uri)).slice(0,50);
 }
+// Spotify Connect devices: one entry per name (the same speaker is often reported twice), restricted and nameless ones
+// dropped. "ready" = Spotify can play there now (in the account's device list, active, or a Cast/Sonos device that
+// AUREON Música/SpotifyPlus can wake). Others (e.g. a sleeping Alexa) usually need Spotify opened on them once.
 export function connectDevices(response) {
-  const result=resultOf(response); const list=result.Items || result.items || result.devices || [];
-  return (Array.isArray(list)?list:[]).map(d=>({id:d.Id || d.id,name:d.Name || d.name,active:!!(d.IsActiveDevice || d.is_active)})).filter(d=>typeof d.id==='string' && typeof d.name==='string');
+  const result=resultOf(response); const list=result.Items || result.items || result.devices || [],best=new Map();
+  for(const d of Array.isArray(list)?list:[]){
+    const id=d?.Id ?? d?.id,name=String(d?.Name ?? d?.name ?? '').trim();
+    if(typeof id!=='string'||!id||!name||d.IsRestricted===true||d.is_restricted===true)continue;
+    const active=!!(d.IsActiveDevice || d.is_active),ready=active||d.IsInDeviceList===true||d.IsChromeCast===true||d.IsSonos===true||!Object.hasOwn(d,'IsInDeviceList');
+    const item={id,name,active,ready},key=name.toLocaleLowerCase(),old=best.get(key),score=x=>(x.active?2:0)+(x.ready?1:0);
+    if(!old||score(item)>score(old))best.set(key,item);
+  }
+  return [...best.values()].sort((a,b)=>Number(b.active)-Number(a.active)||Number(b.ready)-Number(a.ready)||a.name.localeCompare(b.name));
 }
 export const BROWSE_SERVICES={podcasts:'get_show_favorites',recent:'get_player_recent_tracks',playlists:'get_playlist_favorites',albums:'get_album_favorites',favorites:'get_track_favorites',search:'search_tracks',searchAlbums:'search_albums',searchPlaylists:'search_playlists',categories:'get_browse_categorys_list',category:'get_category_playlists'};
 export function categoryItems(response){const result=resultOf(response),list=Array.isArray(result)?result:result.items || result.categories?.items || [];return (Array.isArray(list)?list:[]).filter(x=>typeof x?.name==='string' && typeof x.id==='string' && /^[A-Za-z0-9_-]{1,200}$/.test(x.id)).slice(0,500).map(x=>({...x,category:true}));}

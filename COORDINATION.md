@@ -965,3 +965,13 @@ screenshot (Sem cômodo unticked → gone from Cômodos). Not tested on the owne
 Validation: root 206 + frontend 628, typecheck, build, validate, migration contract, test:browser, disposable HA
 (choose player + appearance, leave and return: still shown; "Salvo" visible). The owner's real AUREON Música account
 was not available in the test HA.
+
+## Claude batch 2026-11-10 (6) — music devices: one compact, deduplicated list
+
+- MUSIC-DEVICES (owner screenshot: 22 rows, duplicates, empty names, Alexas that do not play): connectDevices() now
+  merges Spotify Connect devices by name, drops restricted/nameless ones and marks `ready` (active, IsInDeviceList,
+  Cast or Sonos — what SpotifyPlus/AUREON Música can reach). The devices pane shows "Prontos para tocar" as a compact
+  tile grid and folds the others into "Outros alto-falantes (N)" with a hint (open Spotify on them once). The player's
+  source_list (same devices again) is only shown when the Connect service is not available.
+Validation: root 207 + frontend 628, typecheck, build, validate, migration contract, test:browser; fixture screenshot
+with the owner's device mix (22 → 4 ready + 3 other). Not tested with her real account.

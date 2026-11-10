@@ -50,7 +50,7 @@ test('duplicate transport clicks are coalesced while a service is pending',async
  const {c,hass,calls}=fixture();let finish;hass.callService=async(...args)=>{calls.push(args);return new Promise(r=>finish=r);};const first=c.command('next');assert.equal(await c.command('next'),false);finish();assert.equal(await first,true);assert.equal(calls.length,1);
 });
 test('SpotifyPlus response wrappers, saved tracks and capitalized Connect devices normalize',()=>{
- assert.equal(mediaItems({response:{result:{items:[{track:{uri:'spotify:track:abc',name:'Track'}}]}}})[0].name,'Track');assert.deepEqual(connectDevices({response:{result:{Items:[{Id:'speaker',Name:'Speaker',IsActiveDevice:true}]}}}),[{id:'speaker',name:'Speaker',active:true}]);assert.deepEqual(mediaItems({items:[{name:'Invalid',uri:'javascript:evil'}]}),[]);
+ assert.equal(mediaItems({response:{result:{items:[{track:{uri:'spotify:track:abc',name:'Track'}}]}}})[0].name,'Track');assert.deepEqual(connectDevices({response:{result:{Items:[{Id:'speaker',Name:'Speaker',IsActiveDevice:true}]}}}),[{id:'speaker',name:'Speaker',active:true,ready:true}]);assert.deepEqual(mediaItems({items:[{name:'Invalid',uri:'javascript:evil'}]}),[]);
 });
 test('device transfer can only target devices actually returned by backend',async()=>{
  const {c,calls}=fixture();assert.equal(await c.transfer('guessed'),false);c.devices=[{id:'real',name:'Real'}];await c.transfer('real');assert.deepEqual(calls[0].slice(0,3),['spotifyplus','player_transfer_playback',{device_id:'real',play:true,entity_id:'media_player.music'}]);
@@ -89,3 +89,12 @@ test('home mini visibility requires meaningful active media and never treats una
 });
 import {spotifyPlusDomain,spotcastDomain} from '../music/controller.mjs';
 test('AUREON Música (aureon_music) is used when installed, the originals otherwise',()=>{const hass={entities:{'media_player.a':{platform:'aureon_music'},'media_player.b':{platform:'spotifyplus'}},services:{aureon_music:{play_media:{}},spotcast:{play_media:{}}}};assert.equal(spotifyPlusDomain(hass,'media_player.a'),'aureon_music');assert.equal(spotifyPlusDomain(hass,'media_player.b'),'spotifyplus');assert.equal(spotcastDomain(hass),'aureon_music');assert.equal(spotcastDomain({services:{spotcast:{play_media:{}}}}),'spotcast');});
+
+test('Spotify Connect devices: duplicates merged by name, restricted/nameless dropped, ready ones first',()=>{
+ const list=connectDevices({response:{result:{Items:[
+  {Id:'a1',Name:'Alexa - Küche',IsInDeviceList:false},{Id:'a2',Name:'Alexa - Küche ',IsInDeviceList:true},
+  {Id:'tv',Name:'[LG] webOS TV',IsInDeviceList:false,IsChromeCast:true},{Id:'x',Name:'',IsInDeviceList:true},
+  {Id:'r',Name:'Locked',IsInDeviceList:true,IsRestricted:true},{Id:'s',Name:'Sala de estar',IsInDeviceList:false},
+  {Id:'s2',Name:'sala de estar',IsInDeviceList:false},{Id:'w',Name:'Wohnzimmer',IsActiveDevice:true,IsInDeviceList:true}]}}});
+ assert.deepEqual(list.map(d=>[d.id,d.ready,d.active]),[['w',true,true],['tv',true,false],['a2',true,false],['s',false,false]]);
+});
