@@ -1012,3 +1012,16 @@ contract, test:browser (music browser test 4× stable), fixture screenshots, dis
   512×512 variant for cards and /original for the hero.
 Validation: root 208 + frontend 628, typecheck, build, validate, migration contract, test:browser, disposable HA
 (desk + phone: overview cards from small/medium files, hero placeholder → sharp fade-in, no errors from AUREON).
+
+## Claude batch 2026-11-10 (10) — music: no HA error toasts, heart fallback, speakers in settings
+
+- ERRORS (owner screenshot: "Falha ao executar aureon_music/get_browse_categorys_list … Forbidden"): Spotify refuses
+  some Web API features for newer apps (403). callSpotify now passes notifyOnError=false (AUREON shows its own
+  notice) and remembers a Forbidden service per account in localStorage (`aureon.music.blocked:<entity>`);
+  advanced() then hides it, so it is not asked again. Shelves skip blocked services silently.
+- HEART: liked ids from the Favoritos list are remembered and used as a fallback; a failed check retries once after
+  12 s; if Spotify gives no status the heart's tooltip says so.
+- SPEAKERS moved into Configurações (account-card style, ready / "Outros alto-falantes", Pausar todos, Atualizar);
+  the separate devices panel is gone (devices view renders settings). Light theme removed from the music choices.
+Validation: root 210 + frontend 628, typecheck, build, validate, migration contract, test:browser (music 3×),
+fixture screenshot. Not tested with the owner's real account (Forbidden behaviour reproduced in a unit test).

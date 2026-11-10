@@ -115,3 +115,27 @@ test('the heart shows the liked status of a new song with one read-only lookup',
  assert.equal(c.favorite,false);
  assert.ok(calls.every(x=>x[1]==='check_track_favorites'));// never saves or removes by itself
 });
+
+test('Spotify "Forbidden" features are remembered and not asked again; no Home Assistant error toast',async()=>{
+ const calls=[],id='media_player.acc2',mem=new Map();globalThis.localStorage={getItem:k=>mem.get(k)??null,setItem:(k,v)=>mem.set(k,v)};
+ const hass={user:{id:'u'},connection:{},entities:{[id]:{platform:'aureon_music'}},states:{[id]:{entity_id:id,state:'idle',attributes:{sp_user_id:'me'}}},services:{aureon_music:{get_browse_categorys_list:{},get_featured_playlists:{},get_playlist_favorites:{},get_player_recent_tracks:{}}},
+  callService:async(...a)=>{calls.push(a);if(['get_browse_categorys_list','get_featured_playlists'].includes(a[1]))throw new Error('Validation error: Forbidden');return {response:{result:{items:[{name:'P',uri:'spotify:playlist:abc'}]}}};}};
+ const c=new MusicController();c.setHass(hass);
+ await c.loadShelves();
+ assert.ok(calls.every(x=>x[4]===false),'notifyOnError must be false');
+ assert.equal(c.error,'');
+ assert.equal(c.advanced('get_featured_playlists'),false);assert.equal(c.advanced('get_browse_categorys_list'),false);
+ calls.length=0;await c.loadShelves();
+ assert.ok(!calls.some(x=>['get_browse_categorys_list','get_featured_playlists'].includes(x[1])));
+ const again=new MusicController();again.setHass(hass);assert.equal(again.advanced('get_featured_playlists'),false); // remembered
+ delete globalThis.localStorage;
+});
+
+test('liked songs from the Favoritos list fill the heart when the check is not available',async()=>{
+ const id='media_player.acc3';
+ const hass={user:{id:'u'},connection:{},entities:{[id]:{platform:'aureon_music'}},states:{[id]:{entity_id:id,state:'playing',attributes:{sp_user_id:'me',media_content_id:'spotify:track:fav1'}}},services:{aureon_music:{get_track_favorites:{}}},
+  callService:async()=>({response:{result:{items:[{track:{name:'Fav',uri:'spotify:track:fav1'}}]}}})};
+ const c=new MusicController();c.setHass(hass);
+ await c.browse('favorites');
+ assert.equal(c.favorite,true);
+});

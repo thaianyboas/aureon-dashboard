@@ -72,7 +72,7 @@ export class MusicController {
     if(!players.some(p=>p.entity_id===this.entityId)){
       this.entityId=players.find(p=>p.entity_id===this.config.entity)?.entity_id || players[0]?.entity_id || ''; this.invalidate();
     }
-    const track=trackId(this.state);if(track!==this._track){this._track=track;this.favorite=null;clearTimeout(this._favoriteTimer);if(track&&this.spotify&&this.advanced('check_track_favorites'))this._favoriteTimer=setTimeout(()=>this.checkFavorite(),700);}
+    const track=trackId(this.state);if(track!==this._track){this._track=track;this.favorite=null;this.favoriteUnknown=false;clearTimeout(this._favoriteTimer);if(track&&this.spotify&&this.advanced('check_track_favorites'))this._favoriteTimer=setTimeout(()=>this.checkFavorite(),700);}
     this.emit();
   }
   get state(){return this.hass?.states?.[this.entityId];}
@@ -84,7 +84,12 @@ export class MusicController {
   get ready(){return available(this.state);}
   service(domain,name){return !!this.hass?.services?.[domain]?.[name];}
   can(feature){const services={play:'media_play',pause:'media_pause',previous:'media_previous_track',next:'media_next_track',volume:'volume_set',seek:'media_seek',shuffle:'shuffle_set',repeat:'repeat_set',source:'select_source',playMedia:'play_media'};return this.ready && supported(this.state,feature) && this.service('media_player',services[feature]);}
-  advanced(name){return this.ready && this.spotify && ADVANCED.has(name) && this.service(spotifyPlusDomain(this.hass,this.entityId),name);}
+  advanced(name){return this.ready && this.spotify && ADVANCED.has(name) && !this.blocked(name) && this.service(spotifyPlusDomain(this.hass,this.entityId),name);}
+  // Spotify refuses some Web API features for newer apps (403 "Forbidden", e.g. featured playlists, browse categories).
+  // Such a service is remembered per account (this browser) and not asked again, so no error keeps popping up.
+  _blockedKey(){return 'aureon.music.blocked:'+this.entityId;}
+  blocked(name){if(!this._blocked||this._blockedFor!==this.entityId){this._blockedFor=this.entityId;try{this._blocked=new Set(JSON.parse(globalThis.localStorage?.getItem(this._blockedKey())||'[]'));}catch{this._blocked=new Set();}}return this._blocked.has(name);}
+  _markBlocked(name,error){if(!/forbidden|\b403\b/i.test(String(error?.message||error||'')))return false;this.blocked(name);this._blocked.add(name);try{globalThis.localStorage?.setItem(this._blockedKey(),JSON.stringify([...this._blocked]));}catch{}return true;}
   invalidate(){this.epoch++;this.error='';this.results=[];this.devices=[];this.favorite=null;this.pending.clear();this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};this.shelfSources={};this.native={kind:'',stack:[],items:[],title:''};this.ownPlaylists=null;this.addedTo='';}
   reset(){this.entityId='';this.view='player';this.query='';this.invalidate();}
   select(id){if(!this.players.some(p=>p.entity_id===id))return false;this.entityId=id;this.invalidate();this.emit();return true;}
@@ -98,8 +103,10 @@ export class MusicController {
   async callSpotify(name,data={},response=false){
     if(!this.advanced(name))throw new Error('Spotify service unavailable');
     // Explicit entity_id selects the configured Spotify account; never infer it from an entity name.
-    const result=await this.hass.callService(spotifyPlusDomain(this.hass,this.entityId),name,{...data,entity_id:this.entityId},undefined,undefined,response);
-    return response ? result : true;
+    // notifyOnError=false: AUREON shows its own notice; Home Assistant's error toast stays away.
+    try{const result=await this.hass.callService(spotifyPlusDomain(this.hass,this.entityId),name,{...data,entity_id:this.entityId},undefined,false,response);
+      return response ? result : true;}
+    catch(error){this._markBlocked(name,error);throw error;}
   }
   async command(action,value){
     const specs={play:['play','media_play',{}],pause:['pause','media_pause',{}],previous:['previous','media_previous_track',{}],next:['next','media_next_track',{}],volume:['volume','volume_set',{volume_level:Math.max(0,Math.min(1,Number(value)))}],seek:['seek','media_seek',{seek_position:Math.max(0,Math.min(position(this.state).duration,Number(value)))}],shuffle:['shuffle','shuffle_set',{shuffle:!this.state?.attributes?.shuffle}],repeat:['repeat','repeat_set',{repeat:['off','all','one'][(['off','all','one'].indexOf(this.state?.attributes?.repeat)+1)%3]}]};
@@ -122,7 +129,7 @@ export class MusicController {
         if(response)this._categories=categoryItems(response);
         this.results=this._categories.slice(page*size,(page+1)*size);this.hasNext=this._categories.length>(page+1)*size;
       }else{
-        const container=pageContainer(response),items=mediaItems(response);this.results=items.slice(0,size);
+        const container=pageContainer(response),items=mediaItems(response);this.results=items.slice(0,size);if(name==='get_track_favorites')this._rememberLiked(items);
         const total=Number(container.total);this.hasNext=kind!=='recent'&&items.length>0&&(typeof container.next==='string'&&container.next.length>0 || Number.isFinite(total)&&total>(page+1)*size);
       }
       return true;
@@ -143,7 +150,7 @@ export class MusicController {
         const response=await this.callSpotify(name,args,true);if(!current())return false;
         const items=kind==='categories'?categoryItems(response).slice(0,16):mediaItems(response).slice(0,16);
         if(items.length){out[kind]=items;sources[kind]=name;break;}
-      }catch(error){if(!current())return false;errors.push(name);}}}
+      }catch(error){if(!current())return false;if(!this.blocked(name))errors.push(name);}}}
       this.shelves=out;this.shelfSources=sources;if(!Object.keys(out).length&&errors.length)throw new Error(errors.join(', '));return true;});
   }
   // Native HA media browser for players with BROWSE_MEDIA; read-only until the user starts an item.
@@ -207,10 +214,15 @@ export class MusicController {
   }
   // Owner 2026-11-10: the heart shows whether the playing song is one of the liked songs. One read-only lookup
   // (check_track_favorites) per new song on a Spotify account; saving or removing still needs a tap.
-  async checkFavorite(){
-    const id=trackId(this.state),epoch=this.epoch;if(!id||!this.spotify||!this.advanced('check_track_favorites')||this.pending.has('favorite'))return false;
+  _rememberLiked(items){this._liked??=new Set();for(const x of items||[]){const m=/^spotify:track:([A-Za-z0-9]+)$/.exec(x?.uri||'');if(m)this._liked.add(m[1]);}const id=trackId(this.state);if(id&&this._liked.has(id)&&this.favorite!==true){this.favorite=true;this.emit();}}
+  async checkFavorite(retry=true){
+    const id=trackId(this.state),epoch=this.epoch;if(!id||!this.spotify||this.pending.has('favorite'))return false;
+    if(this._liked?.has(id)){this.favorite=true;this.emit();}
+    if(!this.advanced('check_track_favorites')){this.favoriteUnknown=!this._liked?.has(id);this.emit();return false;}
     try{const response=await this.callSpotify('check_track_favorites',{ids:id},true);if(epoch!==this.epoch||trackId(this.state)!==id||this.pending.has('favorite'))return false;
-      const saved=resultOf(response)?.[id];if(typeof saved!=='boolean')return false;this.favorite=saved;this.emit();return true;}catch{return false;}
+      const saved=resultOf(response)?.[id];if(typeof saved!=='boolean')throw new Error('no status');this.favorite=saved||!!this._liked?.has(id);this.favoriteUnknown=false;if(saved)this._rememberLiked([{uri:'spotify:track:'+id}]);this.emit();return true;}
+    catch{if(epoch!==this.epoch||trackId(this.state)!==id)return false;this.favoriteUnknown=!this._liked?.has(id);this.emit();
+      if(retry&&!this.blocked('check_track_favorites')){clearTimeout(this._favoriteTimer);this._favoriteTimer=setTimeout(()=>this.checkFavorite(false),12000);}return false;}
   }
   async toggleFavorite(){
     const id=trackId(this.state);if(!id||!this.advanced('check_track_favorites')||!this.advanced('save_track_favorites')||!this.advanced('remove_track_favorites'))return false;
@@ -219,7 +231,7 @@ export class MusicController {
       const result=resultOf(response);const saved=typeof result?.[id]==='boolean'?result[id]:null;
       if(saved===null)throw new Error('Favorite status unavailable');
       await this.callSpotify(saved?'remove_track_favorites':'save_track_favorites',{ids:id});
-      if(current()&&trackId(this.state)===id)this.favorite=!saved;return true;
+      if(current()&&trackId(this.state)===id){this.favorite=!saved;this._liked??=new Set();saved?this._liked.delete(id):this._liked.add(id);}return true;
     });
   }
   async playItem(item,{spotcastTarget=''}={}){
