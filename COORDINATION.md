@@ -923,3 +923,21 @@ disposable HA screenshot (arrange bar with a test column; test item removed agai
 Validation: root 199 + frontend 628 tests, typecheck, build, validate, migration contract, test:browser, disposable
 HA (Label created, statistics imported for the two demo sensors, empty test area): energy page, rooms page, settings.
 Not tested on the owner's HA (her real meters/plugs and labels unknown).
+
+## Claude batch 2026-11-10 (3) — robot vacuum page (Dreame), stage 1
+
+- VACUUM (owner): new page "Aspirador" (route `Staubsauger` → `robot`, nav entry only when HA has a vacuum).
+  integrations/dreame.mjs + platform/vacuum-cinema.mjs (+tests/dreame.test.mjs). The Dreame Vacuum integration
+  (Tasshack, MIT) stays installed from HACS and owns the robot protocol; it is NOT copied into AUREON. The page
+  re-implements the Xiaomi Vacuum Map Card (PiotrMachowski, MIT) functions for the Dreame platform template:
+  live map (camera entity_picture), rooms (camera `rooms`), zones (drag), spots, go to, 1–3 passes, cleaning
+  settings (select.select_option), consumables, stats, start/pause/dock/stop/locate (existing vacuum actions).
+  Same service contract as the card: dreame_vacuum.vacuum_clean_segment/_clean_zone/_clean_spot/_goto; map px ↔ mm via
+  the camera's calibration_points (affine), whole mm. Entities are grouped by the registry unique_id key
+  (`<mac>_<key>`; registry rows now carry `uniqueId`). Calls only after a tap, only for visible Dreame entities, only
+  when HA offers the service (controller.dreameCall). Other vacuums get the basic controls.
+- Owner's robot: Dreame X60 Pro (her Dreame integration was removed; she is reinstalling it from HACS).
+Validation: root 205 + frontend 628, typecheck, build, validate, migration contract, test:browser; disposable HA with
+a MOCK dreame_vacuum integration (only in /home/claude/ha-config, never in git) — room, zone, go-to and suction
+calls arrived with the expected data; desktop + phone screenshots. Not tested with a real robot.
+Next: stage 2 — robot on the Floor Studio plan (3-point calibration map ↔ plan, floorPosition() contract exists).

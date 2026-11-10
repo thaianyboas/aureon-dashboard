@@ -353,7 +353,66 @@ export const platformStyles=`
 .cal-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .cal-chip{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:6px 14px;border-radius:999px;border:1px solid var(--cine-line);background:var(--cine-glass);color:inherit;font:inherit;font-size:13px;cursor:pointer}
 .cal-chip i{width:9px;height:9px;border-radius:50%;background:var(--cal);box-shadow:0 0 10px var(--cal)}
-.cal-chip[aria-pressed=false]{opacity:.45}.cal-chip[aria-pressed=false] i{background:none;border:1px solid var(--cal);box-shadow:none}
+.cal-chip[aria-pressed=false]{opacity:.45}
+/* Robot vacuum page */
+.cine-vacuum .vac-hero{align-items:center}
+.vac-hero-art{position:relative;width:clamp(150px,22vw,230px);flex:none;display:grid;justify-items:center;gap:10px}
+.vac-art{width:100%;height:auto;filter:drop-shadow(0 18px 40px rgba(0,0,0,.45))}
+.vac-orbit{transform-origin:100px 100px;animation:vacSpin 14s linear infinite}
+@keyframes vacSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.vac-orbit{animation:none}}
+.vac-battery{position:relative;display:flex;align-items:center;width:110px;height:24px;border-radius:999px;border:1px solid var(--cine-line);overflow:hidden;background:var(--cine-glass)}
+.vac-battery i{position:absolute;inset:0 auto 0 0;background:color-mix(in srgb,var(--p-accent) 55%,transparent)}
+.vac-battery b{position:relative;width:100%;text-align:center;font-size:12px;font-weight:600;letter-spacing:.04em}
+.vac-error{margin:6px 0 0;padding:8px 12px;border-radius:12px;background:rgba(229,120,100,.16);color:#f2b4a6;font-size:13px}
+.vac-controls{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 6px}
+.vac-ctl{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 18px;border-radius:999px;border:1px solid var(--cine-line);background:var(--cine-glass);color:inherit;font:inherit;font-size:14px;cursor:pointer}
+.vac-ctl svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.vac-ctl.primary{background:rgba(244,239,230,.94);color:#111;border-color:transparent}
+.vac-ctl.primary svg{fill:#111;stroke:none}
+.vac-ctl:disabled{opacity:.5;cursor:default}
+.vac-stats{margin-top:12px}
+.vac-pick{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 6px;max-width:640px}
+.vac-map-card{display:grid;gap:14px}
+.vac-map{position:relative;justify-self:center;width:100%;max-width:min(100%,920px);border-radius:20px;overflow:hidden;background:rgba(0,0,0,.25);touch-action:none;user-select:none;-webkit-user-select:none}
+.vac-map img{display:block;width:100%;height:auto;pointer-events:none}
+.vac-overlay{position:absolute;inset:0;width:100%;height:100%}
+.vac-overlay.mode-zone,.vac-overlay.mode-spot,.vac-overlay.mode-goto{cursor:crosshair}
+.vac-room{fill:transparent;stroke:transparent;cursor:pointer}
+.vac-room.on{fill:color-mix(in srgb,var(--p-accent) 30%,transparent);stroke:var(--p-accent);stroke-width:.4%}
+.vac-badge{cursor:pointer}
+.vac-badge rect{fill:rgba(16,16,18,.78);stroke:rgba(255,255,255,.25);stroke-width:.15%}
+.vac-badge text{fill:#f1ece3;font-family:inherit;pointer-events:none}
+.vac-badge.on rect{fill:rgba(244,239,230,.95);stroke:var(--p-accent)}
+.vac-badge.on text{fill:#111}
+.vac-zone{fill:color-mix(in srgb,var(--p-accent) 22%,transparent);stroke:var(--p-accent);stroke-width:.35%;stroke-dasharray:1% .6%}
+.vac-zone.drawing{fill:rgba(255,255,255,.12);stroke:#fff}
+.vac-zone-n{fill:#fff;font-weight:700;pointer-events:none}
+.vac-pin circle{fill:color-mix(in srgb,var(--p-accent) 35%,transparent);stroke:var(--p-accent);stroke-width:.3%}
+.vac-pin .vac-pin-dot{fill:#fff;stroke:none}
+.vac-pin.goto circle{fill:rgba(143,208,168,.35);stroke:#8fd0a8}
+.vac-pin text{fill:#fff;font-weight:700}
+.vac-hint{margin:0;font-size:13px;opacity:.8}
+.vac-hint b{opacity:1;color:var(--p-accent);font-weight:600}
+.vac-room-chips,.vac-options{display:flex;flex-wrap:wrap;gap:8px}
+.cine-vacuum .cal-chip[aria-pressed=false]{opacity:1}
+.cine-vacuum .cal-chip[aria-pressed=true]{background:rgba(244,239,230,.94);color:#111;border-color:transparent}
+.cine-vacuum .cal-chip:disabled{opacity:.5}
+.vac-go-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.vac-repeats{min-width:0!important;width:auto}
+.vac-repeats button{padding:0 14px}
+.vac-clear{min-height:46px;padding:0 16px;border-radius:999px;border:1px solid var(--cine-line);background:transparent;color:inherit;font:inherit;cursor:pointer}
+.vac-go{margin-left:auto;min-height:48px;padding:0 26px;border-radius:999px;border:0;background:var(--p-accent);color:#111;font:inherit;font-weight:600;cursor:pointer}
+.vac-go:disabled{opacity:.4;cursor:default}
+.vac-notice{margin:0}
+.vac-settings{display:grid;gap:16px;align-content:start}
+.vac-setting{display:grid;gap:8px}
+.vac-setting>span{font-size:13px;opacity:.75}
+.vac-consumables .cine-meter{cursor:default}
+.vac-consumables .cine-meter.low em{background:#e59a8c}
+.vac-empty{display:grid;gap:8px}
+@media (max-width:640px){.vac-map-card .cine-row-head{flex-direction:column;align-items:stretch;gap:10px}.vac-map-card .cine-segment{min-width:0;width:100%}.vac-hero-art{width:140px}.vac-go{margin-left:0;width:100%}.vac-go-row{align-items:stretch}.vac-ctl{flex:1 1 40%;justify-content:center}}
+.cal-chip[aria-pressed=false] i{background:none;border:1px solid var(--cal);box-shadow:none}
 .cal-refresh{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;border:1px solid var(--cine-line);background:var(--cine-glass);color:inherit;cursor:pointer}
 .cal-refresh svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .cal-layout{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,340px);gap:28px;align-items:start}

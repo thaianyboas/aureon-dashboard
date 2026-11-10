@@ -73,7 +73,7 @@
     };
   }
   // Local vector icons: no CDN, no external card or HA icon registry dependency.
-  const NAV_PATHS = {"Início": ["M3 10.5 12 3l9 7.5", "M5 9.5V21h14V9.5", "M9 21v-7h6v7"], "Räume": ["M3 3h7v7H3z", "M14 3h7v7h-7z", "M3 14h7v7H3z", "M14 14h7v7h-7z"], "Geräte": ["M4 7h16", "M7 4v6", "M4 17h16", "M17 14v6", "M12 4v16"], "Energie": ["M13 2 3 14h8l-1 8 11-12h-8z"], "Sicherheit": ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", "m9 12 2 2 4-4"], "Kameras": ["M4 6h16v12H4z", "M8 6V4h8v2", "M8 18v2h8v-2", "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"], "Medien": ["M9 18V5l12-2v13", "M9 18a3 2 0 1 1-6 0 3 2 0 0 1 6 0z", "M21 16a3 2 0 1 1-6 0 3 2 0 0 1 6 0z"], "JARVIS": ["M12 3a4 4 0 0 0-4 4 4 4 0 0 0-3 6 4 4 0 0 0 3 6 4 4 0 0 0 4 2", "M12 3a4 4 0 0 1 4 4 4 4 0 0 1 3 6 4 4 0 0 1-3 6 4 4 0 0 1-4 2", "M12 3v18", "M8 9l4 3 4-3", "M8 16l4-3 4 3"], "Agenda": ["M3 5h18v16H3z", "M7 3v4", "M17 3v4", "M3 10h18", "M7 14h3", "M14 14h3", "M7 18h3"], "Automationen": ["M12 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", "M5 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", "M19 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", "M10.5 8.5 6.5 15.5", "M13.5 8.5l4 7", "M8 18h8"], "Planta": ["M3 4h18v16H3z", "M3 11h8", "M11 4v12", "M15 11h6", "M15 11v9"], "Einstellungen": ["M12 3v2", "M12 19v2", "M3 12h2", "M19 12h2", "m5.6 5.6 1.4 1.4", "m17 17 1.4 1.4", "m18.4 5.6-1.4 1.4", "m7 17-1.4 1.4", "M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]};
+  const NAV_PATHS = {"Início": ["M3 10.5 12 3l9 7.5", "M5 9.5V21h14V9.5", "M9 21v-7h6v7"], "Räume": ["M3 3h7v7H3z", "M14 3h7v7h-7z", "M3 14h7v7H3z", "M14 14h7v7h-7z"], "Geräte": ["M4 7h16", "M7 4v6", "M4 17h16", "M17 14v6", "M12 4v16"], "Energie": ["M13 2 3 14h8l-1 8 11-12h-8z"], "Sicherheit": ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", "m9 12 2 2 4-4"], "Kameras": ["M4 6h16v12H4z", "M8 6V4h8v2", "M8 18v2h8v-2", "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"], "Staubsauger": ["M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z", "M12 7a2.2 2.2 0 1 0 0 4.4A2.2 2.2 0 0 0 12 7z", "M7.5 15.5a6.4 6.4 0 0 0 9 0"], "Medien": ["M9 18V5l12-2v13", "M9 18a3 2 0 1 1-6 0 3 2 0 0 1 6 0z", "M21 16a3 2 0 1 1-6 0 3 2 0 0 1 6 0z"], "JARVIS": ["M12 3a4 4 0 0 0-4 4 4 4 0 0 0-3 6 4 4 0 0 0 3 6 4 4 0 0 0 4 2", "M12 3a4 4 0 0 1 4 4 4 4 0 0 1 3 6 4 4 0 0 1-3 6 4 4 0 0 1-4 2", "M12 3v18", "M8 9l4 3 4-3", "M8 16l4-3 4 3"], "Agenda": ["M3 5h18v16H3z", "M7 3v4", "M17 3v4", "M3 10h18", "M7 14h3", "M14 14h3", "M7 18h3"], "Automationen": ["M12 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", "M5 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", "M19 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", "M10.5 8.5 6.5 15.5", "M13.5 8.5l4 7", "M8 18h8"], "Planta": ["M3 4h18v16H3z", "M3 11h8", "M11 4v12", "M15 11h6", "M15 11v9"], "Einstellungen": ["M12 3v2", "M12 19v2", "M3 12h2", "M19 12h2", "m5.6 5.6 1.4 1.4", "m17 17 1.4 1.4", "m18.4 5.6-1.4 1.4", "m7 17-1.4 1.4", "M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]};
   function aureonNavIcon(page) {
     const ns = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(ns, 'svg');
@@ -96,7 +96,7 @@
   }
   const PAGES = [
     ['⌂','Início'],['▦','Räume'],['◉','Geräte'],['ϟ','Energie'],
-    ['◇','Sicherheit'],['▣','Kameras'],['♫','Medien'],['✧','JARVIS'],
+    ['◇','Sicherheit'],['▣','Kameras'],['♫','Medien'],['◎','Staubsauger'],['✧','JARVIS'],
     ['▤','Agenda'],['↻','Automationen'],['▱','Planta'],['⚙','Einstellungen']
   ];
   const MODULES = [
@@ -111,7 +111,8 @@
   class AureonDashboard extends HTMLElement {
     // In the Cinema look "Dispositivos" is folded into "Cômodos" (each room lists all of its equipment).
     _cinemaLook(){return this._platformController?.preferences?.look!=='classic';}
-    _navPages(){return this._cinemaLook()?PAGES.filter(([,name])=>name!=='Geräte'):PAGES;}
+    // The robot vacuum page is only offered when Home Assistant has a vacuum.
+    _navPages(){const robot=Object.keys(this._hass?.states||{}).some(id=>id.startsWith('vacuum.'));return PAGES.filter(([,name])=>(name!=='Geräte'||!this._cinemaLook())&&(name!=='Staubsauger'||robot));}
     _primaryPages(){return this._cinemaLook()?['Início','Räume','Medien']:['Início','Geräte','Medien'];}
     constructor() {
       super();
@@ -270,7 +271,7 @@
       for(const child of [...main.childNodes])if(child!==header&&child!==keep)child.remove();
       wrap.classList.toggle('au-home',name==='Início'||name==='Medien');wrap.classList.toggle('au-media',name==='Medien');
       const Page=customElements.get('aureon-platform'),labels=Page?.labels(this._platformController?.language||this._hass?.language||'en');
-      main.dataset.auPage=Page?.routeNames?.[name]||'';if(header)header.hidden=['Geräte','Planta'].includes(name)||(['Räume','Sicherheit','Energie','Einstellungen','Agenda'].includes(name)&&this._platformController?.preferences?.look!=='classic');
+      main.dataset.auPage=Page?.routeNames?.[name]||'';if(header)header.hidden=['Geräte','Planta'].includes(name)||(['Räume','Sicherheit','Energie','Einstellungen','Agenda','Staubsauger'].includes(name)&&this._platformController?.preferences?.look!=='classic');
       if(header&&labels){header.querySelector('h1').textContent=labels[Page.routeNames[name]]||name;const eyebrow=header.querySelector('.small');if(eyebrow)eyebrow.textContent='AUREON / '+(name==='Einstellungen'?labels.settings.toUpperCase():'CONTROL CENTER');}
       [...this.shadowRoot.querySelectorAll('nav .au-nav-button')].forEach((button,i)=>{const active=this._navPages()[i]?.[1]===name;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
       this.shadowRoot.querySelector('.au-nav-more')?.classList.toggle('active',!this._primaryPages().includes(name));
@@ -377,7 +378,8 @@
             labels: [...new Set([...(e.labels||[]),...(device?.labels||[]),...(areaById.get(areaId)?.labels||[])])],
             entityCategory: e.entity_category||'',
             icon: e.icon || state?.attributes?.icon || '',
-            source: e.platform || ''
+            source: e.platform || '',
+            uniqueId: typeof e.unique_id === 'string' ? e.unique_id : ''
           };
         }).sort((a,b) => a.areaName.localeCompare(b.areaName, hass.locale?.language || 'de') || a.name.localeCompare(b.name, hass.locale?.language || 'de'));
         // Some integrations create runtime entities without a registry entry; show these as unassigned read-only discoveries.
@@ -1629,7 +1631,7 @@
         if(typeof pic==='string'&&pic.startsWith('/')&&!pic.startsWith('//')){const img=make('img');img.src=h.hassUrl?h.hassUrl(pic):pic;img.alt='';box.append(img);}else box.append(make('span','au-rail-initial',(person.attributes.friendly_name||'?').trim().charAt(0).toUpperCase()));
         const home=person.state==='home';box.classList.toggle('home',home);box.append(make('strong','',person.attributes.friendly_name||person.entity_id),make('small','',home?(labels.homeState||'Home'):(labels.away||person.state)));nav.append(box);}}
       const main = make('main');main.dataset.auPage=customElements.get('aureon-platform')?.routeNames?.[this._page]||'';
-      const header = make('header');header.hidden=['Geräte','Planta'].includes(this._page)||(['Räume','Sicherheit','Energie','Einstellungen','Agenda'].includes(this._page)&&this._platformController?.preferences?.look!=='classic');
+      const header = make('header');header.hidden=['Geräte','Planta'].includes(this._page)||(['Räume','Sicherheit','Energie','Einstellungen','Agenda','Staubsauger'].includes(this._page)&&this._platformController?.preferences?.look!=='classic');
       const heading = make('div');
       heading.append(make('div','small','AUREON / '+(this._page==='Einstellungen'?(customElements.get('aureon-platform')?.labels(this._platformController?.language)?.settings||'Settings').toUpperCase():'CONTROL CENTER')));
       const Page=customElements.get('aureon-platform');

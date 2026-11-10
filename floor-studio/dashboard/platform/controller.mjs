@@ -4,6 +4,7 @@ import {defaults,scopeKey,loadPreferences,savePreferences,validatePreferences,im
 import {actionsFor,parameterAction,isAvailable} from './actions.mjs';
 import {wasteCollections,fetchWasteCalendar} from '../integrations/waste.mjs';
 import {consumerLabelIds,autoConsumers,autoTotals} from './energy-auto.mjs';
+import {dreameRobots,serviceAvailable,DREAME} from '../integrations/dreame.mjs';
 const safeStorage=()=>{try{return globalThis.localStorage;}catch{return null;}};
 const ENERGY={Wh:.001,kWh:1,MWh:1000},POWER={W:1,kW:1000,MW:1000000};
 export function energyValue(state,kind='energy'){if(!isAvailable(state)||!String(state.state).trim())return null;const map=kind==='power'?POWER:ENERGY,unit=state.attributes?.unit_of_measurement,v=Number(state.state);return Number.isFinite(v)&&Object.hasOwn(map,unit)?v*map[unit]:null;}
@@ -31,6 +32,11 @@ export class PlatformController{
  // Owner 2026-11-10: a room without any equipment is left out of the dashboard (rooms page, start page, filters).
  // Technical/diagnostic entities alone do not count. Settings still list every Home Assistant area.
  get rooms(){if(this._roomsFor!==this._rows||this._roomsAreas!==this.areas){this._roomsFor=this._rows;this._roomsAreas=this.areas;const used=new Set(this._rows.filter(r=>r.areaId&&this.kind(r)!=='technical').map(r=>r.areaId));this._roomList=this.areas.filter(a=>used.has(a.id));}return this._roomList;}
+ // Dreame robots (integrations/dreame.mjs): only visible entities; a call is sent only after a tap, only to a Dreame entity
+ // and only when Home Assistant offers that service.
+ dreame(){if(this._dreameFor!==this._rows){this._dreameFor=this._rows;this._dreame=dreameRobots(this._rows,this.hass?.states||{});}return this._dreame;}
+ async dreameCall(call){const id=call?.data?.entity_id,row=typeof id==='string'&&this._byId.get(id);if(!row||!this.state(id)||row.source!==DREAME||!serviceAvailable(this.hass?.services,call)||hasSemanticLabel(row,this.labels,'systemgeraete_dashboard'))return false;
+  return this.request('action:'+id,async()=>{await this.hass.callService(call.domain,call.service,call.data);return true;});}
  // Automatic energy: devices with the Label "Verbraucht" (see energy-auto.mjs). Owner can switch it off in Settings.
  consumers(){const rows=this._allRows,labels=this.labels,hidden=this.preferences.hidden,k=this._consKey;if(!k||k[0]!==rows||k[1]!==labels||k[2]!==hidden){this._consKey=[rows,labels,hidden];const h=new Set(hidden);this._consumers=autoConsumers(rows.filter(r=>!h.has(r.id)),this.hass?.states,consumerLabelIds(labels));}return this._consumers;}
  get energyAuto(){return this.preferences.energy.auto!==false&&this.consumers().length>0;}
