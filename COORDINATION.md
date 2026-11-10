@@ -1002,3 +1002,13 @@ Validation: root 207 + frontend 628, typecheck, build, validate, migration contr
   scripts/capture-media-reference.mjs (not a gate) updated: per-speaker volume check dropped (feature removed).
 Validation: root 207 + frontend 628 + music unit (new liked-status test), typecheck, build, validate, migration
 contract, test:browser (music browser test 4× stable), fixture screenshots, disposable HA Mídia page.
+
+## Claude batch 2026-11-10 (9) — room pictures load fast
+
+- ROOM-IMG-SPEED (owner: room page slow, picture paints in parts): every preset also as `room-<key>-md.webp`
+  (1280, ~100 KB) and `-sm.webp` (640, ~25 KB). roomImage() returns {url, md, small}; cards (rooms overview, start
+  page tiles, settings previews) use small/md via srcset; the room hero shows the small one at once (blurred) and
+  fades the large one in on load (srcset 1280/2560); touching a card preloads it. HA/own pictures use the HA
+  512×512 variant for cards and /original for the hero.
+Validation: root 208 + frontend 628, typecheck, build, validate, migration contract, test:browser, disposable HA
+(desk + phone: overview cards from small/medium files, hero placeholder → sharp fade-in, no errors from AUREON).
