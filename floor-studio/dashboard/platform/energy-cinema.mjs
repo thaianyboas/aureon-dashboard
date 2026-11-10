@@ -2,13 +2,15 @@ import {html,svg,nothing} from '../../neonplan3d-main/frontend/node_modules/lit/
 import {energyValue} from './controller.mjs';
 // Energy in the Cinema look. Only real values: the energy sources chosen in Settings, recorder statistics for the
 // bars and current power sensors for "who uses most" and "per room". Missing data says so instead of inventing it.
+// With devices labelled "Verbraucht" everything is computed from them automatically (kWh today per device and room).
 export function energyCinema(ui,classic){const c=ui.c,t=ui.t,e=c.energy(),pw=ui.power(),series=c.series,period=ui._period||14;
+ const fmtW=w=>w>=1000?`${ui.format(w/1000,1)} kW`:`${ui.format(w,0)} W`;
  const sensors=c.list(['sensor']).map(r=>({r,w:energyValue(c.state(r.id),'power')})).filter(x=>x.w!==null&&x.w>=0&&x.r.id!==e.power.entityId);
- const consumers=[...sensors].sort((a,b)=>b.w-a.w).slice(0,5),cmax=Math.max(1,...consumers.map(x=>x.w));
- const rooms=[...sensors.reduce((m,x)=>{if(x.r.areaId)m.set(x.r.areaName||x.r.areaId,(m.get(x.r.areaName||x.r.areaId)||0)+x.w);return m;},new Map())].sort((a,b)=>b[1]-a[1]).slice(0,6),rmax=Math.max(1,...rooms.map(x=>x[1]));
+ const auto=e.auto?e.consumers:null,kwh=v=>`${ui.format(v,v>=10?0:v>=1?1:2)} kWh`;
+ const consumers=auto?[...auto].sort((a,b)=>(b.today??-1)-(a.today??-1)||(b.watts??-1)-(a.watts??-1)).slice(0,8).map(x=>({auto:x,w:x.today??0,label:[x.today!==null?kwh(x.today):'',x.watts!==null?fmtW(x.watts):''].filter(Boolean).join(' · ')||'—'})):[...sensors].sort((a,b)=>b.w-a.w).slice(0,5),cmax=Math.max(auto?.001:1,...consumers.map(x=>x.w));
+ const rooms=auto?[...auto.reduce((m,x)=>{if(x.areaId&&x.today!==null)m.set(x.areaName||x.areaId,(m.get(x.areaName||x.areaId)||0)+x.today);return m;},new Map())].sort((a,b)=>b[1]-a[1]).slice(0,6):[...sensors.reduce((m,x)=>{if(x.r.areaId)m.set(x.r.areaName||x.r.areaId,(m.get(x.r.areaName||x.r.areaId)||0)+x.w);return m;},new Map())].sort((a,b)=>b[1]-a[1]).slice(0,6),rmax=Math.max(auto?.001:1,...rooms.map(x=>x[1])),roomValue=v=>auto?kwh(v):fmtW(v);
  const watts=Number.isFinite(e.power.value)?e.power.value:null,peak=Math.max(1000,watts||0)*1.25,share=watts===null?0:Math.min(1,watts/peak);
  const mood=watts===null?'':watts<300?t.cineCalm:watts<1500?t.cineModerate:t.cineHigh;
- const fmtW=w=>w>=1000?`${ui.format(w/1000,1)} kW`:`${ui.format(w,0)} W`;
  const bars=series.slice(-period),bmax=Math.max(.001,...bars.map(x=>x.value));
  const dayLabel=time=>{try{return new Intl.DateTimeFormat(c.language,period<=7?{weekday:'short'}:{day:'numeric'}).format(new Date(time));}catch{return '';}};
  const ring=Math.round(2*Math.PI*130);
@@ -19,17 +21,17 @@ export function energyCinema(ui,classic){const c=ui.c,t=ui.t,e=c.energy(),pw=ui.
   <section class="cine-sec-text" aria-label=${t.energy}>
    <span class="cine-eyebrow">${t.energy}</span>
    <h1>${t.consumption}${mood?html`<br><em>${mood}</em>`:nothing}</h1>
-   <div class="cine-stats">${[[t.today,e.daily.value,'kWh'],[t.cineCostToday,e.daily.cost,'€'],[t.cineThisMonth,e.monthly.value,'kWh']].map(([label,v,unit])=>html`<div class="glass"><span class="cine-head">${label}</span><span class="cine-big">${unit==='€'?(v===null||v===undefined?'—':ui.cost(v)):html`${v===null||v===undefined?'—':ui.format(v,v>=100?0:1)}<small> ${unit}</small>`}</span></div>`)}</div>
-   ${e.power.entityId||e.daily.entityId?nothing:html`<button type="button" class="cine-link" @click=${()=>ui.nav('Einstellungen')}>${t.configure} · ${t.sources} ›</button>`}
+   <div class="cine-stats">${[[t.today,e.daily.value,'kWh'],[t.cineCostToday,e.daily.cost,'€'],[t.cineThisMonth,e.monthly.value,'kWh'],...(e.auto&&e.monthly.cost!==null?[[t.cineCostMonth,e.monthly.cost,'€']]:[])].map(([label,v,unit])=>html`<div class="glass"><span class="cine-head">${label}</span><span class="cine-big">${unit==='€'?(v===null||v===undefined?'—':ui.cost(v)):html`${v===null||v===undefined?'—':ui.format(v,v>=100?0:1)}<small> ${unit}</small>`}</span></div>`)}</div>
+   ${e.auto||e.power.entityId||e.daily.entityId?nothing:html`<button type="button" class="cine-link" @click=${()=>ui.nav('Einstellungen')}>${t.configure} · ${t.sources} ›</button>`}
   </section>
  </div>
  <section class="cine-card glass cine-bars-card" aria-label=${t.history}>
   <div class="cine-row-head"><span class="cine-head">${t.history}</span><div class="cine-segment" role="group" aria-label=${t.calendarPeriod}>${[7,14,30].map(n=>html`<button type="button" aria-pressed=${String(period===n)} @click=${()=>{ui._period=n;c.loadEnergy(n);ui.requestUpdate();}}>${n} ${t.days}</button>`)}</div></div>
-  ${bars.length?html`<div class="cine-bars" role="img" aria-label=${t.consumption}>${bars.map(x=>html`<span class="cine-bar-col" title=${`${dayLabel(x.time)} · ${ui.format(x.value,1)} kWh`}><i style=${'height:'+Math.max(2,Math.round(100*x.value/bmax))+'%'}></i><small>${dayLabel(x.time)}</small></span>`)}</div>`:html`<div class="cine-empty"><small class="cine-sub">${c.busy.has('energy')?t.loading:t.cineNoHistory}</small>${e.total.entityId?html`<button type="button" class="cine-link" @click=${()=>c.loadEnergy(period)}>${t.refresh}</button>`:nothing}</div>`}
+  ${bars.length?html`<div class="cine-bars" role="img" aria-label=${t.consumption}>${bars.map(x=>html`<span class="cine-bar-col" title=${`${dayLabel(x.time)} · ${ui.format(x.value,1)} kWh`}><i style=${'height:'+Math.max(2,Math.round(100*x.value/bmax))+'%'}></i><small>${dayLabel(x.time)}</small></span>`)}</div>`:html`<div class="cine-empty"><small class="cine-sub">${c.busy.has('energy')?t.loading:t.cineNoHistory}</small>${e.total.entityId||e.auto?html`<button type="button" class="cine-link" @click=${()=>c.loadEnergy(period)}>${t.refresh}</button>`:nothing}</div>`}
  </section>
  <div class="cine-row">
-  <section class="cine-card glass cine-list-card" aria-label=${t.cineTopUsers}><span class="cine-head">${t.cineTopUsers}</span>${consumers.length?consumers.map(x=>html`<button type="button" class="cine-meter" @click=${()=>{ui._modal={kind:'equipment',row:x.r};}}><span><span>${ui.name(x.r)}</span><b>${fmtW(x.w)}</b></span><i><em style=${'width:'+Math.round(100*x.w/cmax)+'%'}></em></i></button>`):html`<small class="cine-sub">${t.cineNoPowerSensors}</small>`}</section>
-  <section class="cine-card glass cine-list-card" aria-label=${t.cinePerRoom}><span class="cine-head">${t.cinePerRoom}</span>${rooms.length?html`<div class="cine-room-meters">${rooms.map(([name,w])=>html`<div class="cine-meter"><span><span>${name}</span><b>${fmtW(w)}</b></span><i><em style=${'width:'+Math.round(100*w/rmax)+'%'}></em></i></div>`)}</div>`:html`<small class="cine-sub">${t.cineNoPowerSensors}</small>`}</section>
+  <section class="cine-card glass cine-list-card" aria-label=${t.cineTopUsers}><span class="cine-head">${auto?t.cineTopToday:t.cineTopUsers}</span>${consumers.length?consumers.map(x=>x.auto?html`<div class="cine-meter"><span><span>${x.auto.name}</span><b>${x.label}</b></span><i><em style=${'width:'+Math.round(100*x.w/cmax)+'%'}></em></i></div>`:html`<button type="button" class="cine-meter" @click=${()=>{ui._modal={kind:'equipment',row:x.r};}}><span><span>${ui.name(x.r)}</span><b>${fmtW(x.w)}</b></span><i><em style=${'width:'+Math.round(100*x.w/cmax)+'%'}></em></i></button>`):html`<small class="cine-sub">${t.cineNoPowerSensors}</small>`}</section>
+  <section class="cine-card glass cine-list-card" aria-label=${t.cinePerRoom}><span class="cine-head">${auto?t.cinePerRoomToday:t.cinePerRoom}</span>${rooms.length?html`<div class="cine-room-meters">${rooms.map(([name,w])=>html`<div class="cine-meter"><span><span>${name}</span><b>${roomValue(w)}</b></span><i><em style=${'width:'+Math.round(100*w/rmax)+'%'}></em></i></div>`)}</div>`:html`<small class="cine-sub">${t.cineNoPowerSensors}</small>`}</section>
  </div>
  <details class="cine-classic"><summary>${t.cineAllEnergy}</summary>${classic}</details>
  </div>`;}

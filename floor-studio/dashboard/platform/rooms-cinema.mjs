@@ -33,7 +33,7 @@ function deviceRow(ui,r){const c=ui.c,t=ui.t,s=c.state(r.id),acts=c.actions(r.id
  </div>`;}
 export function roomsCinema(ui){const c=ui.c,t=ui.t;
  // Every piece of equipment has a place: rooms, plus one for equipment without a room.
- const areas=[...c.areas,...(c.rows.some(r=>!r.areaId)?[{id:NO_AREA,name:t.cineNoRoom}]:[])];if(!areas.length)return ui.empty();
+ const areas=[...c.rooms,...(c.rows.some(r=>!r.areaId)?[{id:NO_AREA,name:t.cineNoRoom}]:[])];if(!areas.length)return ui.empty();
  // Owner 2026-11-09: Cômodos first shows all rooms; a room opens as its own page (photo, controls, equipment) with
  // a way back. The start page's room tiles open a room directly.
  if(c._roomOpenNext){c._roomDetail=true;c._roomOpenNext=false;}

@@ -906,3 +906,20 @@ disposable HA screenshot (arrange bar with a test column; test item removed agai
 - ROOM-PHOTOS (owner): the nine design-package room pictures (1672×941, soft when stretched over the room hero) are
   upscaled with Real-ESRGAN x2plus to 2560×1440 (same elegant style; the owner rejected Pexels replacements as not
   elegant). Pool, office, hobby were already 2560×1440. Validation: root tests, validate, disposable HA room page.
+
+## Claude batch 2026-11-10 (2) — automatic energy, empty rooms hidden
+
+- ENERGY-AUTO (owner): new platform/energy-auto.mjs (+tests/energy-auto.test.mjs). Every device/entity with the HA
+  Label "Verbraucht" (also "Verbraucher"/"Verbrauch"; device and area labels count, a labelled plug brings its meter
+  sensors along) is a consumer. kWh per day from recorder long-term statistics only (`recorder/statistics_during_period`:
+  daily `change` of energy meters, or hourly `mean` of power sensors when a device has no meter); export/return/feed-in
+  sensors are skipped. Energy page: today, cost today, month, cost this month, history bars, "today per device/room",
+  live W = sum of the consumers' power sensors. Reload every 15 min while open. Settings → Energia: "Calcular
+  automaticamente" (prefs `energy.auto`, default on) with the list of found devices; the price field now takes
+  ct/kWh ("Arbeitspreis"), stored as before in currency/kWh. Manual sources still work when auto is off or no
+  device has the Label. No service calls.
+- ROOMS (owner): `controller.rooms` = areas with at least one visible, non-technical entity; used by the rooms page,
+  start page room tiles, room filters and counts. Settings (room pictures, plan bindings) still list every area.
+Validation: root 199 + frontend 628 tests, typecheck, build, validate, migration contract, test:browser, disposable
+HA (Label created, statistics imported for the two demo sensors, empty test area): energy page, rooms page, settings.
+Not tested on the owner's HA (her real meters/plugs and labels unknown).
