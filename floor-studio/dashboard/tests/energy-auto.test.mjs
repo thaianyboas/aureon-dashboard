@@ -90,3 +90,17 @@ test('rooms without equipment are left out; technical entities alone do not coun
 });
 
 test('new energy texts exist in every language',()=>{for(const d of Object.values(dictionaries))for(const k of ['tariffCents','tariffHint','energyAuto','energyAutoHint','energyAutoOne','energyAutoMany','energyAutoNone','cineTopToday','cinePerRoomToday','cineCostMonth'])assert.ok(d[k],k);});
+
+test('rooms and "without a room" can be hidden by the owner; ids are validated',()=>{
+ const st={'light.a':{state:'on',attributes:{}},'light.b':{state:'on',attributes:{}},'light.c':{state:'off',attributes:{}}};
+ const hass={user:{id:'one'},connection:{},hassUrl:p=>'https://ha.example'+p,language:'pt',states:st,services:{}};
+ const registry={rows:[{id:'kitchen',name:'Küche'},{id:'bath',name:'Bad'}],entityRows:[
+  {id:'light.a',name:'A',domain:'light',areaId:'kitchen',labels:[]},{id:'light.b',name:'B',domain:'light',areaId:'bath',labels:[]},{id:'light.c',name:'C',domain:'light',areaId:'',labels:[]}],allLabels:[]};
+ const c=new PlatformController({storage:null});c.update(hass,registry);
+ assert.deepEqual(c.rooms.map(a=>a.id),['kitchen','bath']);assert.equal(c.showNoRoom,true);
+ c.save({...c.preferences,hiddenRooms:['bath','__no_area','../x',5]});
+ assert.deepEqual(c.preferences.hiddenRooms,['bath','__no_area']);
+ assert.deepEqual(c.rooms.map(a=>a.id),['kitchen']);assert.equal(c.showNoRoom,false);
+ assert.ok(c.state('light.c')); // the equipment itself stays available (start page widgets, energy)
+ for(const d of Object.values(dictionaries))for(const k of ['roomsSettings','roomsSettingsHint','roomsShown','roomsShownHint','roomsEquipment','roomsEmpty','roomsHiddenShort','energyManual'])assert.ok(d[k],k);
+});

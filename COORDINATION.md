@@ -941,3 +941,14 @@ Validation: root 205 + frontend 628, typecheck, build, validate, migration contr
 a MOCK dreame_vacuum integration (only in /home/claude/ha-config, never in git) — room, zone, go-to and suction
 calls arrived with the expected data; desktop + phone screenshots. Not tested with a real robot.
 Next: stage 2 — robot on the Floor Studio plan (3-point calibration map ↔ plan, floorPosition() contract exists).
+
+## Claude batch 2026-11-10 (4) — choose which rooms appear
+
+- ROOMS (owner): Settings → "Cômodos" (former "Imagens dos cômodos" tile) now starts with "Cômodos no dashboard": a
+  checklist of every HA area plus "Sem cômodo" with the equipment count. Prefs `hiddenRooms` (area ids, `__no_area`).
+  Hidden rooms leave the rooms page, start page tiles and room filters (controller.rooms / showNoRoom); the equipment
+  itself stays available to the other pages (weather, people, energy).
+- ENERGY settings: with the automatic mode active, the manual meters (Potência/Medidor) sit in a closed
+  "Medidores manuais (opcional)" disclosure.
+Validation: root 206 + frontend 628, typecheck, build, validate, migration contract, test:browser, disposable HA
+screenshot (Sem cômodo unticked → gone from Cômodos). Not tested on the owner's HA.

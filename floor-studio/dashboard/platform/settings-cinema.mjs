@@ -59,7 +59,7 @@ function summary(ui,id){const c=ui.c,t=ui.t,p=c.preferences;const pal=(ui.palett
   case'music':return c.hass?.services?.aureon_music?t.setAureonMusic:c.hass?.services?.spotifyplus?'Spotify':t.setNotInstalled;
   case'energy':return p.energy.power||p.energy.total?[p.energy.power&&t.power,p.energy.total&&'kWh'].filter(Boolean).join(' · '):t.setNotConfigured;
   case'waste':return p.waste.length?`${p.waste.length} ${t.setSources}`:t.setNotConfigured;
-  case'images':{const n=Object.keys(p.roomImages||{}).length;return n?`${n} ${t.rooms}`:t.setAutomatic;}
+  case'images':{const h=(p.hiddenRooms||[]).length,n=Object.keys(p.roomImages||{}).length;return [h?`${h} ${t.roomsHiddenShort}`:t.setAllVisible,n?`${n} ${t.rooms}`:''].filter(Boolean).join(' · ');}
   case'labels':{const v=p.labelVisibility||{},n=(v.include||[]).length+(v.exclude||[]).length+Object.keys(p.labelKinds||{}).length;return n?`${c.rows.length} ${t.setShownShort}`:t.setAllVisible;}
   case'visibility':return p.hidden.length?`${p.hidden.length} ${t.setHiddenDevices}`:t.setAllVisible;
   default:return '';}}
