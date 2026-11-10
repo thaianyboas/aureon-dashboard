@@ -975,3 +975,12 @@ was not available in the test HA.
   source_list (same devices again) is only shown when the Connect service is not available.
 Validation: root 207 + frontend 628, typecheck, build, validate, migration contract, test:browser; fixture screenshot
 with the owner's device mix (22 → 4 ready + 3 other). Not tested with her real account.
+
+## Claude batch 2026-11-10 (7) — Spotify account is not a speaker
+
+- MUSIC-ACCOUNT (owner: "AureonMusic Thaiany aparece como alto-falante"): controller.speakers = players without
+  Spotify accounts. "Reproduzir em" with a Spotify account lists Spotify Connect speakers (tap = transfer; first load
+  only after a tap on Atualizar, no automatic service call); without an account it lists HA speakers. Volume lists
+  only speakers. Cover chip / compact destination show the Spotify device (source) or "Escolher alto-falante",
+  never the account name. The account stays selectable under Player / conta.
+Validation: root 207 + frontend 628, typecheck, build, validate, migration contract, test:browser; fixture screenshot.

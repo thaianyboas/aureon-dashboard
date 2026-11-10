@@ -77,6 +77,9 @@ export class MusicController {
   }
   get state(){return this.hass?.states?.[this.entityId];}
   get players(){return discoverPlayers(this.hass,this.config);}
+  // Spotify accounts (SpotifyPlus / AUREON Música) are accounts, not speakers: they are chosen under Player / conta and
+  // play on Spotify Connect speakers; the speaker lists only show real players.
+  get speakers(){return this.players.filter(p=>!isSpotifyPlus(this.hass,p.entity_id,this.config));}
   get spotify(){return isSpotifyPlus(this.hass,this.entityId,this.config);}
   get ready(){return available(this.state);}
   service(domain,name){return !!this.hass?.services?.[domain]?.[name];}
@@ -189,8 +192,8 @@ export class MusicController {
     if(!ids.length||!this.service('media_player','media_pause'))return false;
     return this.request('pause-all',async()=>{await this.hass.callService('media_player','media_pause',{entity_id:ids});return true;});
   }
-  async loadDevices(){
-    this.view='devices';this.emit();
+  async loadDevices(open=true){
+    if(open){this.view='devices';this.emit();}
     if(!this.advanced('get_spotify_connect_devices'))return false;
     return this.request('devices',async current=>{const response=await this.callSpotify('get_spotify_connect_devices',{refresh:false,sort_result:true},true);if(current())this.devices=connectDevices(response);return true;});
   }
