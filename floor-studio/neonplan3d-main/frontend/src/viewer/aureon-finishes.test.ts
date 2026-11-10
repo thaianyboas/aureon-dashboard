@@ -78,3 +78,16 @@ test("a painted ceiling is drawn at ceiling height, facing down only", () => {
     }
   }
 });
+
+test("paint stands in front of a neighbour's wall when rooms overlap (owner's plan)", async () => {
+  const { generateWalls } = await import("../geometry/walls.ts");
+  // room b overlaps room a by 10 cm: b's own outer wall (30 cm) grows from x = 3.9 into a, up to x = 3.6
+  const a = room("a", 0, 4), b = room("b", 3.9, 7);
+  const fps = generateWalls([a, b] as never, { exterior: 0.3, interior: 0.2 }, []).walls.map((w) => w.footprint);
+  const plain = innerFaces(a, [a, b], 0.2)[1], real = innerFaces(a, [a, b], 0.2, fps)[1];
+  assert.ok(Math.abs(plain.a[0] - (4 - 0.003)) < 1e-6); // the old film: behind b's wall
+  assert.ok(real.a[0] <= 3.6 - 0.002 && real.a[0] > 3.5, String(real.a[0])); // now just in front of it
+  // rooms that meet exactly keep the half interior wall as before
+  const c = room("c", 4, 7), fps2 = generateWalls([a, c] as never, { exterior: 0.3, interior: 0.2 }, []).walls.map((w) => w.footprint);
+  assert.ok(Math.abs(innerFaces(a, [a, c], 0.2, fps2)[1].a[0] - (4 - 0.1 - 0.003)) < 0.011);
+});

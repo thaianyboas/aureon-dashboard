@@ -2920,7 +2920,7 @@ export class FloorplanViewer {
         ...earthParts,
       );
       this.root.add(group);
-      this.aureonModels.place(floor.id, floor.furniture.filter((f) => aureonModelled.has(f.id)), this.root, buildFinishes(floor, b.settings.wall_interior));
+      this.aureonModels.place(floor.id, floor.furniture.filter((f) => aureonModelled.has(f.id)), this.root, buildFinishes(floor, b.settings.wall_interior, b.settings.wall_exterior));
 
       const label = document.createElement("button");
       label.className = "fp3d-pin fp3d-pin-floor";

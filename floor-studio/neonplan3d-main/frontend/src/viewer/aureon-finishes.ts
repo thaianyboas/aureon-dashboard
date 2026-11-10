@@ -6,6 +6,8 @@
  */
 import { BufferAttribute, BufferGeometry, CanvasTexture, FrontSide, Group, Mesh, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from "three";
 import { triangulate } from "./geo.ts";
+import { generateWalls } from "../geometry/walls.ts";
+import { pointInPolygon } from "../model.ts";
 import { AUREON_WALL_PAINTS, paintColor, wallPaints } from "../aureon-paints.ts";
 
 type Vec2 = [number, number];
@@ -267,7 +269,7 @@ const sub = (a: Vec2, b: Vec2): Vec2 => [a[0] - b[0], a[1] - b[1]];
 const len = (a: Vec2) => Math.hypot(a[0], a[1]);
 
 /** Inner face of every edge: exterior edges are already the inner face; interior ones (shared) are wall centrelines. */
-export function innerFaces(room: RoomLike, rooms: RoomLike[], interior: number): { a: Vec2; b: Vec2; inward: Vec2; offset: number }[] {
+export function innerFaces(room: RoomLike, rooms: RoomLike[], interior: number, footprints: Vec2[][] = []): { a: Vec2; b: Vec2; inward: Vec2; offset: number }[] {
   const p = room.points, n = p.length, ccw = signedArea(p) > 0;
   const lines = p.map((a, i) => {
     const b = p[(i + 1) % n], d = sub(b, a), l = len(d) || 1, u: Vec2 = [d[0] / l, d[1] / l];
@@ -289,7 +291,24 @@ export function innerFaces(room: RoomLike, rooms: RoomLike[], interior: number):
         }
       });
     }
-    const offset = shared ? (thick ?? interior) / 2 : 0;
+    let offset = shared ? (thick ?? interior) / 2 : 0;
+    // owner 2026-11-10: rooms that overlap or leave a gap get walls of their own, and a neighbour's wall may stand
+    // in front of this edge – the paint then hid behind it. Step into the room until no wall footprint is left
+    // (the last wall within reach; median of three points along the edge, so a crossing wall at a corner does not count).
+    if (footprints.length && l > 0.1) {
+      // never further than 60 cm, nor past 45 % of the room's depth (the wall across a narrow room must not count)
+      const roomDepth = Math.max(...p.map((q) => (q[0] - a[0]) * inward[0] + (q[1] - a[1]) * inward[1]));
+      const limit = Math.min(0.6, roomDepth * 0.45);
+      const depth = (f: number): number => {
+        const base: Vec2 = [a[0] + u[0] * l * f, a[1] + u[1] * l * f];
+        let last = -1;
+        for (let d = offset; d <= limit; d += 0.01)
+          if (footprints.some((fp) => pointInPolygon([base[0] + inward[0] * (d + 0.002), base[1] + inward[1] * (d + 0.002)], fp))) last = d;
+        return last >= 0 ? last + 0.01 : offset;
+      };
+      const ds = [0.25, 0.5, 0.75].map(depth).sort((x, y) => x - y);
+      offset = Math.max(offset, ds[1]);
+    }
     return { a, u, inward, offset: offset + 0.003 };
   });
   // corners: intersect neighbouring offset lines (falls back to the plain offset point when nearly parallel)
@@ -306,15 +325,22 @@ export function innerFaces(room: RoomLike, rooms: RoomLike[], interior: number):
 }
 
 /** Builds the finish surfaces of a floor (empty group when no room has a known finish). */
-export function buildFinishes(floor: FloorLike, interior: number): Group {
+export function buildFinishes(floor: FloorLike, interior: number, exterior = 0.3): Group {
   const group = new Group();
+  // the walls exactly as the 3D builds them: paint and ceilings sit in front of what is really there
+  let footprints: Vec2[][] = [];
+  try {
+    footprints = generateWalls(floor.rooms as unknown as Parameters<typeof generateWalls>[0], { exterior, interior }, (floor as { walls?: Parameters<typeof generateWalls>[2] }).walls ?? []).walls.map((w) => w.footprint);
+  } catch {
+    footprints = [];
+  }
   group.name = "aureon-finishes";
   for (const room of floor.rooms) {
     // every room gets a ceiling (owner 2026-11-10: walking through the flat showed the open sky above the rooms);
     // it faces down only, so views from above never see it
     const H = room.ceiling_height ?? floor.height;
     const ceilingMat = H > 0.3 ? material("paint", false, paintColor(room.aureon_finish?.ceiling?.color) ?? DEFAULT_CEILING) : null;
-    if (ceilingMat) group.add(ceilingMesh(innerFaces(room, floor.rooms, interior).map((face) => face.a), H - 0.004, ceilingMat));
+    if (ceilingMat) group.add(ceilingMesh(innerFaces(room, floor.rooms, interior, footprints).map((face) => face.a), H - 0.004, ceilingMat));
     const f = room.aureon_finish;
     if (!f) continue;
     if (f.floor && FINISHES[f.floor.material]) {
@@ -327,14 +353,14 @@ export function buildFinishes(floor: FloorLike, interior: number): Group {
       const mat = material(f.walls.material, false, paintColor(f.walls.color));
       const edges = room.points.map((_, i) => i).filter((i) => single[i] === null && (!f.walls!.edges || f.walls!.edges.includes(i)));
       if (mat && edges.length) {
-        const g = wallMesh(room, floor, { ...f.walls, edges }, interior, mat);
+        const g = wallMesh(room, floor, { ...f.walls, edges }, interior, mat, footprints);
         if (g) group.add(g);
       }
     }
     for (const color of new Set(single.filter((c): c is string => c !== null))) {
       const mat = material("paint", false, color);
       const edges = single.flatMap((c, i) => (c === color ? [i] : []));
-      const g = mat ? wallMesh(room, floor, { material: "paint", color, edges }, interior, mat) : null;
+      const g = mat ? wallMesh(room, floor, { material: "paint", color, edges }, interior, mat, footprints) : null;
       if (g) group.add(g);
     }
   }
@@ -403,8 +429,8 @@ export function ceilingMesh(points: Vec2[], y: number, mat: MeshStandardMaterial
   return mesh;
 }
 
-function wallMesh(room: RoomLike, floor: FloorLike, ref: AureonFinishRef & { edges?: number[] | null }, interior: number, mat: MeshStandardMaterial): Mesh | null {
-  const faces = innerFaces(room, floor.rooms, interior);
+function wallMesh(room: RoomLike, floor: FloorLike, ref: AureonFinishRef & { edges?: number[] | null }, interior: number, mat: MeshStandardMaterial, footprints: Vec2[][] = []): Mesh | null {
+  const faces = innerFaces(room, floor.rooms, interior, footprints);
   const pos: number[] = [], uv: number[] = [], nor: number[] = [];
   const def = FINISHES[ref.material];
   faces.forEach((face, i) => {

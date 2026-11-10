@@ -444,6 +444,7 @@ export class Fp3dEditor extends LitElement {
     _aureonWall: { state: true },
     _aureonOwn: { state: true },
     _aureonContour: { state: true },
+    _aureonPaint: { state: true },
     _studioLibrary: { state: true },
     _aureonMore: { state: true },
     _studioDetails: { state: true },
@@ -595,6 +596,8 @@ export class Fp3dEditor extends LitElement {
   private declare _edgeHi: number | null;
   /** AUREON: the room wall (outline edge) picked in the plan; it can be moved, straightened or removed as a divider. */
   private declare _aureonContour: boolean;
+  /** AUREON (owner 2026-11-10): paint mode – a tap on a wall in the plan picks it for paint; nothing moves. */
+  private declare _aureonPaint: boolean;
   private declare _studioLibrary: boolean;
   /** AUREON: on phones the tool rail opens as a sheet from the dock. */
   private declare _aureonMore: boolean;
@@ -799,6 +802,7 @@ export class Fp3dEditor extends LitElement {
     this._aureonWall = null;
     this._aureonOwn = null;
     this._aureonContour = false;
+    this._aureonPaint = false;
     this._studioLibrary = false;
     this._aureonMore = false;
     this._studioDetails = false;
@@ -2100,6 +2104,11 @@ export class Fp3dEditor extends LitElement {
       if (!this.placeOpening(this._openingPreset, local)) this.drag = { kind: "pan", last: local };
       return;
     }
+    if (this._aureonPaint && this._tool === "select") {
+      this.aureonPaintPick(local, world);
+      this.drag = { kind: "pan", last: local };
+      return;
+    }
     if (this.isAdmin && (this._tool === "select" || this._tool === "furniture") && (e.shiftKey || this._multiMode)) {
       // several furniture items: shift-click (or the multi mode on touch) adds or removes one, a drag draws a frame
       const fEl = target.closest("[data-furniture]");
@@ -3332,6 +3341,8 @@ export class Fp3dEditor extends LitElement {
       if (this._furnitureId) this.duplicateFurniture();
       else this.duplicateRoom();
     } else if (e.key === "Delete" || (e.key === "Backspace" && (this._tool === "select" || this._tool === "furniture"))) {
+      // paint mode never deletes: a picked wall there is only picked for its colour
+      if (this._aureonPaint) return;
       if (this._deviceId) this.deleteItem("device", this._deviceId);
       else if (this._outdoorId) this.deleteOutdoor();
       else if (this._wallId) this.deleteFreeWall();
@@ -5146,6 +5157,33 @@ export class Fp3dEditor extends LitElement {
   }
 
   /** Add a door or window on the room edge nearest to a screen point. */
+  /** AUREON paint mode: the room wall nearest to the tap (selected room first on shared walls), else the room tapped. */
+  private aureonPaintPick(screen: [number, number], world: Vec2): void {
+    const floor = this.floor;
+    if (!floor) return;
+    let best: { room: Room; edge: number; d: number } | null = null;
+    for (const room of floor.rooms) {
+      if (room.points.length < 3) continue;
+      const inside = pointInPolygon(world, room.points);
+      for (let i = 0; i < room.points.length; i++) {
+        const [ax, ay] = this.toScreen(room.points[i]);
+        const [bx, by] = this.toScreen(room.points[(i + 1) % room.points.length]);
+        const l2 = (bx - ax) ** 2 + (by - ay) ** 2 || 1;
+        const t = Math.min(1, Math.max(0, ((screen[0] - ax) * (bx - ax) + (screen[1] - ay) * (by - ay)) / l2));
+        const d = Math.hypot(screen[0] - ax - (bx - ax) * t, screen[1] - ay - (by - ay) * t);
+        // the side the finger is on wins a shared wall: the room under the tap first, then the selected one
+        const score = d - (inside ? 3 : 0) - (room.id === this._roomId ? 0.5 : 0);
+        if (d < SNAP_PX * 2.6 && (!best || score < best.d)) best = { room, edge: i, d: score };
+      }
+    }
+    const room = best?.room ?? floor.rooms.find((r) => r.points.length >= 3 && pointInPolygon(world, r.points));
+    if (!room) return;
+    if (room.id !== this._roomId) this.selectItem("room", room.id);
+    this._aureonWall = best ? { roomId: room.id, index: best.edge } : null;
+    this._studioDetails = true;
+    this.setSideFolded(false);
+  }
+
   private placeOpening(preset: OpeningPreset, screen: [number, number]): boolean {
     const floor = this.floor;
     if (!floor || !this.isAdmin) return false;
@@ -6269,6 +6307,7 @@ export class Fp3dEditor extends LitElement {
       {key:"hole",label:"tool_hole",icon:"M3 8l9-5 9 5-9 5z M7 8.5l5 2.8 5-2.8",pick:()=>this.setTool("hole"),on:this._tool==="hole"},
       {key:"roof",label:"tool_roof",icon:"M2 12L12 4l10 8 M5 10v10h14V10",pick:()=>this.setTool("roof"),on:this._tool==="roof"},
       {key:"furniture",label:"tool_furniture",icon:"M4 11V7a2 2 0 012-2h12a2 2 0 012 2v4 M3 10h3v7h12v-7h3v10H3z M5 20v2 M19 20v2",pick:()=>{const open=this._studioLibrary;this.setTool("furniture");this._studioLibrary=!open;},on:this._studioLibrary},
+      {key:"paint",label:"studio_paint",icon:"M4 4h13v5H4z M17 6h3v6h-8v3 M11 15h2v6h-2z",pick:()=>{this.setTool("select");this._aureonPaint=true;this._studioDetails=true;this.setSideFolded(false);},on:this._aureonPaint&&this._tool==="select"},
       {key:"materials",label:"studio_materials",icon:"M4 5h16v14H4z M8 5v14 M12 5v14 M16 5v14",pick:()=>{this.setTool("select");if(this.room||this.floor?.rooms[0])this.selectItem("room",this.room?.id??this.floor!.rooms[0].id);this._studioDetails=true;},on:false},
       {key:"measure",label:"tool_measure",icon:"M3 17L17 3l4 4L7 21z M7 13l3 3 M11 9l3 3 M15 5l3 3",pick:()=>this.setTool("measure"),on:this._tool==="measure"},
       {key:"outdoor",label:"tool_group_outside",icon:"M3 11l9-8 9 8 M5 10v11h14V10 M9 21v-7h6v7",pick:()=>this.setTool("outdoor"),on:this._tool==="outdoor"},
@@ -6276,7 +6315,7 @@ export class Fp3dEditor extends LitElement {
       {key:"energy",label:"tool_energy",icon:"M13 2L4 14h7l-1 8 10-12h-8z",pick:()=>this.setTool("energy"),on:this._tool==="energy"},
     ];
     // AUREON: every tool lives here (the former "Tools" menu is gone); the settings sit at the foot of the rail
-    return html`<nav class="studio-rail" aria-label=${this.t("studio_tools")}>${tools.map(x=>html`<button data-studio-tool=${x.key} title=${this.t(x.label)} aria-pressed=${x.on} ?disabled=${!this.floor||(x.key!=="select"&&!this.isAdmin)} @click=${()=>{if(x.key!=="contour")this._aureonContour=false;this._aureonMore=false;x.pick();}}>${studioIcon(x.icon)}<span>${this.t(x.label)}</span></button>`)}<button class="aureon-rail-settings-btn" data-studio-tool="settings" title=${this.t("settings")} aria-haspopup="menu" aria-expanded=${this._settingsMenu} @click=${()=>{this._aureonMore=false;this._settingsMenu=!this._settingsMenu;}}>${studioIcon("M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z")}<span>${this.t("settings")}</span></button></nav>`;
+    return html`<nav class="studio-rail" aria-label=${this.t("studio_tools")}>${tools.map(x=>html`<button data-studio-tool=${x.key} title=${this.t(x.label)} aria-pressed=${x.on} ?disabled=${!this.floor||(x.key!=="select"&&!this.isAdmin)} @click=${()=>{if(x.key!=="contour")this._aureonContour=false;if(x.key!=="paint")this._aureonPaint=false;this._aureonMore=false;x.pick();}}>${studioIcon(x.icon)}<span>${this.t(x.label)}</span></button>`)}<button class="aureon-rail-settings-btn" data-studio-tool="settings" title=${this.t("settings")} aria-haspopup="menu" aria-expanded=${this._settingsMenu} @click=${()=>{this._aureonMore=false;this._settingsMenu=!this._settingsMenu;}}>${studioIcon("M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z")}<span>${this.t("settings")}</span></button></nav>`;
   }
 
   /** AUREON: the shapes and kinds of the tool in use (where the "Tools" menu was): room shape, outdoor kind, pool shape. */
@@ -11077,6 +11116,7 @@ export class Fp3dEditor extends LitElement {
       return html`<button class="fp3d-btn fp3d-back" @click=${() => this.selectItem("room", this._roomId)}>‹ ${this.t(room ? "back_to_room" : "back_to_floor", { room: room?.name ?? "" })}</button>
         ${item}`;
     }
+    if (this._aureonPaint) return this.renderAureonPaintSide(room);
     if (room && this._tool !== "measure") {
       return html`<button class="fp3d-btn fp3d-back" @click=${() => this.selectItem("room", null)}>‹ ${this.t("back_to_floor")}</button>
         ${this.renderRoomForm(room, areas)} ${this.renderDeviceList(room)}`;
@@ -11172,6 +11212,8 @@ export class Fp3dEditor extends LitElement {
           ? this.renderFurnitureForm(this.furnitureItem)
           : this.device
             ? this.renderDeviceForm(this.device)
+          : this._aureonPaint
+            ? this.renderAureonPaintSide(room)
           : room
             ? html`${this.renderRoomForm(room, areas)} ${this.renderDeviceList(room)}`
             : floor
@@ -11229,6 +11271,15 @@ export class Fp3dEditor extends LitElement {
         )}
       </div>
     </details>`;
+  }
+
+  /** AUREON paint mode: only the paint of the room (and its picked wall) in the side panel. */
+  private renderAureonPaintSide(room: Room | null | undefined) {
+    return html`<div class="fp3d-aureon-paint-side">
+      <div class="fp3d-aureon-paint-head"><h3>${this.t("studio_paint")}${room ? html` · ${room.name}` : nothing}</h3>
+        <button class="fp3d-btn" @click=${() => { this._aureonPaint = false; this._aureonWall = null; }}>${this.t("aureon_paint_done")}</button></div>
+      ${room ? this.renderAureonPaint(room) : html`<p class="fp3d-sub">${this.t("aureon_paint_mode_hint")}</p>`}
+    </div>`;
   }
 
   /** AUREON: the room's wall paint (inner faces, matt and smooth), with undo like any other change. */
@@ -16825,6 +16876,15 @@ export class Fp3dEditor extends LitElement {
     .fp3d-aureon-own-import[aria-disabled] {
       opacity: 0.6;
       pointer-events: none;
+    }
+    .fp3d-aureon-paint-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .fp3d-aureon-paint-head h3 {
+      margin: 0;
     }
     .fp3d-aureon-wall-map {
       display: block;

@@ -1042,3 +1042,18 @@ fixture screenshot. Not tested with the owner's real account (Forbidden behaviou
 Validation: root 211 + frontend 629, typecheck, build budgets, backend 180, fidelity re-audit, validate, migration
 contract, test:browser, disposable HA (editor drawing + wall/ceiling paint saved; 3D overview unchanged from above;
 walk shows the ceiling). Integration not yet packaged/published.
+
+## Claude batch 2026-11-10 (12) — Paint tool; paint visible on overlapping rooms
+
+- PAINT TOOL (owner: "não consigo pintar nenhuma parede"): new rail tool "Pintar" (editor `_aureonPaint`): a tap
+  on a wall in the 2D plan picks it (aureonPaintPick: nearest room edge, the room under the finger wins shared
+  walls), a tap inside a room picks the room; drags only pan; Delete never deletes in this mode. The side panel
+  then shows only the paint (renderAureonPaintSide: room colour, the wall drawing, single-wall colour, ceiling).
+- ROOT CAUSE of "the colour is saved but not in 3D" (owner screenshot with "Há divisões sobrepostas"): rooms that
+  overlap or leave a gap get walls of their own; the neighbour's outer wall stood in front of the paint film.
+  innerFaces() now also takes the generated wall footprints (buildFinishes calls generateWalls with the exterior
+  and interior thickness) and moves the film/ceiling in front of the last wall within 60 cm (≤45 % room depth),
+  median of three points per edge. Rooms that meet exactly are unchanged (tests).
+Validation: root + frontend 630 (new overlap test), typecheck, build budgets, backend 180, fidelity re-audit,
+validate, test:browser, migration contract; disposable HA with real mouse clicks (Pintar → tap wall → colour saved,
+Delete ignored) and 3D (Sala's green wall that was hidden before now shows).
