@@ -356,7 +356,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-editor.js",
       "original_sha256": "c5ea0f02630abdc4e8166e7273215d319d8c72c0466a1c13966e68407f2db5c3",
-      "candidate_sha256": "f682f8006fb7c1ff16d6b59f3c3a8bfb2f979a036307a36142fea66755611d8d",
+      "candidate_sha256": "b0a0c7eb61caca870f9cfb581f36db4b873c64692ada6477dc8f80bc94e855eb",
       "bytes": 1067764,
       "status": "modified"
     },
@@ -391,7 +391,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d.js",
       "original_sha256": "a2ecf30a957cc66557fd0286d6b0da2fb3b2785c8c8b19819ca17d0a58afc154",
-      "candidate_sha256": "a65877afeed329ab2afa129ca2e776b7d985b859e5fa3a54e62856c93c1a0b9c",
+      "candidate_sha256": "359a4d3cce65fc0dc5be31f650755f1f5d0f4c6306ad8bfc8e795c62e3fad85f",
       "bytes": 834792,
       "status": "modified"
     },
@@ -2099,7 +2099,7 @@
     {
       "path": "frontend/src/components/editor.ts",
       "original_sha256": "6d6b7d0f0e50fefe9e9e110af9e02d668bc98def8fef9cfc3c0dcb164a140da3",
-      "candidate_sha256": "e26303512210e2cb26af9dcaec8cfdc421740830435a07bc4633a39142a63c2c",
+      "candidate_sha256": "15d2026361678b8699800bfa326377c7c2a37dc27e6a8b8b00d9e5f118dbc9a3",
       "bytes": 824582,
       "status": "modified"
     },
@@ -4752,7 +4752,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-editor.js",
-      "candidate_sha256": "f682f8006fb7c1ff16d6b59f3c3a8bfb2f979a036307a36142fea66755611d8d",
+      "candidate_sha256": "b0a0c7eb61caca870f9cfb581f36db4b873c64692ada6477dc8f80bc94e855eb",
       "status": "added"
     },
     {
@@ -4782,7 +4782,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d.js",
-      "candidate_sha256": "a65877afeed329ab2afa129ca2e776b7d985b859e5fa3a54e62856c93c1a0b9c",
+      "candidate_sha256": "359a4d3cce65fc0dc5be31f650755f1f5d0f4c6306ad8bfc8e795c62e3fad85f",
       "status": "added"
     },
     {

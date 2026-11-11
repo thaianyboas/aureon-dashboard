@@ -1219,3 +1219,5 @@ The Music browser suite passed again with that label and native transfer.
   "Corrigir" link inside the warning chip. Undo works (one change).
 - The old own-furniture list (renderAureonOwn) is gone; the furniture drawer (renderAureonFurniture) serves both
   paths. Tests: aureon-overlaps.test.ts.
+
+- (17b) The wall colour bands on the 2D plan show only while Acabamentos is open (owner read them as a second wall).

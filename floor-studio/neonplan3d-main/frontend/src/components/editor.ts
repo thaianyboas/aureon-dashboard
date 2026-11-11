@@ -10811,7 +10811,7 @@ export class Fp3dEditor extends LitElement {
         const pts = r.points.map((p) => this.toScreen(p).join(",")).join(" ");
         return svg`<polygon data-room=${r.id} class=${r.id === this._roomId ? "fp3d-room fp3d-room-sel" : "fp3d-room"} points=${pts} />`;
       })}</g>
-      ${this.renderEdgeHighlight()} ${this.renderAureonWallLine()} ${this.renderAureonPaintStrips(floor)}
+      ${this.renderEdgeHighlight()} ${this.renderAureonWallLine()} ${this._aureonArea === "finish" ? this.renderAureonPaintStrips(floor) : nothing}
       <g pointer-events="none">${floor.rooms.map((r) => {
         const [cx, cy] = this.toScreen(centroid(r.points));
         return svg`<text class="fp3d-room-name" x=${cx} y=${cy - 2}>${r.name}</text>
