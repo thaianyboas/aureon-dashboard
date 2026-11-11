@@ -640,3 +640,29 @@ async def test_the_further_plans_of_a_neonplan3d_3_installation_are_copied(
     assert result["revision"] == 6
     assert result["building"]["floors"][0]["name"] == "Garage"
     assert {k: v for k, v in hass_storage.items() if k.startswith("neonplan3d.")} == before
+
+
+async def test_frontend_files_are_compressed_and_hashed_chunks_are_kept(hass: HomeAssistant, hass_client) -> None:
+    """AUREON (owner: "muito lento"): bundles come gzip-compressed; chunks with a content hash may be kept."""
+    await _setup(hass)
+    client = await hass_client()
+    plain = (Path(__file__).parents[1] / "custom_components/aureon_floor/frontend/neonplan3d-3d.js").read_bytes()
+    res = await client.get("/aureon_floor_static/neonplan3d-3d.js?v=abc", headers={"Accept-Encoding": "gzip"})
+    assert res.status == 200
+    assert res.headers["Content-Encoding"] == "gzip"
+    assert int(res.headers["Content-Length"]) < len(plain) / 2
+    assert res.headers["Cache-Control"] == "public, max-age=31536000, immutable"
+    assert await res.read() == plain  # the client unpacks it: same file
+    again = await client.get(
+        "/aureon_floor_static/neonplan3d-3d.js?v=abc",
+        headers={"Accept-Encoding": "gzip", "If-None-Match": res.headers["ETag"]},
+    )
+    assert again.status == 304
+    # the main bundle (address fixed per run) and files without a hash are always checked
+    main = await client.get("/aureon_floor_static/neonplan3d.js?v=1", headers={"Accept-Encoding": "gzip"})
+    assert main.headers["Cache-Control"] == "no-cache"
+    assert main.headers["Content-Encoding"] == "gzip"
+    # a browser without gzip gets the plain file
+    raw = await client.get("/aureon_floor_static/neonplan3d-3d.js?v=abc", headers={"Accept-Encoding": "identity"})
+    assert "Content-Encoding" not in raw.headers
+    assert await raw.read() == plain

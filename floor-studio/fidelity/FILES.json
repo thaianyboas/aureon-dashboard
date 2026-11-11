@@ -7,7 +7,7 @@
     "identical": 312,
     "missing": 183,
     "modified": 145,
-    "added": 138
+    "added": 139
   },
   "files": [
     {
@@ -132,7 +132,7 @@
     {
       "path": "custom_components/neonplan3d/__init__.py",
       "original_sha256": "e4ddd94fb3290692354e1e5904b8eff44e6dc464c5850af4d43fffb653050b9e",
-      "candidate_sha256": "35aebbe6d4938c7bbc6699833520c110ebf90376e898e061a5c3a0bc3cae01b9",
+      "candidate_sha256": "cc62ef0f44cbaad54b3a4823b5e0bd095a46e1fdaebbe74c9a2d767353bbace2",
       "bytes": 8099,
       "status": "modified"
     },
@@ -356,7 +356,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-editor.js",
       "original_sha256": "c5ea0f02630abdc4e8166e7273215d319d8c72c0466a1c13966e68407f2db5c3",
-      "candidate_sha256": "18245222c762d05d23e5d78d8eb62e60423ed46a82c846b78583cbd6b4ce9fca",
+      "candidate_sha256": "f600655c54c7480f0c291fd46f4df8266bdeb285e3e15e10648db38ee81ed39e",
       "bytes": 1067764,
       "status": "modified"
     },
@@ -391,7 +391,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d.js",
       "original_sha256": "a2ecf30a957cc66557fd0286d6b0da2fb3b2785c8c8b19819ca17d0a58afc154",
-      "candidate_sha256": "abe66199f2e169a6795852a0b777297527510d76c9904a9c9fcbade5bc8f1d69",
+      "candidate_sha256": "8c2c8322e9062c67e81ab117c07e4f7a992529dff74514fde43814be6b7ffeb8",
       "bytes": 834792,
       "status": "modified"
     },
@@ -2099,7 +2099,7 @@
     {
       "path": "frontend/src/components/editor.ts",
       "original_sha256": "6d6b7d0f0e50fefe9e9e110af9e02d668bc98def8fef9cfc3c0dcb164a140da3",
-      "candidate_sha256": "ea73fb6cf6bead8c91f622986576634a4cec302b7575652e89ed6d2d01ae32a3",
+      "candidate_sha256": "a1454395f5c2274a0fb93c2b5026c4d400e2b64ca60403c04ead0ac6b601790c",
       "bytes": 824582,
       "status": "modified"
     },
@@ -4353,7 +4353,7 @@
     {
       "path": "tests/test_init.py",
       "original_sha256": "f2b00908fc7baf20b492890c4c7a701265d4ff50e9a3643086c10c1a9fc7d3cf",
-      "candidate_sha256": "6a412260ae04e2d6b0a8e80d38d0d12a942eca327a4e304988014e9769381403",
+      "candidate_sha256": "63b49571e117c6faee78db8ddf7f7298500fd99d850d3ed033b52ffeb4a6dab2",
       "bytes": 24220,
       "status": "modified"
     },
@@ -4492,7 +4492,7 @@
     },
     {
       "path": "custom_components/aureon_floor/__init__.py",
-      "candidate_sha256": "35aebbe6d4938c7bbc6699833520c110ebf90376e898e061a5c3a0bc3cae01b9",
+      "candidate_sha256": "cc62ef0f44cbaad54b3a4823b5e0bd095a46e1fdaebbe74c9a2d767353bbace2",
       "status": "added"
     },
     {
@@ -4501,8 +4501,13 @@
       "status": "added"
     },
     {
+      "path": "custom_components/aureon_floor/aureon_fast.py",
+      "candidate_sha256": "4be8af27c42e15ff0222a76a912b9f51022b29462090e11029db4fce564b863f",
+      "status": "added"
+    },
+    {
       "path": "custom_components/aureon_floor/aureon_models.py",
-      "candidate_sha256": "939e49a52c3ef99483d7e610537f716327835fcb8eb9dbbfc1b0ad46dcc82374",
+      "candidate_sha256": "0d748f58ca0b4c742897ed149b859ff801ae3621b472010b0f8a3b787c9868fe",
       "status": "added"
     },
     {
@@ -4747,7 +4752,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-editor.js",
-      "candidate_sha256": "18245222c762d05d23e5d78d8eb62e60423ed46a82c846b78583cbd6b4ce9fca",
+      "candidate_sha256": "f600655c54c7480f0c291fd46f4df8266bdeb285e3e15e10648db38ee81ed39e",
       "status": "added"
     },
     {
@@ -4777,7 +4782,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d.js",
-      "candidate_sha256": "abe66199f2e169a6795852a0b777297527510d76c9904a9c9fcbade5bc8f1d69",
+      "candidate_sha256": "8c2c8322e9062c67e81ab117c07e4f7a992529dff74514fde43814be6b7ffeb8",
       "status": "added"
     },
     {
@@ -5172,7 +5177,7 @@
     },
     {
       "path": "tests/test_aureon_models.py",
-      "candidate_sha256": "557a269a5df370cef3e87c5a753106479aac520bf890ae7ce9941b34bd2dc3e8",
+      "candidate_sha256": "b2d4110cfea30880eb14f04b497c067667321d9469f54e00501a861b2ff5be01",
       "status": "added"
     },
     {

@@ -222,3 +222,17 @@ async def test_upload_is_for_administrators_only(hass: HomeAssistant, hass_clien
     resp = await client.post("/api/aureon_floor/aureon_models_upload?name=desk.glb", data=data)
     assert resp.status == 403
     assert not (tmp / "aureon_models" / "desk.glb").exists()
+
+
+async def test_models_are_sent_compressed(hass: HomeAssistant, hass_client) -> None:
+    path = await hass.async_add_executor_job(_write_model, hass, "big.glb")
+    await hass.async_add_executor_job(path.write_bytes, b"glTF\x02\x00\x00\x00" + b"\x00" * 200_000)
+    await _setup(hass)
+    client = await hass_client()
+    res = await client.get("/api/aureon_floor/aureon_models/big.glb", headers={"Accept-Encoding": "gzip"})
+    assert res.status == 200
+    assert res.headers["Content-Encoding"] == "gzip"
+    assert res.headers["Content-Type"] == "model/gltf-binary"
+    assert res.headers["X-Content-Type-Options"] == "nosniff"
+    assert int(res.headers["Content-Length"]) < 10_000
+    assert len(await res.read()) == 200_008

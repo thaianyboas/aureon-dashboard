@@ -11378,7 +11378,27 @@ export class Fp3dEditor extends LitElement {
     const paints = wallPaints(finish, pts.length);
     const roomColor = (finish as { walls?: { material?: string; color?: string | null } | null } | null)?.walls;
     const base = roomColor?.material === "paint" ? (paintColor(roomColor.color) ?? "#d9d4cb") : "#8d877c";
-    return svg`<svg class="fp3d-aureon-wall-map" viewBox="0 0 ${W} ${H}" role="group" aria-label=${this.t("aureon_paint_one_wall_title")}>
+    // A tap picks the NEAREST wall of the drawing. (The wide invisible touch lines of short walls overlap their
+    // neighbours, so a tap on a long wall could select a tiny one next to it – owner 2026-11-11.)
+    const nearest = (e: MouseEvent) => {
+      const el = e.currentTarget as SVGSVGElement, m = el.getScreenCTM();
+      if (!m || !this.isAdmin) return;
+      const q = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+      let best = -1, bestD = Infinity;
+      pts.forEach((a, i) => {
+        const A = P(a), B = P(pts[(i + 1) % pts.length]), dx = B[0] - A[0], dz = B[1] - A[1], L2 = dx * dx + dz * dz || 1;
+        const t = Math.max(0, Math.min(1, ((q.x - A[0]) * dx + (q.y - A[1]) * dz) / L2));
+        const d = Math.hypot(q.x - (A[0] + dx * t), q.y - (A[1] + dz * t));
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      if (best < 0 || bestD > 24) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const on = this._aureonWall?.roomId === room.id && this._aureonWall.index === best;
+      this._aureonWall = on ? null : { roomId: room.id, index: best };
+      this._vertex = null;
+    };
+    return svg`<svg class="fp3d-aureon-wall-map" viewBox="0 0 ${W} ${H}" role="group" aria-label=${this.t("aureon_paint_one_wall_title")} @click=${nearest}>
       <polygon class="fp3d-aureon-wall-room" points=${pts.map((p) => P(p).join(",")).join(" ")}></polygon>
       ${pts.map((a, i) => {
         const b = pts[(i + 1) % pts.length], A = P(a), B = P(b);
@@ -11393,7 +11413,7 @@ export class Fp3dEditor extends LitElement {
         };
         return svg`<g class="fp3d-aureon-wall-edge ${on ? "on" : ""}" data-paint-wall=${i} role="button" tabindex="0" aria-pressed=${on ? "true" : "false"}
             aria-label=${`${this.t("aureon_paint_wall_title")} ${i + 1} · ${this.m(Math.hypot(b[0] - a[0], b[1] - a[1]), 2)}`}
-            @click=${pick} @keydown=${(e: KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } }}>
+            @keydown=${(e: KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } }}>
           <line class="hit" x1=${A[0]} y1=${A[1]} x2=${B[0]} y2=${B[1]}></line>
           <line class="paint" x1=${A[0]} y1=${A[1]} x2=${B[0]} y2=${B[1]} style=${`stroke:${own ?? base}`}></line>
           <text x=${lx} y=${lz} text-anchor="middle" dominant-baseline="central">${this.m(Math.hypot(b[0] - a[0], b[1] - a[1]), 1)}</text>
