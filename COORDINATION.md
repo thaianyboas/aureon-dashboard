@@ -1078,3 +1078,17 @@ contract, fidelity; disposable HA: Pintar → tap wall → colour → band on th
 3D" shows the wall in that colour. Music: HA test harness (pytest-homeassistant-custom-component, HA 2026.2) with a
 fake rotating Spotify token server; not tested against the owner's Spotify account.
 - Published 2026-11-11 09:2x: dashboard 041448b (CI green), aureon-integration 5f669e3 (SOURCE_COMMIT 041448b, CI green), aureon-music 9e8b17f (no CI). Owner must update AUREON Floor Studio and AUREON Música in HACS and restart HA. Not yet tested on the owner's HA.
+
+### Batch 2026-11-11 (14) – paint on the owner's plan, faster downloads, editing only in HA
+- Owner's exported plan (kept out of the repo): her room edges have height 0 ("no wall") and the walls are free
+  walls. wallMesh skipped those edges, so no paint ever showed. wallAlong() now finds the wall the 3D really builds
+  along a painted edge. innerFaces skips zero-length edges (a corner drawn twice) when it meets neighbouring lines.
+- The small wall drawing in "Pintar" picks the NEAREST wall (wide touch lines of short walls overlapped).
+- aureon_fast.py: bundles, language files and models are sent gzip-compressed (cached in memory); files with a
+  content hash (?v=, except the main bundle) are kept by the browser for a year.
+- Dashboard: the "AUREON Floor Studio" page is no longer in the AUREON menu (EDIT_ONLY_IN_HA); editing is done in
+  the HA sidebar panel only.
+- Next (owner approved the direction, not yet built): new editor layout – areas Construção / Acabamentos / Móveis e
+  decoração / Casa inteligente, 2D/3D/Dividida tabs, brass dimension lines and a "spec tag" for the selection.
+Validation: root build, npm test, typecheck, validate, test:browser, migration contract, frontend 632, backend 182,
+ruff, fidelity; disposable HA with the owner's plan: Sala wall 7–1 shows the chosen paint in the wall view.
