@@ -1088,7 +1088,7 @@ fake rotating Spotify token server; not tested against the owner's Spotify accou
   content hash (?v=, except the main bundle) are kept by the browser for a year.
 - Dashboard: the "AUREON Floor Studio" page is no longer in the AUREON menu (EDIT_ONLY_IN_HA); editing is done in
   the HA sidebar panel only.
-- Next (owner approved the direction, not yet built): new editor layout – areas Construção / Acabamentos / Móveis e
+- Next (proposal shown as images 2026-11-11, waiting for the owner's answer; not built): new editor layout – areas Construção / Acabamentos / Móveis e
   decoração / Casa inteligente, 2D/3D/Dividida tabs, brass dimension lines and a "spec tag" for the selection.
 Validation: root build, npm test, typecheck, validate, test:browser, migration contract, frontend 632, backend 182,
 ruff, fidelity; disposable HA with the owner's plan: Sala wall 7–1 shows the chosen paint in the wall view.
