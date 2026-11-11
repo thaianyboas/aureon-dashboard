@@ -1227,3 +1227,8 @@ The Music browser suite passed again with that label and native transfer.
 
 - Music `0c2b0e8` adds a disposable HA test for two native accounts sharing one OAuth app and the same display name. It verifies distinct entries, player entities and credential files, rejection of duplicate setup, correct credential use for each playback command, and isolation when reauthorizing or removing one account.
 - All 32 Music tests passed on HA 2025.4.0 and 2026.10.4 with simulated Spotify. Live consent and physical Connect remain pending. No integration runtime or Dashboard UI changes in this batch.
+
+
+### Codex batch 2026-11-11 — HACS preview published for owner's HA test
+
+- Owner chose to test directly in her HA and authorized publishing the preview. Music `8376300` identifies the opt-in native preview as version `1.1.0b1` on master and documents HACS installation. The 32-test Music suite and smoke check passed. Dashboard master already distributes native-account support. Live Spotify consent and device checks are pending; no remote install or migration was performed.
