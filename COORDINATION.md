@@ -1222,6 +1222,7 @@ The Music browser suite passed again with that label and native transfer.
 
 - (17b) The wall colour bands on the 2D plan show only while Acabamentos is open (owner read them as a second wall).
 - (18) Thin furniture (depth ≤ 8 cm, e.g. acoustic slat panels) standing 0.5–30 mm in front of a wall face is moved 1 mm into the wall in 3D only (`snapThinToWalls` in viewer/aureon-openings.ts); the stored plan is unchanged. Owner saw a slit between oak panels and wall.
+- (19) Tool choices (Exterior type/shape, Piscina shape, Divisão shape) and the overlap warning moved from the floating toolbar into an in-flow `.aureon-optbar` above the plan/3D, in labelled groups; they no longer cover the 3D view's own buttons (Paredes altas/Corte, Passeio).
 
 
 ### Codex batch 2026-11-11 — two native Spotify accounts

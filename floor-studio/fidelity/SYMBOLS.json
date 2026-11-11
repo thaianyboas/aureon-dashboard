@@ -3053,15 +3053,15 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.render",
       "original_line": 5965,
-      "candidate_line": 6641,
+      "candidate_line": 6644,
       "original_sha256": "fe26d2f9b2bb22372b6ec362ab1fd6ce423aa5b2d2eb27ad70d235d3ade8613a",
-      "candidate_sha256": "341f1c70c5a85ef3a0fd111418177c6d99cdb458addd90ff5117644f98294bd5",
+      "candidate_sha256": "1001800f711dffef054271c105c0a9eeac9016f3f2ddc11829023ed833ccc66f",
       "status": "aureon_extension"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderBackground",
       "original_line": 6054,
-      "candidate_line": 6733,
+      "candidate_line": 6735,
       "original_sha256": "133581223282d84257b75e0f377a3a83ea2618ca7d50c4cb6fc7628513a627c1",
       "candidate_sha256": "133581223282d84257b75e0f377a3a83ea2618ca7d50c4cb6fc7628513a627c1",
       "status": "preserved"
@@ -3069,7 +3069,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.bgHandles",
       "original_line": 6080,
-      "candidate_line": 6759,
+      "candidate_line": 6761,
       "original_sha256": "a11a183ac18a58181ec6eebac04c541a016c56e3ef9579fb4e93e6454e37aa79",
       "candidate_sha256": "a11a183ac18a58181ec6eebac04c541a016c56e3ef9579fb4e93e6454e37aa79",
       "status": "preserved"
@@ -3077,7 +3077,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderBgRuler",
       "original_line": 6085,
-      "candidate_line": 6764,
+      "candidate_line": 6766,
       "original_sha256": "6256827bd67dddbf4a6cd01f47edaa29da8f823f1dac3276da8e06433ed7573e",
       "candidate_sha256": "6256827bd67dddbf4a6cd01f47edaa29da8f823f1dac3276da8e06433ed7573e",
       "status": "preserved"
@@ -3085,7 +3085,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.applyBgLevel",
       "original_line": 6096,
-      "candidate_line": 6775,
+      "candidate_line": 6777,
       "original_sha256": "356b91dac8b3f9b3f1eaaa3ee417653cfeb283f3b0cb8c1cb3dbac56116ba3ae",
       "candidate_sha256": "356b91dac8b3f9b3f1eaaa3ee417653cfeb283f3b0cb8c1cb3dbac56116ba3ae",
       "status": "preserved"
@@ -3093,7 +3093,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.applyBgRuler",
       "original_line": 6116,
-      "candidate_line": 6795,
+      "candidate_line": 6797,
       "original_sha256": "3db7a8e256b34de18a84d4c5d0e78e41379392f63db33d6bc5963928fa7b2354",
       "candidate_sha256": "3db7a8e256b34de18a84d4c5d0e78e41379392f63db33d6bc5963928fa7b2354",
       "status": "preserved"
@@ -3101,7 +3101,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.bgLocal",
       "original_line": 6138,
-      "candidate_line": 6817,
+      "candidate_line": 6819,
       "original_sha256": "8db615c7aa2dace471ce9e9acc9a4902c48f830db9724aa3327499143598c36a",
       "candidate_sha256": "8db615c7aa2dace471ce9e9acc9a4902c48f830db9724aa3327499143598c36a",
       "status": "preserved"
@@ -3109,7 +3109,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderGrid",
       "original_line": 6148,
-      "candidate_line": 6827,
+      "candidate_line": 6829,
       "original_sha256": "8d8f269a3098a5fc37122c534c4513ab47243fe027f718c09eca5529034ee4b2",
       "candidate_sha256": "8d8f269a3098a5fc37122c534c4513ab47243fe027f718c09eca5529034ee4b2",
       "status": "preserved"
@@ -3117,7 +3117,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderGhost",
       "original_line": 6174,
-      "candidate_line": 6853,
+      "candidate_line": 6855,
       "original_sha256": "ece77f067eeb7325993315758e1613282bb1eff0a7dcef6ff37797b0ac1ac932",
       "candidate_sha256": "ece77f067eeb7325993315758e1613282bb1eff0a7dcef6ff37797b0ac1ac932",
       "status": "preserved"
@@ -3125,7 +3125,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderWalls",
       "original_line": 6183,
-      "candidate_line": 6862,
+      "candidate_line": 6864,
       "original_sha256": "010be1023c8561a175f4c223a1383294e7c1a1e49ae78a32dbbf09056ba17a61",
       "candidate_sha256": "010be1023c8561a175f4c223a1383294e7c1a1e49ae78a32dbbf09056ba17a61",
       "status": "preserved"
@@ -3133,7 +3133,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.edgeParts",
       "original_line": 6194,
-      "candidate_line": 6873,
+      "candidate_line": 6875,
       "original_sha256": "45c43b20c0bc2eebf83c44774670e841882fa4ef9d93df6c21268ac425fff210",
       "candidate_sha256": "45c43b20c0bc2eebf83c44774670e841882fa4ef9d93df6c21268ac425fff210",
       "status": "preserved"
@@ -3141,7 +3141,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.setEdgeSlope",
       "original_line": 6203,
-      "candidate_line": 6882,
+      "candidate_line": 6884,
       "original_sha256": "71312b566f66ba04560a0d9fb3da8741e380f0f40f7826db9d2beae09b1a814f",
       "candidate_sha256": "71312b566f66ba04560a0d9fb3da8741e380f0f40f7826db9d2beae09b1a814f",
       "status": "preserved"
@@ -3149,7 +3149,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.setEdgeHeight",
       "original_line": 6216,
-      "candidate_line": 6895,
+      "candidate_line": 6897,
       "original_sha256": "b2293b5be775d19367a6a6491c44580c6c01783ee38948a1c44ccb346e0aa504",
       "candidate_sha256": "b2293b5be775d19367a6a6491c44580c6c01783ee38948a1c44ccb346e0aa504",
       "status": "preserved"
@@ -3157,7 +3157,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderCameraDetections",
       "original_line": 6255,
-      "candidate_line": 6934,
+      "candidate_line": 6936,
       "original_sha256": "d7883e621f2acb303620ea30ea1209f6155c0d052d025ffe310f7faa2bfdf209",
       "candidate_sha256": "d7883e621f2acb303620ea30ea1209f6155c0d052d025ffe310f7faa2bfdf209",
       "status": "preserved"
@@ -3165,7 +3165,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.detectFilter",
       "original_line": 6293,
-      "candidate_line": 6972,
+      "candidate_line": 6974,
       "original_sha256": "c9ab66dccab800b946696fd71aea80b72fb5784102f563b07c82e4809b5513cb",
       "candidate_sha256": "c9ab66dccab800b946696fd71aea80b72fb5784102f563b07c82e4809b5513cb",
       "status": "preserved"
@@ -3173,7 +3173,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.splitEdge",
       "original_line": 6300,
-      "candidate_line": 6979,
+      "candidate_line": 6981,
       "original_sha256": "667f54125f8f3c75bdadccf5257e3c3e30fc7b1bfeaf19d7847f2c89b6d6dab1",
       "candidate_sha256": "667f54125f8f3c75bdadccf5257e3c3e30fc7b1bfeaf19d7847f2c89b6d6dab1",
       "status": "preserved"
@@ -3181,7 +3181,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.moveSplit",
       "original_line": 6326,
-      "candidate_line": 7005,
+      "candidate_line": 7007,
       "original_sha256": "5873da78e2f6b83f0c6732aa553b74db09ffbb572fdb6922ecd632ef4de1b803",
       "candidate_sha256": "5873da78e2f6b83f0c6732aa553b74db09ffbb572fdb6922ecd632ef4de1b803",
       "status": "preserved"
@@ -3189,7 +3189,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.joinSplit",
       "original_line": 6343,
-      "candidate_line": 7022,
+      "candidate_line": 7024,
       "original_sha256": "914e32815b84f12575df9b5795dd198fc2751bb67cf7bb2038427625f895d411",
       "candidate_sha256": "914e32815b84f12575df9b5795dd198fc2751bb67cf7bb2038427625f895d411",
       "status": "preserved"
@@ -3197,7 +3197,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderSplitMarks",
       "original_line": 6359,
-      "candidate_line": 7038,
+      "candidate_line": 7040,
       "original_sha256": "9ff6a9922c29c8f2da4d3b276446cc7c1e73929c839665741f21aecdf58c0f1d",
       "candidate_sha256": "9ff6a9922c29c8f2da4d3b276446cc7c1e73929c839665741f21aecdf58c0f1d",
       "status": "preserved"
@@ -3205,7 +3205,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderEdgeHeights",
       "original_line": 6377,
-      "candidate_line": 7056,
+      "candidate_line": 7058,
       "original_sha256": "d3b0e0895f2b236eaa2ac96614fb12f83835a83ed86bd1a15844005e3be2ce96",
       "candidate_sha256": "d3b0e0895f2b236eaa2ac96614fb12f83835a83ed86bd1a15844005e3be2ce96",
       "status": "preserved"
@@ -3213,7 +3213,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderOutdoorHandles",
       "original_line": 6461,
-      "candidate_line": 7139,
+      "candidate_line": 7141,
       "original_sha256": "981a157d82886248bed2cbefab0f6f41eb150c9d8b2832b496106d3e3572f38e",
       "candidate_sha256": "981a157d82886248bed2cbefab0f6f41eb150c9d8b2832b496106d3e3572f38e",
       "status": "preserved"
@@ -3221,7 +3221,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderOutdoor",
       "original_line": 6479,
-      "candidate_line": 7157,
+      "candidate_line": 7159,
       "original_sha256": "2f7ec65eba0252b7cd6974d77a798aee0fd7f18a17a6d3999645d1e88791fd35",
       "candidate_sha256": "2f7ec65eba0252b7cd6974d77a798aee0fd7f18a17a6d3999645d1e88791fd35",
       "status": "preserved"
@@ -3229,7 +3229,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderFenceGates",
       "original_line": 6501,
-      "candidate_line": 7179,
+      "candidate_line": 7181,
       "original_sha256": "1baf799e0bf836ae4c891079c718f1a9cd7e95610afe80feccfd347df84f6a36",
       "candidate_sha256": "1baf799e0bf836ae4c891079c718f1a9cd7e95610afe80feccfd347df84f6a36",
       "status": "preserved"
@@ -3237,7 +3237,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderOutdoorZone",
       "original_line": 6565,
-      "candidate_line": 7243,
+      "candidate_line": 7245,
       "original_sha256": "3e3512af3df5c723833285c510e06b9526834b112608d2cbb6498b6c5dc5754b",
       "candidate_sha256": "3e3512af3df5c723833285c510e06b9526834b112608d2cbb6498b6c5dc5754b",
       "status": "preserved"
@@ -3245,7 +3245,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderOutdoorDevices",
       "original_line": 6594,
-      "candidate_line": 7272,
+      "candidate_line": 7274,
       "original_sha256": "912ddcc023a90158f1e02730497b850e698924a8da8ed506d5136f426ddce612",
       "candidate_sha256": "912ddcc023a90158f1e02730497b850e698924a8da8ed506d5136f426ddce612",
       "status": "preserved"
@@ -3253,7 +3253,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderOutdoorForm",
       "original_line": 6665,
-      "candidate_line": 7343,
+      "candidate_line": 7345,
       "original_sha256": "86d8ec5d6e7854c25c160a06415aa41b34256fbf708c2853ea6ed7df3e52c13f",
       "candidate_sha256": "86d8ec5d6e7854c25c160a06415aa41b34256fbf708c2853ea6ed7df3e52c13f",
       "status": "preserved"
@@ -3261,7 +3261,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.openWallView",
       "original_line": 6745,
-      "candidate_line": 7422,
+      "candidate_line": 7424,
       "original_sha256": "95e8e63f3d34a677c07e7102ee0bc68d6df60f7dea9f75e6b008fce646d3fa90",
       "candidate_sha256": "95e8e63f3d34a677c07e7102ee0bc68d6df60f7dea9f75e6b008fce646d3fa90",
       "status": "preserved"
@@ -3269,7 +3269,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.wallSelection",
       "original_line": 6756,
-      "candidate_line": 7433,
+      "candidate_line": 7435,
       "original_sha256": "c685ec63cfb8670396f75e1b686c789d3ff6560b419a46641b55be3340f3c5d2",
       "candidate_sha256": "c685ec63cfb8670396f75e1b686c789d3ff6560b419a46641b55be3340f3c5d2",
       "status": "preserved"
@@ -3277,7 +3277,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.wallToggle",
       "original_line": 6765,
-      "candidate_line": 7442,
+      "candidate_line": 7444,
       "original_sha256": "e3c42896846533ff96059000e7c33895436b549b80bf7caf13929da7342bb2f9",
       "candidate_sha256": "e3c42896846533ff96059000e7c33895436b549b80bf7caf13929da7342bb2f9",
       "status": "preserved"
@@ -3285,7 +3285,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.wallChoose",
       "original_line": 6773,
-      "candidate_line": 7450,
+      "candidate_line": 7452,
       "original_sha256": "b5a3c6949d0578a2091bdfe5466525f77d84ed98d6ff1b50225758487ebfe1cc",
       "candidate_sha256": "b5a3c6949d0578a2091bdfe5466525f77d84ed98d6ff1b50225758487ebfe1cc",
       "status": "preserved"
@@ -3293,7 +3293,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.moveSetOnWall",
       "original_line": 6783,
-      "candidate_line": 7460,
+      "candidate_line": 7462,
       "original_sha256": "ad6300d8257442cf02ec5414573f59aca59f1058a29f9484ded8410aa4526759",
       "candidate_sha256": "ad6300d8257442cf02ec5414573f59aca59f1058a29f9484ded8410aa4526759",
       "status": "preserved"
@@ -3301,7 +3301,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.wallGapAt",
       "original_line": 6799,
-      "candidate_line": 7476,
+      "candidate_line": 7478,
       "original_sha256": "4d7d3a664974cfaf8c54c337adf10f984fd60e2bfca505f1ab8291d1e560d725",
       "candidate_sha256": "4d7d3a664974cfaf8c54c337adf10f984fd60e2bfca505f1ab8291d1e560d725",
       "status": "preserved"
@@ -3309,7 +3309,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.openWallViewFor",
       "original_line": 6817,
-      "candidate_line": 7494,
+      "candidate_line": 7496,
       "original_sha256": "33318222e10be5ef2a213f7272e67bb7e889f72951c831d35b5b80dd33b7bad8",
       "candidate_sha256": "33318222e10be5ef2a213f7272e67bb7e889f72951c831d35b5b80dd33b7bad8",
       "status": "preserved"
@@ -3317,7 +3317,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.openRoomWalls",
       "original_line": 6838,
-      "candidate_line": 7515,
+      "candidate_line": 7517,
       "original_sha256": "ec611a3ab442831403cbb25f357a163f4ca35314a431364c3bc018ff409577d3",
       "candidate_sha256": "ec611a3ab442831403cbb25f357a163f4ca35314a431364c3bc018ff409577d3",
       "status": "preserved"
@@ -3325,7 +3325,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.setWallView3d",
       "original_line": 6853,
-      "candidate_line": 7530,
+      "candidate_line": 7532,
       "original_sha256": "85a08348785fb084e9ed2e17ee239b73861cb9ff1c3d8e9f6a68439e7bca9db1",
       "candidate_sha256": "85a08348785fb084e9ed2e17ee239b73861cb9ff1c3d8e9f6a68439e7bca9db1",
       "status": "preserved"
@@ -3333,7 +3333,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.setupWall3d",
       "original_line": 6867,
-      "candidate_line": 7544,
+      "candidate_line": 7546,
       "original_sha256": "fe1b3041729d3fdb24aae16fbfbd0d9dbed36e93e679a01b4ebd151131cb2727",
       "candidate_sha256": "fe1b3041729d3fdb24aae16fbfbd0d9dbed36e93e679a01b4ebd151131cb2727",
       "status": "preserved"
@@ -3341,7 +3341,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runLiftHandle",
       "original_line": 6928,
-      "candidate_line": 7605,
+      "candidate_line": 7607,
       "original_sha256": "78fa1711e402374942be48693c76822b545062beb2abc931fda4d31c328a502b",
       "candidate_sha256": "78fa1711e402374942be48693c76822b545062beb2abc931fda4d31c328a502b",
       "status": "preserved"
@@ -3349,7 +3349,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.liftDown",
       "original_line": 6962,
-      "candidate_line": 7639,
+      "candidate_line": 7641,
       "original_sha256": "d7c4e2453fb66bf5f9519b58f2e3f00a4a583daf68b7589542e5222fa0927bb7",
       "candidate_sha256": "d7c4e2453fb66bf5f9519b58f2e3f00a4a583daf68b7589542e5222fa0927bb7",
       "status": "preserved"
@@ -3357,7 +3357,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.liftMove",
       "original_line": 6978,
-      "candidate_line": 7655,
+      "candidate_line": 7657,
       "original_sha256": "9011a589e870f0fe18d359d465418795c48d7bd446fc98f9596428c1d78e45da",
       "candidate_sha256": "9011a589e870f0fe18d359d465418795c48d7bd446fc98f9596428c1d78e45da",
       "status": "preserved"
@@ -3365,7 +3365,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.liftUp",
       "original_line": 6989,
-      "candidate_line": 7666,
+      "candidate_line": 7668,
       "original_sha256": "6f9669d5cbfad1e74472f3b15bd5eac5e0109dd316f2d63c4b32bbf8173d3bfc",
       "candidate_sha256": "6f9669d5cbfad1e74472f3b15bd5eac5e0109dd316f2d63c4b32bbf8173d3bfc",
       "status": "preserved"
@@ -3373,7 +3373,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.toggleWallPick",
       "original_line": 6999,
-      "candidate_line": 7676,
+      "candidate_line": 7678,
       "original_sha256": "153f697a01d2839d38d1b35dfadd9db4b2ec73c94291376ddf1f833452f5ba72",
       "candidate_sha256": "153f697a01d2839d38d1b35dfadd9db4b2ec73c94291376ddf1f833452f5ba72",
       "status": "preserved"
@@ -3381,7 +3381,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.pickWall",
       "original_line": 7007,
-      "candidate_line": 7684,
+      "candidate_line": 7686,
       "original_sha256": "8230452ea40ed7c2e3ebc8e55a60f39309adc37458f57c678a2de244c17561cb",
       "candidate_sha256": "8230452ea40ed7c2e3ebc8e55a60f39309adc37458f57c678a2de244c17561cb",
       "status": "preserved"
@@ -3389,7 +3389,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.techDoc3d",
       "original_line": 7038,
-      "candidate_line": 7715,
+      "candidate_line": 7717,
       "original_sha256": "ea1a1f2cbb2a4174d02c6b5b28e45e7e0eb7001cfeb404d806b2e591438137fb",
       "candidate_sha256": "ea1a1f2cbb2a4174d02c6b5b28e45e7e0eb7001cfeb404d806b2e591438137fb",
       "status": "preserved"
@@ -3397,7 +3397,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.enterTech",
       "original_line": 7048,
-      "candidate_line": 7725,
+      "candidate_line": 7727,
       "original_sha256": "91748699fae0508a10f1f494d0afac16137c0caee84647f6f9350f61ff7cb7b7",
       "candidate_sha256": "91748699fae0508a10f1f494d0afac16137c0caee84647f6f9350f61ff7cb7b7",
       "status": "preserved"
@@ -3405,7 +3405,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.turnOnWall",
       "original_line": 7060,
-      "candidate_line": 7737,
+      "candidate_line": 7739,
       "original_sha256": "980d29b5e4ac115507f51de846c411d21239c76a184350f15785a92715b347df",
       "candidate_sha256": "980d29b5e4ac115507f51de846c411d21239c76a184350f15785a92715b347df",
       "status": "preserved"
@@ -3413,7 +3413,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.moveFromWall",
       "original_line": 7072,
-      "candidate_line": 7749,
+      "candidate_line": 7751,
       "original_sha256": "4f63dc02f0685ccafb1d036705ffa3add0a5fac960c020a19ab4fe8cb0722c81",
       "candidate_sha256": "4f63dc02f0685ccafb1d036705ffa3add0a5fac960c020a19ab4fe8cb0722c81",
       "status": "preserved"
@@ -3421,7 +3421,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.moveOnWall",
       "original_line": 7082,
-      "candidate_line": 7759,
+      "candidate_line": 7761,
       "original_sha256": "1711425378748af04823008098cbfe9900286642f899dceb3867e9e3da964836",
       "candidate_sha256": "1711425378748af04823008098cbfe9900286642f899dceb3867e9e3da964836",
       "status": "preserved"
@@ -3429,7 +3429,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.alongAxis",
       "original_line": 7096,
-      "candidate_line": 7773,
+      "candidate_line": 7775,
       "original_sha256": "4feb073cec84d2a5512a3a3074167349fc0f84c80ccb79cded8634e8348950c5",
       "candidate_sha256": "4feb073cec84d2a5512a3a3074167349fc0f84c80ccb79cded8634e8348950c5",
       "status": "preserved"
@@ -3437,7 +3437,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.resizeOnWall",
       "original_line": 7107,
-      "candidate_line": 7784,
+      "candidate_line": 7786,
       "original_sha256": "85a769c32269af95c9a9051006083ea08338a21ab972d2a0507dba6fa1db3e5d",
       "candidate_sha256": "85a769c32269af95c9a9051006083ea08338a21ab972d2a0507dba6fa1db3e5d",
       "status": "preserved"
@@ -3445,7 +3445,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.wallTurn",
       "original_line": 7134,
-      "candidate_line": 7811,
+      "candidate_line": 7813,
       "original_sha256": "ce19f1d56e588f25577fc81b241e63cbdb0d7951fae0f3b5b4ae7abe8465aec9",
       "candidate_sha256": "ce19f1d56e588f25577fc81b241e63cbdb0d7951fae0f3b5b4ae7abe8465aec9",
       "status": "preserved"
@@ -3453,7 +3453,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.wallPicKey",
       "original_line": 7139,
-      "candidate_line": 7816,
+      "candidate_line": 7818,
       "original_sha256": "d3eba00544c641be80aafa1c33d327da17018a622252cbed10234ac696c364de",
       "candidate_sha256": "d3eba00544c641be80aafa1c33d327da17018a622252cbed10234ac696c364de",
       "status": "preserved"
@@ -3461,7 +3461,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.askWallPics",
       "original_line": 7144,
-      "candidate_line": 7821,
+      "candidate_line": 7823,
       "original_sha256": "0214f2e676229186e6b2d37b48be7a88e6d9560a67bd19abad74af96ff5e5d0f",
       "candidate_sha256": "0214f2e676229186e6b2d37b48be7a88e6d9560a67bd19abad74af96ff5e5d0f",
       "status": "preserved"
@@ -3469,7 +3469,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderWallView",
       "original_line": 7160,
-      "candidate_line": 7837,
+      "candidate_line": 7839,
       "original_sha256": "fe8b2371f76429c4831bdd06acd8b7712c703062b5170f8068ddf36bfefd8369",
       "candidate_sha256": "3f66bcc35d02cd79d9e194472f4978c08cc2a5b40c6af56dc3e7648433d5cade",
       "status": "aureon_extension"
@@ -3477,7 +3477,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderWallSetFoot",
       "original_line": 7807,
-      "candidate_line": 8484,
+      "candidate_line": 8486,
       "original_sha256": "df03c8c5c15a3ba2aea62067aca9eb2f4eeffc09d69d477bf4e975d64162d9a8",
       "candidate_sha256": "df03c8c5c15a3ba2aea62067aca9eb2f4eeffc09d69d477bf4e975d64162d9a8",
       "status": "preserved"
@@ -3485,7 +3485,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.deleteOnWall",
       "original_line": 7846,
-      "candidate_line": 8523,
+      "candidate_line": 8525,
       "original_sha256": "0273eea26af4570537fbcf44acf5eac61b510835132c82268978737392c2861c",
       "candidate_sha256": "0273eea26af4570537fbcf44acf5eac61b510835132c82268978737392c2861c",
       "status": "preserved"
@@ -3493,7 +3493,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.groupIds",
       "original_line": 7859,
-      "candidate_line": 8536,
+      "candidate_line": 8538,
       "original_sha256": "1a854da39b22dfca3e133b6252f567cb70b42cf00ae3f2fb895aac858b3a8910",
       "candidate_sha256": "1a854da39b22dfca3e133b6252f567cb70b42cf00ae3f2fb895aac858b3a8910",
       "status": "preserved"
@@ -3501,7 +3501,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.ungroupSelectionOf",
       "original_line": 7867,
-      "candidate_line": 8544,
+      "candidate_line": 8546,
       "original_sha256": "6f6abe236230b86d1bb6d224102a6823c7cce175b43a904382bd44fe9d1ecc81",
       "candidate_sha256": "6f6abe236230b86d1bb6d224102a6823c7cce175b43a904382bd44fe9d1ecc81",
       "status": "preserved"
@@ -3509,7 +3509,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.addOnWall",
       "original_line": 7880,
-      "candidate_line": 8557,
+      "candidate_line": 8559,
       "original_sha256": "db17cbce6108cef740f5dc6e8d4332d31b0303c84d340053fb903e532eaacb41",
       "candidate_sha256": "db17cbce6108cef740f5dc6e8d4332d31b0303c84d340053fb903e532eaacb41",
       "status": "preserved"
@@ -3517,7 +3517,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.addIntoGap",
       "original_line": 7910,
-      "candidate_line": 8587,
+      "candidate_line": 8589,
       "original_sha256": "5173facfaf396745553f2f3f1cd5eb4324910191f39f3436bedef7b67c2e545e",
       "candidate_sha256": "5173facfaf396745553f2f3f1cd5eb4324910191f39f3436bedef7b67c2e545e",
       "status": "preserved"
@@ -3525,7 +3525,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.rememberWallType",
       "original_line": 7926,
-      "candidate_line": 8603,
+      "candidate_line": 8605,
       "original_sha256": "3d2a294499c666d84f3c16b3e80b5a06286b93df81d7f3d319b2435081591148",
       "candidate_sha256": "3d2a294499c666d84f3c16b3e80b5a06286b93df81d7f3d319b2435081591148",
       "status": "preserved"
@@ -3533,7 +3533,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.wallRecent",
       "original_line": 7935,
-      "candidate_line": 8612,
+      "candidate_line": 8614,
       "original_sha256": "7d80881d7dc163c2d537e8a54db905b8842d585eb21189f3121fbbbd340f124e",
       "candidate_sha256": "7d80881d7dc163c2d537e8a54db905b8842d585eb21189f3121fbbbd340f124e",
       "status": "preserved"
@@ -3541,7 +3541,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderWallFurniture",
       "original_line": 7948,
-      "candidate_line": 8625,
+      "candidate_line": 8627,
       "original_sha256": "20a5e69e529ec1a3ec604658efdc2c8501ee3ba8b3851ec64d9cf6e414364266",
       "candidate_sha256": "20a5e69e529ec1a3ec604658efdc2c8501ee3ba8b3851ec64d9cf6e414364266",
       "status": "preserved"
@@ -3549,7 +3549,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.askKitPics",
       "original_line": 8021,
-      "candidate_line": 8698,
+      "candidate_line": 8700,
       "original_sha256": "eefe931de7d45c7daa835901fa3add7953dc5abe43765457ac4d9b2831517051",
       "candidate_sha256": "eefe931de7d45c7daa835901fa3add7953dc5abe43765457ac4d9b2831517051",
       "status": "preserved"
@@ -3557,7 +3557,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderWallKit",
       "original_line": 8038,
-      "candidate_line": 8715,
+      "candidate_line": 8717,
       "original_sha256": "8e08621277386c628b275914ef22978e9423f659bf816f9026e79392940ddf75",
       "candidate_sha256": "8e08621277386c628b275914ef22978e9423f659bf816f9026e79392940ddf75",
       "status": "preserved"
@@ -3565,7 +3565,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runPool",
       "original_line": 8063,
-      "candidate_line": 8740,
+      "candidate_line": 8742,
       "original_sha256": "0f0fdce27775e9853ccfc6cb4c7a35f3682e5a3e14d3e374f3bfba9430d4518e",
       "candidate_sha256": "0f0fdce27775e9853ccfc6cb4c7a35f3682e5a3e14d3e374f3bfba9430d4518e",
       "status": "preserved"
@@ -3573,7 +3573,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.canLayRuns",
       "original_line": 8068,
-      "candidate_line": 8745,
+      "candidate_line": 8747,
       "original_sha256": "c0f22e19606a79d00c4bef397af377f38903db9b4da4e2fcd2f6fc1f5a869a4e",
       "candidate_sha256": "c0f22e19606a79d00c4bef397af377f38903db9b4da4e2fcd2f6fc1f5a869a4e",
       "status": "preserved"
@@ -3581,7 +3581,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runFrame",
       "original_line": 8072,
-      "candidate_line": 8749,
+      "candidate_line": 8751,
       "original_sha256": "9ef6d9e452c7cc02f6883c5751cd2aeb5afbd02b85ecd47887179b1e0b435c8b",
       "candidate_sha256": "9ef6d9e452c7cc02f6883c5751cd2aeb5afbd02b85ecd47887179b1e0b435c8b",
       "status": "preserved"
@@ -3589,7 +3589,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.docWithDraft",
       "original_line": 8079,
-      "candidate_line": 8756,
+      "candidate_line": 8758,
       "original_sha256": "a28d355005746ee4c4db51aa26dd9da2033e7616b65e6fc368b1adc777a3e7da",
       "candidate_sha256": "a28d355005746ee4c4db51aa26dd9da2033e7616b65e6fc368b1adc777a3e7da",
       "status": "preserved"
@@ -3597,7 +3597,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runLast",
       "original_line": 8095,
-      "candidate_line": 8772,
+      "candidate_line": 8774,
       "original_sha256": "4b233d1a26cc5c4f0712655c52fe132fd00af6158fc2e409020d3e85b5f78d5c",
       "candidate_sha256": "4b233d1a26cc5c4f0712655c52fe132fd00af6158fc2e409020d3e85b5f78d5c",
       "status": "preserved"
@@ -3605,7 +3605,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runPick",
       "original_line": 8109,
-      "candidate_line": 8786,
+      "candidate_line": 8788,
       "original_sha256": "b263e55a854385fa8f309c6551654c7f0dad4d55c74ba0ad4e0a75097ddc1d5f",
       "candidate_sha256": "b263e55a854385fa8f309c6551654c7f0dad4d55c74ba0ad4e0a75097ddc1d5f",
       "status": "preserved"
@@ -3613,7 +3613,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.eraseAt",
       "original_line": 8156,
-      "candidate_line": 8833,
+      "candidate_line": 8835,
       "original_sha256": "d5867b11986cd1105b04ede96d2a22436fb3864768f0a1aa1c38f3f83894af18",
       "candidate_sha256": "d5867b11986cd1105b04ede96d2a22436fb3864768f0a1aa1c38f3f83894af18",
       "status": "preserved"
@@ -3621,7 +3621,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runDown",
       "original_line": 8193,
-      "candidate_line": 8870,
+      "candidate_line": 8872,
       "original_sha256": "94a663a40a968e5d4b4cd0d273776b14af6af446fefb366a670ed9a840197e8b",
       "candidate_sha256": "94a663a40a968e5d4b4cd0d273776b14af6af446fefb366a670ed9a840197e8b",
       "status": "preserved"
@@ -3629,7 +3629,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runDown3d",
       "original_line": 8208,
-      "candidate_line": 8885,
+      "candidate_line": 8887,
       "original_sha256": "10b82c891077f1862b2ed4ce2e9d5c602021f7bb78f88e83733eb87dbaa227c3",
       "candidate_sha256": "10b82c891077f1862b2ed4ce2e9d5c602021f7bb78f88e83733eb87dbaa227c3",
       "status": "preserved"
@@ -3637,7 +3637,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runAt",
       "original_line": 8252,
-      "candidate_line": 8929,
+      "candidate_line": 8931,
       "original_sha256": "e7e749097e82c00e91dc203b43ce2e905b503b2c4f824c8790a1c6171dfa238f",
       "candidate_sha256": "e7e749097e82c00e91dc203b43ce2e905b503b2c4f824c8790a1c6171dfa238f",
       "status": "preserved"
@@ -3645,7 +3645,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runStep",
       "original_line": 8302,
-      "candidate_line": 8979,
+      "candidate_line": 8981,
       "original_sha256": "2be2742184bf054123d0e27bba4c9b6c863bbfb2e0fc339de05b879b99c4f4ca",
       "candidate_sha256": "2be2742184bf054123d0e27bba4c9b6c863bbfb2e0fc339de05b879b99c4f4ca",
       "status": "preserved"
@@ -3653,7 +3653,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.finishRun",
       "original_line": 8330,
-      "candidate_line": 9007,
+      "candidate_line": 9009,
       "original_sha256": "c7c7fc8d1e3a2bbcd7293cf17789ebf5e3c19138fc8386853e08e8c4ed02d20b",
       "candidate_sha256": "c7c7fc8d1e3a2bbcd7293cf17789ebf5e3c19138fc8386853e08e8c4ed02d20b",
       "status": "preserved"
@@ -3661,7 +3661,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.teeOnPipe",
       "original_line": 8438,
-      "candidate_line": 9115,
+      "candidate_line": 9117,
       "original_sha256": "e24893286a3cc6ff9cf0573be6c51c4813d89f812a19e6b387c0168061ef65d9",
       "candidate_sha256": "e24893286a3cc6ff9cf0573be6c51c4813d89f812a19e6b387c0168061ef65d9",
       "status": "preserved"
@@ -3669,7 +3669,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.placeFeed",
       "original_line": 8458,
-      "candidate_line": 9135,
+      "candidate_line": 9137,
       "original_sha256": "957d5e31d90b3dd9405b786c872ef3a7712602867d793ee3e831f474ae0d4b10",
       "candidate_sha256": "957d5e31d90b3dd9405b786c872ef3a7712602867d793ee3e831f474ae0d4b10",
       "status": "preserved"
@@ -3677,7 +3677,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.feedAt",
       "original_line": 8466,
-      "candidate_line": 9143,
+      "candidate_line": 9145,
       "original_sha256": "6c15945e3f0e8d527c1f19a96660b289440ce74ab5c096420613f9ff72c334bd",
       "candidate_sha256": "6c15945e3f0e8d527c1f19a96660b289440ce74ab5c096420613f9ff72c334bd",
       "status": "preserved"
@@ -3685,7 +3685,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.endStroke",
       "original_line": 8517,
-      "candidate_line": 9194,
+      "candidate_line": 9196,
       "original_sha256": "0df56c397c97e04624ab30c67e5f326ec2b2c31a4c89d0ceeb76b8a0fde17e6f",
       "candidate_sha256": "0df56c397c97e04624ab30c67e5f326ec2b2c31a4c89d0ceeb76b8a0fde17e6f",
       "status": "preserved"
@@ -3693,7 +3693,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.answerAsk",
       "original_line": 8547,
-      "candidate_line": 9224,
+      "candidate_line": 9226,
       "original_sha256": "027675c38c7c100507dd23baa848c9c0ba3732fa32a1820e79b22705afabfe36",
       "candidate_sha256": "027675c38c7c100507dd23baa848c9c0ba3732fa32a1820e79b22705afabfe36",
       "status": "preserved"
@@ -3701,7 +3701,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderTechKit",
       "original_line": 8567,
-      "candidate_line": 9244,
+      "candidate_line": 9246,
       "original_sha256": "5c492cd8e2c26f8ac724432c096968f5bb04076262c6bc90e041a6ea9e9d0d58",
       "candidate_sha256": "5c492cd8e2c26f8ac724432c096968f5bb04076262c6bc90e041a6ea9e9d0d58",
       "status": "preserved"
@@ -3709,7 +3709,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderTechStep",
       "original_line": 8638,
-      "candidate_line": 9315,
+      "candidate_line": 9317,
       "original_sha256": "95561bccfd4479967f3f6d7a57f666c444cede3fee7e4023a2f18c524f28d9bb",
       "candidate_sha256": "95561bccfd4479967f3f6d7a57f666c444cede3fee7e4023a2f18c524f28d9bb",
       "status": "preserved"
@@ -3717,7 +3717,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderTechIssues",
       "original_line": 8678,
-      "candidate_line": 9355,
+      "candidate_line": 9357,
       "original_sha256": "8ade0b77dfedf0e92ff530a35fd63ab1a407025f6a998653ef704c89e0f62f27",
       "candidate_sha256": "8ade0b77dfedf0e92ff530a35fd63ab1a407025f6a998653ef704c89e0f62f27",
       "status": "preserved"
@@ -3725,7 +3725,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.placeJoint",
       "original_line": 8694,
-      "candidate_line": 9371,
+      "candidate_line": 9373,
       "original_sha256": "fdb4938a11db6985bdc92bf40a99bee1649a5f79e5b53bd63e37793c7c6b50fa",
       "candidate_sha256": "fdb4938a11db6985bdc92bf40a99bee1649a5f79e5b53bd63e37793c7c6b50fa",
       "status": "preserved"
@@ -3733,7 +3733,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runOut",
       "original_line": 8715,
-      "candidate_line": 9392,
+      "candidate_line": 9394,
       "original_sha256": "3e7bc3457d44d2e2a571270bdbfe458bac4a6e90a510a012d5ded89489ac2d11",
       "candidate_sha256": "3e7bc3457d44d2e2a571270bdbfe458bac4a6e90a510a012d5ded89489ac2d11",
       "status": "preserved"
@@ -3741,7 +3741,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.addFitting",
       "original_line": 8726,
-      "candidate_line": 9403,
+      "candidate_line": 9405,
       "original_sha256": "b1720beed8882a7970adce55c10ea815d4324586915afd0c7ac7c790987528d8",
       "candidate_sha256": "b1720beed8882a7970adce55c10ea815d4324586915afd0c7ac7c790987528d8",
       "status": "preserved"
@@ -3749,7 +3749,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runPieceDown",
       "original_line": 8738,
-      "candidate_line": 9415,
+      "candidate_line": 9417,
       "original_sha256": "d77c447fc0898753f129983025fbb4e03a4b79bcdc4fa23886d1cfe5c0caf146",
       "candidate_sha256": "d77c447fc0898753f129983025fbb4e03a4b79bcdc4fa23886d1cfe5c0caf146",
       "status": "preserved"
@@ -3757,7 +3757,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runPointDown",
       "original_line": 8768,
-      "candidate_line": 9445,
+      "candidate_line": 9447,
       "original_sha256": "db308604efb411e0554b51d6758bd7333e559105cf413f18be312f49a1ff5144",
       "candidate_sha256": "db308604efb411e0554b51d6758bd7333e559105cf413f18be312f49a1ff5144",
       "status": "preserved"
@@ -3765,7 +3765,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runPointMove",
       "original_line": 8792,
-      "candidate_line": 9469,
+      "candidate_line": 9471,
       "original_sha256": "13d14545cd33a46580c7031466097cc6c0ffdb4d29bf164971a981a2893cef2b",
       "candidate_sha256": "13d14545cd33a46580c7031466097cc6c0ffdb4d29bf164971a981a2893cef2b",
       "status": "preserved"
@@ -3773,7 +3773,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.runPointUp",
       "original_line": 8828,
-      "candidate_line": 9505,
+      "candidate_line": 9507,
       "original_sha256": "44e0fad572bc5a576ac2fcb6fc516c32adec36b3dcdeb5a3fb6b1124ae7b2f60",
       "candidate_sha256": "44e0fad572bc5a576ac2fcb6fc516c32adec36b3dcdeb5a3fb6b1124ae7b2f60",
       "status": "preserved"
@@ -3781,7 +3781,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.fittingDown",
       "original_line": 8838,
-      "candidate_line": 9515,
+      "candidate_line": 9517,
       "original_sha256": "a4877fbf398b672681eaa7ce62535ee1846d50be19c6bbcec3a009f4d055d7e6",
       "candidate_sha256": "a4877fbf398b672681eaa7ce62535ee1846d50be19c6bbcec3a009f4d055d7e6",
       "status": "preserved"
@@ -3789,7 +3789,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.jointDown",
       "original_line": 8853,
-      "candidate_line": 9530,
+      "candidate_line": 9532,
       "original_sha256": "17f6185a3d905289e231a0740b4b8529b47a90f7a1bc3df654b31319e73b540a",
       "candidate_sha256": "17f6185a3d905289e231a0740b4b8529b47a90f7a1bc3df654b31319e73b540a",
       "status": "preserved"
@@ -3797,7 +3797,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.jointMove",
       "original_line": 8860,
-      "candidate_line": 9537,
+      "candidate_line": 9539,
       "original_sha256": "f7d9b585aee9c3f5f18e93518788704e9fdd4ef8c428c951989df02da1a458ce",
       "candidate_sha256": "f7d9b585aee9c3f5f18e93518788704e9fdd4ef8c428c951989df02da1a458ce",
       "status": "preserved"
@@ -3805,7 +3805,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.fittingMove",
       "original_line": 8879,
-      "candidate_line": 9556,
+      "candidate_line": 9558,
       "original_sha256": "426521299669cbbb212e7b42dc2a9d99cc34c3f6503c05cf0f968298896d3833",
       "candidate_sha256": "426521299669cbbb212e7b42dc2a9d99cc34c3f6503c05cf0f968298896d3833",
       "status": "preserved"
@@ -3813,7 +3813,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.fittingUp",
       "original_line": 8911,
-      "candidate_line": 9588,
+      "candidate_line": 9590,
       "original_sha256": "153b54779f65f9150c4ed599a293027f2aeadfc78f25db658e3d03169084e2fe",
       "candidate_sha256": "153b54779f65f9150c4ed599a293027f2aeadfc78f25db658e3d03169084e2fe",
       "status": "preserved"
@@ -3821,7 +3821,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.kitFitting",
       "original_line": 8928,
-      "candidate_line": 9605,
+      "candidate_line": 9607,
       "original_sha256": "3ccb2d674cac4269bb703596944ade53c7e49f8a261bfd9df02962a9991fe739",
       "candidate_sha256": "3ccb2d674cac4269bb703596944ade53c7e49f8a261bfd9df02962a9991fe739",
       "status": "preserved"
@@ -3829,7 +3829,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderRuns",
       "original_line": 8942,
-      "candidate_line": 9619,
+      "candidate_line": 9621,
       "original_sha256": "88d30e0fa5cda6d14995d8e1d4af0d6c9b0ad1e6a0cc54bf8e2cb7b32dcdeee0",
       "candidate_sha256": "88d30e0fa5cda6d14995d8e1d4af0d6c9b0ad1e6a0cc54bf8e2cb7b32dcdeee0",
       "status": "preserved"
@@ -3837,7 +3837,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderRunFoot",
       "original_line": 9024,
-      "candidate_line": 9701,
+      "candidate_line": 9703,
       "original_sha256": "86aee295e4e18e08e9c937d905be86c73fee67ca01d6b2c56e6de1fdf8db01de",
       "candidate_sha256": "86aee295e4e18e08e9c937d905be86c73fee67ca01d6b2c56e6de1fdf8db01de",
       "status": "preserved"
@@ -3845,7 +3845,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.poolArea",
       "original_line": 9093,
-      "candidate_line": 9770,
+      "candidate_line": 9772,
       "original_sha256": "23b65ff01b9cb1dbf337d17434779f0ea41bf75d15227f40a320e69779d06e34",
       "candidate_sha256": "23b65ff01b9cb1dbf337d17434779f0ea41bf75d15227f40a320e69779d06e34",
       "status": "preserved"
@@ -3853,7 +3853,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.poolDown",
       "original_line": 9105,
-      "candidate_line": 9782,
+      "candidate_line": 9784,
       "original_sha256": "db7da1bc8f330dd94ef48c5a3a5004c6bcc317de3ed1eb5b7a1869b6bb2a7a82",
       "candidate_sha256": "db7da1bc8f330dd94ef48c5a3a5004c6bcc317de3ed1eb5b7a1869b6bb2a7a82",
       "status": "preserved"
@@ -3861,7 +3861,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.changePool",
       "original_line": 9220,
-      "candidate_line": 9897,
+      "candidate_line": 9899,
       "original_sha256": "6fbb0b627a49f8a5fd38510be1fb16845d2cf6ad63273621db4c1b2e8d22e643",
       "candidate_sha256": "6fbb0b627a49f8a5fd38510be1fb16845d2cf6ad63273621db4c1b2e8d22e643",
       "status": "preserved"
@@ -3869,7 +3869,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.extendPipe",
       "original_line": 9230,
-      "candidate_line": 9907,
+      "candidate_line": 9909,
       "original_sha256": "3530e05ad27328fefd8c7a4d6b61b691b21bc17ccf1237500a02872a00775ff9",
       "candidate_sha256": "3530e05ad27328fefd8c7a4d6b61b691b21bc17ccf1237500a02872a00775ff9",
       "status": "preserved"
@@ -3877,7 +3877,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.jointEnd",
       "original_line": 9261,
-      "candidate_line": 9938,
+      "candidate_line": 9940,
       "original_sha256": "a7dc02cbb20f76d36d8fa5385e387c4e4cd0b86ee47757a3b63189eac37873a3",
       "candidate_sha256": "a7dc02cbb20f76d36d8fa5385e387c4e4cd0b86ee47757a3b63189eac37873a3",
       "status": "preserved"
@@ -3885,7 +3885,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.addPipe",
       "original_line": 9277,
-      "candidate_line": 9954,
+      "candidate_line": 9956,
       "original_sha256": "d431801a9f8bbf298409b5f69380e407655d1d6e236cf69e3943d9d1fe38158c",
       "candidate_sha256": "d431801a9f8bbf298409b5f69380e407655d1d6e236cf69e3943d9d1fe38158c",
       "status": "preserved"
@@ -3893,7 +3893,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.addPoolPort",
       "original_line": 9291,
-      "candidate_line": 9968,
+      "candidate_line": 9970,
       "original_sha256": "409e12586228b4b49f004e4d34b92cad3618c038e67514c0bc47a07a08b34e8e",
       "candidate_sha256": "409e12586228b4b49f004e4d34b92cad3618c038e67514c0bc47a07a08b34e8e",
       "status": "preserved"
@@ -3901,7 +3901,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.addPoolDevice",
       "original_line": 9319,
-      "candidate_line": 9996,
+      "candidate_line": 9998,
       "original_sha256": "3a7e82a1df4e84e7f81e98323ff42eb850751c1660488221b95c7f9e6bf4eb17",
       "candidate_sha256": "3a7e82a1df4e84e7f81e98323ff42eb850751c1660488221b95c7f9e6bf4eb17",
       "status": "preserved"
@@ -3909,7 +3909,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.deletePoolDevice",
       "original_line": 9328,
-      "candidate_line": 10005,
+      "candidate_line": 10007,
       "original_sha256": "e92fbb5d2ad12c08d5240880897201039be352dcdd600e0065483b9a4af8c4c4",
       "candidate_sha256": "e92fbb5d2ad12c08d5240880897201039be352dcdd600e0065483b9a4af8c4c4",
       "status": "preserved"
@@ -3917,7 +3917,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.deletePoolPort",
       "original_line": 9337,
-      "candidate_line": 10014,
+      "candidate_line": 10016,
       "original_sha256": "fc16c96e09f2d19f789d49c002b62e7dd98237428c15b7f42f51e80bf8869be3",
       "candidate_sha256": "fc16c96e09f2d19f789d49c002b62e7dd98237428c15b7f42f51e80bf8869be3",
       "status": "preserved"
@@ -3925,7 +3925,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.togglePoolValve",
       "original_line": 9344,
-      "candidate_line": 10021,
+      "candidate_line": 10023,
       "original_sha256": "5b467ba595979e64f073fee3e8366de653d03ba099e92fea927cdb99fc52e728",
       "candidate_sha256": "5b467ba595979e64f073fee3e8366de653d03ba099e92fea927cdb99fc52e728",
       "status": "preserved"
@@ -3933,7 +3933,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.setPoolDevice",
       "original_line": 9353,
-      "candidate_line": 10030,
+      "candidate_line": 10032,
       "original_sha256": "31bacef167f0aebc1bfb34113eec084a347ca64ab7532ef6ab8ffe6c9d9c3c56",
       "candidate_sha256": "31bacef167f0aebc1bfb34113eec084a347ca64ab7532ef6ab8ffe6c9d9c3c56",
       "status": "preserved"
@@ -3941,7 +3941,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.portText",
       "original_line": 9364,
-      "candidate_line": 10041,
+      "candidate_line": 10043,
       "original_sha256": "b1bf7fd358eeca4a86d642864157c9f4260e83a7ee84249602957ea617fce6f5",
       "candidate_sha256": "b1bf7fd358eeca4a86d642864157c9f4260e83a7ee84249602957ea617fce6f5",
       "status": "preserved"
@@ -3949,7 +3949,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.openCard",
       "original_line": 9371,
-      "candidate_line": 10048,
+      "candidate_line": 10050,
       "original_sha256": "eafa013b2cde0ecad464d9c7fb503bce15d7604abec1aab30559a72e3053ebc1",
       "candidate_sha256": "eafa013b2cde0ecad464d9c7fb503bce15d7604abec1aab30559a72e3053ebc1",
       "status": "preserved"
@@ -3957,7 +3957,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.partPorts",
       "original_line": 9377,
-      "candidate_line": 10054,
+      "candidate_line": 10056,
       "original_sha256": "85fb17275a74d1e12b79abb601f7c438455e6426ea670f11141cc480d4d5ece6",
       "candidate_sha256": "85fb17275a74d1e12b79abb601f7c438455e6426ea670f11141cc480d4d5ece6",
       "status": "preserved"
@@ -3965,7 +3965,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.partStatus",
       "original_line": 9392,
-      "candidate_line": 10069,
+      "candidate_line": 10071,
       "original_sha256": "fb508da0a122a0a04cd87dc2b777671214d246afbadc33922ae7f1de424b28ea",
       "candidate_sha256": "fb508da0a122a0a04cd87dc2b777671214d246afbadc33922ae7f1de424b28ea",
       "status": "preserved"
@@ -3973,7 +3973,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.cardConnect",
       "original_line": 9399,
-      "candidate_line": 10076,
+      "candidate_line": 10078,
       "original_sha256": "59cb937108a9a3362519d0a1ee6546b3909d14525e9f886efe9b3fcf3746a3ed",
       "candidate_sha256": "59cb937108a9a3362519d0a1ee6546b3909d14525e9f886efe9b3fcf3746a3ed",
       "status": "preserved"
@@ -3981,7 +3981,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.cardDisconnect",
       "original_line": 9421,
-      "candidate_line": 10098,
+      "candidate_line": 10100,
       "original_sha256": "576702d1bd222c3368798267b8606e241f0954e6de61536390d2fd0543a9134c",
       "candidate_sha256": "576702d1bd222c3368798267b8606e241f0954e6de61536390d2fd0543a9134c",
       "status": "preserved"
@@ -3989,7 +3989,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.cardReroute",
       "original_line": 9426,
-      "candidate_line": 10103,
+      "candidate_line": 10105,
       "original_sha256": "e6f6b7d33cfb7b0d8fcc2d0639b97bde1a0916606322ba66496bb99cd44a5320",
       "candidate_sha256": "e6f6b7d33cfb7b0d8fcc2d0639b97bde1a0916606322ba66496bb99cd44a5320",
       "status": "preserved"
@@ -3997,7 +3997,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderPartCard",
       "original_line": 9447,
-      "candidate_line": 10124,
+      "candidate_line": 10126,
       "original_sha256": "d7da8f53e04f6cf663de7db1b297e01ba2fe026c7f44c1aa21664c9a4aa0d335",
       "candidate_sha256": "d7da8f53e04f6cf663de7db1b297e01ba2fe026c7f44c1aa21664c9a4aa0d335",
       "status": "preserved"
@@ -4005,7 +4005,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderJoinPicker",
       "original_line": 9574,
-      "candidate_line": 10251,
+      "candidate_line": 10253,
       "original_sha256": "3ef288c4faf9cea5a12ed55ccbb351d5a5accd3abc8b7119a64ab6462d58d99f",
       "candidate_sha256": "3ef288c4faf9cea5a12ed55ccbb351d5a5accd3abc8b7119a64ab6462d58d99f",
       "status": "preserved"
@@ -4013,7 +4013,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderPartDrawing",
       "original_line": 9648,
-      "candidate_line": 10325,
+      "candidate_line": 10327,
       "original_sha256": "3f280dda5bac42fc4dfc3586088b82eb27f8b3050aa658fe1dc95c1f7f2f5bcf",
       "candidate_sha256": "3f280dda5bac42fc4dfc3586088b82eb27f8b3050aa658fe1dc95c1f7f2f5bcf",
       "status": "preserved"
@@ -4021,7 +4021,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.jointLabel",
       "original_line": 9704,
-      "candidate_line": 10381,
+      "candidate_line": 10383,
       "original_sha256": "9f5330bfa404d5cd5ffa918ae39b0842eda5328cd72a5b510d0bef27dc876d4d",
       "candidate_sha256": "9f5330bfa404d5cd5ffa918ae39b0842eda5328cd72a5b510d0bef27dc876d4d",
       "status": "preserved"
@@ -4029,7 +4029,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.poolEnds",
       "original_line": 9716,
-      "candidate_line": 10393,
+      "candidate_line": 10395,
       "original_sha256": "7f85d589be3740dfd35970036d958a398d9e9ac5c13ad4bed60087cd8ff030c6",
       "candidate_sha256": "7f85d589be3740dfd35970036d958a398d9e9ac5c13ad4bed60087cd8ff030c6",
       "status": "preserved"
@@ -4037,7 +4037,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.placeJointPlan",
       "original_line": 9737,
-      "candidate_line": 10414,
+      "candidate_line": 10416,
       "original_sha256": "5982af74fa98b329e40a5422e842a34496b3e6f7062f13b5f414388b1fed810d",
       "candidate_sha256": "5982af74fa98b329e40a5422e842a34496b3e6f7062f13b5f414388b1fed810d",
       "status": "preserved"
@@ -4045,7 +4045,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.poolNodePos",
       "original_line": 9771,
-      "candidate_line": 10448,
+      "candidate_line": 10450,
       "original_sha256": "de415375f040c780006cda241ac05e13cef0d6d9ca3299358ec9dbdd908cc5d5",
       "candidate_sha256": "de415375f040c780006cda241ac05e13cef0d6d9ca3299358ec9dbdd908cc5d5",
       "status": "preserved"
@@ -4053,7 +4053,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.poolNodeLabel",
       "original_line": 9787,
-      "candidate_line": 10464,
+      "candidate_line": 10466,
       "original_sha256": "3bd03830d3ef36cae7462b1ef48b964d03f9404f9a4368ccf252a9aac65cabf9",
       "candidate_sha256": "3bd03830d3ef36cae7462b1ef48b964d03f9404f9a4368ccf252a9aac65cabf9",
       "status": "preserved"
@@ -4061,7 +4061,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderPoolPlan",
       "original_line": 9809,
-      "candidate_line": 10486,
+      "candidate_line": 10488,
       "original_sha256": "ad2eb12a2038e673e1b581d6144f0a21df5b1facf3c212ef5c4e00216715378d",
       "candidate_sha256": "ad2eb12a2038e673e1b581d6144f0a21df5b1facf3c212ef5c4e00216715378d",
       "status": "preserved"
@@ -4069,7 +4069,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderPoolPanel",
       "original_line": 9874,
-      "candidate_line": 10551,
+      "candidate_line": 10553,
       "original_sha256": "456ac26f9cbddecebc60930cd9105da0e4759b56ce40ee312427a007fc9697a1",
       "candidate_sha256": "456ac26f9cbddecebc60930cd9105da0e4759b56ce40ee312427a007fc9697a1",
       "status": "preserved"
@@ -4077,7 +4077,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderPoolTech",
       "original_line": 9893,
-      "candidate_line": 10570,
+      "candidate_line": 10572,
       "original_sha256": "b26b754eb5445d7cbf78fc49fea3c44648664fa344ccbfcdfa9cfc007e15209e",
       "candidate_sha256": "b26b754eb5445d7cbf78fc49fea3c44648664fa344ccbfcdfa9cfc007e15209e",
       "status": "preserved"
@@ -4085,7 +4085,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderPoolShape",
       "original_line": 10006,
-      "candidate_line": 10683,
+      "candidate_line": 10685,
       "original_sha256": "b1f33aee46c4517d2afa1c4768e80b01e9ed495479618d81127c958b8e9b9a93",
       "candidate_sha256": "b1f33aee46c4517d2afa1c4768e80b01e9ed495479618d81127c958b8e9b9a93",
       "status": "preserved"
@@ -4093,7 +4093,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.pipeRules",
       "original_line": 10034,
-      "candidate_line": 10711,
+      "candidate_line": 10713,
       "original_sha256": "d203427f660f802f9948dcb296d0f465f33619bbf8b1a84b973f963d318fbdb5",
       "candidate_sha256": "d203427f660f802f9948dcb296d0f465f33619bbf8b1a84b973f963d318fbdb5",
       "status": "preserved"
@@ -4101,7 +4101,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.editorHost",
       "original_line": 10039,
-      "candidate_line": 10716,
+      "candidate_line": 10718,
       "original_sha256": "7610d46d4ecea4ce4428e8fa2e7e23b6e35ce8c3a99d9f1077a8f418d0a1cf43",
       "candidate_sha256": "7610d46d4ecea4ce4428e8fa2e7e23b6e35ce8c3a99d9f1077a8f418d0a1cf43",
       "status": "preserved"
@@ -4109,7 +4109,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.memoFields",
       "original_line": 10070,
-      "candidate_line": 10747,
+      "candidate_line": 10749,
       "original_sha256": "1b9907c8c4a947979fdd8e392b1cdcba3204a31f7f33b743308faec7a6902608",
       "candidate_sha256": "1b9907c8c4a947979fdd8e392b1cdcba3204a31f7f33b743308faec7a6902608",
       "status": "preserved"
@@ -4117,7 +4117,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderModuleFields",
       "original_line": 10080,
-      "candidate_line": 10757,
+      "candidate_line": 10759,
       "original_sha256": "f34e3a118c93fcf7310a14a64a22d729f272a4f8a08cdac94eca340774dc9fe2",
       "candidate_sha256": "f34e3a118c93fcf7310a14a64a22d729f272a4f8a08cdac94eca340774dc9fe2",
       "status": "preserved"
@@ -4125,7 +4125,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderModuleRoomFields",
       "original_line": 10086,
-      "candidate_line": 10763,
+      "candidate_line": 10765,
       "original_sha256": "3319de828290a9730ad19e4acdd5b8044a6519474f8ad9644a55cd20bc55012e",
       "candidate_sha256": "3319de828290a9730ad19e4acdd5b8044a6519474f8ad9644a55cd20bc55012e",
       "status": "preserved"
@@ -4133,7 +4133,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderModuleFurnitureFields",
       "original_line": 10093,
-      "candidate_line": 10770,
+      "candidate_line": 10772,
       "original_sha256": "3c8a40c27c21d54fc4c49e1abf8cc44bc31e5800fe71ec03a07f7ba58b29c2cc",
       "candidate_sha256": "3c8a40c27c21d54fc4c49e1abf8cc44bc31e5800fe71ec03a07f7ba58b29c2cc",
       "status": "preserved"
@@ -4141,7 +4141,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderFields",
       "original_line": 10099,
-      "candidate_line": 10776,
+      "candidate_line": 10778,
       "original_sha256": "010b452af2ce3fd52ee8e614301a856a3c2e55a70c33da4c53be8527d72a6350",
       "candidate_sha256": "010b452af2ce3fd52ee8e614301a856a3c2e55a70c33da4c53be8527d72a6350",
       "status": "preserved"
@@ -4149,7 +4149,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderRooms",
       "original_line": 10131,
-      "candidate_line": 10808,
+      "candidate_line": 10810,
       "original_sha256": "9ba005f534c573b7bff3e3bc7795bfddda700604a7e3a7816ec4d418b3910049",
       "candidate_sha256": "20715c53e30dd0ac118ff98c10b5a68b9828cba54df5cb0c1a2ff6c0ef6063bf",
       "status": "aureon_extension"
@@ -4157,7 +4157,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderEdgeHighlight",
       "original_line": 10147,
-      "candidate_line": 10824,
+      "candidate_line": 10826,
       "original_sha256": "92da7e74d9fde1fdccc1c97ef9586994e2aabc3e44e15a1a62c3ad5d1c4f97ac",
       "candidate_sha256": "92da7e74d9fde1fdccc1c97ef9586994e2aabc3e44e15a1a62c3ad5d1c4f97ac",
       "status": "preserved"
@@ -4165,7 +4165,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderMeter",
       "original_line": 10156,
-      "candidate_line": 10833,
+      "candidate_line": 10835,
       "original_sha256": "f7889b39e4536dd33d24dc320012b480679c9f2e0acdd5d13e1e2e27609034de",
       "candidate_sha256": "f7889b39e4536dd33d24dc320012b480679c9f2e0acdd5d13e1e2e27609034de",
       "status": "preserved"
@@ -4173,7 +4173,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderFurniture",
       "original_line": 10166,
-      "candidate_line": 10843,
+      "candidate_line": 10845,
       "original_sha256": "3d991772fc24c66437ce054548e6a2b384385314060d68ddcb2de0df21a639fc",
       "candidate_sha256": "3d991772fc24c66437ce054548e6a2b384385314060d68ddcb2de0df21a639fc",
       "status": "preserved"
@@ -4181,7 +4181,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderSelectionFrame",
       "original_line": 10221,
-      "candidate_line": 10898,
+      "candidate_line": 10900,
       "original_sha256": "bec8c7385cd8b79c59bf5fbd2607d828d6421c8d623ae9985f14f545ef923120",
       "candidate_sha256": "bec8c7385cd8b79c59bf5fbd2607d828d6421c8d623ae9985f14f545ef923120",
       "status": "preserved"
@@ -4189,7 +4189,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderBlockForm",
       "original_line": 10237,
-      "candidate_line": 10914,
+      "candidate_line": 10916,
       "original_sha256": "9397a1b3cdfeb62abac143e6873e3771cefc7cfc481b7b5c296af5c3953dd881",
       "candidate_sha256": "9397a1b3cdfeb62abac143e6873e3771cefc7cfc481b7b5c296af5c3953dd881",
       "status": "preserved"
@@ -4197,7 +4197,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderMultiToggle",
       "original_line": 10270,
-      "candidate_line": 10947,
+      "candidate_line": 10949,
       "original_sha256": "57bc88acb59aa5ea9397a4818ce36c1d5fd456cd73102a0e4268d740fb5f6037",
       "candidate_sha256": "57bc88acb59aa5ea9397a4818ce36c1d5fd456cd73102a0e4268d740fb5f6037",
       "status": "preserved"
@@ -4205,7 +4205,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderOpenings",
       "original_line": 10274,
-      "candidate_line": 10951,
+      "candidate_line": 10953,
       "original_sha256": "602a423b33d664c4f9eb10ea62add403c6d147feb814417e809e1832edf7b8b9",
       "candidate_sha256": "602a423b33d664c4f9eb10ea62add403c6d147feb814417e809e1832edf7b8b9",
       "status": "preserved"
@@ -4213,7 +4213,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderDevices",
       "original_line": 10386,
-      "candidate_line": 11063,
+      "candidate_line": 11065,
       "original_sha256": "66974da128780d1ea9b7d12f8f8f9428d2b927712c9139651e5a2c7605a9f92b",
       "candidate_sha256": "66974da128780d1ea9b7d12f8f8f9428d2b927712c9139651e5a2c7605a9f92b",
       "status": "preserved"
@@ -4221,7 +4221,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderCameraWedge",
       "original_line": 10404,
-      "candidate_line": 11081,
+      "candidate_line": 11083,
       "original_sha256": "96164da64ebaa29fb7213dccee022731ee598376c71700c76e26273e9524cc39",
       "candidate_sha256": "96164da64ebaa29fb7213dccee022731ee598376c71700c76e26273e9524cc39",
       "status": "preserved"
@@ -4229,7 +4229,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderHandles",
       "original_line": 10430,
-      "candidate_line": 11107,
+      "candidate_line": 11109,
       "original_sha256": "16bd82906460256cf71142fe4ec942dc6a846468c6b09861d362c4b6ba4d0ac3",
       "candidate_sha256": "16bd82906460256cf71142fe4ec942dc6a846468c6b09861d362c4b6ba4d0ac3",
       "status": "preserved"
@@ -4237,7 +4237,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderDraft",
       "original_line": 10470,
-      "candidate_line": 11147,
+      "candidate_line": 11149,
       "original_sha256": "959ada57f5b5c41bbe0c58a37cc6e5deabd36a25962b0c1c8ada7a0e0d0c0377",
       "candidate_sha256": "959ada57f5b5c41bbe0c58a37cc6e5deabd36a25962b0c1c8ada7a0e0d0c0377",
       "status": "preserved"
@@ -4245,7 +4245,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderGuides",
       "original_line": 10510,
-      "candidate_line": 11187,
+      "candidate_line": 11189,
       "original_sha256": "f73f67c8f9410c3fcd422d36f81674e434f7d10b0b9361c4cb12f6121b780ade",
       "candidate_sha256": "f73f67c8f9410c3fcd422d36f81674e434f7d10b0b9361c4cb12f6121b780ade",
       "status": "preserved"
@@ -4253,7 +4253,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.unit",
       "original_line": 10521,
-      "candidate_line": 11198,
+      "candidate_line": 11200,
       "original_sha256": "b31cd2fdc9f1a9218b3e8bd72671ce4d720e5ffe2d2cf4fed0d129e5d68c9790",
       "candidate_sha256": "b31cd2fdc9f1a9218b3e8bd72671ce4d720e5ffe2d2cf4fed0d129e5d68c9790",
       "status": "preserved"
@@ -4261,7 +4261,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.m",
       "original_line": 10526,
-      "candidate_line": 11203,
+      "candidate_line": 11205,
       "original_sha256": "535a127ca7e169473987dd0856f6daf1cb1b77e41a1ae7bb10f11cffb9d82632",
       "candidate_sha256": "535a127ca7e169473987dd0856f6daf1cb1b77e41a1ae7bb10f11cffb9d82632",
       "status": "preserved"
@@ -4269,7 +4269,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.area",
       "original_line": 10530,
-      "candidate_line": 11207,
+      "candidate_line": 11209,
       "original_sha256": "d3fd854923bf8e8479bd70037773a5fa083bfadd1d6eee4f26220de28a6a725f",
       "candidate_sha256": "d3fd854923bf8e8479bd70037773a5fa083bfadd1d6eee4f26220de28a6a725f",
       "status": "preserved"
@@ -4277,7 +4277,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.lenValue",
       "original_line": 10535,
-      "candidate_line": 11212,
+      "candidate_line": 11214,
       "original_sha256": "703895132e3ce4a64b87ad5f3aa8c1f9a9c2c206ccdfaa76114b251d6cefe141",
       "candidate_sha256": "703895132e3ce4a64b87ad5f3aa8c1f9a9c2c206ccdfaa76114b251d6cefe141",
       "status": "preserved"
@@ -4285,7 +4285,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.readLen",
       "original_line": 10540,
-      "candidate_line": 11217,
+      "candidate_line": 11219,
       "original_sha256": "040f4ca7650a1ed69e2e0ad8da02e3badfecfea53bcc7ecb3c76ad5ce4280273",
       "candidate_sha256": "040f4ca7650a1ed69e2e0ad8da02e3badfecfea53bcc7ecb3c76ad5ce4280273",
       "status": "preserved"
@@ -4293,7 +4293,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.len",
       "original_line": 10547,
-      "candidate_line": 11224,
+      "candidate_line": 11226,
       "original_sha256": "8261738027fd1305dd4b6e46493ffc494ff71e8f80e3d269cc1475a705fc170b",
       "candidate_sha256": "8261738027fd1305dd4b6e46493ffc494ff71e8f80e3d269cc1475a705fc170b",
       "status": "preserved"
@@ -4301,7 +4301,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.num",
       "original_line": 10566,
-      "candidate_line": 11243,
+      "candidate_line": 11245,
       "original_sha256": "3fe61e03b67e5f3e9301036232a82042a823851d7bcb66715a5d68ce81656b06",
       "candidate_sha256": "3fe61e03b67e5f3e9301036232a82042a823851d7bcb66715a5d68ce81656b06",
       "status": "preserved"
@@ -4309,7 +4309,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.doubleTap",
       "original_line": 10592,
-      "candidate_line": 11269,
+      "candidate_line": 11271,
       "original_sha256": "232335bd956af14131efd8a1dec6459cd59564383856f744d3d23203582b3382",
       "candidate_sha256": "232335bd956af14131efd8a1dec6459cd59564383856f744d3d23203582b3382",
       "status": "preserved"
@@ -4317,7 +4317,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.selectFrom3d",
       "original_line": 10600,
-      "candidate_line": 11277,
+      "candidate_line": 11279,
       "original_sha256": "afcbc7dd9f80dfc4d6bd4c524978f948abbd7cf87e2ff3b6c01ef7a815245f28",
       "candidate_sha256": "afcbc7dd9f80dfc4d6bd4c524978f948abbd7cf87e2ff3b6c01ef7a815245f28",
       "status": "preserved"
@@ -4325,7 +4325,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.setSidePinned",
       "original_line": 10605,
-      "candidate_line": 11282,
+      "candidate_line": 11284,
       "original_sha256": "481e6b547c865e5c7a4f838fad46a27313dff522f868c77d9258258d3126edda",
       "candidate_sha256": "481e6b547c865e5c7a4f838fad46a27313dff522f868c77d9258258d3126edda",
       "status": "preserved"
@@ -4333,7 +4333,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.setSideFolded",
       "original_line": 10616,
-      "candidate_line": 11293,
+      "candidate_line": 11295,
       "original_sha256": "cbaac2132201e841f2a4a4d8895c8b8653d187f19b9451db44ef9a52f7bd21ed",
       "candidate_sha256": "cbaac2132201e841f2a4a4d8895c8b8653d187f19b9451db44ef9a52f7bd21ed",
       "status": "preserved"
@@ -4341,7 +4341,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderSideGrip",
       "original_line": 10634,
-      "candidate_line": 11311,
+      "candidate_line": 11313,
       "original_sha256": "dbfd193754a26acb0d7741fe2aa990dc45e0a7751deb69c3bf84ed64552bfe06",
       "candidate_sha256": "dbfd193754a26acb0d7741fe2aa990dc45e0a7751deb69c3bf84ed64552bfe06",
       "status": "preserved"
@@ -4349,7 +4349,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderAside",
       "original_line": 10664,
-      "candidate_line": 11341,
+      "candidate_line": 11343,
       "original_sha256": "5af04fb84a12613dafea52a7ce8c2da286069045284fdb6bb8d3c7e0c820a7e6",
       "candidate_sha256": "5af04fb84a12613dafea52a7ce8c2da286069045284fdb6bb8d3c7e0c820a7e6",
       "status": "preserved"
@@ -4357,7 +4357,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderPinRow",
       "original_line": 10685,
-      "candidate_line": 11362,
+      "candidate_line": 11364,
       "original_sha256": "216d7aae929e632c953a1f60d09e5799c357714f703e10dd0c8530c6a3bfcad1",
       "candidate_sha256": "216d7aae929e632c953a1f60d09e5799c357714f703e10dd0c8530c6a3bfcad1",
       "status": "preserved"
@@ -4365,7 +4365,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderSide",
       "original_line": 10697,
-      "candidate_line": 11374,
+      "candidate_line": 11376,
       "original_sha256": "515ee779e3e21e2bd453568633726a1e3eeaac58cca053b16c4cc0df2b7791ef",
       "candidate_sha256": "e995f2607efbcf3c0def5539970ed03b687b75cfa7e8b0a9e1e0c2c552480056",
       "status": "aureon_extension"
@@ -4373,7 +4373,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.moveRoom",
       "original_line": 10834,
-      "candidate_line": 11511,
+      "candidate_line": 11513,
       "original_sha256": "2c789992d5b60dedc743eb29cb8e18e4861befa415e47d569106835ba03d1152",
       "candidate_sha256": "2c789992d5b60dedc743eb29cb8e18e4861befa415e47d569106835ba03d1152",
       "status": "preserved"
@@ -4381,7 +4381,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderRoomList",
       "original_line": 10844,
-      "candidate_line": 11521,
+      "candidate_line": 11523,
       "original_sha256": "f6a1f9e8973e731f4a8312ae1c158a2c3b9f3a766b6368ba2050931042c0b506",
       "candidate_sha256": "6575d9f6f86679df2b61c58f4b2c1a617f1e3a585dcb712051fb1c5f5d1d7cf0",
       "status": "aureon_extension"
@@ -4389,7 +4389,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderRoomOpenings",
       "original_line": 10865,
-      "candidate_line": 11544,
+      "candidate_line": 11546,
       "original_sha256": "706e5864fb274ae19595bcf472d3d0a1d1bf7dbe9707f1ff9bc3c099774cca04",
       "candidate_sha256": "706e5864fb274ae19595bcf472d3d0a1d1bf7dbe9707f1ff9bc3c099774cca04",
       "status": "preserved"
@@ -4397,7 +4397,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderRoomForm",
       "original_line": 10880,
-      "candidate_line": 11617,
+      "candidate_line": 11619,
       "original_sha256": "8160888921bc724e226954cf386f5be6634abe6a2498b1af7630aab9423cf3fc",
       "candidate_sha256": "2fef9e41b44d87d0778fe8ffb579bc413689d8f39a50e5c428d8d87431d04943",
       "status": "aureon_extension"
@@ -4405,7 +4405,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.applyPackage",
       "original_line": 10987,
-      "candidate_line": 11727,
+      "candidate_line": 11729,
       "original_sha256": "e8cb6f5282aaf848aa0d1f98cc6cea0719a154a95665b3f32dc01281d31a2c87",
       "candidate_sha256": "e8cb6f5282aaf848aa0d1f98cc6cea0719a154a95665b3f32dc01281d31a2c87",
       "status": "preserved"
@@ -4413,7 +4413,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.openSpotForm",
       "original_line": 10996,
-      "candidate_line": 11736,
+      "candidate_line": 11738,
       "original_sha256": "cb71d6d0aaca77b4515bc107dd53c395f564035d51c5d309330a8e7e3f56cdea",
       "candidate_sha256": "cb71d6d0aaca77b4515bc107dd53c395f564035d51c5d309330a8e7e3f56cdea",
       "status": "preserved"
@@ -4421,7 +4421,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.placeSpots",
       "original_line": 11007,
-      "candidate_line": 11747,
+      "candidate_line": 11749,
       "original_sha256": "c3e9f82e4395a22d6b2f1c6335f0460c63dc6a33bade95944b2ef28976652073",
       "candidate_sha256": "c3e9f82e4395a22d6b2f1c6335f0460c63dc6a33bade95944b2ef28976652073",
       "status": "preserved"
@@ -4429,7 +4429,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderSpotForm",
       "original_line": 11030,
-      "candidate_line": 11770,
+      "candidate_line": 11772,
       "original_sha256": "525dcd0fa41d55c84bc71a25e93a149494e12d7040a4be24e6fb571a31a77e6d",
       "candidate_sha256": "525dcd0fa41d55c84bc71a25e93a149494e12d7040a4be24e6fb571a31a77e6d",
       "status": "preserved"
@@ -4437,7 +4437,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.iconInput",
       "original_line": 11056,
-      "candidate_line": 11796,
+      "candidate_line": 11798,
       "original_sha256": "ae74045ff403f87519457e73a92c8543d70842002db2a35580f9d0990fca4628",
       "candidate_sha256": "ae74045ff403f87519457e73a92c8543d70842002db2a35580f9d0990fca4628",
       "status": "preserved"
@@ -4445,7 +4445,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.markerSelect",
       "original_line": 11068,
-      "candidate_line": 11808,
+      "candidate_line": 11810,
       "original_sha256": "83a424f436743b95614269b771d3e2093a3ebb214cebafe4707ba06ed9eb96e1",
       "candidate_sha256": "83a424f436743b95614269b771d3e2093a3ebb214cebafe4707ba06ed9eb96e1",
       "status": "preserved"
@@ -4453,7 +4453,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.isOutageChoice",
       "original_line": 11080,
-      "candidate_line": 11820,
+      "candidate_line": 11822,
       "original_sha256": "1190f9dcaa26197c1710ec8424fa4d1a0711445ca5ca215afe10e0153a484e21",
       "candidate_sha256": "1190f9dcaa26197c1710ec8424fa4d1a0711445ca5ca215afe10e0153a484e21",
       "status": "preserved"
@@ -4461,7 +4461,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.entityOptions",
       "original_line": 11083,
-      "candidate_line": 11823,
+      "candidate_line": 11825,
       "original_sha256": "d2a02850976e60296be9d2a17e4aeec17f54c0a65201a7413a5598f515e2b3f3",
       "candidate_sha256": "d2a02850976e60296be9d2a17e4aeec17f54c0a65201a7413a5598f515e2b3f3",
       "status": "preserved"
@@ -4469,7 +4469,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.entityOptionsOf",
       "original_line": 11092,
-      "candidate_line": 11832,
+      "candidate_line": 11834,
       "original_sha256": "865047bbfffc2e26a0d74bc71a1591dab9125e899f86e82d3ef0e39bfeda9a8b",
       "candidate_sha256": "865047bbfffc2e26a0d74bc71a1591dab9125e899f86e82d3ef0e39bfeda9a8b",
       "status": "preserved"
@@ -4477,7 +4477,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.entitySelect",
       "original_line": 11103,
-      "candidate_line": 11843,
+      "candidate_line": 11845,
       "original_sha256": "efc5045384b15b3beb52b2e9d6a453618e2b00b9bdd40aed46c505bf54d978ce",
       "candidate_sha256": "efc5045384b15b3beb52b2e9d6a453618e2b00b9bdd40aed46c505bf54d978ce",
       "status": "preserved"
@@ -4485,7 +4485,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.openingIsExterior",
       "original_line": 11126,
-      "candidate_line": 11866,
+      "candidate_line": 11868,
       "original_sha256": "ed164fa85c9a6ba0edc516d3d17ccad9c8e962eafdee5bf4ebf4a5222bbc7473",
       "candidate_sha256": "ed164fa85c9a6ba0edc516d3d17ccad9c8e962eafdee5bf4ebf4a5222bbc7473",
       "status": "preserved"
@@ -4493,7 +4493,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderSidelightFields",
       "original_line": 11136,
-      "candidate_line": 11876,
+      "candidate_line": 11878,
       "original_sha256": "11806b230d8fa79144181237a892c2dfa4589386b6c83ed5f21ff04bb80864f9",
       "candidate_sha256": "11806b230d8fa79144181237a892c2dfa4589386b6c83ed5f21ff04bb80864f9",
       "status": "preserved"
@@ -4501,7 +4501,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderStyleSelect",
       "original_line": 11166,
-      "candidate_line": 11906,
+      "candidate_line": 11908,
       "original_sha256": "dbbafa2afcd480120dac95591297b9793743046e9ecf9b54a4035e524f29a75c",
       "candidate_sha256": "dbbafa2afcd480120dac95591297b9793743046e9ecf9b54a4035e524f29a75c",
       "status": "preserved"
@@ -4509,7 +4509,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderOpeningForm",
       "original_line": 11179,
-      "candidate_line": 11919,
+      "candidate_line": 11921,
       "original_sha256": "9fe961a18b415042424e28b940a4b93737157c33a2aa11444b592bd88641133d",
       "candidate_sha256": "9fe961a18b415042424e28b940a4b93737157c33a2aa11444b592bd88641133d",
       "status": "preserved"
@@ -4517,7 +4517,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderShowIf",
       "original_line": 11414,
-      "candidate_line": 12154,
+      "candidate_line": 12156,
       "original_sha256": "a090a9b5181d71822f78aa26b0975e671c747671249f50ebfdaee05089843a09",
       "candidate_sha256": "a090a9b5181d71822f78aa26b0975e671c747671249f50ebfdaee05089843a09",
       "status": "preserved"
@@ -4525,7 +4525,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderFurnitureForm",
       "original_line": 11447,
-      "candidate_line": 12187,
+      "candidate_line": 12189,
       "original_sha256": "6bfa27f07565381f6c1bab03d26f9fab07a2e0ce9d670eaaa0e159d1773b8249",
       "candidate_sha256": "6bfa27f07565381f6c1bab03d26f9fab07a2e0ce9d670eaaa0e159d1773b8249",
       "status": "preserved"
@@ -4533,7 +4533,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.setEnergy",
       "original_line": 11571,
-      "candidate_line": 12311,
+      "candidate_line": 12313,
       "original_sha256": "9b30937f5a00eaad861d590b6d847f497278c20e8a7302292562ca405c7582fb",
       "candidate_sha256": "9b30937f5a00eaad861d590b6d847f497278c20e8a7302292562ca405c7582fb",
       "status": "preserved"
@@ -4541,7 +4541,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.importEnergyPrefs",
       "original_line": 11578,
-      "candidate_line": 12318,
+      "candidate_line": 12320,
       "original_sha256": "cade1e073a611e6b573a66c9ef98930db1f2e09a90bd0c38e51e41a1997ccc86",
       "candidate_sha256": "cade1e073a611e6b573a66c9ef98930db1f2e09a90bd0c38e51e41a1997ccc86",
       "status": "preserved"
@@ -4549,7 +4549,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderEnergyBalance",
       "original_line": 11624,
-      "candidate_line": 12364,
+      "candidate_line": 12366,
       "original_sha256": "e300fbc33a66007fbf02892c0e6c804ef1724405d39ce330b9786fdb5ae1e702",
       "candidate_sha256": "e300fbc33a66007fbf02892c0e6c804ef1724405d39ce330b9786fdb5ae1e702",
       "status": "preserved"
@@ -4557,7 +4557,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderHeadroom",
       "original_line": 11681,
-      "candidate_line": 12421,
+      "candidate_line": 12423,
       "original_sha256": "cec4823e2847d2e1facdb74273a95d89cc56dd6310d78d851da161e2fd6ff89e",
       "candidate_sha256": "cec4823e2847d2e1facdb74273a95d89cc56dd6310d78d851da161e2fd6ff89e",
       "status": "preserved"
@@ -4565,7 +4565,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderFavorites",
       "original_line": 11697,
-      "candidate_line": 12437,
+      "candidate_line": 12439,
       "original_sha256": "3bc93aca646694a34bd84e0d64a3473f9645775405b641451850baaf99dce697",
       "candidate_sha256": "3bc93aca646694a34bd84e0d64a3473f9645775405b641451850baaf99dce697",
       "status": "preserved"
@@ -4573,7 +4573,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderMediaPresets",
       "original_line": 11731,
-      "candidate_line": 12471,
+      "candidate_line": 12473,
       "original_sha256": "b3a494102c2e1b1496de3698043ea4a4504ca5b1777d3bc8ec84ad5b4502999b",
       "candidate_sha256": "b3a494102c2e1b1496de3698043ea4a4504ca5b1777d3bc8ec84ad5b4502999b",
       "status": "preserved"
@@ -4581,7 +4581,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderOwnButtons",
       "original_line": 11767,
-      "candidate_line": 12507,
+      "candidate_line": 12509,
       "original_sha256": "4e35de2573c8754945a5c1775dc7759e1c06bcd70a96441a40e3c9aebcddffab",
       "candidate_sha256": "4e35de2573c8754945a5c1775dc7759e1c06bcd70a96441a40e3c9aebcddffab",
       "status": "preserved"
@@ -4589,7 +4589,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.paneView",
       "original_line": 11830,
-      "candidate_line": 12570,
+      "candidate_line": 12572,
       "original_sha256": "64fbc1598e34110447915e1805e59557c8849600a70d656207ce8ad6a1b918ca",
       "candidate_sha256": "64fbc1598e34110447915e1805e59557c8849600a70d656207ce8ad6a1b918ca",
       "status": "preserved"
@@ -4597,7 +4597,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.rememberFloorView",
       "original_line": 11839,
-      "candidate_line": 12579,
+      "candidate_line": 12581,
       "original_sha256": "9fddbf1e78bd2ff8eca4c0c1a61f460ba4bbb3286b377e1226c62b5719781fed",
       "candidate_sha256": "9fddbf1e78bd2ff8eca4c0c1a61f460ba4bbb3286b377e1226c62b5719781fed",
       "status": "preserved"
@@ -4605,7 +4605,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.rememberRoomView",
       "original_line": 11849,
-      "candidate_line": 12589,
+      "candidate_line": 12591,
       "original_sha256": "c7c15e7df9afd4f953f191b7cae1a0bf92f2579f2530d50068f751f89fa5af13",
       "candidate_sha256": "c7c15e7df9afd4f953f191b7cae1a0bf92f2579f2530d50068f751f89fa5af13",
       "status": "preserved"
@@ -4613,7 +4613,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderDirectorTriggers",
       "original_line": 11860,
-      "candidate_line": 12600,
+      "candidate_line": 12602,
       "original_sha256": "cf8a394d0efab271e7fc3684ef3882af4ef0ac3de8ed15d3ed645dfd2df2cf1f",
       "candidate_sha256": "cf8a394d0efab271e7fc3684ef3882af4ef0ac3de8ed15d3ed645dfd2df2cf1f",
       "status": "preserved"
@@ -4621,7 +4621,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderDirector",
       "original_line": 11894,
-      "candidate_line": 12634,
+      "candidate_line": 12636,
       "original_sha256": "bb6cad20e982b7a7bb4792ab59ec39100fa08de3de1170229490fbb6b612edba",
       "candidate_sha256": "bb6cad20e982b7a7bb4792ab59ec39100fa08de3de1170229490fbb6b612edba",
       "status": "preserved"
@@ -4629,7 +4629,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderVoicePipeline",
       "original_line": 11953,
-      "candidate_line": 12693,
+      "candidate_line": 12695,
       "original_sha256": "0e2e50240f37065bec20e2bee343a9f4d78bba1320f1299523b6518defb8f9d4",
       "candidate_sha256": "0e2e50240f37065bec20e2bee343a9f4d78bba1320f1299523b6518defb8f9d4",
       "status": "preserved"
@@ -4637,7 +4637,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderVoiceRoom",
       "original_line": 12018,
-      "candidate_line": 12758,
+      "candidate_line": 12760,
       "original_sha256": "4a23a4e6b47d2c0cefddb6a3ba70a27be8e94712e45b26792c3401cfa6112dd9",
       "candidate_sha256": "4a23a4e6b47d2c0cefddb6a3ba70a27be8e94712e45b26792c3401cfa6112dd9",
       "status": "preserved"
@@ -4645,7 +4645,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderVoice",
       "original_line": 12042,
-      "candidate_line": 12782,
+      "candidate_line": 12784,
       "original_sha256": "ff61ab7fae57890a2fd187620d27dca8eaefe6aeb455d23a390e5ca4ba822b30",
       "candidate_sha256": "ff61ab7fae57890a2fd187620d27dca8eaefe6aeb455d23a390e5ca4ba822b30",
       "status": "preserved"
@@ -4653,7 +4653,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderPresenceSettings",
       "original_line": 12089,
-      "candidate_line": 12829,
+      "candidate_line": 12831,
       "original_sha256": "a5f8875b5754ec73601f7a1b9d16267d6bc3bd2862ee682580be2334391fa395",
       "candidate_sha256": "a5f8875b5754ec73601f7a1b9d16267d6bc3bd2862ee682580be2334391fa395",
       "status": "preserved"
@@ -4661,7 +4661,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderStateLinks",
       "original_line": 12126,
-      "candidate_line": 12866,
+      "candidate_line": 12868,
       "original_sha256": "66f5daf3505ab79edbcc3af12e6a45c04fb85ba9e1aafa2f0bdfcc7ff004b055",
       "candidate_sha256": "66f5daf3505ab79edbcc3af12e6a45c04fb85ba9e1aafa2f0bdfcc7ff004b055",
       "status": "preserved"
@@ -4669,7 +4669,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.setHousehold",
       "original_line": 12145,
-      "candidate_line": 12885,
+      "candidate_line": 12887,
       "original_sha256": "7d693da2950003e09eebf555feab32d4a7fabc00d625d84caeb96288991699a9",
       "candidate_sha256": "7d693da2950003e09eebf555feab32d4a7fabc00d625d84caeb96288991699a9",
       "status": "preserved"
@@ -4677,7 +4677,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderHouseholdForm",
       "original_line": 12155,
-      "candidate_line": 12895,
+      "candidate_line": 12897,
       "original_sha256": "b14ce2c67b869741c579e9736c3922e83a11bd38d973e06fc7beb473b4925f8f",
       "candidate_sha256": "da5b0b0e440b2c08cbf0bd07ca826c4e542f143f1ea1a651aadbd573cb9a3ca1",
       "status": "modified"
@@ -4685,7 +4685,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderHouseholdExtras",
       "original_line": 12245,
-      "candidate_line": 12975,
+      "candidate_line": 12977,
       "original_sha256": "8afbc88e3ef1a7d8d0e6c9f9901f58906158ce3c2d42d89c3dce12d390272542",
       "candidate_sha256": "9124a67b90add88610f1e6ac5c527d8c6bbd04fa7080a2cac2f2d6bb6948acbd",
       "status": "modified"
@@ -4693,7 +4693,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderAwningFields",
       "original_line": 12293,
-      "candidate_line": 13013,
+      "candidate_line": 13015,
       "original_sha256": "a5c73e14c2d504fd31813eabeb8fd1f2962f9941a1d9eb262bff3fcd29202d64",
       "candidate_sha256": "a5c73e14c2d504fd31813eabeb8fd1f2962f9941a1d9eb262bff3fcd29202d64",
       "status": "preserved"
@@ -4701,7 +4701,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderMotionFields",
       "original_line": 12334,
-      "candidate_line": 13054,
+      "candidate_line": 13056,
       "original_sha256": "702b2e1670c9c4c6a4d7a45e075b3b0663b23cc23c9286bcf5ddc6efcce446f6",
       "candidate_sha256": "702b2e1670c9c4c6a4d7a45e075b3b0663b23cc23c9286bcf5ddc6efcce446f6",
       "status": "preserved"
@@ -4709,7 +4709,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderTechForm",
       "original_line": 12358,
-      "candidate_line": 13078,
+      "candidate_line": 13080,
       "original_sha256": "999d10be09f4a47482e53d0466d8158764472aa20864e04e14a312dbfd5e5cde",
       "candidate_sha256": "999d10be09f4a47482e53d0466d8158764472aa20864e04e14a312dbfd5e5cde",
       "status": "preserved"
@@ -4717,7 +4717,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderGangsForm",
       "original_line": 12388,
-      "candidate_line": 13108,
+      "candidate_line": 13110,
       "original_sha256": "c4948209ab182bcb9e3a268a6874b8dab44b5d616a3474972ffb989eae5ad391",
       "candidate_sha256": "c4948209ab182bcb9e3a268a6874b8dab44b5d616a3474972ffb989eae5ad391",
       "status": "preserved"
@@ -4725,7 +4725,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderFurnitureLinks",
       "original_line": 12430,
-      "candidate_line": 13150,
+      "candidate_line": 13152,
       "original_sha256": "bf27408bc41351898a93d91520c333790075625a0d252f177cf35805264529ef",
       "candidate_sha256": "bf27408bc41351898a93d91520c333790075625a0d252f177cf35805264529ef",
       "status": "preserved"
@@ -4733,7 +4733,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderParkingForm",
       "original_line": 12638,
-      "candidate_line": 13358,
+      "candidate_line": 13360,
       "original_sha256": "95ef40b9421bd5e91b7a83281ab0e43eddc3e5c8ebbb48dcdff279bc01ac2d7e",
       "candidate_sha256": "95ef40b9421bd5e91b7a83281ab0e43eddc3e5c8ebbb48dcdff279bc01ac2d7e",
       "status": "preserved"
@@ -4741,7 +4741,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderCarForm",
       "original_line": 12700,
-      "candidate_line": 13420,
+      "candidate_line": 13422,
       "original_sha256": "4d6b323ab8dd4fd36b11916dc61e07f09d981a8c01cd7a0b70304dedbdc4eec8",
       "candidate_sha256": "bb7331a966e01e27f8447b42b6b2463f6b3c0fd84ada861a3dc5e5d929707515",
       "status": "modified"
@@ -4749,7 +4749,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.storedPictures",
       "original_line": 12732,
-      "candidate_line": 13447,
+      "candidate_line": 13449,
       "original_sha256": "70610eaaff79db476103a6ecc6c5fe8890e60c7716b24313107d8f9971bedf4c",
       "candidate_sha256": "70610eaaff79db476103a6ecc6c5fe8890e60c7716b24313107d8f9971bedf4c",
       "status": "preserved"
@@ -4757,7 +4757,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderPictureRules",
       "original_line": 12746,
-      "candidate_line": 13461,
+      "candidate_line": 13463,
       "original_sha256": "49f654fa8869902049cf1761628d61fb05895d6f5a03c181c5f8abf581a27764",
       "candidate_sha256": "f556316b67c7d7eceecf75a6b2a59c66d6146cd0c3756c4a7bbba2f1f02684ed",
       "status": "modified"
@@ -4765,7 +4765,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.uploadPicture",
       "original_line": 12894,
-      "candidate_line": 13609,
+      "candidate_line": 13611,
       "original_sha256": "8ac3f1955bec2cdf52408fb13ba9f5dbbd9b471c6cee2faa69f7610502d97b6c",
       "candidate_sha256": "8ac3f1955bec2cdf52408fb13ba9f5dbbd9b471c6cee2faa69f7610502d97b6c",
       "status": "preserved"
@@ -4773,7 +4773,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.libraryEntries",
       "original_line": 12916,
-      "candidate_line": 13631,
+      "candidate_line": 13633,
       "original_sha256": "dd59138f86304e579a5dd255b6d8cfd898911d079088d01bc6184e61794c27f5",
       "candidate_sha256": "dd59138f86304e579a5dd255b6d8cfd898911d079088d01bc6184e61794c27f5",
       "status": "preserved"
@@ -4781,7 +4781,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.libraryThumb",
       "original_line": 12935,
-      "candidate_line": 13650,
+      "candidate_line": 13652,
       "original_sha256": "5522018b4853cffc3f06c84ed7a55f8184117740f2a15766e50a966611825d09",
       "candidate_sha256": "5522018b4853cffc3f06c84ed7a55f8184117740f2a15766e50a966611825d09",
       "status": "preserved"
@@ -4789,7 +4789,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderFurnitureLibrary",
       "original_line": 12941,
-      "candidate_line": 13734,
+      "candidate_line": 13736,
       "original_sha256": "c7619ae05f1b8169cf7020a850380f553f1cb6be7303e390a60db51c83aaa738",
       "candidate_sha256": "006d2bb8fbd0ff860c22113e856fc5aaa89aa0e4a45564246467fb8a266ec40f",
       "status": "aureon_extension"
@@ -4797,7 +4797,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.showPreview",
       "original_line": 12969,
-      "candidate_line": 13757,
+      "candidate_line": 13759,
       "original_sha256": "4e5ebf41f9f3acd5542be15fbc253d40d9ec5bbd9332b0efa4b32462da1dffe2",
       "candidate_sha256": "4e5ebf41f9f3acd5542be15fbc253d40d9ec5bbd9332b0efa4b32462da1dffe2",
       "status": "preserved"
@@ -4805,7 +4805,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderPreview",
       "original_line": 12983,
-      "candidate_line": 13771,
+      "candidate_line": 13773,
       "original_sha256": "31de156521ffce44682f2147b8c14ec36d6e095fcbb623b2b30e33249634ecb0",
       "candidate_sha256": "31de156521ffce44682f2147b8c14ec36d6e095fcbb623b2b30e33249634ecb0",
       "status": "preserved"
@@ -4813,7 +4813,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderDeviceForm",
       "original_line": 12992,
-      "candidate_line": 13780,
+      "candidate_line": 13782,
       "original_sha256": "2470dd114d7bb784859a9be98556c9f0ee86c3d065dfedcf425b077b95ac025a",
       "candidate_sha256": "2470dd114d7bb784859a9be98556c9f0ee86c3d065dfedcf425b077b95ac025a",
       "status": "preserved"
@@ -4821,7 +4821,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderDeviceList",
       "original_line": 13094,
-      "candidate_line": 13882,
+      "candidate_line": 13884,
       "original_sha256": "4c42691295106f8c5351ba723cf22c8075a570338f199dc64da3c7f6ce6dff38",
       "candidate_sha256": "4c42691295106f8c5351ba723cf22c8075a570338f199dc64da3c7f6ce6dff38",
       "status": "preserved"
@@ -4829,7 +4829,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderDeviceOthers",
       "original_line": 13247,
-      "candidate_line": 14035,
+      "candidate_line": 14037,
       "original_sha256": "4f78d9b68d7292b22fbf1a40b6079c8505b70eee81ec0c71202e42c2dece0b19",
       "candidate_sha256": "4f78d9b68d7292b22fbf1a40b6079c8505b70eee81ec0c71202e42c2dece0b19",
       "status": "preserved"
@@ -4837,7 +4837,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderDeviceExtras",
       "original_line": 13268,
-      "candidate_line": 14056,
+      "candidate_line": 14058,
       "original_sha256": "0df522f8d47c96034d5d08f668962b2c7e399f3078cc891a97b02b9669c68b8a",
       "candidate_sha256": "0df522f8d47c96034d5d08f668962b2c7e399f3078cc891a97b02b9669c68b8a",
       "status": "preserved"
@@ -4845,7 +4845,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderRoomClimate",
       "original_line": 13294,
-      "candidate_line": 14082,
+      "candidate_line": 14084,
       "original_sha256": "faa041162aef286287cc8711305674629d07f5b71947fafab0bdebe08f387726",
       "candidate_sha256": "faa041162aef286287cc8711305674629d07f5b71947fafab0bdebe08f387726",
       "status": "preserved"
@@ -4853,7 +4853,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderBackgroundForm",
       "original_line": 13324,
-      "candidate_line": 14112,
+      "candidate_line": 14114,
       "original_sha256": "db54c366e59f0938cc58258899430c7492990ccfca01f8af075b575aa2b40498",
       "candidate_sha256": "db54c366e59f0938cc58258899430c7492990ccfca01f8af075b575aa2b40498",
       "status": "preserved"
@@ -4861,7 +4861,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.loadDiagnostics",
       "original_line": 13388,
-      "candidate_line": 14176,
+      "candidate_line": 14178,
       "original_sha256": "4e0c91b419f94a4c2d8f411d16e9cc20c6b8776c0a5bb2d44f45a17ddf163db4",
       "candidate_sha256": "4e0c91b419f94a4c2d8f411d16e9cc20c6b8776c0a5bb2d44f45a17ddf163db4",
       "status": "preserved"
@@ -4869,7 +4869,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.changeDiagnostics",
       "original_line": 13398,
-      "candidate_line": 14186,
+      "candidate_line": 14188,
       "original_sha256": "65cfacd3f03ec49d1330109a6be3f56ca5f1007a38dd89ac56935099237e402e",
       "candidate_sha256": "65cfacd3f03ec49d1330109a6be3f56ca5f1007a38dd89ac56935099237e402e",
       "status": "preserved"
@@ -4877,7 +4877,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderDiagnostics",
       "original_line": 13414,
-      "candidate_line": 14202,
+      "candidate_line": 14204,
       "original_sha256": "18915b802c94316e48da5fbe4b3348928551fe6d245a143ea171689c098cd84b",
       "candidate_sha256": "18915b802c94316e48da5fbe4b3348928551fe6d245a143ea171689c098cd84b",
       "status": "preserved"
@@ -4885,7 +4885,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderDiagnosticsView",
       "original_line": 13449,
-      "candidate_line": 14237,
+      "candidate_line": 14239,
       "original_sha256": "ad72b840ee905f4f39a0e54db11c62a0135d367f6b86af8d5169868b5ecab760",
       "candidate_sha256": "ad72b840ee905f4f39a0e54db11c62a0135d367f6b86af8d5169868b5ecab760",
       "status": "preserved"
@@ -4893,7 +4893,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.checkSupporter",
       "original_line": 13464,
-      "candidate_line": 14252,
+      "candidate_line": 14254,
       "original_sha256": "1c28616dbda137fe93a91e614134326e0f76305d19f35fb4894a92d6d80ea8ab",
       "candidate_sha256": "5649433eeb324e940ea01cb6ff6147ecbaafb91cd479c4efca6464854c79d2ec",
       "status": "aureon_extension"
@@ -4901,7 +4901,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.loadHistory",
       "original_line": 13472,
-      "candidate_line": 14256,
+      "candidate_line": 14258,
       "original_sha256": "9d335267788469882bc00db614e4c983049124da7b4968aca1f6090373154dff",
       "candidate_sha256": "9d335267788469882bc00db614e4c983049124da7b4968aca1f6090373154dff",
       "status": "preserved"
@@ -4909,7 +4909,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.restoreFromHistory",
       "original_line": 13481,
-      "candidate_line": 14265,
+      "candidate_line": 14267,
       "original_sha256": "70774009df10a1fcf71d4acd40fe58e049395667c65d65940c6bb98d035525a6",
       "candidate_sha256": "70774009df10a1fcf71d4acd40fe58e049395667c65d65940c6bb98d035525a6",
       "status": "preserved"
@@ -4917,7 +4917,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.exportBackup",
       "original_line": 13489,
-      "candidate_line": 14273,
+      "candidate_line": 14275,
       "original_sha256": "5c982044eb0731730828f45c9a86347a2542b287bccbc4d3cc3f022edae4551f",
       "candidate_sha256": "5c982044eb0731730828f45c9a86347a2542b287bccbc4d3cc3f022edae4551f",
       "status": "preserved"
@@ -4925,7 +4925,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.importBackup",
       "original_line": 13513,
-      "candidate_line": 14297,
+      "candidate_line": 14299,
       "original_sha256": "b88b381d8aed585f81b3f2c48ef95426199581d4fd59a5bbef13b6fe6e0fa76a",
       "candidate_sha256": "b88b381d8aed585f81b3f2c48ef95426199581d4fd59a5bbef13b6fe6e0fa76a",
       "status": "preserved"
@@ -4933,7 +4933,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.exportPlan",
       "original_line": 13559,
-      "candidate_line": 14343,
+      "candidate_line": 14345,
       "original_sha256": "c3eae0e1cf4fb441465cbb20043489f8442be81ac658c44b7ebc98e34bc0649f",
       "candidate_sha256": "c3eae0e1cf4fb441465cbb20043489f8442be81ac658c44b7ebc98e34bc0649f",
       "status": "preserved"
@@ -4941,7 +4941,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.importPlan",
       "original_line": 13564,
-      "candidate_line": 14348,
+      "candidate_line": 14350,
       "original_sha256": "9bf6a91f94341f65b9cfbcc7a566a688102dc55dca3a03aa68689139d5f725fc",
       "candidate_sha256": "9bf6a91f94341f65b9cfbcc7a566a688102dc55dca3a03aa68689139d5f725fc",
       "status": "preserved"
@@ -4949,7 +4949,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.snapshotTime",
       "original_line": 13587,
-      "candidate_line": 14371,
+      "candidate_line": 14373,
       "original_sha256": "8f5264267907c8c2a0dfa092082eb4715fa9c838cf0b176f306eec31363a05bc",
       "candidate_sha256": "8f5264267907c8c2a0dfa092082eb4715fa9c838cf0b176f306eec31363a05bc",
       "status": "preserved"
@@ -4957,7 +4957,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderBackup",
       "original_line": 13591,
-      "candidate_line": 14375,
+      "candidate_line": 14377,
       "original_sha256": "0d3c6bf527c5df147cf675770b7b765451783e5b410cb505b0f09ab8c9203b1b",
       "candidate_sha256": "42fefaa217504cb19186c874afc50203dc30be7d1d9c92fcc8b3d7927204ecce",
       "status": "aureon_extension"
@@ -4965,7 +4965,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderBackdrop",
       "original_line": 13654,
-      "candidate_line": 14425,
+      "candidate_line": 14427,
       "original_sha256": "6736850721d8b20f82afee069a4efa7fcdb7e6df63871b977b9ffd4731930f02",
       "candidate_sha256": "6736850721d8b20f82afee069a4efa7fcdb7e6df63871b977b9ffd4731930f02",
       "status": "preserved"
@@ -4973,7 +4973,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderTerrain",
       "original_line": 13690,
-      "candidate_line": 14461,
+      "candidate_line": 14463,
       "original_sha256": "06d9b8f81d9dd30075b0131cf4f70015693613fb0628fcb7e10495a5dadf54ee",
       "candidate_sha256": "06d9b8f81d9dd30075b0131cf4f70015693613fb0628fcb7e10495a5dadf54ee",
       "status": "preserved"
@@ -4981,7 +4981,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.setSettings",
       "original_line": 13715,
-      "candidate_line": 14486,
+      "candidate_line": 14488,
       "original_sha256": "8446b62497c324fcf99e437223e74c6f5f285c0e89c4543beda6637f6475f28d",
       "candidate_sha256": "8446b62497c324fcf99e437223e74c6f5f285c0e89c4543beda6637f6475f28d",
       "status": "preserved"
@@ -4989,7 +4989,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderHouseSettings",
       "original_line": 13722,
-      "candidate_line": 14493,
+      "candidate_line": 14495,
       "original_sha256": "bfef95a81720084596465dac9158442ed7907bc21aca2425c1ebaabe09104409",
       "candidate_sha256": "bfef95a81720084596465dac9158442ed7907bc21aca2425c1ebaabe09104409",
       "status": "preserved"
@@ -4997,7 +4997,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderRoofBasics",
       "original_line": 13758,
-      "candidate_line": 14529,
+      "candidate_line": 14531,
       "original_sha256": "8653dbe9264b30ef2a1b4347fc4d5ba963bd50eef90d7ebd7f502750670e58eb",
       "candidate_sha256": "8653dbe9264b30ef2a1b4347fc4d5ba963bd50eef90d7ebd7f502750670e58eb",
       "status": "preserved"
@@ -5005,7 +5005,7 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderWeatherSettings",
       "original_line": 13795,
-      "candidate_line": 14566,
+      "candidate_line": 14568,
       "original_sha256": "786f7cd13085df2cb3b19696cd81822c9b46fa20e87e891ef8da79f78a642210",
       "candidate_sha256": "786f7cd13085df2cb3b19696cd81822c9b46fa20e87e891ef8da79f78a642210",
       "status": "preserved"
@@ -5013,7 +5013,7 @@
     {
       "symbol": "components/editor.ts::distToSegment",
       "original_line": 16883,
-      "candidate_line": 17903,
+      "candidate_line": 17905,
       "original_sha256": "8f1ac778243824be9e6773c0a448ab98625a889ba009034450aadbc1fa10f657",
       "candidate_sha256": "8f1ac778243824be9e6773c0a448ab98625a889ba009034450aadbc1fa10f657",
       "status": "preserved"
@@ -5021,7 +5021,7 @@
     {
       "symbol": "components/editor.ts::fold",
       "original_line": 16892,
-      "candidate_line": 17912,
+      "candidate_line": 17914,
       "original_sha256": "339ad09668f6da34eb2c917860f19161326546823155588346605359174bf1f6",
       "candidate_sha256": "339ad09668f6da34eb2c917860f19161326546823155588346605359174bf1f6",
       "status": "preserved"
@@ -5029,7 +5029,7 @@
     {
       "symbol": "components/editor.ts::numberish",
       "original_line": 16900,
-      "candidate_line": 17920,
+      "candidate_line": 17922,
       "original_sha256": "c32f1b34125cefee9f3e11fe0b38ddd96ee0c5228e97f984b3c4b028266951bb",
       "candidate_sha256": "c32f1b34125cefee9f3e11fe0b38ddd96ee0c5228e97f984b3c4b028266951bb",
       "status": "preserved"
@@ -5037,7 +5037,7 @@
     {
       "symbol": "components/editor.ts::binaryish",
       "original_line": 16905,
-      "candidate_line": 17925,
+      "candidate_line": 17927,
       "original_sha256": "9f6ff00be8dab29263c3012b367d9a76901efead32a393391e88830a12d25bbc",
       "candidate_sha256": "9f6ff00be8dab29263c3012b367d9a76901efead32a393391e88830a12d25bbc",
       "status": "preserved"
@@ -19821,72 +19821,72 @@
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderAureonToolChoices",
       "candidate_line": 6554,
-      "candidate_sha256": "5aebf7a6a85acd80ba8733114570676a48be4d582a89cfd9494cb9aa835dba37",
+      "candidate_sha256": "95e456be5cf2cc53623389c647b1e605e68a1241c955cc3c7714fca335ef8d4f",
       "status": "added"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderStudioHeader",
-      "candidate_line": 6577,
+      "candidate_line": 6580,
       "candidate_sha256": "db5a2e0b334affae057a6f2950da8b80a3797c174aa24383621d51ec5cb7bd54",
       "status": "added"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.aureonCardTitle",
-      "candidate_line": 6585,
+      "candidate_line": 6588,
       "candidate_sha256": "0a12138dec92729d7fc24ed8ff48d543bea0949ff0b0bc0954320c066c6bd45f",
       "status": "added"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.aureonRoomOnly",
-      "candidate_line": 6594,
+      "candidate_line": 6597,
       "candidate_sha256": "2e184c5de830c058422cd4efb08628bded0f04facabf1adff49080224040f28e",
       "status": "added"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderAureonRoomCard",
-      "candidate_line": 6600,
+      "candidate_line": 6603,
       "candidate_sha256": "f41b0f712e95a0820c580cd45022e7216030d1b6c1d8e32537fa7f4a0e6e5ba2",
       "status": "added"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.aureonDone",
-      "candidate_line": 6628,
+      "candidate_line": 6631,
       "candidate_sha256": "ebd9f18d64317f73e528627c8a47c4d16bfc216b8985c870a297dc9ee68ed3fa",
       "status": "added"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderStudioDock",
-      "candidate_line": 6634,
+      "candidate_line": 6637,
       "candidate_sha256": "8a239aa4f243fba9679aa5631c088a2277579fcf0bdaefaa9699a564b45216b2",
       "status": "added"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.renderAureonWallPick",
-      "candidate_line": 11560,
+      "candidate_line": 11562,
       "candidate_sha256": "376f171a060e8cf68fe59c78348b52bea65a3a8cc138b84b21f2260ca5ca4515",
       "status": "added"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.loadAureonOwn",
-      "candidate_line": 13657,
+      "candidate_line": 13659,
       "candidate_sha256": "16a9fae1e8ef8b77fc26c44eb637614e5deb0d135f3e3a9dde812e2a5c983b86",
       "status": "added"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.importAureonOwn",
-      "candidate_line": 13674,
+      "candidate_line": 13676,
       "candidate_sha256": "3fb0b5c81ce4a6deebcd810794e6d3a75624a0851115e881bb12cc44782e453b",
       "status": "added"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.addAureonOwn",
-      "candidate_line": 13689,
+      "candidate_line": 13691,
       "candidate_sha256": "5a6407473cdaf55c82e4933714e37cf9de0954f4f078839fce4beac566ffa56e",
       "status": "added"
     },
     {
       "symbol": "components/editor.ts::Fp3dEditor.aureonThumb",
-      "candidate_line": 13718,
+      "candidate_line": 13720,
       "candidate_sha256": "e95bfc75199c57d39d1def4ed0a3d0a7a232ab58e182376a8dc3859202bb18d8",
       "status": "added"
     },

@@ -356,7 +356,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-editor.js",
       "original_sha256": "c5ea0f02630abdc4e8166e7273215d319d8c72c0466a1c13966e68407f2db5c3",
-      "candidate_sha256": "e2e7ae880a7183f5af065a96e7e34684c6a79fdc74ffdc55683cdfc6e4d242bc",
+      "candidate_sha256": "a3ab06b5cf7fd55ad15fd28e45f1aee5ad2ebb6d702e228134c7953c78ec35b7",
       "bytes": 1067764,
       "status": "modified"
     },
@@ -391,7 +391,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d.js",
       "original_sha256": "a2ecf30a957cc66557fd0286d6b0da2fb3b2785c8c8b19819ca17d0a58afc154",
-      "candidate_sha256": "16921683407dbbb21158901b77b6e1fc2ea0fb24559cfeebb9828ae057fbb1da",
+      "candidate_sha256": "c78ee7f849a60c5733c7fcffff2c2e6f25b9f4bcc6096b079df51eed7b8abdd0",
       "bytes": 834792,
       "status": "modified"
     },
@@ -2099,7 +2099,7 @@
     {
       "path": "frontend/src/components/editor.ts",
       "original_sha256": "6d6b7d0f0e50fefe9e9e110af9e02d668bc98def8fef9cfc3c0dcb164a140da3",
-      "candidate_sha256": "15d2026361678b8699800bfa326377c7c2a37dc27e6a8b8b00d9e5f118dbc9a3",
+      "candidate_sha256": "0e7ffae0d5257767d4c147d4e3084ef791f10530abe5ce6eb5736bde25ba1704",
       "bytes": 824582,
       "status": "modified"
     },
@@ -4752,7 +4752,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-editor.js",
-      "candidate_sha256": "e2e7ae880a7183f5af065a96e7e34684c6a79fdc74ffdc55683cdfc6e4d242bc",
+      "candidate_sha256": "a3ab06b5cf7fd55ad15fd28e45f1aee5ad2ebb6d702e228134c7953c78ec35b7",
       "status": "added"
     },
     {
@@ -4782,7 +4782,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d.js",
-      "candidate_sha256": "16921683407dbbb21158901b77b6e1fc2ea0fb24559cfeebb9828ae057fbb1da",
+      "candidate_sha256": "c78ee7f849a60c5733c7fcffff2c2e6f25b9f4bcc6096b079df51eed7b8abdd0",
       "status": "added"
     },
     {
@@ -5087,7 +5087,7 @@
     },
     {
       "path": "frontend/src/aureon-workspace.ts",
-      "candidate_sha256": "53eaba026b3776dbcb9ad73f1f9143528fbbd18dc4349a413d24f630d4c1e667",
+      "candidate_sha256": "0a2d2a800c95acd1eefbc80542d50f3f72bb11a48b3c936c2c52f6818a9b037f",
       "status": "added"
     },
     {

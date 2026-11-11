@@ -6557,21 +6557,24 @@ export class Fp3dEditor extends LitElement {
     if (!this.floor || !this.isAdmin) return nothing;
     const chip = (label: string, on: boolean, pick: () => void) =>
       html`<button class="fp3d-chip" aria-pressed=${on} @click=${() => {pick();this._draft = [];}}>${label}</button>`;
-    let chips: TemplateResult[] = [];
+    // AUREON 2026-11-11: the choices sit in their own bar above the plan and the 3D view, in labelled groups
+    const group = (label: string, items: TemplateResult[]) => html`<div class="aureon-opt-group" role="group" aria-label=${label}><span class="aureon-opt-label">${label}</span>${items}</div>`;
+    let groups: TemplateResult[] = [];
     if (this._tool === "rect" || this._tool === "polygon")
-      chips = [chip(this.t("tool_rect"), this._tool === "rect", () => this.setTool("rect")), chip(this.t("tool_polygon"), this._tool === "polygon", () => this.setTool("polygon"))];
+      groups = [group(this.t("pool_shape"), [chip(this.t("tool_rect"), this._tool === "rect", () => this.setTool("rect")), chip(this.t("tool_polygon"), this._tool === "polygon", () => this.setTool("polygon"))])];
     else if (this._tool === "outdoor")
-      chips = [
-        ...OUTDOOR_TYPES.filter((t) => t !== "pool").map((t) => chip(this.t(`out_${t}` as I18nKey), (this._outdoorType ?? "lawn") === t, () => (this._outdoorType = t))),
-        chip(this.t("outdoor_shape_rect"), !this._outdoorFree, () => (this._outdoorFree = false)),
-        chip(this.t("outdoor_shape_free"), this._outdoorFree, () => (this._outdoorFree = true)),
+      groups = [
+        group(this.t("pool_shape"), [chip(this.t("outdoor_shape_rect"), !this._outdoorFree, () => (this._outdoorFree = false)), chip(this.t("outdoor_shape_free"), this._outdoorFree, () => (this._outdoorFree = true))]),
+        group(this.t("outdoor_type"), OUTDOOR_TYPES.filter((t) => t !== "pool").map((t) => chip(this.t(`out_${t}` as I18nKey), (this._outdoorType ?? "lawn") === t, () => (this._outdoorType = t)))),
       ];
     else if (this._tool === "pool")
-      chips = [
-        ...(["rect", "round", "oval", "free"] as const).map((k) => chip(this.t(`pool_shape_${k}` as I18nKey), !this._pipeMode && (this._poolShape ?? "rect") === k, () => {this._pipeMode = false;this._poolShape = k;this._outdoorFree = k === "free";})),
-        ...(this.pipeRules ? [chip(this.t("pool_pipe_draw"), !!this._pipeMode, () => (this._pipeMode = true))] : []),
+      groups = [
+        group(this.t("pool_shape"), [
+          ...(["rect", "round", "oval", "free"] as const).map((k) => chip(this.t(`pool_shape_${k}` as I18nKey), !this._pipeMode && (this._poolShape ?? "rect") === k, () => {this._pipeMode = false;this._poolShape = k;this._outdoorFree = k === "free";})),
+          ...(this.pipeRules ? [html`<span class="aureon-opt-sep"></span>`, chip(this.t("pool_pipe_draw"), !!this._pipeMode, () => (this._pipeMode = true))] : []),
+        ]),
       ];
-    return chips.length ? html`<div class="aureon-tool-choices" role="group">${chips}</div>` : nothing;
+    return groups.length ? html`<div class="aureon-tool-choices">${groups}</div>` : nothing;
   }
 
   private renderStudioHeader() {
@@ -6650,9 +6653,8 @@ export class Fp3dEditor extends LitElement {
         <div class="fp3d-main">
           <div class="fp3d-toolbar">
             ${this._wallPick ? html`<div class="fp3d-pick-tip" style=${`left:${this.wallPickTip[0]}px;top:${this.wallPickTip[1]}px`} @click=${() => (this._wallPick = false)}>${this.t("hint_wall_pick")}</div>` : nothing}
-            ${this.renderAureonToolChoices()}
-            ${walls?.warnings.length ? html`<span class="fp3d-warn">${this.t("overlap_warning")}${this.isAdmin ? html` <button class="aureon-link aureon-warn-fix" data-fix-overlaps @click=${() => this.aureonFixOverlaps()}>${this.t("overlaps_fix_short")}</button>` : nothing}</span>` : nothing}
           </div>
+          ${(() => { const choices = this.renderAureonToolChoices(); const warn = walls?.warnings.length ? html`<span class="fp3d-warn">${this.t("overlap_warning")}${this.isAdmin ? html` <button class="aureon-link aureon-warn-fix" data-fix-overlaps @click=${() => this.aureonFixOverlaps()}>${this.t("overlaps_fix_short")}</button>` : nothing}</span>` : nothing; return choices === nothing && warn === nothing ? nothing : html`<div class="aureon-optbar">${choices}${warn}</div>`; })()}
           <div class="fp3d-stage-pair ${this._split ? "fp3d-split" : ""}" style=${this._split && !this.narrow ? `--fp3d-split:${Math.round(this._splitRatio * 100)}%` : ""}>
           <div class="fp3d-canvas-wrap">
             ${this._phoneHint
