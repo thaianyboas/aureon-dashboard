@@ -59,6 +59,8 @@ export function categoryItems(response){const result=resultOf(response),list=Arr
 export function nativeChildren(result){const list=Array.isArray(result)?result:Array.isArray(result?.children)?result.children:Array.isArray(result?.result)?result.result:[];return list.filter(x=>x&&typeof x.title==='string'&&typeof x.media_content_id==='string'&&typeof x.media_content_type==='string').slice(0,200).map(x=>({title:x.title.slice(0,300),thumbnail:typeof x.thumbnail==='string'?x.thumbnail:'',media_content_id:x.media_content_id,media_content_type:x.media_content_type,media_class:String(x.media_class||''),can_play:!!x.can_play,can_expand:!!x.can_expand,native:true}));}
 function pageContainer(response){const r=resultOf(response);return r.tracks || r.albums || r.playlists || r;}
 const ADVANCED = new Set(['get_player_recent_tracks','get_featured_playlists','get_show_favorites','playlist_items_add','get_browse_categorys_list','get_category_playlists','get_spotify_connect_devices','player_transfer_playback','search_tracks','search_albums','search_playlists','get_playlist_favorites','get_album_favorites','get_track_favorites','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks']);
+const NATIVE_READ = new Set(['get_show_favorites','get_player_recent_tracks','get_playlist_favorites','get_album_favorites','get_track_favorites','search_tracks','search_albums','search_playlists','check_track_favorites','get_spotify_connect_devices']);
+const NATIVE_WRITE = new Set(['playlist_items_add','save_track_favorites','remove_track_favorites','player_transfer_playback','player_media_play_tracks','player_media_play_context']);
 export class MusicController {
   constructor(){ this.listeners=new Set(); this.config={}; this.entityId='';this.hass=null;this.epoch=0;this.pending=new Set();this.error='';this.results=[];this.devices=[];this.favorite=null;this.view='player';this.libraryKind='playlists';this.query='';this._scope=null;this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};this.shelfSources={};this.native={kind:'',stack:[],items:[],title:''};this.ownPlaylists=null;this.addedTo=''; }
   subscribe(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
@@ -84,7 +86,12 @@ export class MusicController {
   get ready(){return available(this.state);}
   service(domain,name){return !!this.hass?.services?.[domain]?.[name];}
   can(feature){const services={play:'media_play',pause:'media_pause',previous:'media_previous_track',next:'media_next_track',volume:'volume_set',seek:'media_seek',shuffle:'shuffle_set',repeat:'repeat_set',source:'select_source',playMedia:'play_media'};return this.ready && supported(this.state,feature) && this.service('media_player',services[feature]);}
-  advanced(name){return this.ready && this.spotify && ADVANCED.has(name) && !this.blocked(name) && this.service(spotifyPlusDomain(this.hass,this.entityId),name);}
+  get nativeSpotify(){return this.state?.attributes?.aureon_music_native === true;}
+  advanced(name){
+    if(!this.ready || !this.spotify || !ADVANCED.has(name) || this.blocked(name))return false;
+    if(this.nativeSpotify)return (NATIVE_READ.has(name)&&this.service(AUREON_MUSIC,'native_read')) || (NATIVE_WRITE.has(name)&&this.service(AUREON_MUSIC,'native_write'));
+    return this.service(spotifyPlusDomain(this.hass,this.entityId),name);
+  }
   // Spotify refuses some Web API features for newer apps (403 "Forbidden", e.g. featured playlists, browse categories).
   // Such a service is remembered per account (this browser) and not asked again, so no error keeps popping up.
   _blockedKey(){return 'aureon.music.blocked:'+this.entityId;}
@@ -104,8 +111,16 @@ export class MusicController {
     if(!this.advanced(name))throw new Error('Spotify service unavailable');
     // Explicit entity_id selects the configured Spotify account; never infer it from an entity name.
     // notifyOnError=false: AUREON shows its own notice; Home Assistant's error toast stays away.
-    try{const result=await this.hass.callService(spotifyPlusDomain(this.hass,this.entityId),name,{...data,entity_id:this.entityId},undefined,false,response);
-      return response ? result : true;}
+    const entity_id=this.entityId;
+    try{
+      if(this.nativeSpotify){
+        const service=NATIVE_READ.has(name)?'native_read':'native_write';
+        const result=await this.hass.callService(AUREON_MUSIC,service,{action:name,arguments:data,entity_id},undefined,false,response);
+        return response ? (result?.response ?? result)?.[entity_id] : true;
+      }
+      const result=await this.hass.callService(spotifyPlusDomain(this.hass,entity_id),name,{...data,entity_id},undefined,false,response);
+      return response ? result : true;
+    }
     catch(error){this._markBlocked(name,error);throw error;}
   }
   async command(action,value){
@@ -240,7 +255,7 @@ export class MusicController {
     const name=track?'player_media_play_tracks':'player_media_play_context';
     if(this.advanced(name))return this.request('play-item',async()=>{await this.callSpotify(name,track?{uris:item.uri}:{context_uri:item.uri});return true;});
     // Optional Spotcast v6 contract: never auto-fallback after an error, never choose an arbitrary destination.
-    if(spotcastTarget && this.config.spotcastTargets?.includes(spotcastTarget) && available(this.hass?.states?.[spotcastTarget]) && this.service(spotcastDomain(this.hass),'play_media'))
+    if(!this.nativeSpotify && spotcastTarget && this.config.spotcastTargets?.includes(spotcastTarget) && available(this.hass?.states?.[spotcastTarget]) && this.service(spotcastDomain(this.hass),'play_media'))
       return this.request('play-item',async()=>{await this.hass.callService(spotcastDomain(this.hass),'play_media',{media_player:{entity_id:spotcastTarget},spotify_uri:item.uri});return true;});
     if(!this.can('playMedia')||!this.service('media_player','play_media'))return false;
     return this.request('play-item',async()=>{await this.hass.callService('media_player','play_media',{entity_id:this.entityId,media_content_id:item.uri,media_content_type:track?'music':item.uri.split(':')[1]});return true;});

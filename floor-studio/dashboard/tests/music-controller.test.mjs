@@ -145,3 +145,24 @@ test('hidden speakers are validated and kept in the music preferences',async()=>
  const out=validatePreferences({...defaults(),music:{...defaults().music,hiddenSpeakers:['sc:alexa - küche','media_player.tv','sc:alexa - küche','<script>',' ',42]}});
  assert.deepEqual(out.music.hiddenSpeakers,['sc:alexa - küche','media_player.tv']);
 });
+
+test('native Spotify uses the chosen account and unwraps HA entity service responses',async()=>{
+ const {c,hass,calls}=fixture();
+ const entity=c.entityId;
+ hass.states[entity].attributes.aureon_music_native=true;
+ hass.services.aureon_music={native_read:{},native_write:{}};
+ hass.callService=async(...args)=>{
+   calls.push(args);
+   return {response:{[entity]:{result:{devices:[{id:'native-device',name:'Native speaker'}]}}}};
+ };
+ assert.equal(c.advanced('get_browse_categorys_list'),false);
+ assert.equal(await c.loadDevices(),true);
+ assert.deepEqual(c.devices.map(device=>device.id),['native-device']);
+ assert.deepEqual(calls[0].slice(0,3),['aureon_music','native_read',{
+   entity_id:entity,action:'get_spotify_connect_devices',arguments:{refresh:false,sort_result:true},
+ }]);
+ assert.equal(await c.transfer('native-device'),true);
+ assert.deepEqual(calls[1].slice(0,3),['aureon_music','native_write',{
+   entity_id:entity,action:'player_transfer_playback',arguments:{device_id:'native-device',play:true},
+ }]);
+});

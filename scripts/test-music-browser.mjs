@@ -66,6 +66,23 @@ try{
  assert.ok(await page.evaluate(()=>dashboard.shadowRoot.querySelector('.wrap')===dashboardShell));assert.ok(await page.evaluate(()=>dashboard._musicController===sharedMusic));assert.equal(await page.evaluate(()=>calls.length),await page.evaluate(()=>navigationCalls));assert.equal(await page.evaluate(()=>sharedMusic.entityId),await page.evaluate(()=>selectedEntity));checks.push('internal navigation preserves shell, controller and selected entity without playback calls');
  assert.equal(await page.evaluate(()=>document.querySelector('#dashboard')._page),'Medien');checks.push('Startseite Compact opens Medien Full inside actual dashboard candidate');
  await page.click('#dashboard >>> aureon-music-player >>> [data-action="play"]');assert.equal(await page.evaluate(()=>calls.at(-1)[1]),'media_play');checks.push('integrated dashboard controls reach HA service adapter');
+ await page.evaluate(()=>{
+   const entity='media_player.fixture';
+   sharedMusic.devices=[];
+   hass.states[entity].attributes.aureon_music_native=true;
+   hass.services.aureon_music={native_read:{},native_write:{}};
+   hass.callService=async(...args)=>{
+     calls.push(args);
+     return {response:{[entity]:{result:{devices:[{id:'native-speaker',name:'Native speaker'}]}}}};
+   };
+   dashboard.hass={...hass};
+ });
+ await page.click('#dashboard >>> aureon-music-player >>> [data-action="devices"]');
+ await page.waitForFunction(()=>sharedMusic.devices.some(d=>d.id==='native-speaker'));
+ await page.click('#dashboard >>> aureon-music-player >>> .speaker');
+ const native=await page.evaluate(()=>calls.at(-1).slice(0,3));
+ assert.deepEqual(native,['aureon_music','native_write',{entity_id:'media_player.fixture',action:'player_transfer_playback',arguments:{device_id:'native-speaker',play:false}}]);
+ checks.push('native Spotify discovers and transfers through the same approved player');
  await page.evaluate(()=>{dashboard._navigate('Início');hass.states['media_player.fixture']={...hass.states['media_player.fixture'],state:'idle'};dashboard.hass={...hass};});await page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-music-player[compact]')?.hidden);checks.push('home mini player hides irrelevant idle media');
  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:checks.length,checks,environment:'isolated browser fixture; no Home Assistant installation'},null,2));
 }finally{await browser?.close();server.close();}

@@ -1148,3 +1148,26 @@ ruff, fidelity; disposable HA with the owner's plan: Sala wall 7–1 shows the c
 - test-editor-browser.mjs TOOLS-01 now opens the Construction area before picking the room tool.
 Validation: frontend 632, typecheck, budgets, backend 182, root build/test/typecheck/validate/browser/contract,
 fidelity; disposable HA with the owner's plan: screenshots of all drawers, room card, phone layout.
+
+### Codex batch 2026-11-11 — native Spotify preview, awaiting live acceptance
+
+- Reviewed Claude's Dashboard `12210b2` and Integration `09004f5` editor delivery and
+  fast-forwarded the Dashboard checkout before revalidating. Editor and bundled assets were left as delivered.
+- Music `dfaa506` on master: opt-in native PKCE account and same-account reauth, private atomic credential
+  persistence with observable write failures, Spotify Web API media player, Connect device discovery and transfer,
+  transport, queue, search, library, favorites and playlist actions. Legacy account and speaker preferences are
+  preserved. Native playback does not invoke the vendored providers. They remain in the package during coexistence.
+- Dashboard Music controller detects the native entity, targets exactly that account using HA entity services, and
+  consumes HA's per-entity responses. Existing layout, mini/full shared controller, and legacy service contract remain.
+  This is a source checkpoint. The candidate compiled and the stable HACS distribution was not replaced.
+- Validation: Music 31 tests on HA 2026.10.4, including legacy rotation, native login and account-bound reauth with
+  simulated Spotify, permission checks, coexistence and reload. Separate HA processes confirmed the persisted rotated
+  token is loaded after shutdown/start. Ruff and dependency-light smoke passed. GitHub Actions push runs for
+  `8b6506d` and `dfaa506` succeeded. Dashboard 212 root tests, 632 frontend tests, build/typecheck, distribution
+  validation and 23 real-browser Music checks passed on top of Claude's latest editor commits.
+- Blocked: clean HA 2025.1.0 dependency resolution, because its Cast pins pychromecast 14.0.5 and the existing
+  SpotifyPlus library requires 14.0.7 or later. Latest HA test harness exercised the native path with Spotify
+  responses simulated. No live Spotify login, physical device transfer or real HACS update performed.
+- Next: confirm Spotify consent and reconnect in a disposable HA with an authorized Premium test account,
+  run a playback/Connect matrix against actual speakers, settle the supported HA minimum and verify HACS
+  installation, then confirm legacy parity before removing the bundled providers and shipping the final bundle.
