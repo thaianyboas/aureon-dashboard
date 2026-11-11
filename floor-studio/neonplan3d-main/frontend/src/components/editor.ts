@@ -445,6 +445,11 @@ export class Fp3dEditor extends LitElement {
     _aureonOwn: { state: true },
     _aureonContour: { state: true },
     _aureonPaint: { state: true },
+    _aureonArea: { state: true },
+    _aureonFinishTab: { state: true },
+    _aureonApply: { state: true },
+    _aureonFurnTab: { state: true },
+    _aureonOwnPage: { state: true },
     _studioLibrary: { state: true },
     _aureonMore: { state: true },
     _studioDetails: { state: true },
@@ -598,6 +603,13 @@ export class Fp3dEditor extends LitElement {
   private declare _aureonContour: boolean;
   /** AUREON (owner 2026-11-10): paint mode – a tap on a wall in the plan picks it for paint; nothing moves. */
   private declare _aureonPaint: boolean;
+  /** AUREON editor 2026-11-11: the open area of the rail (construction, finishes, furniture, smart home) or "". */
+  private declare _aureonArea: "" | "build" | "finish" | "furniture" | "smart";
+  private declare _aureonFinishTab: "walls" | "floor" | "ceiling";
+  /** Where a colour goes: the tapped wall or the whole room; null = the wall when one is tapped. */
+  private declare _aureonApply: "wall" | "room" | null;
+  private declare _aureonFurnTab: "own" | "catalog";
+  private declare _aureonOwnPage: number;
   private declare _studioLibrary: boolean;
   /** AUREON: on phones the tool rail opens as a sheet from the dock. */
   private declare _aureonMore: boolean;
@@ -803,6 +815,11 @@ export class Fp3dEditor extends LitElement {
     this._aureonOwn = null;
     this._aureonContour = false;
     this._aureonPaint = false;
+    this._aureonArea = "";
+    this._aureonFinishTab = "walls";
+    this._aureonApply = null;
+    this._aureonFurnTab = "own";
+    this._aureonOwnPage = 0;
     this._studioLibrary = false;
     this._aureonMore = false;
     this._studioDetails = false;
@@ -5211,6 +5228,8 @@ export class Fp3dEditor extends LitElement {
     if (!room) return;
     if (room.id !== this._roomId) this.selectItem("room", room.id);
     this._aureonWall = best ? { roomId: room.id, index: best.edge } : null;
+    // AUREON editor: with the Finishes drawer open the colours are there; the details column stays closed
+    if (this._aureonArea === "finish") { if (best) this._aureonApply = null; this._studioDetails = false; return; }
     this._studioDetails = true;
     this.setSideFolded(false);
   }
@@ -6328,25 +6347,178 @@ export class Fp3dEditor extends LitElement {
   }
 
   private renderStudioRail() {
-    const tools: {key: string; label: I18nKey; icon: string; pick: () => void; on: boolean}[] = [
-      {key:"select",label:"tool_select",icon:"M5 3l14 10-7 1-3 7z",pick:()=>this.setTool("select"),on:this._tool==="select"&&!this._aureonContour},
-      {key:"contour",label:"aureon_contour_edit",icon:"M4 4h16v16H4z M2 2h4v4H2z M18 18h4v4h-4z",pick:()=>{this.setTool("select");this._aureonContour=true;this._studioDetails=true;},on:this._aureonContour&&this._tool==="select"},
-      {key:"room",label:"tool_room",icon:"M3 3h18v18H3z M3 12h8v9",pick:()=>this.setTool("rect"),on:this._tool==="rect"||this._tool==="polygon"},
-      {key:"wall",label:"tool_wall",icon:"M3 7l13-4 5 3-13 5z M3 7v12l5 3V11 M8 22l13-4V6",pick:()=>this.setTool("wall"),on:this._tool==="wall"},
-      {key:"door",label:"preset_door",icon:"M5 21V3h14v18 M8 21V6l8-2v17 M11 13h1",pick:()=>{this.setTool("opening");this._openingPreset="door";},on:this._tool==="opening"&&this._openingPreset==="door"},
-      {key:"window",label:"preset_window",icon:"M4 4h16v16H4z M12 4v16 M4 12h16",pick:()=>{this.setTool("opening");this._openingPreset="window";},on:this._tool==="opening"&&this._openingPreset==="window"},
-      {key:"hole",label:"tool_hole",icon:"M3 8l9-5 9 5-9 5z M7 8.5l5 2.8 5-2.8",pick:()=>this.setTool("hole"),on:this._tool==="hole"},
-      {key:"roof",label:"tool_roof",icon:"M2 12L12 4l10 8 M5 10v10h14V10",pick:()=>this.setTool("roof"),on:this._tool==="roof"},
-      {key:"furniture",label:"tool_furniture",icon:"M4 11V7a2 2 0 012-2h12a2 2 0 012 2v4 M3 10h3v7h12v-7h3v10H3z M5 20v2 M19 20v2",pick:()=>{const open=this._studioLibrary;this.setTool("furniture");this._studioLibrary=!open;},on:this._studioLibrary},
-      {key:"paint",label:"studio_paint",icon:"M4 4h13v5H4z M17 6h3v6h-8v3 M11 15h2v6h-2z",pick:()=>{this.setTool("select");this._aureonPaint=true;this._studioDetails=true;this.setSideFolded(false);if(!this._split&&window.innerWidth>=1100){this._studio3d=false;this.toggleSplit();}},on:this._aureonPaint&&this._tool==="select"},
-      {key:"materials",label:"studio_materials",icon:"M4 5h16v14H4z M8 5v14 M12 5v14 M16 5v14",pick:()=>{this.setTool("select");if(this.room||this.floor?.rooms[0])this.selectItem("room",this.room?.id??this.floor!.rooms[0].id);this._studioDetails=true;},on:false},
-      {key:"measure",label:"tool_measure",icon:"M3 17L17 3l4 4L7 21z M7 13l3 3 M11 9l3 3 M15 5l3 3",pick:()=>this.setTool("measure"),on:this._tool==="measure"},
-      {key:"outdoor",label:"tool_group_outside",icon:"M3 11l9-8 9 8 M5 10v11h14V10 M9 21v-7h6v7",pick:()=>this.setTool("outdoor"),on:this._tool==="outdoor"},
-      {key:"pool",label:"tool_pool",icon:"M3 16c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 6 0 M3 20c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 6 0 M7 14V4 M15 14V4 M7 7h8",pick:()=>this.setTool("pool"),on:this._tool==="pool"},
-      {key:"energy",label:"tool_energy",icon:"M13 2L4 14h7l-1 8 10-12h-8z",pick:()=>this.setTool("energy"),on:this._tool==="energy"},
+    // AUREON editor (owner 2026-11-11): four areas instead of fifteen tools – Construction, Finishes, Furniture and
+    // decoration, Smart home; each opens its own drawer with its tools. Settings stay at the foot of the rail.
+    const areas: {key: "build"|"finish"|"furniture"|"smart"; label: I18nKey; icon: string}[] = [
+      {key:"build",label:"area_build",icon:"M3 21h18 M5 21V9.5L12 4l7 5.5V21 M10 21v-5h4v5"},
+      {key:"finish",label:"area_finish",icon:"M5 4h11v4H5z M16 6h3v5h-7v3 M11 14h2v7h-2z"},
+      {key:"furniture",label:"area_furniture",icon:"M5 11V8.5A2.5 2.5 0 017.5 6h9A2.5 2.5 0 0119 8.5V11 M3 12.5a1.5 1.5 0 013 0V15h12v-2.5a1.5 1.5 0 013 0V18H3z M6 18v2 M18 18v2"},
+      {key:"smart",label:"area_smart",icon:"M9 18h6 M10 21h4 M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z"},
     ];
-    // AUREON: every tool lives here (the former "Tools" menu is gone); the settings sit at the foot of the rail
-    return html`<nav class="studio-rail" aria-label=${this.t("studio_tools")}>${tools.map(x=>html`<button data-studio-tool=${x.key} title=${this.t(x.label)} aria-pressed=${x.on} ?disabled=${!this.floor||(x.key!=="select"&&!this.isAdmin)} @click=${()=>{if(x.key!=="contour")this._aureonContour=false;if(x.key!=="paint")this._aureonPaint=false;this._aureonMore=false;x.pick();}}>${studioIcon(x.icon)}<span>${this.t(x.label)}</span></button>`)}<button class="aureon-rail-settings-btn" data-studio-tool="settings" title=${this.t("settings")} aria-haspopup="menu" aria-expanded=${this._settingsMenu} @click=${()=>{this._aureonMore=false;this._settingsMenu=!this._settingsMenu;}}>${studioIcon("M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z")}<span>${this.t("settings")}</span></button></nav>`;
+    return html`<nav class="studio-rail aureon-areas" aria-label=${this.t("studio_tools")}>${areas.map(a=>html`<button data-studio-area=${a.key} title=${this.t(a.label)} aria-pressed=${this._aureonArea===a.key} ?disabled=${!this.floor||!this.isAdmin} @click=${()=>this.openAureonArea(a.key)}>${studioIcon(a.icon)}<span>${this.t(a.label)}</span></button>`)}<button class="aureon-rail-settings-btn" data-studio-tool="settings" title=${this.t("settings")} aria-haspopup="menu" aria-expanded=${this._settingsMenu} @click=${()=>{this._aureonMore=false;this._settingsMenu=!this._settingsMenu;}}>${studioIcon("M12 15a3 3 0 100-6 3 3 0 000 6z M12 2v3 M12 19v3 M2 12h3 M19 12h3 M4.9 4.9l2.1 2.1 M17 17l2.1 2.1 M4.9 19.1L7 17 M17 7l2.1-2.1")}<span>${this.t("settings")}</span></button></nav>`;
+  }
+
+  /** AUREON editor: opens (or closes, on a second tap) an area of the rail. */
+  private openAureonArea(key: "build" | "finish" | "furniture" | "smart"): void {
+    this._settingsMenu = false;
+    this._aureonMore = false;
+    this._aureonContour = false;
+    if (this._aureonArea === key) {
+      this._aureonArea = "";
+      if (key === "finish") this._aureonPaint = false;
+      if (key === "furniture") this.setTool("select");
+      return;
+    }
+    this._aureonArea = key;
+    this._aureonPaint = key === "finish";
+    if (key === "furniture") this.setTool("furniture");
+    else if (this._tool === "furniture" || key === "finish") this.setTool("select");
+    this._studioLibrary = key === "furniture";
+    // painting and the catalogue happen in the drawer; the details column stays free for the plan
+    if (key === "finish" || key === "furniture") this._studioDetails = false;
+  }
+
+  /** AUREON editor: the Finishes drawer – a paint fan deck, coverings, floor and ceiling, one tab at a time. */
+  private renderAureonFinishes() {
+    type Fin = { floor?: { material: string; rotation?: number } | null; walls?: { material: string; color?: string | null; edges?: number[] | null } | null; ceiling?: { color?: string | null } | null; wall_paints?: (string | null)[] };
+    const tab = this._aureonFinishTab ?? "walls";
+    const tabs = html`<div class="aureon-tabs-sm" role="tablist">${(["walls", "floor", "ceiling"] as const).map((k) => html`<button role="tab" data-finish-tab=${k} aria-selected=${tab === k} @click=${() => (this._aureonFinishTab = k)}>${this.t(`finish_tab_${k}` as I18nKey)}</button>`)}</div>`;
+    const room = this.room;
+    if (!room) return html`${tabs}<p class="aureon-drawer-empty">${this.t("area_finish_pick")}</p>`;
+    const fin = ((room as Room & { aureon_finish?: Fin | null }).aureon_finish ?? null) as Fin | null;
+    const save = (next: Fin) => {
+      if (!this.isAdmin || this.isFixedItem("room", room.id)) return;
+      const clean = { ...next } as Record<string, unknown>;
+      for (const k of Object.keys(clean)) if (clean[k] == null) delete clean[k];
+      const patch = { aureon_finish: Object.keys(clean).length ? clean : null } as unknown as Partial<Room>;
+      this.change((_, floor) => patchItem(floor.rooms.find((r) => r.id === room.id), patch));
+    };
+    const roomPaint = fin?.walls?.material === "paint" ? paintColor(fin.walls.color) : null;
+    const chip = (color: string, name: string, on: boolean, pick: () => void, key: string) =>
+      html`<button class="aureon-chip" data-paint=${key} aria-pressed=${on} ?disabled=${!this.isAdmin} @click=${pick}><i style=${`background:${color}`}></i><span>${name}</span></button>`;
+    const free = (value: string, pick: (c: string) => void) =>
+      html`<label class="aureon-chip aureon-chip-free"><i></i><span>${this.t("aureon_paint_custom")}</span><input type="color" .value=${value} ?disabled=${!this.isAdmin} @change=${(e: Event) => { const c = paintColor((e.target as HTMLInputElement).value); if (c) pick(c); }} /></label>`;
+    const tile = (id: string, label: string, on: boolean, pick: () => void) =>
+      html`<button class="aureon-tile aureon-tile-${id}" data-finish=${id} aria-pressed=${on} ?disabled=${!this.isAdmin} @click=${pick}><span>${label}</span></button>`;
+    if (tab === "floor") {
+      const cur = fin?.floor?.material ?? null;
+      const set = (id: string | null) => save({ ...(fin ?? {}), floor: id ? { material: id, rotation: fin?.floor?.rotation ?? 0 } : null });
+      return html`${tabs}<p class="aureon-finish-for">${room.name}</p>
+        <div class="aureon-tiles">${(["oak_planks", "oak_herringbone", "white_tiles_floor", "deck_tiles"] as const).map((id) => tile(id, this.t(`finish_${id}` as I18nKey), cur === id, () => set(id)))}</div>
+        ${cur ? html`<button class="aureon-link" @click=${() => set(null)}>${this.t("finish_floor_clear")}</button>` : nothing}`;
+    }
+    if (tab === "ceiling") {
+      const cur = paintColor(fin?.ceiling?.color);
+      const set = (c: string | null) => save({ ...(fin ?? {}), ceiling: c ? { color: c } : null });
+      return html`${tabs}<p class="aureon-finish-for">${room.name}</p>
+        <div class="aureon-fan">${AUREON_WALL_PAINTS.map((p) => chip(p.color, this.t(`aureon_paint_${p.id}` as I18nKey), cur === p.color, () => set(p.color), p.id))}${free(cur ?? "#f2efe9", set)}</div>
+        ${cur ? html`<button class="aureon-link" @click=${() => set(null)}>${this.t("aureon_ceiling_clear")}</button>` : nothing}`;
+    }
+    const w = this._aureonWall?.roomId === room.id && this._aureonWall.index < room.points.length ? this._aureonWall.index : null;
+    const mode = this._aureonApply ?? (w !== null ? "wall" : "room");
+    const own = w !== null ? wallPaints(fin, room.points.length)[w] : null;
+    const len = w !== null ? Math.hypot(room.points[(w + 1) % room.points.length][0] - room.points[w][0], room.points[(w + 1) % room.points.length][1] - room.points[w][1]) : 0;
+    const setWall = (c: string | null) => {
+      if (w === null) return;
+      const list = wallPaints(fin, room.points.length);
+      list[w] = c;
+      save({ ...(fin ?? {}), wall_paints: list.some((x) => x !== null) ? list : undefined });
+    };
+    const setRoom = (c: string | null) => save({ ...(fin ?? {}), walls: c ? { material: "paint", color: c } : null });
+    const pickColor = (c: string) => (mode === "wall" ? setWall(c) : setRoom(c));
+    const current = mode === "wall" ? own : roomPaint;
+    return html`${tabs}
+      <div class="aureon-apply" role="radiogroup">
+        <button role="radio" data-apply="wall" aria-checked=${mode === "wall"} @click=${() => (this._aureonApply = "wall")}>${this.t("finish_apply_wall")}</button>
+        <button role="radio" data-apply="room" aria-checked=${mode === "room"} @click=${() => (this._aureonApply = "room")}>${this.t("finish_apply_room")}</button>
+      </div>
+      <p class="aureon-finish-for">${mode === "wall"
+        ? w !== null ? this.t("finish_for_wall", { room: room.name, n: `${w + 1}–${((w + 1) % room.points.length) + 1}`, len: this.m(len, 2) }) : this.t("finish_tap_wall")
+        : this.t("finish_for_room", { room: room.name })}</p>
+      ${mode === "wall" ? this.renderAureonWallPick(room, fin) : nothing}
+      <div class="aureon-fan" aria-disabled=${mode === "wall" && w === null}>${AUREON_WALL_PAINTS.map((p) => chip(p.color, this.t(`aureon_paint_${p.id}` as I18nKey), current === p.color, () => pickColor(p.color), p.id))}${free(current ?? AUREON_WALL_PAINTS[0].color, pickColor)}</div>
+      ${mode === "room" ? html`<p class="aureon-drawer-group">${this.t("aureon_cover_title")}</p>
+        <div class="aureon-tiles">${(["white_tiles_wall", "white_tiles_navy_band", "light_brick"] as const).map((id) => tile(id, this.t(`finish_${id}` as I18nKey), fin?.walls?.material === id, () => save({ ...(fin ?? {}), walls: { material: id } })))}</div>` : nothing}
+      <div class="aureon-finish-actions">
+        ${mode === "wall" && w !== null ? html`<button class="aureon-link" data-paint-see3d @click=${() => { this._wallView3d = true; this.openWallView(room.id, w); }}>${this.t("aureon_paint_see3d")}</button>` : nothing}
+        ${mode === "wall" && own ? html`<button class="aureon-link" @click=${() => setWall(null)}>${this.t("aureon_paint_wall_clear")}</button>` : nothing}
+        ${mode === "room" && fin?.walls ? html`<button class="aureon-link" @click=${() => setRoom(null)}>${this.t("aureon_paint_clear")}</button>` : nothing}
+      </div>`;
+  }
+
+  /** AUREON editor: furniture – the owner's own pieces in pages of six, or the catalogue; one at a time. */
+  private renderAureonFurniture() {
+    this.loadAureonOwn();
+    const list = Array.isArray(this._aureonOwn) ? this._aureonOwn : [];
+    const tab = this._aureonFurnTab ?? (list.length ? "own" : "catalog");
+    const lang = this.hass?.language ?? "en";
+    const tabs = html`<div class="aureon-tabs-sm" role="tablist"><button role="tab" data-furn-tab="own" aria-selected=${tab === "own"} @click=${() => (this._aureonFurnTab = "own")}>${this.t("furn_tab_own")}${list.length ? html` <small>${list.length}</small>` : nothing}</button><button role="tab" data-furn-tab="catalog" aria-selected=${tab === "catalog"} @click=${() => (this._aureonFurnTab = "catalog")}>${this.t("furn_tab_catalog")}</button></div>`;
+    if (tab === "catalog")
+      return html`${tabs}<p class="aureon-finish-for">${this.room ? this.t("furniture_into", { room: this.room.name }) : this.t("furniture_pick_room")}</p>
+        <div class="aureon-drawer-body"><fp3d-library .entries=${this.libraryEntries(lang)} .language=${lang} .roomHint=${this.room ? roomKindOf(this.room.name) : null} .admin=${this.isAdmin}
+          .t=${(k: string, v?: Record<string, string | number>) => this.t(k as I18nKey, v)} .thumb=${this.libraryThumb}
+          @library-add=${(e: CustomEvent<{ type: string; mirror?: boolean }>) => this.addFurniture(e.detail.type, !!e.detail.mirror)}
+          @library-preview=${(e: CustomEvent<{ type: string | null; element: HTMLElement | null }>) => { if (e.detail.type && e.detail.element) void this.showPreview(e.detail.type, e.detail.element); else this._preview = null; }}></fp3d-library></div>`;
+    const filter = (this._aureonOwnFilter ?? "").trim().toLowerCase();
+    const shown = list.filter((m) => !filter || `${m.name ?? ""} ${m.file}`.toLowerCase().includes(filter));
+    const per = 6, pages = Math.max(1, Math.ceil(shown.length / per)), page = Math.min(this._aureonOwnPage ?? 0, pages - 1);
+    const used = new Map<string, number>();
+    for (const f of this.floor?.furniture ?? []) {
+      const u = (f as Furniture & { aureon_model?: { url?: string } }).aureon_model?.url;
+      if (u) used.set(u, (used.get(u) ?? 0) + 1);
+    }
+    const cm = (v: number) => Math.round(v * 100);
+    return html`${tabs}
+      <label class="aureon-search">${studioIcon("M11 18a7 7 0 100-14 7 7 0 000 14z M20 20l-4-4")}<input type="search" .value=${this._aureonOwnFilter ?? ""} placeholder=${this.t("aureon_own_search")} @input=${(e: Event) => { this._aureonOwnFilter = (e.target as HTMLInputElement).value; this._aureonOwnPage = 0; }} /></label>
+      ${this._aureonOwn === null ? html`<p class="aureon-drawer-empty">${this.t("aureon_own_loading")}</p>` : this._aureonOwn === "error" ? html`<p class="aureon-drawer-empty">${this.t("aureon_own_error")}</p>` : !shown.length ? html`<p class="aureon-drawer-empty">${this.t("aureon_own_empty")}</p>` : nothing}
+      <div class="aureon-cards">${shown.slice(page * per, page * per + per).map((m) => {
+        const pic = this.aureonThumb(m.url), n = used.get(m.url);
+        return html`<button class="aureon-card" ?disabled=${!this.isAdmin} title=${m.name ?? m.file} @click=${() => this.addAureonOwn(m)}>
+          ${pic ? html`<img src=${pic} alt="" />` : html`<i aria-hidden="true"></i>`}
+          <b>${m.name ?? m.file.replace(/\.glb$/i, "")}</b>
+          <small>${cm(m.size[0])} × ${cm(m.size[2])} cm${n ? ` · ${this.t("aureon_own_in_plan", { n })}` : ""}</small>
+        </button>`;
+      })}</div>
+      ${pages > 1 ? html`<div class="aureon-pager"><button ?disabled=${page === 0} @click=${() => (this._aureonOwnPage = page - 1)}>‹ ${this.t("pager_prev")}</button><span>${this.t("pager_of", { n: page + 1, of: pages })}</span><button ?disabled=${page >= pages - 1} @click=${() => (this._aureonOwnPage = page + 1)}>${this.t("pager_next")} ›</button></div>` : nothing}
+      ${this._aureonOwnImport ? html`<p class="aureon-finish-for" role="status">${this._aureonOwnImport.text}</p>` : nothing}
+      ${this.isAdmin ? html`<label class="aureon-link aureon-import">${this.t("aureon_own_import")}<input type="file" accept=".zip,.glb,application/zip,model/gltf-binary" multiple hidden ?disabled=${this._aureonOwnImport?.busy} @change=${(e: Event) => { const input = e.target as HTMLInputElement; void this.importAureonOwn(input.files).finally(() => (input.value = "")); }} /></label>` : nothing}`;
+  }
+
+  /** AUREON editor: the drawer of the open area – short lists, no endless scrolling. */
+  private renderAureonDrawer() {
+    const floor = this.floor;
+    const area = this._aureonArea;
+    if (!area || !floor || !this.isAdmin) return nothing;
+    const row = (key: string, label: string, icon: string, on: boolean, pick: () => void, extra: unknown = nothing) =>
+      html`<button class="aureon-row" data-studio-tool=${key} aria-pressed=${on} @click=${() => {this._aureonContour = false; this._aureonPaint = area === "finish"; pick();}}>${studioIcon(icon)}<span>${label}</span>${extra}</button>`;
+    const kbd = (k: string) => html`<kbd>${k}</kbd>`;
+    const head = (title: I18nKey, lead: I18nKey) => html`<div class="aureon-drawer-head"><h2>${this.t(title)}</h2><button class="aureon-drawer-close" aria-label=${this.t("close")} @click=${() => this.openAureonArea(area)}>✕</button></div><p class="aureon-drawer-lead">${this.t(lead)}</p>`;
+    if (area === "build") {
+      const t = this._tool;
+      return html`${head("area_build", "area_build_lead")}
+        ${row("select", this.t("tool_select"), "M5 3l14 10-7 1-3 7z", t === "select", () => this.setTool("select"), kbd("V"))}
+        ${row("room", this.t("tool_room"), "M4 4h16v16H4z M4 13h7v7", t === "rect" || t === "polygon", () => this.setTool("rect"), kbd("R"))}
+        ${row("contour", this.t("aureon_contour_edit"), "M4 4h16v16H4z M2 2h4v4H2z M18 18h4v4h-4z", this._aureonContour, () => {this.setTool("select"); this._aureonContour = true; this._studioDetails = true;})}
+        ${row("wall", this.t("tool_wall"), "M3 6h18v12H3z M3 12h18 M9 6v6 M15 12v6", t === "wall", () => this.setTool("wall"), kbd("W"))}
+        ${row("door", this.t("preset_door"), "M6 21V3h10v18 M4 21h16 M13 12h.01", t === "opening" && this._openingPreset === "door", () => {this.setTool("opening"); this._openingPreset = "door";})}
+        ${row("window", this.t("preset_window"), "M4 5h16v14H4z M12 5v14 M4 12h16", t === "opening" && this._openingPreset === "window", () => {this.setTool("opening"); this._openingPreset = "window";})}
+        ${row("hole", this.t("tool_hole"), "M4 20h4v-4h4v-4h4V8h4", t === "hole", () => this.setTool("hole"))}
+        <p class="aureon-drawer-group">${this.t("area_build_outside")}</p>
+        ${row("roof", this.t("tool_roof"), "M2 12L12 4l10 8 M6 9.5V20h12V9.5", t === "roof", () => this.setTool("roof"))}
+        ${row("outdoor", this.t("tool_group_outside"), "M12 21v-6 M6.5 15h11L12 4z", t === "outdoor", () => this.setTool("outdoor"))}
+        ${row("pool", this.t("tool_pool"), "M3 16c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 6 0 M7 14V4 M15 14V4 M7 7h8", t === "pool", () => this.setTool("pool"))}
+        <p class="aureon-drawer-group">${this.t("area_build_fix")}</p>
+        ${row("measure", this.t("tool_measure"), "M3 16L16 3l5 5L8 21z M7 12l2 2 M10 9l2 2 M13 6l2 2", t === "measure", () => this.setTool("measure"))}
+        ${row("gaps", this.t("gaps_close"), "M4 4h7v7H4z M13 13h7v7h-7z M11 7.5h3.5V13", false, () => this.closeFloorGaps())}
+        ${row("straighten", this.t("straighten"), "M3 18L21 7 M3 18h18", false, () => this.straightenFloor())}`;
+    }
+    if (area === "finish") {
+      return html`${head("area_finish", "area_finish_lead")}${this.renderAureonFinishes()}`;
+    }
+    if (area === "furniture") return html`${head("area_furniture", "area_furniture_lead")}${this.renderAureonFurniture()}`;
+    return html`${head("area_smart", "area_smart_lead")}
+      ${row("devices", this.t("area_smart_devices"), "M9 18h6 M10 21h4 M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z", this._tool === "select" && this._studioDetails, () => {this.setTool("select"); this._studioDetails = true; this.setSideFolded(false);})}
+      ${row("energy", this.t("tool_energy"), "M13 2L4 14h7l-1 8 10-12h-8z", this._tool === "energy", () => this.setTool("energy"))}`;
   }
 
   /** AUREON: the shapes and kinds of the tool in use (where the "Tools" menu was): room shape, outdoor kind, pool shape. */
@@ -6375,12 +6547,66 @@ export class Fp3dEditor extends LitElement {
 
   private renderStudioHeader() {
     const view=(mode:"2d"|"3d"|"split")=>{this._studio3d=mode==="3d";const split=mode!=="2d";if(this._split!==split)this.toggleSplit();};
-    return html`<header class="studio-header"><div class="studio-name"><span class="studio-monogram">A</span><div><strong>Floor Studio</strong><small>${this.floor?.name||this.t("floors")}</small></div></div><div class="studio-history"><button class="fp3d-btn" aria-label=${this.t("undo")} title=${this.t("undo")} ?disabled=${!this._canUndo} @click=${()=>this.undo()}>↶</button><button class="fp3d-btn" aria-label=${this.t("redo")} title=${this.t("redo")} ?disabled=${!this._canRedo} @click=${()=>this.redo()}>↷</button></div><div class="studio-views" role="group" aria-label=${this.t("view")}><button data-studio-view="2d" aria-pressed=${!this._split} @click=${()=>view("2d")}>2D</button><button data-studio-view="3d" aria-pressed=${this._studio3d} @click=${()=>view("3d")}>3D</button><button data-studio-view="split" aria-pressed=${this._split&&!this._studio3d} @click=${()=>view("split")}>${this.t("studio_split")}</button></div><div class="studio-views aureon-view-extra" role="group"><button aria-pressed=${this._wallPick} title=${this.t("wall_view_open")} @click=${(e:Event)=>this.toggleWallPick(e.currentTarget as HTMLElement)}>${this.t("wall_view")}</button><button title=${this.t("fit_hint")} @click=${()=>this.fit()}>${this.t("fit")}</button></div><select class="studio-look" data-studio-look aria-label=${this.t("theme")} @change=${(e:Event)=>{const v=(e.target as HTMLSelectElement).value;if(["neon","blueprint","day","night","real"].includes(v))this._studioLook=v as typeof this._studioLook;}}>${(["real"] as const).map(v=>html`<option value=${v} ?selected=${this._studioLook===v}>${this.t(`theme_${v}` as I18nKey)}</option>`)}</select><button class="fp3d-btn" data-studio-properties aria-label=${this.t("side_details")} @click=${()=>{this._studioDetails=!this._studioDetails;this.setSideFolded(false);}}>${this.t("side_details")}</button></header>`;
+    const icon=(d:string)=>studioIcon(d);
+    // AUREON editor 2026-11-11: name and floor on the left, the three views as tabs, history and details on the right
+    return html`<header class="studio-header aureon-head"><div class="studio-name"><span class="studio-monogram">A</span><strong>Floor Studio</strong></div><div class="aureon-floor">${this.renderFloorMenu()}</div><div class="studio-views aureon-tabs" role="tablist" aria-label=${this.t("view")}><button role="tab" data-studio-view="2d" aria-pressed=${!this._split} aria-selected=${!this._split} @click=${()=>view("2d")}>2D</button><button role="tab" data-studio-view="3d" aria-pressed=${this._studio3d} aria-selected=${this._studio3d} @click=${()=>view("3d")}>3D</button><button role="tab" data-studio-view="split" aria-pressed=${this._split&&!this._studio3d} aria-selected=${this._split&&!this._studio3d} @click=${()=>view("split")}>${this.t("studio_split")}</button></div><div class="aureon-head-tools"><button class="aureon-ghost" aria-pressed=${this._wallPick} title=${this.t("wall_view_open")} @click=${(e:Event)=>this.toggleWallPick(e.currentTarget as HTMLElement)}>${icon("M3 5h18v14H3z M3 15h18 M8 15v4 M16 15v4")}<span>${this.t("wall_view")}</span></button><button class="aureon-ghost" title=${this.t("fit_hint")} @click=${()=>this.fit()}>${icon("M4 9V4h5 M20 9V4h-5 M4 15v5h5 M20 15v5h-5")}<span>${this.t("fit")}</span></button><span class="aureon-sep"></span><button class="aureon-ghost aureon-icon" aria-label=${this.t("undo")} title=${this.t("undo")} ?disabled=${!this._canUndo} @click=${()=>this.undo()}>${icon("M9 14L4 9l5-5 M4 9h10a6 6 0 010 12h-3")}</button><button class="aureon-ghost aureon-icon" aria-label=${this.t("redo")} title=${this.t("redo")} ?disabled=${!this._canRedo} @click=${()=>this.redo()}>${icon("M15 14l5-5-5-5 M20 9H10a6 6 0 000 12h3")}</button><button class="aureon-details" data-studio-properties aria-pressed=${this._studioDetails} aria-label=${this.t("side_details")} @click=${()=>{this._studioDetails=!this._studioDetails;this.setSideFolded(false);}}>${this.t("side_details")}</button><button class="aureon-done" data-studio-done @click=${()=>this.aureonDone()}>${this.t("aureon_done")}</button></div></header>`;
+  }
+
+  /** AUREON editor: the details card is titled by what is selected. */
+  private aureonCardTitle(): string {
+    if (this._furnitureId) { const f = this.floor?.furniture.find((x) => x.id === this._furnitureId); if (f) return f.name || furnitureName(this.hass, f.type); }
+    if (this._openingId) return this.t("tool_opening");
+    if (this._deviceId) return entityName(this.hass, this._deviceId);
+    if (this._aureonWall || this._wallId) return this.t("tool_wall");
+    return this.room?.name || this.t("side_details");
+  }
+
+  /** Only a room is selected (no wall, piece, opening, device or outline being edited). */
+  private aureonRoomOnly(): boolean {
+    return !this.narrow && !!this.room && !this._furnitureId && !this._openingId && !this._deviceId && !this._outdoorId && !this._wallId && !this._aureonWall && !this._aureonContour && this._tool === "select";
+  }
+
+  /** AUREON editor (owner 2026-11-11: "aquelas informações do lado estão feias"): a short card for a room – the few
+   *  things one changes often; everything else stays one tap away under "Todas as opções". */
+  private renderAureonRoomCard(room: Room, floor: Floor | undefined) {
+    const admin = this.isAdmin;
+    const fin = (room as Room & { aureon_finish?: { floor?: { material?: string } | null; walls?: { material?: string; color?: string | null } | null } | null }).aureon_finish;
+    const floorName = fin?.floor?.material ? this.t(`finish_${fin.floor.material}` as I18nKey) : this.t("rcard_none");
+    const wallsName = fin?.walls?.material === "paint" ? (AUREON_WALL_PAINTS.find((p) => p.color === paintColor(fin.walls?.color)) ? this.t(`aureon_paint_${AUREON_WALL_PAINTS.find((p) => p.color === paintColor(fin.walls?.color))!.id}` as I18nKey) : this.t("aureon_paint_custom")) : fin?.walls?.material ? this.t(`finish_${fin.walls.material}` as I18nKey) : wallPaints(fin, room.points.length).some((c) => c) ? this.t("rcard_painted", { n: wallPaints(fin, room.points.length).filter((c) => c).length }) : this.t("rcard_none");
+    const openings = (this.floor?.openings ?? []).filter((o) => o.room_id === room.id);
+    const net = netRoomArea(room, this.floor!, { exterior: this._doc.settings.wall_exterior, interior: this._doc.settings.wall_interior });
+    const act = (icon: string, label: string, pick: () => void, key: string) => html`<button class="aureon-card-act" data-card=${key} ?disabled=${!admin} @click=${pick}>${studioIcon(icon)}<span>${label}</span></button>`;
+    return html`<div class="aureon-room-card">
+      <p class="aureon-card-sub">${this.area(polygonArea(room.points))} · ${this.t("rcard_net", { a: this.area(net) })}</p>
+      <label class="aureon-card-name"><span>${this.t("room_name")}</span><input .value=${room.name} ?disabled=${!admin} @change=${(e: Event) => this.updateRoom({ name: (e.target as HTMLInputElement).value.trim() || room.name })} /></label>
+      <dl class="aureon-card-dl">
+        <dt>${this.t("rcard_ceiling")}</dt><dd><input type="number" min="1" max="30" step="0.05" .value=${room.ceiling_height != null ? String(room.ceiling_height) : ""} placeholder=${String(this.floor?.height ?? 2.5)} ?disabled=${!admin} @change=${(e: Event) => { const v = parseFloat((e.target as HTMLInputElement).value.replace(",", ".")); this.updateRoom({ ceiling_height: !Number.isFinite(v) || v <= 0 ? null : Math.min(30, Math.max(1, v)) }); }} /> m</dd>
+        <dt>${this.t("rcard_walls")}</dt><dd>${wallsName}</dd>
+        <dt>${this.t("rcard_floor")}</dt><dd>${floorName}</dd>
+        <dt>${this.t("rcard_openings")}</dt><dd>${openings.length || this.t("rcard_none")}</dd>
+      </dl>
+      <div class="aureon-card-acts">
+        ${act("M5 4h11v4H5z M16 6h3v5h-7v3 M11 14h2v7h-2z", this.t("rcard_finishes"), () => this.openAureonArea("finish"), "finishes")}
+        ${act("M3 5h18v14H3z M3 15h18 M8 15v4 M16 15v4", this.t("rcard_walls_front"), () => this.openRoomWalls(room), "walls")}
+        ${act("M4 4h16v16H4z M2 2h4v4H2z M18 18h4v4h-4z", this.t("aureon_contour_edit"), () => { this._aureonContour = true; this._studioDetails = true; }, "contour")}
+        ${act("M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z M12 15a3 3 0 100-6 3 3 0 000 6z", this.t("rcard_start_view"), () => this.rememberRoomView(), "view")}
+      </div>
+      <details class="aureon-more"><summary>${this.t("rcard_more")}</summary><aside class="fp3d-side">${this.renderSide(floor)}</aside></details>
+    </div>`;
+  }
+
+  /** AUREON editor: "Concluir" goes back to the view of the house (the panel keeps the saved plan). */
+  private aureonDone(): void {
+    const host = (this.getRootNode() as ShadowRoot | Document) instanceof ShadowRoot ? ((this.getRootNode() as ShadowRoot).host as HTMLElement & { setMode?: (m: string) => void }) : null;
+    if (host?.setMode) host.setMode("view");
+    else this.dispatchEvent(new CustomEvent("aureon-done", { bubbles: true, composed: true }));
   }
 
   private renderStudioDock() {
+    // AUREON editor (phone): the same areas as the rail
     const more=()=>{this._settingsMenu=false;this._aureonMore=!this._aureonMore;};
-    return html`<nav class="studio-mobile-dock" aria-label=${this.t("studio_tools")}><button aria-pressed=${this._tool==="select"} @click=${()=>{this._aureonContour=false;this.setTool("select");}}>${studioIcon("M5 3l14 10-7 1-3 7z")}${this.t("tool_select")}</button><button ?disabled=${!this.floor||!this.isAdmin} @click=${()=>{this.setTool("rect");this._studioDetails=true;}}>${studioIcon("M3 11l9-8 9 8 M5 10v11h14V10")}${this.t("tool_group_build")}</button><button ?disabled=${!this.floor||!this.isAdmin} aria-pressed=${this._studioLibrary} @click=${()=>{const open=this._studioLibrary;this.setTool("furniture");this._studioLibrary=!open;}}>${studioIcon("M4 8h16v12H4z M7 4h10v4 M7 20v2 M17 20v2")}${this.t("tool_furniture")}</button><button aria-pressed=${this._aureonMore} @click=${more}>${studioIcon("M4 12h1 M11 12h1 M18 12h1")}${this.t("studio_tools")}</button></nav>`;
+    const b=(key:"build"|"finish"|"furniture",label:I18nKey,icon:string)=>html`<button data-studio-area=${key} aria-pressed=${this._aureonArea===key} ?disabled=${!this.floor||!this.isAdmin} @click=${()=>this.openAureonArea(key)}>${studioIcon(icon)}${this.t(label)}</button>`;
+    return html`<nav class="studio-mobile-dock" aria-label=${this.t("studio_tools")}>${b("build","area_build","M3 21h18 M5 21V9.5L12 4l7 5.5V21 M10 21v-5h4v5")}${b("finish","area_finish","M5 4h11v4H5z M16 6h3v5h-7v3 M11 14h2v7h-2z")}${b("furniture","area_furniture_short","M5 11V8.5A2.5 2.5 0 017.5 6h9A2.5 2.5 0 0119 8.5V11 M3 12.5a1.5 1.5 0 013 0V15h12v-2.5a1.5 1.5 0 013 0V18H3z")}<button aria-pressed=${this._aureonMore} @click=${more}>${studioIcon("M4 12h1 M11 12h1 M18 12h1")}${this.t("studio_tools")}</button></nav>`;
   }
 
   protected render(): TemplateResult {
@@ -6388,14 +6614,14 @@ export class Fp3dEditor extends LitElement {
     const walls = floor ? generateWalls(floor.rooms, { exterior: this._doc.settings.wall_exterior, interior: this._doc.settings.wall_interior }, floor.walls ?? []) : null;
     return html`
       ${this.renderPreview()} ${this.renderWallView()} ${this.renderPartCard()} ${this.renderDiagnosticsView()}  ${this.renderSettingsDialog()}
-      <div class="fp3d-editor ${this.narrow ? "fp3d-narrow" : ""} ${this._studioLibrary ? "studio-has-library" : ""} ${this._studioDetails ? "studio-details-open" : ""} ${this._studio3d ? "studio-view3d" : ""} ${this._aureonMore ? "aureon-more-open" : ""}" style=${`--fp3d-side-w:${this._sideWidth}px`}>
+      <div class="fp3d-editor ${this.narrow ? "fp3d-narrow" : ""} ${this._studioLibrary || this._aureonArea ? "studio-has-library" : ""} ${this._studioDetails ? "studio-details-open" : ""} ${this._studio3d ? "studio-view3d" : ""} ${this._aureonMore ? "aureon-more-open" : ""}" style=${`--fp3d-side-w:${this._sideWidth}px`}>
         ${this.renderStudioHeader()} ${this.renderStudioRail()}
         ${this._settingsMenu ? html`<div class="aureon-rail-settings">${this.renderSettingsMenu(() => {})}</div>` : nothing}
-        <div class="studio-library">${this._studioLibrary&&floor&&this.isAdmin?html`<div class="studio-library-head"><h2>${this.t("studio_library")}</h2><button class="fp3d-btn" aria-label=${this.t("close")} @click=${()=>{this._studioLibrary=false;}}>✕</button></div>${this.renderFurnitureLibrary()}`:nothing}</div>
+        <div class="studio-library aureon-drawer">${this._aureonArea?this.renderAureonDrawer():this._studioLibrary&&floor&&this.isAdmin?html`<div class="studio-library-head"><h2>${this.t("studio_library")}</h2><button class="fp3d-btn" aria-label=${this.t("close")} @click=${()=>{this._studioLibrary=false;}}>✕</button></div>${this.renderFurnitureLibrary()}`:nothing}</div>
         <div class="fp3d-main">
           <div class="fp3d-toolbar">
             ${this._wallPick ? html`<div class="fp3d-pick-tip" style=${`left:${this.wallPickTip[0]}px;top:${this.wallPickTip[1]}px`} @click=${() => (this._wallPick = false)}>${this.t("hint_wall_pick")}</div>` : nothing}
-            ${this.renderFloorMenu()} ${this.renderAureonToolChoices()}
+            ${this.renderAureonToolChoices()}
             ${walls?.warnings.length ? html`<span class="fp3d-warn">${this.t("overlap_warning")}</span>` : nothing}
           </div>
           <div class="fp3d-stage-pair ${this._split ? "fp3d-split" : ""}" style=${this._split && !this.narrow ? `--fp3d-split:${Math.round(this._splitRatio * 100)}%` : ""}>
@@ -6470,7 +6696,7 @@ export class Fp3dEditor extends LitElement {
           ${this._split ? this.render3d() : nothing}
           </div>
         </div>
-        <div class="studio-inspector"><div class="studio-inspector-head"><strong>${this.t("side_details")}</strong><button class="fp3d-btn" aria-label=${this.t("close")} @click=${()=>{this._studioDetails=false;if(!this.narrow)this.setSideFolded(true);}}>✕</button></div>${this.renderAside(floor)}</div>${this.renderStudioDock()}
+        <div class="studio-inspector"><div class="studio-inspector-head"><strong>${this.aureonCardTitle()}</strong><button class="fp3d-btn" aria-label=${this.t("close")} @click=${()=>{this._studioDetails=false;if(!this.narrow)this.setSideFolded(true);}}>✕</button></div>${this.aureonRoomOnly()?this.renderAureonRoomCard(this.room!,floor):this.renderAside(floor)}</div>${this.renderStudioDock()}
       </div>
     `;
   }
@@ -11147,7 +11373,6 @@ export class Fp3dEditor extends LitElement {
       return html`<button class="fp3d-btn fp3d-back" @click=${() => this.selectItem("room", this._roomId)}>‹ ${this.t(room ? "back_to_room" : "back_to_floor", { room: room?.name ?? "" })}</button>
         ${item}`;
     }
-    if (this._aureonPaint) return this.renderAureonPaintSide(room);
     if (room && this._tool !== "measure") {
       return html`<button class="fp3d-btn fp3d-back" @click=${() => this.selectItem("room", null)}>‹ ${this.t("back_to_floor")}</button>
         ${this.renderRoomForm(room, areas)} ${this.renderDeviceList(room)}`;
@@ -11243,8 +11468,6 @@ export class Fp3dEditor extends LitElement {
           ? this.renderFurnitureForm(this.furnitureItem)
           : this.device
             ? this.renderDeviceForm(this.device)
-          : this._aureonPaint
-            ? this.renderAureonPaintSide(room)
           : room
             ? html`${this.renderRoomForm(room, areas)} ${this.renderDeviceList(room)}`
             : floor
@@ -11304,67 +11527,6 @@ export class Fp3dEditor extends LitElement {
     </details>`;
   }
 
-  /** AUREON paint mode: only the paint of the room (and its picked wall) in the side panel. */
-  private renderAureonPaintSide(room: Room | null | undefined) {
-    return html`<div class="fp3d-aureon-paint-side">
-      <div class="fp3d-aureon-paint-head"><h3>${this.t("studio_paint")}${room ? html` · ${room.name}` : nothing}</h3>
-        <button class="fp3d-btn" @click=${() => { this._aureonPaint = false; this._aureonWall = null; }}>${this.t("aureon_paint_done")}</button></div>
-      ${room ? this.renderAureonPaint(room) : html`<p class="fp3d-sub">${this.t("aureon_paint_mode_hint")}</p>`}
-    </div>`;
-  }
-
-  /** AUREON: the room's wall paint (inner faces, matt and smooth), with undo like any other change. */
-  private renderAureonPaint(room: Room) {
-    type Finish = { floor?: unknown; walls?: { material: string; color?: string | null; edges?: number[] | null } | null };
-    const finish = ((room as Room & { aureon_finish?: Finish | null }).aureon_finish ?? null) as Finish | null;
-    const current = finish?.walls?.material === "paint" ? (paintColor(finish.walls.color) ?? AUREON_WALL_PAINTS[0].color) : null;
-    const set = (color: string | null) => {
-      if (!this.isAdmin) return;
-      const next: Finish = { ...(finish ?? {}) };
-      if (color) next.walls = { material: "paint", color };
-      else delete next.walls;
-      this.updateRoom({ aureon_finish: Object.keys(next).length ? next : null } as Partial<Room>);
-    };
-    return html`<div class="fp3d-aureon-paint">
-      <h3>${this.t("aureon_paint_title")}</h3>
-      <div class="fp3d-aureon-swatches" role="radiogroup" aria-label=${this.t("aureon_paint_title")}>
-        ${AUREON_WALL_PAINTS.map(
-          (p) => html`<button
-            class="fp3d-aureon-swatch ${current === p.color ? "fp3d-aureon-swatch-on" : ""}"
-            role="radio"
-            aria-checked=${current === p.color ? "true" : "false"}
-            title=${this.t(`aureon_paint_${p.id}` as I18nKey)}
-            style="background:${p.color}"
-            ?disabled=${!this.isAdmin}
-            @click=${() => set(p.color)}
-          ></button>`,
-        )}
-        <label class="fp3d-aureon-swatch fp3d-aureon-swatch-free" title=${this.t("aureon_paint_custom")}
-          >+<input type="color" .value=${current ?? AUREON_WALL_PAINTS[0].color} ?disabled=${!this.isAdmin} @change=${(e: Event) => set(paintColor((e.target as HTMLInputElement).value))}
-        /></label>
-      </div>
-      <div class="fp3d-aureon-cover" role="radiogroup" aria-label=${this.t("aureon_cover_title")}>
-        ${(["white_tiles_wall", "white_tiles_navy_band"] as const).map((id) => {
-          const on = finish?.walls?.material === id;
-          return html`<button class="fp3d-btn fp3d-aureon-cover-${id}" role="radio" aria-checked=${on ? "true" : "false"} aria-pressed=${on ? "true" : "false"} ?disabled=${!this.isAdmin}
-            @click=${() => {
-              if (!this.isAdmin) return;
-              const next: Finish = { ...(finish ?? {}), walls: { material: id } };
-              this.updateRoom({ aureon_finish: next } as Partial<Room>);
-            }}><i class="fp3d-aureon-cover-icon"></i>${this.t(`aureon_cover_${id}` as I18nKey)}</button>`;
-        })}
-      </div>
-      <p class="fp3d-sub">${current ? this.t("aureon_paint_hint") : finish?.walls ? this.t("aureon_cover_hint") : this.t("aureon_paint_none")}</p>
-      <h4>${this.t("aureon_paint_one_wall_title")}</h4>
-      ${this.renderAureonWallPick(room, finish)}
-      ${this._aureonWall?.roomId === room.id && this._aureonWall.index < room.points.length
-        ? this.renderAureonWallPaint(room, this._aureonWall.index)
-        : html`<p class="fp3d-sub">${this.t("aureon_paint_one_wall")}</p>`}
-      ${current || finish?.walls ? html`<button class="fp3d-btn" ?disabled=${!this.isAdmin} @click=${() => set(null)}>${this.t("aureon_paint_clear")}</button>` : nothing}
-      ${this.renderAureonCeiling(room)}
-    </div>`;
-  }
-
   /** AUREON (owner 2026-11-10): pick the wall on a small drawing of the room instead of numbered buttons. */
   private renderAureonWallPick(room: Room, finish: unknown) {
     const pts = room.points;
@@ -11396,6 +11558,7 @@ export class Fp3dEditor extends LitElement {
       e.stopPropagation();
       const on = this._aureonWall?.roomId === room.id && this._aureonWall.index === best;
       this._aureonWall = on ? null : { roomId: room.id, index: best };
+      this._aureonApply = null;
       this._vertex = null;
     };
     return svg`<svg class="fp3d-aureon-wall-map" viewBox="0 0 ${W} ${H}" role="group" aria-label=${this.t("aureon_paint_one_wall_title")} @click=${nearest}>
@@ -11420,33 +11583,6 @@ export class Fp3dEditor extends LitElement {
         </g>`;
       })}
     </svg>`;
-  }
-
-  /** AUREON (owner 2026-11-10): the ceiling colour of the room (drawn in 3D facing down only). */
-  private renderAureonCeiling(room: Room) {
-    type Finish = { ceiling?: { color?: string | null } | null };
-    const finish = ((room as Room & { aureon_finish?: Finish | null }).aureon_finish ?? null) as Finish | null;
-    const current = paintColor(finish?.ceiling?.color) ?? null;
-    const set = (color: string | null) => {
-      if (!this.isAdmin) return;
-      const next: Finish = { ...(finish ?? {}) };
-      if (color) next.ceiling = { color };
-      else delete next.ceiling;
-      this.updateRoom({ aureon_finish: Object.keys(next).length ? next : null } as Partial<Room>);
-    };
-    return html`<h4>${this.t("aureon_ceiling_title")}</h4>
-      <div class="fp3d-aureon-swatches" role="radiogroup" aria-label=${this.t("aureon_ceiling_title")}>
-        ${AUREON_WALL_PAINTS.map(
-          (p) => html`<button class="fp3d-aureon-swatch ${current === p.color ? "fp3d-aureon-swatch-on" : ""}" role="radio" data-ceiling-paint=${p.id}
-            aria-checked=${current === p.color ? "true" : "false"} title=${this.t(`aureon_paint_${p.id}` as I18nKey)} style="background:${p.color}" ?disabled=${!this.isAdmin}
-            @click=${() => set(p.color)}></button>`,
-        )}
-        <label class="fp3d-aureon-swatch fp3d-aureon-swatch-free" title=${this.t("aureon_paint_custom")}
-          >+<input type="color" .value=${current ?? "#f4f1ea"} ?disabled=${!this.isAdmin} @change=${(e: Event) => set(paintColor((e.target as HTMLInputElement).value))}
-        /></label>
-      </div>
-      <p class="fp3d-sub">${current ? this.t("aureon_ceiling_hint") : this.t("aureon_ceiling_none")}</p>
-      ${current ? html`<button class="fp3d-btn" ?disabled=${!this.isAdmin} @click=${() => set(null)}>${this.t("aureon_ceiling_clear")}</button>` : nothing}`;
   }
 
   private renderRoomForm(room: Room, areas: { area_id: string; name: string }[]) {
@@ -11518,7 +11654,7 @@ export class Fp3dEditor extends LitElement {
       </div>
       <p class="fp3d-sub" title=${this.t("room_area_net_hint")}>${this.t("room_area_net", { a: this.area(polygonArea(room.points)), n: this.area(netRoomArea(room, this.floor!, { exterior: this._doc.settings.wall_exterior, interior: this._doc.settings.wall_interior })) })}</p>
       <p class="fp3d-sub fp3d-room-id">${this.t("room_id")} <code title=${this.t("license_copy")} @click=${() => void navigator.clipboard?.writeText(room.id).catch(() => undefined)}>${room.id}</code></p>
-      ${this.renderAureonPaint(room)}
+      ${admin ? html`<button class="aureon-link" data-open-finishes @click=${() => this.openAureonArea("finish")}>${this.t("area_finish_open")}</button>` : nothing}
       ${this.renderEdgeHeights(room)} ${this.renderRoomClimate(room)} ${this.renderRoomOpenings(room)}
       <details class="fp3d-points" ?open=${!rect}>
         <summary>${this.t("points")} (${room.points.length})</summary>
@@ -16898,28 +17034,6 @@ export class Fp3dEditor extends LitElement {
       .fp3d-ctx-danger {
         color: var(--fp3d-danger, #ff6b7a) !important;
       }
-      .fp3d-aureon-cover {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin: 8px 0 2px;
-    }
-    .fp3d-aureon-cover .fp3d-btn[aria-pressed="true"] {
-      outline: 2px solid var(--fp3d-accent, var(--primary-color));
-    }
-    .fp3d-aureon-cover-icon {
-      display: inline-block;
-      width: 18px;
-      height: 18px;
-      margin-right: 6px;
-      vertical-align: -4px;
-      border-radius: 3px;
-      border: 1px solid #c9cbcf;
-      background: #f6f6f4;
-    }
-    .fp3d-aureon-cover-white_tiles_navy_band .fp3d-aureon-cover-icon {
-      background: linear-gradient(#f6f6f4 0 42%, #1c2e60 42% 58%, #f6f6f4 58% 100%);
-    }
     .fp3d-aureon-own-import {
       cursor: pointer;
       white-space: nowrap;
@@ -16927,15 +17041,6 @@ export class Fp3dEditor extends LitElement {
     .fp3d-aureon-own-import[aria-disabled] {
       opacity: 0.6;
       pointer-events: none;
-    }
-    .fp3d-aureon-paint-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .fp3d-aureon-paint-head h3 {
-      margin: 0;
     }
     .fp3d-aureon-wall-map {
       display: block;

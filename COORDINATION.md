@@ -1134,3 +1134,17 @@ ruff, fidelity; disposable HA with the owner's plan: Sala wall 7–1 shows the c
 - Music `142f01e` / `8b6506d`: dependency-light Python smoke-check script and a master GitHub Actions workflow, intended to detect invalid syntax and exercise token/API regressions without real Spotify secrets. At checkpoint, GitHub Actions API still showed **zero runs**; do not treat CI as green.
 - Validated 4 locally recreated isolated pytest scenarios for the token manager (failed save, cancellation, reload, concurrent 401), passed. This is **not** a complete GitHub-head test run. No disposable HA, HACS, native OAuth callback, dashboard integration, migration or real Spotify test has run in this continuation.
 - Next: run GitHub-head tests including legacy `test_token_rotation.py` in a full HA environment, validate the private Store on startup/restart and HA shutdown, build opt-in PKCE OAuth config-flow account setup/reauth, then integrate native playback and dashboard contract. Do not install on owner's real HA or remove legacy paths.
+### Batch 2026-11-11 (15) – new editor layout (owner asked to build it and publish)
+- One top bar (editor's own): Floor Studio, floor menu, 2D/3D/Dividida tabs, Wall view, Fit, undo/redo, Details,
+  "Concluir" (calls the panel's setMode("view")). The panel bar is hidden while the editor is open (CSS :has).
+- Rail = four areas (data-studio-area build/finish/furniture/smart) + settings; each opens a drawer:
+  Construção (tools as rows with shortcuts, "Por fora", "Acertar a planta"), Acabamentos (tabs Paredes/Piso/Teto,
+  "Só esta parede"/"Cômodo inteiro", paint fan deck with names, coverings, floor finishes, ceiling), Móveis e
+  decoração ("Os meus móveis" in pages of six with search, or the catalogue), Casa inteligente (devices, energy).
+- Details = floating card titled by the selection; a room gets a short card (name, ceiling height, walls, floor,
+  openings, four actions) with the full original form under "Todas as opções".
+- Old paint panels (renderAureonPaint/PaintSide/Ceiling) and their texts removed; editor budget +10 KiB (build.mjs).
+- Version label shows a build code (first 6 of the editor bundle hash) so updates can be told apart.
+- test-editor-browser.mjs TOOLS-01 now opens the Construction area before picking the room tool.
+Validation: frontend 632, typecheck, budgets, backend 182, root build/test/typecheck/validate/browser/contract,
+fidelity; disposable HA with the owner's plan: screenshots of all drawers, room card, phone layout.

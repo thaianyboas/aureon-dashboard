@@ -181,7 +181,9 @@ function copyFonts() {
 // furniture, room finishes, Real look photo refinement, ambient occlusion, pet skinning), editor +36 KiB (workspace rail,
 // responsive library/inspector, mobile dock, wall paint, Ajustes texts), card editor +9 KiB (theme tokens, product name,
 // shared strings), path tracer 240 KiB (loaded only on "High").
-const BUDGET = { "neonplan3d-pathtrace.js": 240 * 1024, "neonplan3d.js": 878 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 986 * 1024, "neonplan3d-editor.js": 1106 * 1024, "neonplan3d-card-editor.js": 327 * 1024 };
+// AUREON editor layout (2026-11-11, owner request): editor +10 KiB for the four areas with their drawers (paint fan deck,
+// floor and ceiling finishes, own furniture in pages); the old paint panels and their texts were removed in return.
+const BUDGET = { "neonplan3d-pathtrace.js": 240 * 1024, "neonplan3d.js": 878 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 986 * 1024, "neonplan3d-editor.js": 1116 * 1024, "neonplan3d-card-editor.js": 327 * 1024 };
 
 copyFonts();
 if (watch) {
