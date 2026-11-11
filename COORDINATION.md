@@ -1092,3 +1092,33 @@ fake rotating Spotify token server; not tested against the owner's Spotify accou
   decoração / Casa inteligente, 2D/3D/Dividida tabs, brass dimension lines and a "spec tag" for the selection.
 Validation: root build, npm test, typecheck, validate, test:browser, migration contract, frontend 632, backend 182,
 ruff, fidelity; disposable HA with the owner's plan: Sala wall 7–1 shows the chosen paint in the wall view.
+
+
+## Codex batch 2026-11-11 — native Spotify baseline and recovery checkpoint
+
+- Reviewed Music `f755e00a98774a553e193d2ca756e0f6a559f289`, Dashboard `ac356509f3f8b818f1770c0ce116c0a016d9f6a7`,
+  and Integration `ba92d767a54b60d3469a2413c36c78a76097158f` on master. Claude's legacy refresh fix
+  `9e8b17f` remains in place. Dashboard/Integration Floor Studio changes are outside this batch.
+- Read all four `native_*.py` modules and the three native test files. The installed config flow
+  still offers SpotifyPlus/Spotcast; entry setup has no native dispatch. The native HA adapter calls
+  `async_update_entry` without awaiting durable storage, despite the token manager's persistence contract.
+  A failed/cancelled save after a successful rotation also leaves the next refresh using the previous
+  refresh token. The current storage-failure test verifies only that the new token was not published,
+  and has no subsequent recovery assertion.
+- Next owner: Codex on a working executor. Start by running the existing suites on the current heads
+  with the HA harness (including the legacy `tests/test_token_rotation.py`). Then fix the native
+  persistence boundary: retain a pending rotated token in memory, retry persisting it under the same
+  account lock before any new refresh, and test write failure, cancellation and reload after a completed
+  save. Abrupt shutdown before a durable write remains a possible loss window and needs explicit handling.
+- Then wire an opt-in native entry with HA OAuth callback/PKCE, distinct from legacy entries. Bind reauth
+  to the original Spotify account; preserve its HA entry and preferences. Explicit `invalid_grant` on
+  refresh goes to reauth; implement bounded transient backoff and avoid automatically replaying mutations
+  with ambiguous results. Spotify documents a six-month refresh-token lifetime measured from initial
+  authorization, unaffected by access-token refresh
+  (https://developer.spotify.com/blog/2026-06-18-refresh-token-expiration).
+- Inspect the existing dashboard service names, response envelopes, account attributes and device data
+  before wiring native playback. Keep the legacy path and device preferences available for rollback
+  until the native account and dashboard contract have passed disposable HA tests.
+- Validation in this batch: source and commit review only. The executor failed during startup and a
+  subsequent Python invocation found no usable environment. No unit, lint, integration, browser, HA or
+  HACS tests ran. No integration code, generated bundle, version or HACS metadata changed.
