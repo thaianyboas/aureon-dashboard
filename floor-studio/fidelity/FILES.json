@@ -300,7 +300,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/lang/pt.json",
       "original_sha256": "532ebff5da2b52132a4c14673a71519b0d68bf31c065ec0f76cdee3627a156af",
-      "candidate_sha256": "921bddb4f3b62f58505f0fe2e9e7d491f4d03053fce8abddd304a1ac4762512b",
+      "candidate_sha256": "b5367a0f15d1b299cc3e3e25ade6e10213597d9426173e2c28bbbb308a88329c",
       "bytes": 151166,
       "status": "modified"
     },
@@ -349,14 +349,14 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-card-editor.js",
       "original_sha256": "ff77086109abcaeb329711a87bd1ca85686c833b004d501e3e2791db1386bd9f",
-      "candidate_sha256": "49fee7de5598464aedc98ba4751de973c0b029b8862b61c5e1045811c56263c9",
+      "candidate_sha256": "137d3caaa2f3915c82a8d5090d837444043063510d1cb2a87b010372297ae8c1",
       "bytes": 323143,
       "status": "modified"
     },
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-editor.js",
       "original_sha256": "c5ea0f02630abdc4e8166e7273215d319d8c72c0466a1c13966e68407f2db5c3",
-      "candidate_sha256": "6c371ced0466e021d19ae85ebd8f1d248564d458ed01098accaeef2b62873b90",
+      "candidate_sha256": "18245222c762d05d23e5d78d8eb62e60423ed46a82c846b78583cbd6b4ce9fca",
       "bytes": 1067764,
       "status": "modified"
     },
@@ -391,7 +391,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d.js",
       "original_sha256": "a2ecf30a957cc66557fd0286d6b0da2fb3b2785c8c8b19819ca17d0a58afc154",
-      "candidate_sha256": "ee729dac0a5df72b76b5129807737479406d249d0df40a4720b893a803e3795c",
+      "candidate_sha256": "abe66199f2e169a6795852a0b777297527510d76c9904a9c9fcbade5bc8f1d69",
       "bytes": 834792,
       "status": "modified"
     },
@@ -1896,7 +1896,7 @@
     {
       "path": "frontend/lang/pt.json",
       "original_sha256": "532ebff5da2b52132a4c14673a71519b0d68bf31c065ec0f76cdee3627a156af",
-      "candidate_sha256": "921bddb4f3b62f58505f0fe2e9e7d491f4d03053fce8abddd304a1ac4762512b",
+      "candidate_sha256": "b5367a0f15d1b299cc3e3e25ade6e10213597d9426173e2c28bbbb308a88329c",
       "bytes": 151166,
       "status": "modified"
     },
@@ -2099,7 +2099,7 @@
     {
       "path": "frontend/src/components/editor.ts",
       "original_sha256": "6d6b7d0f0e50fefe9e9e110af9e02d668bc98def8fef9cfc3c0dcb164a140da3",
-      "candidate_sha256": "22e31effd4fe8b52c171c2c437872b8608512844821921b5f278b27bca447c9d",
+      "candidate_sha256": "ea73fb6cf6bead8c91f622986576634a4cec302b7575652e89ed6d2d01ae32a3",
       "bytes": 824582,
       "status": "modified"
     },
@@ -2470,7 +2470,7 @@
     {
       "path": "frontend/src/i18n.ts",
       "original_sha256": "b8c8d7bf9812e50635271613098d8513ea35c227a06a36980db6ad9fccf75e9e",
-      "candidate_sha256": "907cf20db79e43674f1ccbd2e3073ff5cd0284328fbfe91fe182703942432b93",
+      "candidate_sha256": "55e9a9f40d4da6957e34c274d280115846cd3e329e5cb6174749bb88b7c3e49a",
       "bytes": 293510,
       "status": "modified"
     },
@@ -4707,7 +4707,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/lang/pt.json",
-      "candidate_sha256": "921bddb4f3b62f58505f0fe2e9e7d491f4d03053fce8abddd304a1ac4762512b",
+      "candidate_sha256": "b5367a0f15d1b299cc3e3e25ade6e10213597d9426173e2c28bbbb308a88329c",
       "status": "added"
     },
     {
@@ -4742,12 +4742,12 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-card-editor.js",
-      "candidate_sha256": "49fee7de5598464aedc98ba4751de973c0b029b8862b61c5e1045811c56263c9",
+      "candidate_sha256": "137d3caaa2f3915c82a8d5090d837444043063510d1cb2a87b010372297ae8c1",
       "status": "added"
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-editor.js",
-      "candidate_sha256": "6c371ced0466e021d19ae85ebd8f1d248564d458ed01098accaeef2b62873b90",
+      "candidate_sha256": "18245222c762d05d23e5d78d8eb62e60423ed46a82c846b78583cbd6b4ce9fca",
       "status": "added"
     },
     {
@@ -4777,7 +4777,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d.js",
-      "candidate_sha256": "ee729dac0a5df72b76b5129807737479406d249d0df40a4720b893a803e3795c",
+      "candidate_sha256": "abe66199f2e169a6795852a0b777297527510d76c9904a9c9fcbade5bc8f1d69",
       "status": "added"
     },
     {

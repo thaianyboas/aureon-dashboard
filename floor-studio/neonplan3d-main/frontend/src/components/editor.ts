@@ -1537,8 +1537,39 @@ export class Fp3dEditor extends LitElement {
         /></label>
       </div>
       <p class="fp3d-sub">${own ? this.t("aureon_paint_wall_own") : this.t("aureon_paint_wall_room")}</p>
-      ${own ? html`<button class="fp3d-btn" ?disabled=${!this.isAdmin} @click=${() => set(null)}>${this.t("aureon_paint_wall_clear")}</button>` : nothing}
+      <div class="fp3d-aureon-wall-actions">
+        <button class="fp3d-btn" data-paint-see3d @click=${() => { this._wallView3d = true; this.openWallView(room.id, index); }}>${this.t("aureon_paint_see3d")}</button>
+        ${own ? html`<button class="fp3d-btn" ?disabled=${!this.isAdmin} @click=${() => set(null)}>${this.t("aureon_paint_wall_clear")}</button>` : nothing}
+      </div>
     </div>`;
+  }
+
+  /** AUREON (owner 2026-11-11: "a parede não está pintando"): painted walls show their colour on the 2D plan too,
+   *  as a band on the inner side of the wall, so a choice is visible at once and not only in the 3D view. */
+  private renderAureonPaintStrips(floor: Floor) {
+    const band = Math.max(3, Math.min(9, this.toScreen([0.07, 0])[0] - this.toScreen([0, 0])[0]));
+    const half = (this._doc?.settings?.wall_interior ?? 0.12) / 2;
+    const out: unknown[] = [];
+    for (const r of floor.rooms) {
+      const finish = (r as Room & { aureon_finish?: { walls?: { material?: string; color?: string; edges?: number[] | null } | null } | null }).aureon_finish;
+      if (!finish) continue;
+      const single = wallPaints(finish, r.points.length);
+      const all = finish.walls?.material === "paint" ? paintColor(finish.walls.color) : null;
+      const n = r.points.length;
+      const area = r.points.reduce((a, p, i) => a + p[0] * r.points[(i + 1) % n][1] - r.points[(i + 1) % n][0] * p[1], 0);
+      for (let i = 0; i < n; i++) {
+        const color = single[i] ?? (all && (!finish.walls?.edges || finish.walls.edges.includes(i)) ? all : null);
+        if (!color) continue;
+        const a = r.points[i], b = r.points[(i + 1) % n], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        if (L < 0.05) continue;
+        const u = [(b[0] - a[0]) / L, (b[1] - a[1]) / L], inward = area > 0 ? [-u[1], u[0]] : [u[1], -u[0]];
+        const off = half + 0.04, trim = Math.min(off, L / 3);
+        const p = (q: number[], s: number) => this.toScreen([q[0] + inward[0] * off + u[0] * s, q[1] + inward[1] * off + u[1] * s]);
+        const [x1, y1] = p(a, trim), [x2, y2] = p(b, -trim);
+        out.push(svg`<line class="fp3d-aureon-paint-band" data-paint-band=${`${r.id}:${i}`} x1=${x1} y1=${y1} x2=${x2} y2=${y2} stroke=${color} stroke-width=${band} />`);
+      }
+    }
+    return out.length ? svg`<g pointer-events="none">${out}</g>` : nothing;
   }
 
   private renderAureonWallLine() {
@@ -6307,7 +6338,7 @@ export class Fp3dEditor extends LitElement {
       {key:"hole",label:"tool_hole",icon:"M3 8l9-5 9 5-9 5z M7 8.5l5 2.8 5-2.8",pick:()=>this.setTool("hole"),on:this._tool==="hole"},
       {key:"roof",label:"tool_roof",icon:"M2 12L12 4l10 8 M5 10v10h14V10",pick:()=>this.setTool("roof"),on:this._tool==="roof"},
       {key:"furniture",label:"tool_furniture",icon:"M4 11V7a2 2 0 012-2h12a2 2 0 012 2v4 M3 10h3v7h12v-7h3v10H3z M5 20v2 M19 20v2",pick:()=>{const open=this._studioLibrary;this.setTool("furniture");this._studioLibrary=!open;},on:this._studioLibrary},
-      {key:"paint",label:"studio_paint",icon:"M4 4h13v5H4z M17 6h3v6h-8v3 M11 15h2v6h-2z",pick:()=>{this.setTool("select");this._aureonPaint=true;this._studioDetails=true;this.setSideFolded(false);},on:this._aureonPaint&&this._tool==="select"},
+      {key:"paint",label:"studio_paint",icon:"M4 4h13v5H4z M17 6h3v6h-8v3 M11 15h2v6h-2z",pick:()=>{this.setTool("select");this._aureonPaint=true;this._studioDetails=true;this.setSideFolded(false);if(!this._split&&window.innerWidth>=1100){this._studio3d=false;this.toggleSplit();}},on:this._aureonPaint&&this._tool==="select"},
       {key:"materials",label:"studio_materials",icon:"M4 5h16v14H4z M8 5v14 M12 5v14 M16 5v14",pick:()=>{this.setTool("select");if(this.room||this.floor?.rooms[0])this.selectItem("room",this.room?.id??this.floor!.rooms[0].id);this._studioDetails=true;},on:false},
       {key:"measure",label:"tool_measure",icon:"M3 17L17 3l4 4L7 21z M7 13l3 3 M11 9l3 3 M15 5l3 3",pick:()=>this.setTool("measure"),on:this._tool==="measure"},
       {key:"outdoor",label:"tool_group_outside",icon:"M3 11l9-8 9 8 M5 10v11h14V10 M9 21v-7h6v7",pick:()=>this.setTool("outdoor"),on:this._tool==="outdoor"},
@@ -10525,7 +10556,7 @@ export class Fp3dEditor extends LitElement {
         const pts = r.points.map((p) => this.toScreen(p).join(",")).join(" ");
         return svg`<polygon data-room=${r.id} class=${r.id === this._roomId ? "fp3d-room fp3d-room-sel" : "fp3d-room"} points=${pts} />`;
       })}</g>
-      ${this.renderEdgeHighlight()} ${this.renderAureonWallLine()}
+      ${this.renderEdgeHighlight()} ${this.renderAureonWallLine()} ${this.renderAureonPaintStrips(floor)}
       <g pointer-events="none">${floor.rooms.map((r) => {
         const [cx, cy] = this.toScreen(centroid(r.points));
         return svg`<text class="fp3d-room-name" x=${cx} y=${cy - 2}>${r.name}</text>
@@ -17138,6 +17169,16 @@ export class Fp3dEditor extends LitElement {
         inset: 0;
         opacity: 0;
         cursor: pointer;
+      }
+      .fp3d-aureon-wall-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .fp3d-aureon-paint-band {
+        stroke-linecap: round;
+        opacity: 0.95;
+        filter: drop-shadow(0 0 1.2px rgba(0, 0, 0, 0.7));
       }
       .fp3d-aureon-wall-sel {
         stroke: var(--fp3d-accent);

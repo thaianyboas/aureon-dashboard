@@ -1059,3 +1059,21 @@ validate, test:browser, migration contract; disposable HA with real mouse clicks
 Delete ignored) and 3D (Sala's green wall that was hidden before now shows).
 - Published 2026-11-10 15:1x: dashboard 20feaa7 (CI green) and aureon-integration 54ed1b0 (SOURCE_COMMIT 20feaa7, CI green).
   Owner must update both in HACS and restart HA. Not yet tested on the owner's HA.
+
+### Batch 2026-11-11 (13) – paint visible at once; AUREON Música login (not yet published)
+- Owner: "a parede ainda não está pintando". Audit of every edge of the test plan with the published code: the paint
+  film stands in front of the walls (only two tiny edges are odd). In the disposable HA the paint shows in 3D. What
+  was missing: the 2D plan never showed a paint, so a choice looked like nothing happened (and most palette colours
+  are near-white). Now: renderAureonPaintStrips draws every painted wall as a band in its colour on the inner side
+  of the wall on the 2D plan (above the selection line); "Pintar" opens the split view on wide screens (≥1100 px);
+  each wall's colour has "Ver esta parede em 3D" (opens the existing wall view, 3D in the room, on that wall).
+  Fidelity re-audit: renderRooms, renderAureonWallPaint, renderStudioRail changed; renderAureonPaintStrips added.
+- AUREON Música (repo aureon-music, local commit 9e8b17f): "Autenticação expirada" several times a day. Cause: the
+  SpotifyPlus token updater stored a refreshed token later (add_job); a second thread could reuse the old, already
+  rotated refresh token and be refused. Fix: store before releasing the lock, one retry with the newest stored
+  token, refusals of newer HA (OAuth2TokenRequestReauthError) recognised, 429/5xx never ask to log in again.
+  Kept as scripts/patches/*.patch applied by build_from_upstream.py; tests/test_token_rotation.py (old code fails).
+Validation: frontend 630, typecheck, build budgets, backend 180, root npm test, validate, test:browser, migration
+contract, fidelity; disposable HA: Pintar → tap wall → colour → band on the plan in that colour, "Ver esta parede em
+3D" shows the wall in that colour. Music: HA test harness (pytest-homeassistant-custom-component, HA 2026.2) with a
+fake rotating Spotify token server; not tested against the owner's Spotify account.
