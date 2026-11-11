@@ -342,7 +342,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-3d.js",
       "original_sha256": "2d16eaadced3d87d4acd24af83694c6aa179b611093121ffec4e696b4d8daeb3",
-      "candidate_sha256": "d34fdf603a3948233e3870fa816fe097d3e6384e67f86bc0028652fe83249c7c",
+      "candidate_sha256": "6bb614ed562f4561004f37cdc943169899f11af0f3e76380c164e921cdfeb6c2",
       "bytes": 873164,
       "status": "modified"
     },
@@ -356,7 +356,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d-editor.js",
       "original_sha256": "c5ea0f02630abdc4e8166e7273215d319d8c72c0466a1c13966e68407f2db5c3",
-      "candidate_sha256": "f600655c54c7480f0c291fd46f4df8266bdeb285e3e15e10648db38ee81ed39e",
+      "candidate_sha256": "e8040bfafcecc66d3633e5e76eb37644b3e12a683b4dcc577f0f8fcc5ef83f3b",
       "bytes": 1067764,
       "status": "modified"
     },
@@ -391,7 +391,7 @@
     {
       "path": "custom_components/neonplan3d/frontend/neonplan3d.js",
       "original_sha256": "a2ecf30a957cc66557fd0286d6b0da2fb3b2785c8c8b19819ca17d0a58afc154",
-      "candidate_sha256": "8c2c8322e9062c67e81ab117c07e4f7a992529dff74514fde43814be6b7ffeb8",
+      "candidate_sha256": "ce4e13922f7ecc23bc3d685c4b40c680eb078bdaa1ab11c71da449ed13d27b20",
       "bytes": 834792,
       "status": "modified"
     },
@@ -4742,7 +4742,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-3d.js",
-      "candidate_sha256": "d34fdf603a3948233e3870fa816fe097d3e6384e67f86bc0028652fe83249c7c",
+      "candidate_sha256": "6bb614ed562f4561004f37cdc943169899f11af0f3e76380c164e921cdfeb6c2",
       "status": "added"
     },
     {
@@ -4752,7 +4752,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d-editor.js",
-      "candidate_sha256": "f600655c54c7480f0c291fd46f4df8266bdeb285e3e15e10648db38ee81ed39e",
+      "candidate_sha256": "e8040bfafcecc66d3633e5e76eb37644b3e12a683b4dcc577f0f8fcc5ef83f3b",
       "status": "added"
     },
     {
@@ -4782,7 +4782,7 @@
     },
     {
       "path": "custom_components/aureon_floor/frontend/neonplan3d.js",
-      "candidate_sha256": "8c2c8322e9062c67e81ab117c07e4f7a992529dff74514fde43814be6b7ffeb8",
+      "candidate_sha256": "ce4e13922f7ecc23bc3d685c4b40c680eb078bdaa1ab11c71da449ed13d27b20",
       "status": "added"
     },
     {
@@ -5097,12 +5097,12 @@
     },
     {
       "path": "frontend/src/viewer/aureon-finishes.test.ts",
-      "candidate_sha256": "5e42e4db8428bae4929e495a2170fac751d6df4a665c7d6b04ab65b78487e872",
+      "candidate_sha256": "b4f5c308186c9e522db253d82173adb73a5652a63e925c3ea6151879c8909229",
       "status": "added"
     },
     {
       "path": "frontend/src/viewer/aureon-finishes.ts",
-      "candidate_sha256": "030e58a01c311a9b90954f37a6df93b9cd820b386f92085f1c9c3d3e118ed32d",
+      "candidate_sha256": "155e2066686367443a6d4cbcca409528e984726fc5662d2ce4aa3db960f3a4da",
       "status": "added"
     },
     {

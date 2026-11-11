@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MeshStandardMaterial } from "three";
-import { AUREON_FINISH_IDS, buildFinishes, ceilingMesh, innerFaces } from "./aureon-finishes.ts";
+import { AUREON_FINISH_IDS, buildFinishes, ceilingMesh, innerFaces, wallAlong } from "./aureon-finishes.ts";
+import { generateWalls } from "../geometry/walls.ts";
 
 const room = (id: string, x0: number, x1: number) => ({ id, points: [[x0, 0], [x1, 0], [x1, 3], [x0, 3]] as [number, number][] });
 
@@ -90,4 +91,22 @@ test("paint stands in front of a neighbour's wall when rooms overlap (owner's pl
   // rooms that meet exactly keep the half interior wall as before
   const c = room("c", 4, 7), fps2 = generateWalls([a, c] as never, { exterior: 0.3, interior: 0.2 }, []).walls.map((w) => w.footprint);
   assert.ok(Math.abs(innerFaces(a, [a, c], 0.2, fps2)[1].a[0] - (4 - 0.1 - 0.003)) < 0.011);
+});
+
+test("owner plan 2026-11-11: a corner drawn twice does not pull the next wall's paint into the wall", () => {
+  // the owner's living room: first corner twice, left wall from (0.235,12.647) up to (0.235,8.229)
+  const sala = { id: "s", points: [[0.235, 8.229], [0.235, 8.229], [2.085, 8.229], [2.085, 7.064], [4.295, 7.069], [4.295, 12.649], [0.235, 12.647]] as [number, number][] };
+  const faces = innerFaces(sala, [sala], 0.235);
+  const left = faces[6];
+  // both ends stand off the wall line by the same distance: the paint runs parallel to the wall
+  assert.ok(Math.abs(left.a[0] - left.b[0]) < 0.01, `${left.a} → ${left.b}`);
+  assert.ok(left.a[0] > 0.235 && left.b[0] > 0.235);
+});
+
+test("owner plan 2026-11-11: an edge set to 'no wall' whose wall is a free wall is still painted", () => {
+  const free = [{ id: "w1", a: [0.235, 8.229] as [number, number], b: [0.235, 12.647] as [number, number] }];
+  const room = { id: "s", points: [[0.235, 8.229], [4.295, 8.229], [4.295, 12.649], [0.235, 12.647]] as [number, number][], wall_heights: [0, 0, 0, 0], aureon_finish: { wall_paints: [null, null, null, "#8d5c16"] } };
+  const walls = generateWalls([{ ...room, wall_heights: [0, 0, 0, 0] }] as never, { exterior: 0.235, interior: 0.235 }, free as never).walls;
+  assert.equal(wallAlong(room.points[3], room.points[0], walls), 0); // a wall is there, full height
+  assert.equal(wallAlong(room.points[1], room.points[2], walls), null); // nothing built on the open side
 });

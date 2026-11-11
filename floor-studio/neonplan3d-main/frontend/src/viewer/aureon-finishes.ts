@@ -6,7 +6,7 @@
  */
 import { BufferAttribute, BufferGeometry, CanvasTexture, FrontSide, Group, Mesh, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from "three";
 import { triangulate } from "./geo.ts";
-import { generateWalls } from "../geometry/walls.ts";
+import { generateWalls, type Wall } from "../geometry/walls.ts";
 import { pointInPolygon } from "../model.ts";
 import { AUREON_WALL_PAINTS, paintColor, wallPaints } from "../aureon-paints.ts";
 
@@ -309,11 +309,17 @@ export function innerFaces(room: RoomLike, rooms: RoomLike[], interior: number, 
       const ds = [0.25, 0.5, 0.75].map(depth).sort((x, y) => x - y);
       offset = Math.max(offset, ds[1]);
     }
-    return { a, u, inward, offset: offset + 0.003 };
+    return { a, u, inward, offset: offset + 0.003, ok: len(d) >= 0.01 };
   });
+  // owner plan 2026-11-11: a corner drawn twice (or a 1-cm stub) is an edge without direction. Its neighbours must
+  // meet each other, not that edge – otherwise the paint of the next wall ran diagonally into the wall.
+  const valid = lines.some((L) => L.ok);
+  const prevOk = (i: number) => { for (let k = 1; k <= n; k++) { const j = (i - k + n) % n; if (lines[j].ok) return j; } return (i - 1 + n) % n; };
+  const nextOk = (i: number) => { for (let k = 0; k < n; k++) { const j = (i + k) % n; if (lines[j].ok) return j; } return i; };
   // corners: intersect neighbouring offset lines (falls back to the plain offset point when nearly parallel)
   const corner = (i: number): Vec2 => {
-    const L1 = lines[(i - 1 + n) % n], L2 = lines[i];
+    const i2 = valid ? nextOk(i) : i;
+    const L1 = lines[valid ? prevOk(i2) : (i - 1 + n) % n], L2 = lines[i2];
     const p1: Vec2 = [L1.a[0] + L1.inward[0] * L1.offset, L1.a[1] + L1.inward[1] * L1.offset];
     const p2: Vec2 = [L2.a[0] + L2.inward[0] * L2.offset, L2.a[1] + L2.inward[1] * L2.offset];
     const den = L1.u[0] * L2.u[1] - L1.u[1] * L2.u[0];
@@ -328,12 +334,13 @@ export function innerFaces(room: RoomLike, rooms: RoomLike[], interior: number, 
 export function buildFinishes(floor: FloorLike, interior: number, exterior = 0.3): Group {
   const group = new Group();
   // the walls exactly as the 3D builds them: paint and ceilings sit in front of what is really there
-  let footprints: Vec2[][] = [];
+  let walls: Wall[] = [];
   try {
-    footprints = generateWalls(floor.rooms as unknown as Parameters<typeof generateWalls>[0], { exterior, interior }, (floor as { walls?: Parameters<typeof generateWalls>[2] }).walls ?? []).walls.map((w) => w.footprint);
+    walls = generateWalls(floor.rooms as unknown as Parameters<typeof generateWalls>[0], { exterior, interior }, (floor as { walls?: Parameters<typeof generateWalls>[2] }).walls ?? []).walls;
   } catch {
-    footprints = [];
+    walls = [];
   }
+  const footprints: Vec2[][] = walls.map((w) => w.footprint);
   group.name = "aureon-finishes";
   for (const room of floor.rooms) {
     // every room gets a ceiling (owner 2026-11-10: walking through the flat showed the open sky above the rooms);
@@ -353,14 +360,14 @@ export function buildFinishes(floor: FloorLike, interior: number, exterior = 0.3
       const mat = material(f.walls.material, false, paintColor(f.walls.color));
       const edges = room.points.map((_, i) => i).filter((i) => single[i] === null && (!f.walls!.edges || f.walls!.edges.includes(i)));
       if (mat && edges.length) {
-        const g = wallMesh(room, floor, { ...f.walls, edges }, interior, mat, footprints);
+        const g = wallMesh(room, floor, { ...f.walls, edges }, interior, mat, footprints, walls);
         if (g) group.add(g);
       }
     }
     for (const color of new Set(single.filter((c): c is string => c !== null))) {
       const mat = material("paint", false, color);
       const edges = single.flatMap((c, i) => (c === color ? [i] : []));
-      const g = mat ? wallMesh(room, floor, { material: "paint", color, edges }, interior, mat, footprints) : null;
+      const g = mat ? wallMesh(room, floor, { material: "paint", color, edges }, interior, mat, footprints, walls) : null;
       if (g) group.add(g);
     }
   }
@@ -429,14 +436,43 @@ export function ceilingMesh(points: Vec2[], y: number, mat: MeshStandardMaterial
   return mesh;
 }
 
-function wallMesh(room: RoomLike, floor: FloorLike, ref: AureonFinishRef & { edges?: number[] | null }, interior: number, mat: MeshStandardMaterial, footprints: Vec2[][] = []): Mesh | null {
+/** The height of a wall the 3D really builds along a room edge (free walls included), or null when there is none. */
+export function wallAlong(a: Vec2, b: Vec2, walls: Pick<Wall, "a" | "b" | "left" | "right" | "height">[]): number | null {
+  const d = sub(b, a), L = len(d);
+  if (L < 0.02) return null;
+  const u: Vec2 = [d[0] / L, d[1] / L];
+  let best: number | null = null;
+  for (const w of walls) {
+    const wd = sub(w.b, w.a), wl = len(wd);
+    if (wl < 0.02) continue;
+    const wu: Vec2 = [wd[0] / wl, wd[1] / wl];
+    if (Math.abs(u[0] * wu[1] - u[1] * wu[0]) > 0.05) continue; // not parallel
+    const off = (q: Vec2) => Math.abs((q[0] - w.a[0]) * wu[1] - (q[1] - w.a[1]) * wu[0]);
+    const reach = Math.max(w.left, w.right) + 0.05;
+    if (off(a) > reach || off(b) > reach) continue;
+    const s = (q: Vec2) => (q[0] - w.a[0]) * wu[0] + (q[1] - w.a[1]) * wu[1];
+    const lo = Math.max(0, Math.min(s(a), s(b))), hi = Math.min(wl, Math.max(s(a), s(b)));
+    if (hi - lo < Math.min(0.2, L * 0.5)) continue; // must cover a good part of the edge
+    const h = typeof w.height === "number" && w.height > 0 ? w.height : 0;
+    best = Math.max(best ?? 0, h);
+  }
+  return best;
+}
+
+function wallMesh(room: RoomLike, floor: FloorLike, ref: AureonFinishRef & { edges?: number[] | null }, interior: number, mat: MeshStandardMaterial, footprints: Vec2[][] = [], walls: Wall[] = []): Mesh | null {
   const faces = innerFaces(room, floor.rooms, interior, footprints);
   const pos: number[] = [], uv: number[] = [], nor: number[] = [];
   const def = FINISHES[ref.material];
   faces.forEach((face, i) => {
     if (ref.edges && !ref.edges.includes(i)) return;
     const hRaw = room.wall_heights?.[i];
-    const H = typeof hRaw === "number" ? hRaw : (room.ceiling_height ?? floor.height);
+    let H = typeof hRaw === "number" ? hRaw : (room.ceiling_height ?? floor.height);
+    // owner plan 2026-11-11: a room edge set to "no wall" (height 0) whose wall is drawn as a free wall – the 3D
+    // shows that wall, so its paint is drawn too (at the free wall's height, else the room's)
+    if (hRaw === 0) {
+      const along = wallAlong(room.points[i], room.points[(i + 1) % room.points.length], walls);
+      if (along !== null) H = along > 0 ? along : (room.ceiling_height ?? floor.height);
+    }
     if (!(H > 0.05)) return;
     const d = sub(face.b, face.a), L = len(d);
     if (L < 0.02) return;

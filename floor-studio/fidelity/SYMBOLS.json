@@ -5,7 +5,7 @@
     "aureon_extension": 111,
     "missing": 19,
     "modified": 30,
-    "added": 159
+    "added": 160
   },
   "symbols": [
     {
@@ -20055,37 +20055,43 @@
     {
       "symbol": "viewer/aureon-finishes.ts::innerFaces",
       "candidate_line": 272,
-      "candidate_sha256": "700160f70912305ba550a4cd6eb0b05e1fb56266c4ff4158db0f4c98ca5bbf81",
+      "candidate_sha256": "6c9d2e6c1d0170a8a93889e1e3a986a0b4741edd3fe5a289826ab87335277765",
       "status": "added"
     },
     {
       "symbol": "viewer/aureon-finishes.ts::buildFinishes",
-      "candidate_line": 328,
-      "candidate_sha256": "32b959529cddb5270809b100b6755bddebcd7209cf8b52850bbafa725af7a326",
+      "candidate_line": 334,
+      "candidate_sha256": "8b7a6ea287205f4117c29fa410f2f2a7dae674193e887bfad4a4bec2ec0afeb2",
       "status": "added"
     },
     {
       "symbol": "viewer/aureon-finishes.ts::uvOf",
-      "candidate_line": 370,
+      "candidate_line": 377,
       "candidate_sha256": "e03f4259012a5e3d028f5ab5192a9a573059d05d6127c36bc7b4111e2f791a0d",
       "status": "added"
     },
     {
       "symbol": "viewer/aureon-finishes.ts::floorMesh",
-      "candidate_line": 376,
+      "candidate_line": 383,
       "candidate_sha256": "45d5ecb45a1bba8bf63d1d456b7eb27433d25dffa4302c01be47d39c1d0e39af",
       "status": "added"
     },
     {
       "symbol": "viewer/aureon-finishes.ts::ceilingMesh",
-      "candidate_line": 407,
+      "candidate_line": 414,
       "candidate_sha256": "9cb99951bdd066cf4a3f4a3c8020e052041b4f38132f3f11b547d645a0cfd3ee",
       "status": "added"
     },
     {
+      "symbol": "viewer/aureon-finishes.ts::wallAlong",
+      "candidate_line": 440,
+      "candidate_sha256": "416e504e997a8118f5eb7c3d5825470ef994c884e8d2a3126318be5ed9ab793e",
+      "status": "added"
+    },
+    {
       "symbol": "viewer/aureon-finishes.ts::wallMesh",
-      "candidate_line": 432,
-      "candidate_sha256": "d3adc2325d627d64d1d1a1eb6a6895a8547c3ba6c8594e74cd3efeb967cc7b1e",
+      "candidate_line": 462,
+      "candidate_sha256": "59a26aa7eb914e253486e0949abd69e59ac0597ed1dc123583f35497206806f9",
       "status": "added"
     },
     {
