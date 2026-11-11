@@ -1189,3 +1189,25 @@ The Music browser suite passed again with that label and native transfer.
 - Owner plan overlap warning: Cozinha's outline still covers the Varanda (Cozinha to z 12.649, Varanda 11.109–12.649)
   plus a 7-cm spike at its top-right corner; "Fechar espaços"/"Endireitar" do not fix that. Needs the owner's edit
   (or her full backup) – not changed from here.
+
+
+### Codex batch 2026-11-11 — disposable HA, HACS update and live consent handoff
+
+- Music `988963c` extends the disposable HA integration test to drop and restore the simulated Spotify connection.
+  The entity becomes unavailable and resumes playback state on reconnection. The stored credential remains intact.
+  The 31-test Music suite passed on HA 2025.4.0 and 2026.10.4, including legacy coexistence and refresh regression.
+- Started a clean HA Core 2026.10.4 lab without owner's configuration. Over real local HTTP, HA generated the official
+  Spotify PKCE URL with S256 and a signed state and rejected a callback with an invalid state. The sandbox runner used
+  loopback-only network adapters and disabled LAN discovery. The shared browser cannot reach the lab's loopback
+  listener, so no live Spotify authorization could complete in this environment.
+- HACS 2.0.5 repository installer used the public GitHub endpoints to update a disposable copy from legacy Music
+  `9e8b17f` to master. The native integration file matched GitHub, the synthetic legacy config entry stayed
+  byte-identical, and HACS restored the previous file after an injected partial-download failure. This was the
+  repository installer in an HA process, not HACS account onboarding through its UI.
+- Re-ran all 23 Music browser checks against Dashboard candidate `e3b7949` with simulated HA/Spotify data. Compact
+  and full player shared playback state and the native speaker transfer used the selected account. Reviewed Claude's
+  follow-up Dashboard `18bf563` distribution commit. No Dashboard or Floor Studio code edits in this batch.
+- A clean Docker Desktop lab bundle was provided for local consent on the owner's Mac. Its HA configuration and
+  bundle were checked locally; Docker Desktop startup and consent are pending. The next step is for the owner to
+  authorize in the official Spotify screen opened by that lab. Continue with live API and physical Spotify Connect
+  tests, then accept or fix parity gaps before removing bundled providers. No owner HA change or final release.
