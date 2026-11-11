@@ -1211,3 +1211,11 @@ The Music browser suite passed again with that label and native transfer.
   bundle were checked locally; Docker Desktop startup and consent are pending. The next step is for the owner to
   authorize in the official Spotify screen opened by that lab. Continue with live API and physical Spotify Connect
   tests, then accept or fix parity gaps before removing bundled providers. No owner HA change or final release.
+### Batch 2026-11-11 (17) – "Corrigir divisões sobrepostas"
+- src/aureon-overlaps.ts: fixOverlaps(rooms) – a bigger room drawn over a smaller one gets the corners lying in the
+  smaller room moved onto one of its edges (no corners added or removed, so wall heights/paints/doors stay aligned);
+  door/window offsets on moved edges are re-projected. Owner's plan: Cozinha (to z 12.649) over Varanda → Cozinha
+  ends at 11.109 (8.4 m²), warning gone. Construção → "Acertar a planta" → "Corrigir divisões sobrepostas", and a
+  "Corrigir" link inside the warning chip. Undo works (one change).
+- The old own-furniture list (renderAureonOwn) is gone; the furniture drawer (renderAureonFurniture) serves both
+  paths. Tests: aureon-overlaps.test.ts.

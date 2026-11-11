@@ -125,6 +125,7 @@ export const studioEditorStyles=css`
 .fp3d-toolbar>*{pointer-events:auto}
 .fp3d-toolbar .fp3d-warn{font-size:12px;padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--fp3d-chrome-solid) 92%,transparent);border:1px solid color-mix(in srgb,#e0a24a 40%,transparent)}
 .fp3d-toolbar:empty{display:none}
+.aureon-warn-fix{padding:0 0 0 8px;font-size:12px;font-weight:600}
 .fp3d-hint{position:absolute;left:16px;bottom:14px;max-width:min(560px,60%);border:1px solid var(--studio-edge);border-radius:10px;background:color-mix(in srgb,var(--fp3d-chrome-solid) 90%,transparent);color:var(--fp3d-muted);padding:7px 12px;z-index:12;font-size:11.5px}
 .fp3d-stage-pair{background-color:var(--fp3d-bg);background-image:radial-gradient(color-mix(in srgb,var(--fp3d-text) 9%,transparent) 1px,transparent 1.3px);background-size:24px 24px}
 }

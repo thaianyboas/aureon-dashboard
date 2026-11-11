@@ -12,6 +12,7 @@ import { furnitureSymbol } from "./furniture2d.ts";
 import { clipConvex, netRoomArea } from "../geometry/area.ts";
 import { areaText, formatImperial, lengthText, lengthUnit, parseLength, unitLabel, type LengthUnit } from "../units.ts";
 import { closeGaps, straightenEdges, suggestedThickness } from "../geometry/gaps.ts";
+import { fixOverlaps } from "../aureon-overlaps.ts";
 import { clampIntoRoom, keepInRoom, sharedEdge, snapToWall } from "../geometry/snap.ts";
 import { cornerPoint, nearestOnPath, onWall, pipePath, type P3 } from "../geometry/runs.ts";
 import { connectionsAt, laidPipe, nearestOnOutline, planConnection, poolNodeAt, runLead, runsOnWall, splitPipe, type Connection, type ConnectVia, type WallRun } from "../pool-runs.ts";
@@ -5710,6 +5711,31 @@ export class Fp3dEditor extends LitElement {
   }
 
   /** Close gaps between rooms of this floor and take the gap as interior wall thickness. */
+  /** AUREON (owner 2026-11-11): repairs rooms drawn over each other (the "Há divisões sobrepostas" warning). */
+  private aureonFixOverlaps(): void {
+    const floor = this.floor;
+    if (!floor || !this.isAdmin) return;
+    const { rooms, fixed } = fixOverlaps(floor.rooms);
+    if (!fixed) {
+      this._notice = this.t("overlaps_none");
+      return;
+    }
+    this.change((_, f) => {
+      // doors and windows keep their place on an edge whose start corner moved
+      for (const o of f.openings) {
+        if (o.wall) continue;
+        const before = f.rooms.find((r) => r.id === o.room_id), after = rooms.find((r) => r.id === o.room_id);
+        if (!before || !after || before.points === after.points || o.edge >= after.points.length) continue;
+        const p = pointOnRoomEdge(before, o.edge, o.offset), a = after.points[o.edge], b = after.points[(o.edge + 1) % after.points.length];
+        const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        if (L > 0.05) o.offset = Math.min(L, Math.max(0, ((p[0] - a[0]) * (b[0] - a[0]) + (p[1] - a[1]) * (b[1] - a[1])) / L));
+      }
+      f.rooms = rooms;
+    });
+    const left = generateWalls(this.floor!.rooms, { exterior: this._doc.settings.wall_exterior, interior: this._doc.settings.wall_interior }, this.floor!.walls ?? []).warnings.length;
+    this._notice = this.t(left ? "overlaps_partly" : "overlaps_fixed", { n: fixed });
+  }
+
   private closeFloorGaps(): void {
     const floor = this.floor;
     if (!floor || !this.isAdmin) return;
@@ -6448,6 +6474,8 @@ export class Fp3dEditor extends LitElement {
 
   /** AUREON editor: furniture – the owner's own pieces in pages of six, or the catalogue; one at a time. */
   private renderAureonFurniture() {
+    // the original library (renderFurnitureLibrary) stays in the source unchanged for fidelity; the drawer replaces it
+    void this.renderFurnitureLibrary;
     this.loadAureonOwn();
     const list = Array.isArray(this._aureonOwn) ? this._aureonOwn : [];
     const tab = this._aureonFurnTab ?? (list.length ? "own" : "catalog");
@@ -6510,7 +6538,8 @@ export class Fp3dEditor extends LitElement {
         <p class="aureon-drawer-group">${this.t("area_build_fix")}</p>
         ${row("measure", this.t("tool_measure"), "M3 16L16 3l5 5L8 21z M7 12l2 2 M10 9l2 2 M13 6l2 2", t === "measure", () => this.setTool("measure"))}
         ${row("gaps", this.t("gaps_close"), "M4 4h7v7H4z M13 13h7v7h-7z M11 7.5h3.5V13", false, () => this.closeFloorGaps())}
-        ${row("straighten", this.t("straighten"), "M3 18L21 7 M3 18h18", false, () => this.straightenFloor())}`;
+        ${row("straighten", this.t("straighten"), "M3 18L21 7 M3 18h18", false, () => this.straightenFloor())}
+        ${row("overlaps", this.t("overlaps_fix"), "M4 4h10v10H4z M10 10h10v10H10z", false, () => this.aureonFixOverlaps())}`;
     }
     if (area === "finish") {
       return html`${head("area_finish", "area_finish_lead")}${this.renderAureonFinishes()}`;
@@ -6617,12 +6646,12 @@ export class Fp3dEditor extends LitElement {
       <div class="fp3d-editor ${this.narrow ? "fp3d-narrow" : ""} ${this._studioLibrary || this._aureonArea ? "studio-has-library" : ""} ${this._studioDetails ? "studio-details-open" : ""} ${this._studio3d ? "studio-view3d" : ""} ${this._aureonMore ? "aureon-more-open" : ""}" style=${`--fp3d-side-w:${this._sideWidth}px`}>
         ${this.renderStudioHeader()} ${this.renderStudioRail()}
         ${this._settingsMenu ? html`<div class="aureon-rail-settings">${this.renderSettingsMenu(() => {})}</div>` : nothing}
-        <div class="studio-library aureon-drawer">${this._aureonArea?this.renderAureonDrawer():this._studioLibrary&&floor&&this.isAdmin?html`<div class="studio-library-head"><h2>${this.t("studio_library")}</h2><button class="fp3d-btn" aria-label=${this.t("close")} @click=${()=>{this._studioLibrary=false;}}>✕</button></div>${this.renderFurnitureLibrary()}`:nothing}</div>
+        <div class="studio-library aureon-drawer">${this._aureonArea?this.renderAureonDrawer():this._studioLibrary&&floor&&this.isAdmin?html`<div class="studio-library-head"><h2>${this.t("studio_library")}</h2><button class="fp3d-btn" aria-label=${this.t("close")} @click=${()=>{this._studioLibrary=false;}}>✕</button></div>${this.renderAureonFurniture()}`:nothing}</div>
         <div class="fp3d-main">
           <div class="fp3d-toolbar">
             ${this._wallPick ? html`<div class="fp3d-pick-tip" style=${`left:${this.wallPickTip[0]}px;top:${this.wallPickTip[1]}px`} @click=${() => (this._wallPick = false)}>${this.t("hint_wall_pick")}</div>` : nothing}
             ${this.renderAureonToolChoices()}
-            ${walls?.warnings.length ? html`<span class="fp3d-warn">${this.t("overlap_warning")}</span>` : nothing}
+            ${walls?.warnings.length ? html`<span class="fp3d-warn">${this.t("overlap_warning")}${this.isAdmin ? html` <button class="aureon-link aureon-warn-fix" data-fix-overlaps @click=${() => this.aureonFixOverlaps()}>${this.t("overlaps_fix_short")}</button>` : nothing}</span>` : nothing}
           </div>
           <div class="fp3d-stage-pair ${this._split ? "fp3d-split" : ""}" style=${this._split && !this.narrow ? `--fp3d-split:${Math.round(this._splitRatio * 100)}%` : ""}>
           <div class="fp3d-canvas-wrap">
@@ -13702,60 +13731,10 @@ export class Fp3dEditor extends LitElement {
     return null;
   }
 
-  private renderAureonOwn() {
-    this.loadAureonOwn();
-    const list = this._aureonOwn;
-    const filter = (this._aureonOwnFilter ?? "").trim().toLowerCase();
-    const shown = Array.isArray(list) ? list.filter((m) => !filter || `${m.name ?? ""} ${m.file}`.toLowerCase().includes(filter)) : [];
-    const used = new Map<string, number>();
-    for (const f of this.floor?.furniture ?? []) {
-      const u = (f as Furniture & { aureon_model?: { url?: string } }).aureon_model?.url;
-      if (u) used.set(u, (used.get(u) ?? 0) + 1);
-    }
-    const cm = (v: number) => Math.round(v * 100);
-    return html`<section class="fp3d-aureon-own">
-      <div class="fp3d-h3row"><h3>${this.t("aureon_own_title")}</h3>
-        ${this.isAdmin
-          ? html`<label class="fp3d-btn fp3d-aureon-own-import" ?aria-disabled=${this._aureonOwnImport?.busy}
-              >⤓ ${this.t("aureon_own_import")}<input type="file" accept=".zip,.glb,application/zip,model/gltf-binary" multiple hidden
-                ?disabled=${this._aureonOwnImport?.busy}
-                @change=${(e: Event) => {
-                  const input = e.target as HTMLInputElement;
-                  void this.importAureonOwn(input.files).finally(() => (input.value = ""));
-                }}
-            /></label>`
-          : nothing}
-      </div>
-      ${this._aureonOwnImport ? html`<p class="fp3d-sub fp3d-aureon-own-status ${this._aureonOwnImport.error ? "fp3d-aureon-danger" : ""}" role="status">${this._aureonOwnImport.text}</p>` : nothing}
-      ${list === null
-        ? html`<p class="fp3d-sub">${this.t("aureon_own_loading")}</p>`
-        : list === "error"
-          ? html`<p class="fp3d-sub">${this.t("aureon_own_error")}</p>`
-          : !list.length
-            ? html`<p class="fp3d-sub">${this.t("aureon_own_empty")}</p>`
-            : html`${list.length > 8
-                  ? html`<input class="fp3d-aureon-own-filter" type="search" .value=${this._aureonOwnFilter ?? ""} placeholder=${this.t("aureon_own_search")} @input=${(e: Event) => {
-                      this._aureonOwnFilter = (e.target as HTMLInputElement).value;
-                      this.requestUpdate();
-                    }} />`
-                  : nothing}
-                <div class="fp3d-aureon-own-list">
-                  ${shown.map(
-                    (m) => html`<button class="fp3d-aureon-own-item" ?disabled=${!this.isAdmin} title=${m.file} @click=${() => this.addAureonOwn(m)}>
-                      ${((pic) => (pic ? html`<img class="fp3d-aureon-own-pic" src=${pic} alt="" />` : html`<span class="fp3d-aureon-own-pic" aria-hidden="true"></span>`))(this.aureonThumb(m.url))}
-                      <b>${m.name ?? m.file.replace(/\.glb$/i, "")}</b>
-                      <span class="fp3d-sub">${cm(m.size[0])} × ${cm(m.size[2])} × ${cm(m.size[1])} cm${used.get(m.url) ? ` · ${this.t("aureon_own_in_plan", { n: used.get(m.url)! })}` : ""}</span>
-                    </button>`,
-                  )}
-                </div>
-                <p class="fp3d-sub">${this.room ? this.t("aureon_own_hint_room", { room: this.room.name }) : this.t("aureon_own_hint")}</p>`}
-    </section>`;
-  }
-
   private renderFurnitureLibrary() {
     const room = this.room;
     const lang = this.hass?.language ?? "en";
-    return html`${this.renderAureonOwn()}<section>
+    return html`<section>
       <h3>${this.t("furniture_add")}</h3>
       <p class="fp3d-sub">${room ? this.t("furniture_into", { room: room.name }) : this.t("furniture_pick_room")}</p>
       <fp3d-library
@@ -17034,14 +17013,6 @@ export class Fp3dEditor extends LitElement {
       .fp3d-ctx-danger {
         color: var(--fp3d-danger, #ff6b7a) !important;
       }
-    .fp3d-aureon-own-import {
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .fp3d-aureon-own-import[aria-disabled] {
-      opacity: 0.6;
-      pointer-events: none;
-    }
     .fp3d-aureon-wall-map {
       display: block;
       width: 100%;
@@ -17218,50 +17189,6 @@ export class Fp3dEditor extends LitElement {
       font: inherit;
       cursor: pointer;
     }
-    .fp3d-aureon-own-list {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-        margin: 8px 0;
-      }
-      .fp3d-aureon-own-item {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-        padding: 6px 6px 8px;
-        text-align: left;
-        border-radius: 12px;
-        min-width: 0;
-        font-size: 12px;
-        line-height: 1.25;
-        border: 1px solid rgba(var(--aureon-ui-line-rgb, 128, 128, 128), 0.35);
-        background: var(--fp3d-surface, transparent);
-        color: var(--fp3d-text, inherit);
-        cursor: pointer;
-      }
-      .fp3d-aureon-own-item b {
-        font-weight: 600;
-        overflow-wrap: anywhere;
-      }
-      .fp3d-aureon-own-item .fp3d-sub {
-        font-size: 11px;
-      }
-      .fp3d-aureon-own-pic {
-        display: block;
-        width: 100%;
-        aspect-ratio: 25 / 18;
-        object-fit: cover;
-        border-radius: 8px;
-        background: #1d272e;
-      }
-      .fp3d-aureon-own-item:hover:not([disabled]) {
-        border-color: var(--fp3d-accent);
-      }
-      .fp3d-aureon-own-filter {
-        width: 100%;
-        box-sizing: border-box;
-      }
       .fp3d-aureon-paint {
         margin: 12px 0;
       }
