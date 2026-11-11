@@ -1221,3 +1221,9 @@ The Music browser suite passed again with that label and native transfer.
   paths. Tests: aureon-overlaps.test.ts.
 
 - (17b) The wall colour bands on the 2D plan show only while Acabamentos is open (owner read them as a second wall).
+
+
+### Codex batch 2026-11-11 — two native Spotify accounts
+
+- Music `0c2b0e8` adds a disposable HA test for two native accounts sharing one OAuth app and the same display name. It verifies distinct entries, player entities and credential files, rejection of duplicate setup, correct credential use for each playback command, and isolation when reauthorizing or removing one account.
+- All 32 Music tests passed on HA 2025.4.0 and 2026.10.4 with simulated Spotify. Live consent and physical Connect remain pending. No integration runtime or Dashboard UI changes in this batch.
