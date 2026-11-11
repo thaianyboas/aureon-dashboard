@@ -1171,3 +1171,9 @@ fidelity; disposable HA with the owner's plan: screenshots of all drawers, room 
 - Next: confirm Spotify consent and reconnect in a disposable HA with an authorized Premium test account,
   run a playback/Connect matrix against actual speakers, settle the supported HA minimum and verify HACS
   installation, then confirm legacy parity before removing the bundled providers and shipping the final bundle.
+
+Follow-up validation: the full Dashboard browser suite passed (79 checks across all six suites). The same 31 Music
+tests passed on HA 2025.4.0 with dependencies resolved together. The Cast pin is below the retained legacy library's
+minimum on HA 2025.1–2025.3, so Music's HACS metadata now declares 2025.4.0. Dashboard account settings identify the
+native entry in the existing subtitle so the owner can choose it alongside an identically named legacy account.
+The Music browser suite passed again with that label and native transfer.

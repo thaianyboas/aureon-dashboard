@@ -79,6 +79,7 @@ try{
  });
  await page.click('#dashboard >>> aureon-music-player >>> [data-action="devices"]');
  await page.waitForFunction(()=>sharedMusic.devices.some(d=>d.id==='native-speaker'));
+ assert.match(await page.$eval('#dashboard >>> aureon-music-player >>> .account small',e=>e.textContent),/Spotify · nativ/);
  await page.click('#dashboard >>> aureon-music-player >>> .speaker');
  const native=await page.evaluate(()=>calls.at(-1).slice(0,3));
  assert.deepEqual(native,['aureon_music','native_write',{entity_id:'media_player.fixture',action:'player_transfer_playback',arguments:{device_id:'native-speaker',play:false}}]);
