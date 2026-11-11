@@ -1077,3 +1077,4 @@ Validation: frontend 630, typecheck, build budgets, backend 180, root npm test, 
 contract, fidelity; disposable HA: Pintar → tap wall → colour → band on the plan in that colour, "Ver esta parede em
 3D" shows the wall in that colour. Music: HA test harness (pytest-homeassistant-custom-component, HA 2026.2) with a
 fake rotating Spotify token server; not tested against the owner's Spotify account.
+- Published 2026-11-11 09:2x: dashboard 041448b (CI green), aureon-integration 5f669e3 (SOURCE_COMMIT 041448b, CI green), aureon-music 9e8b17f (no CI). Owner must update AUREON Floor Studio and AUREON Música in HACS and restart HA. Not yet tested on the owner's HA.
