@@ -63,12 +63,12 @@ import {RealPbrRenderer,furniturePbrKind,floorPbrKind,type PbrGroup,type PbrKind
 import type { Building, Floor, Furniture, Room, StartView } from "../model.ts";
 import { recolorLamps, SHADE_SENTINEL, shadeFactors } from "./lamp-colors.ts";
 import { centroid, GANG_TYPES, gateSpans, outdoorSurface, outdoorZones, pointInPolygon, openingStyle, setTerrain, WALL_LAMP_Y, zonesOf } from "../model.ts";
-import { placeWallPlate } from "../geometry/walls.ts";
+import { generateWalls, placeWallPlate } from "../geometry/walls.ts";
 import { buildEarth } from "./earth.ts";
 import { clampIntoRoom } from "../geometry/snap.ts";
 import { activeSections, roofRider, roofUnderAt, sectionAbove, sectionCutsBelow } from "../roof-sections.ts";
 import { buildFloorGeometry, SLAB, stairHoleParts, type FloorGeometry } from "./build.ts";
-import { rehostOpenings } from "./aureon-openings.ts";
+import { rehostOpenings, snapThinToWalls } from "./aureon-openings.ts";
 import { OrbitControls, type OrbitView } from "./controls.ts";
 import { makeFoldable, type FoldMasks } from "./fold.ts";
 import { CameraProjections, PROJECTION_LAYER, type ProjectionSurface, type ProjectorPose } from "./projection.ts";
@@ -2922,7 +2922,8 @@ export class FloorplanViewer {
         ...earthParts,
       );
       this.root.add(group);
-      this.aureonModels.place(floor.id, floor.furniture.filter((f) => aureonModelled.has(f.id)), this.root, buildFinishes(floor, b.settings.wall_interior, b.settings.wall_exterior));
+      // AUREON: thin panels a few millimetres off a wall are drawn touching it (aureon-openings.ts)
+      this.aureonModels.place(floor.id, snapThinToWalls(floor.furniture.filter((f) => aureonModelled.has(f.id)), generateWalls(floor.rooms, { exterior: b.settings.wall_exterior, interior: b.settings.wall_interior }, floor.walls ?? []).walls), this.root, buildFinishes(floor, b.settings.wall_interior, b.settings.wall_exterior));
 
       const label = document.createElement("button");
       label.className = "fp3d-pin fp3d-pin-floor";

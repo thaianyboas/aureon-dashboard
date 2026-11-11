@@ -81,3 +81,37 @@ export function rehostOpenings<F extends Pick<Floor, "rooms" | "openings" | "wal
   if (extra.length) return { ...floor, openings: [...openings, ...extra] };
   return changed ? { ...floor, openings } : floor;
 }
+
+/**
+ * AUREON (owner 2026-11-11, slit between a wall and the oak panels): a thin piece (panel, picture, shelf board up to
+ * 8 cm deep) whose back stands up to 3 cm in front of a wall is drawn touching that wall, for the 3D only.
+ */
+export function snapThinToWalls<T extends { x: number; z: number; rotation: number; d: number }>(items: readonly T[], walls: readonly { a: Vec2; b: Vec2; left: number; right: number }[]): T[] {
+  return items.map((f) => {
+    if (!(f.d > 0) || f.d > 0.08) return f;
+    const r = (f.rotation * Math.PI) / 180;
+    const front: Vec2 = [-Math.sin(r), Math.cos(r)];
+    const back: Vec2 = [f.x - front[0] * (f.d / 2), f.z - front[1] * (f.d / 2)];
+    let best = Infinity;
+    for (const w of walls) {
+      const L = Math.hypot(w.b[0] - w.a[0], w.b[1] - w.a[1]);
+      if (L < 0.05) continue;
+      const u: Vec2 = [(w.b[0] - w.a[0]) / L, (w.b[1] - w.a[1]) / L];
+      // the piece must face away from the wall line (its back towards it)
+      if (Math.abs(u[0] * front[0] + u[1] * front[1]) > 0.05) continue;
+      const s = (back[0] - w.a[0]) * u[0] + (back[1] - w.a[1]) * u[1];
+      if (s < -0.05 || s > L + 0.05) continue;
+      const n: Vec2 = [-u[1], u[0]]; // left normal
+      const side = (back[0] - w.a[0]) * n[0] + (back[1] - w.a[1]) * n[1];
+      const face = side >= 0 ? w.left : w.right;
+      const gap = Math.abs(side) - face;
+      // the wall must be behind the piece
+      const towards = (side >= 0 ? -1 : 1) * (n[0] * -front[0] + n[1] * -front[1]);
+      if (towards <= 0.9 || gap <= 0.0005 || gap > 0.03) continue;
+      best = Math.min(best, gap);
+    }
+    if (!Number.isFinite(best)) return f;
+    const move = best + 0.001; // 1 mm into the wall: no slit left
+    return { ...f, x: f.x - front[0] * move, z: f.z - front[1] * move };
+  });
+}

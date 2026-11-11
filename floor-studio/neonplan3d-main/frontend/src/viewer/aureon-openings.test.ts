@@ -38,3 +38,12 @@ test("a plan without doubled walls is returned unchanged", () => {
   const floor = { rooms: [a, b], walls: [], openings: [door({ room_id: "a", edge: 2, offset: 2 })] };
   assert.equal(rehostOpenings(floor as never, 0.3, 0.12), floor);
 });
+
+test("owner plan 2026-11-11: oak panels 3 mm off the wall are drawn touching it; pieces far away stay", async () => {
+  const { snapThinToWalls } = await import("./aureon-openings.ts");
+  const wall = { a: [0.235, 4.743] as [number, number], b: [3.805, 4.743] as [number, number], left: 0.1175, right: 0.1175 };
+  const [panel, far, deep] = snapThinToWalls([{ x: 1.26, z: 4.61, rotation: 180, d: 0.025 }, { x: 1.26, z: 4.5, rotation: 180, d: 0.025 }, { x: 1.26, z: 4.3, rotation: 180, d: 0.6 }], [wall]);
+  assert.ok(Math.abs(panel.z + 0.0125 - 4.6265) < 1e-6, String(panel.z)); // back 1 mm into the wall face (4.6255)
+  assert.equal(far.z, 4.5);
+  assert.equal(deep.z, 4.3);
+});
