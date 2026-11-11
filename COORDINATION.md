@@ -1122,3 +1122,15 @@ ruff, fidelity; disposable HA with the owner's plan: Sala wall 7–1 shows the c
 - Validation in this batch: source and commit review only. The executor failed during startup and a
   subsequent Python invocation found no usable environment. No unit, lint, integration, browser, HA or
   HACS tests ran. No integration code, generated bundle, version or HACS metadata changed.
+
+
+## Codex continuation 2026-11-11 — native Music token persistence recovery
+
+- Checked GitHub heads before changes: Music `f755e00`, Dashboard `5cfb285`, Integration `ba92d76`. Left Claude's legacy SpotifyPlus token-rotation patch, dashboard rendering, and Floor Studio untouched.
+- Music `b545d87`: native token manager retains a rotated refresh token in memory after a failed/cancelled durable write, retries persisting it under the account lock *before* any further refresh, and only publishes the token after successful save. Concurrent rejected-access-token deduplication retained. A sudden process crash before successful storage still cannot be recovered.
+- Music `839a7fb`: fixed literal backslash-newline sequences previously committed in `native_spotify_api.py`, which made that file invalid Python (the token manager's earlier invalid sequences were also removed by its rewrite).
+- Music `0aafd43`: replaced non-durable `config_entries.async_update_entry()` token persistence with private atomic HA `Store.async_save()`, and `Store.async_load()` as the primary startup source. Adapter remains opt-in and is not wired to legacy flow.
+- Music `8e3f2ff`: tests for failed save, cancelled save and restart after persisted rotation; older baseline token tests preserved.
+- Music `142f01e` / `8b6506d`: dependency-light Python smoke-check script and a master GitHub Actions workflow, intended to detect invalid syntax and exercise token/API regressions without real Spotify secrets. At checkpoint, GitHub Actions API still showed **zero runs**; do not treat CI as green.
+- Validated 4 locally recreated isolated pytest scenarios for the token manager (failed save, cancellation, reload, concurrent 401), passed. This is **not** a complete GitHub-head test run. No disposable HA, HACS, native OAuth callback, dashboard integration, migration or real Spotify test has run in this continuation.
+- Next: run GitHub-head tests including legacy `test_token_rotation.py` in a full HA environment, validate the private Store on startup/restart and HA shutdown, build opt-in PKCE OAuth config-flow account setup/reauth, then integrate native playback and dashboard contract. Do not install on owner's real HA or remove legacy paths.
