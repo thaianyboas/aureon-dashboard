@@ -1177,3 +1177,15 @@ tests passed on HA 2025.4.0 with dependencies resolved together. The Cast pin is
 minimum on HA 2025.1–2025.3, so Music's HACS metadata now declares 2025.4.0. Dashboard account settings identify the
 native entry in the existing subtitle so the owner can choose it alongside an identically named legacy account.
 The Music browser suite passed again with that label and native transfer.
+### Batch 2026-11-11 (16) – doors in 3D, dashboard plan page
+- Owner: "na planta 2D vejo as portas, no 3D somem / do outro lado somem". Her doors sit in free walls; the room
+  paint (Flur painted green) looked for openings on the room edge 0 instead of the free wall line and covered them.
+  wallMesh now cuts openings of free walls on that wall's line (paint vertices 348 → 402 on her plan).
+- viewer/aureon-openings.ts (3D only): an opening on a "no wall" room edge moves into the free wall along it; every
+  other wall on the same line through an opening gets the same hole (doors as "passage", no locks/sensors copied).
+  geometry/walls.ts stays byte-identical (protected).
+- Dashboard: the "Planta" page (label Floor Studio) was still in the AUREON menu (the first fix only hid
+  "AUREON Floor Studio"); both are hidden now and "Planta ↗" buttons open /aureon-floor-studio.
+- Owner plan overlap warning: Cozinha's outline still covers the Varanda (Cozinha to z 12.649, Varanda 11.109–12.649)
+  plus a 7-cm spike at its top-right corner; "Fechar espaços"/"Endireitar" do not fix that. Needs the owner's edit
+  (or her full backup) – not changed from here.

@@ -68,6 +68,7 @@ import { buildEarth } from "./earth.ts";
 import { clampIntoRoom } from "../geometry/snap.ts";
 import { activeSections, roofRider, roofUnderAt, sectionAbove, sectionCutsBelow } from "../roof-sections.ts";
 import { buildFloorGeometry, SLAB, stairHoleParts, type FloorGeometry } from "./build.ts";
+import { rehostOpenings } from "./aureon-openings.ts";
 import { OrbitControls, type OrbitView } from "./controls.ts";
 import { makeFoldable, type FoldMasks } from "./fold.ts";
 import { CameraProjections, PROJECTION_LAYER, type ProjectionSurface, type ProjectorPose } from "./projection.ts";
@@ -2801,7 +2802,8 @@ export class FloorplanViewer {
       this.aureonModels.request(floor.furniture);
       const aureonModelled = this.aureonModels.modelled(floor.furniture);
       const withParked = withVehicles(floor, this.parked);
-      const geo = buildFloorGeometry(aureonModelled.size ? { ...withParked, furniture: withParked.furniture.filter((f) => !aureonModelled.has(f.id)) } : withParked, b.settings.wall_exterior, b.settings.wall_interior, stairHoleParts(b.floors, floor), garden, roofUnder);
+      // AUREON: doors and windows on a "no wall" room edge go into the free wall standing there (aureon-openings.ts)
+      const geo = buildFloorGeometry(rehostOpenings(aureonModelled.size ? { ...withParked, furniture: withParked.furniture.filter((f) => !aureonModelled.has(f.id)) } : withParked, b.settings.wall_exterior, b.settings.wall_interior), b.settings.wall_exterior, b.settings.wall_interior, stairHoleParts(b.floors, floor), garden, roofUnder);
       const mask: FoldMasks = { standing: { value: 0xffff }, glass: { value: 0 } };
       const materials = this.makeMaterials(mask);
       const group = new Group();

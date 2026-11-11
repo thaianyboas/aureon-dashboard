@@ -480,9 +480,12 @@ function wallMesh(room: RoomLike, floor: FloorLike, ref: AureonFinishRef & { edg
     // openings on this wall line (of any room: a shared wall carries the neighbour's doors too)
     const cuts: { s0: number; s1: number; y0: number; y1: number }[] = [];
     for (const o of floor.openings) {
+      // owner 2026-11-11: a door in a free wall sits on that wall's line (not on its room's edge 0) – the paint
+      // covered such doors ("na planta vejo as portas, no 3D não")
+      const fw = (o as { wall?: string | null }).wall ? ((floor as { walls?: { id: string; a: Vec2; b: Vec2 }[] }).walls ?? []).find((w) => w.id === (o as { wall?: string | null }).wall) : undefined;
       const r = floor.rooms.find((x) => x.id === o.room_id);
-      if (!r) continue;
-      const p = r.points[o.edge], q = r.points[(o.edge + 1) % r.points.length];
+      if (!fw && !r) continue;
+      const p = fw ? fw.a : r!.points[o.edge], q = fw ? fw.b : r!.points[(o.edge + 1) % r!.points.length];
       if (!p || !q) continue;
       const od = sub(q, p), ol = len(od) || 1, ou: Vec2 = [od[0] / ol, od[1] / ol];
       const c0: Vec2 = [p[0] + ou[0] * (o.offset - o.width / 2), p[1] + ou[1] * (o.offset - o.width / 2)];

@@ -115,7 +115,7 @@
     // In the Cinema look "Dispositivos" is folded into "Cômodos" (each room lists all of its equipment).
     _cinemaLook(){return this._platformController?.preferences?.look!=='classic';}
     // The robot vacuum page is only offered when Home Assistant has a vacuum.
-    _navPages(){const robot=Object.keys(this._hass?.states||{}).some(id=>id.startsWith('vacuum.'));return PAGES.filter(([,name])=>(name!=='Geräte'||!this._cinemaLook())&&(name!=='Staubsauger'||robot)&&name!==EDIT_ONLY_IN_HA);}
+    _navPages(){const robot=Object.keys(this._hass?.states||{}).some(id=>id.startsWith('vacuum.'));return PAGES.filter(([,name])=>(name!=='Geräte'||!this._cinemaLook())&&(name!=='Staubsauger'||robot)&&name!==EDIT_ONLY_IN_HA&&name!=='Planta');}
     _primaryPages(){return this._cinemaLook()?['Início','Räume','Medien']:['Início','Geräte','Medien'];}
     constructor() {
       super();
@@ -260,7 +260,9 @@
       if (this._configured && value?.callWS && !this._registry && !this._registryPromise) this._loadRegistry();
     }
     _navigate(name) {
-      if (!PAGES.some(([,page])=>page===name)||name===EDIT_ONLY_IN_HA) return;
+      // the plan opens in the Home Assistant panel "AUREON Floor Studio" (one place for editing)
+      if (name==='Planta'||name===EDIT_ONLY_IN_HA){history.pushState(null,'','/aureon-floor-studio');window.dispatchEvent(new CustomEvent('location-changed',{detail:{replace:false}}));return;}
+      if (!PAGES.some(([,page])=>page===name)) return;
       this._page=name;
       const main=this.shadowRoot.querySelector('main'),wrap=this.shadowRoot.querySelector('.wrap');
       if (!main||!wrap) { this._render();return; }
