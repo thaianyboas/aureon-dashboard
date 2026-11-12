@@ -53,6 +53,9 @@ try{
  const bottom=edges.filter(e=>Math.abs(e.a[1]-e.b[1])<.001).sort((a,b)=>b.a[1]-a.a[1])[0];
  for(const edge of [left,bottom]){
   await page.evaluate(()=>{editor.selectItem('room',null);editor._aureonContour=true;editor._view={scale:60,ox:100,oy:80};});await page.evaluate(()=>editor.updateComplete);
+  // the side panel may open or close with the contour mode: wait until the plan has stopped moving before measuring
+  await page.evaluate(async()=>{let last='';for(let k=0;k<40;k++){await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const q=editor.shadowRoot.querySelector('svg.fp3d-plan').getBoundingClientRect();const key=[q.x,q.y,q.width,q.height].join();if(key===last)return;last=key;}});
+  await page.evaluate(()=>{editor._view={scale:60,ox:100,oy:80};});await page.evaluate(()=>editor.updateComplete);
   const at=await page.evaluate(i=>{const r=editor.floor.rooms[0],a=r.points[i],b=r.points[(i+1)%r.points.length];const len=Math.hypot(b[0]-a[0],b[1]-a[1]);const n=[-(b[1]-a[1])/len,(b[0]-a[0])/len];const rect=editor.shadowRoot.querySelector('svg.fp3d-plan').getBoundingClientRect();/* the frame the editor maps pointers in (localPoint) */for(const t of [.35,.65,.2,.8,.45,.55]){const p=editor.toScreen([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]);p[0]+=n[0]*11;p[1]+=n[1]*11;const el=editor.shadowRoot.elementFromPoint(rect.x+p[0],rect.y+p[1]);if(el?.closest('[data-mid],[data-vertex]')||!el?.closest('svg.fp3d-plan'))continue;return {x:rect.x+p[0],y:rect.y+p[1],n,hit:editor.aureonEdgeAt(p)};}throw Error('No unobstructed wall point');},edge.i);
   assert.ok(at.hit,'visible thick wall face is selectable');
   const before=await page.evaluate(()=>JSON.stringify(editor.building.floors[0]));
