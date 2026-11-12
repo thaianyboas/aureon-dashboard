@@ -7,6 +7,7 @@
 import { BufferAttribute, BufferGeometry, CanvasTexture, FrontSide, Group, Mesh, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from "three";
 import { triangulate } from "./geo.ts";
 import { generateWalls, type Wall } from "../geometry/walls.ts";
+import { railingMesh } from "./aureon-railing.ts";
 import { areaGround, OUTDOOR_TOP, pointInPolygon, type Floor, type OutdoorArea } from "../model.ts";
 import { AUREON_FINISH_OUTDOOR, AUREON_WALL_PAINTS, paintColor, wallPaints } from "../aureon-paints.ts";
 
@@ -420,6 +421,19 @@ export function buildFinishes(floor: FloorLike, interior: number, exterior = 0.3
       y = OUTDOOR_TOP[a.type] ?? 0;
     }
     paint({ id: a.id, points: a.points, wall_heights: a.points.map(() => 0), aureon_finish: f }, y);
+  }
+  // every balcony gets a metal railing on its open sides (owner 2026-11-12: posts, panel, bars, handrail)
+  for (const a of ((floor as { outdoor?: OutdoorArea[] }).outdoor ?? [])) {
+    if (a.type !== "balcony" || a.points.length < 3) continue;
+    let y = 0;
+    try {
+      y = areaGround(floor as unknown as Floor, a) + OUTDOOR_TOP.balcony;
+    } catch {
+      y = OUTDOOR_TOP.balcony;
+    }
+    const n = a.points.length;
+    const rail = railingMesh(a.points, (i) => wallAlong(a.points[i], a.points[(i + 1) % n], walls) === null, { y0: y, height: a.height && a.height > 0.3 ? a.height : 1.0 });
+    if (rail) group.add(rail);
   }
   return group;
 
