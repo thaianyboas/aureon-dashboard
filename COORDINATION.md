@@ -1243,3 +1243,8 @@ The Music browser suite passed again with that label and native transfer.
 ### Codex batch 2026-11-12 — single Spotify setup form
 
 - Music `1ba7383` publishes HACS preview `1.1.0b2`. Adding AUREON Música now opens the native Spotify form directly. Previously configured legacy accounts retain their settings and reauthentication paths. The 32-test suite passed on HA 2025.4.0 and 2026.10.4. No Dashboard UI or Floor Studio edits in this batch.
+
+
+### Codex batch 2026-11-12 — Spotify setup HTTP 500 compatibility fix
+
+- Music `1155024` publishes `1.1.0b3`. The Home Assistant 2025.4 HTTP form serializer raised TypeError on the Client ID regex schema. The form now exposes a text field and validates the Client ID server-side on submission. Reproduced the serializer failure before the fix and added a regression to the integration suite. All 32 tests passed on HA 2025.4.0 and 2026.10.4. The single-form setup remains in place.
