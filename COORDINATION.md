@@ -1262,3 +1262,8 @@ The Music browser suite passed again with that label and native transfer.
 - Music `ff3d956` publishes `1.1.0b5`. With an idle player, Play requests the latest track from Spotify history and
   sends its URI to the selected speaker. Existing playback still resumes. Physical Spotify playback needs verification.
 - Music's 32 tests, the 23 Music browser checks and HACS distribution validation passed. Floor Studio code untouched.
+
+
+### Codex batch 2026-11-12 — refresh Spotify Connect destination before playback
+
+- Owner reports that Spotify can play on Wohnung Musik from her phone while AUREON Play returns 404. Music `d6f6fac` publishes `1.1.0b6`, refreshes playback before resume, and resolves the selected device against the current Connect list before starting playback. An already active target uses Spotify's default active-device route. When an expired ID has no unique replacement, the command fails without switching to another output. The 32-test suite passed with simulated Spotify; real group playback is pending owner verification.
