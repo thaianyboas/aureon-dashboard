@@ -620,6 +620,9 @@ function measuredSlow(): boolean {
   }
 }
 
+/** AUREON speed: the texture slots of the materials that are uploaded ahead of the first frame. */
+const AUREON_TEXTURE_KEYS = ["map", "normalMap", "roughnessMap", "metalnessMap", "aoMap", "emissiveMap", "alphaMap", "bumpMap", "lightMap"] as const;
+
 export class FloorplanViewer {
   private realPbr: RealPbrRenderer | null = null;
   /** AUREON: path-traced refinement of the Real look while the view rests (quality "High" only). */
@@ -3052,6 +3055,96 @@ export class FloorplanViewer {
     this.buildRoofMesh();
     this.buildSunFx();
     this.updateGhost();
+    this.aureonWarm();
+  }
+
+  /** AUREON speed (owner 2026-11-12: "tudo demora para carregar"): before a rebuilt scene is drawn, its new textures
+   *  go to the graphics card a few per frame and its shaders compile in the background (parallel shader compile), so
+   *  the page never stalls for seconds on the first frame; the previous picture stays until it is ready. */
+  private aureonWarming = false;
+  private aureonWarmAgain = false;
+  private aureonWarm(): void {
+    if (this.disposed) return;
+    if (this.aureonWarming) {
+      this.aureonWarmAgain = true;
+      return;
+    }
+    const r = this.renderer as unknown as { properties: { get(o: object): { __webglTexture?: unknown } }; initTexture(t: Texture): void };
+    const pending: Texture[] = [];
+    const seen = new Set<Texture>();
+    this.scene.traverse((o) => {
+      const m = (o as Mesh).material as Material | Material[] | undefined;
+      if (!m) return;
+      for (const mat of Array.isArray(m) ? m : [m])
+        for (const k of AUREON_TEXTURE_KEYS) {
+          const t = (mat as unknown as Record<string, Texture | null | undefined>)[k];
+          if (t?.isTexture && !seen.has(t)) {
+            seen.add(t);
+            if (!(t as { isRenderTargetTexture?: boolean }).isRenderTargetTexture && !r.properties.get(t).__webglTexture) pending.push(t);
+          }
+        }
+    });
+    // nothing new to upload: the frame waits only if the shaders below turn out to be new (an edit while dragging
+    // reuses the compiled ones and is drawn at once)
+    this.aureonWarming = pending.length > 0;
+    const started = performance.now();
+    const done = () => {
+      if (!this.aureonWarming) return;
+      this.aureonWarming = false;
+      if (this.aureonWarmAgain && !this.disposed) {
+        this.aureonWarmAgain = false;
+        this.aureonWarm();
+      }
+      this.invalidate();
+    };
+    const compile = () => {
+      if (this.disposed) return;
+      // never wait for ever: after 6 s the frame is drawn the old way
+      const guard = window.setTimeout(done, Math.max(0, 6000 - (performance.now() - started)));
+      let job: Promise<unknown>;
+      const programsBefore = this.renderer.info.programs?.length ?? 0;
+      try {
+        // the shaders exactly as the next frame draws: the models in the look's materials, the Real look staged
+        if (this.aureonModels) {
+          this.renderer.localClippingEnabled = true;
+          this.aureonModels.sync(new Map(this.floors.map((fv) => [fv.floor.id, { group: fv.group, cut: this.wallMode === "cut" ? Math.min(fv.floor.cut_height, fv.floor.height) : null }])), this.theme, this.nightFactor());
+        }
+        if (this.theme === "real") {
+          this.realPbr ??= new RealPbrRenderer(this.renderer, this.lowQuality, this.highQuality);
+          job = this.realPbr.compileAsync(this.scene, this.camera, { night: this.nightFactor(), lamps: this.realLamps() });
+        } else job = this.renderer.compileAsync(this.scene, this.camera);
+      } catch {
+        job = Promise.resolve();
+      }
+      if (!this.aureonWarming) {
+        // compileAsync compiled synchronously what it could; no new program means nothing to wait for
+        if ((this.renderer.info.programs?.length ?? 0) === programsBefore) {
+          clearTimeout(guard);
+          this.aureonWarmAgain = false;
+          return;
+        }
+        this.aureonWarming = true;
+      }
+      job.catch(() => undefined).finally(() => {
+        clearTimeout(guard);
+        done();
+      });
+    };
+    const step = () => {
+      if (this.disposed) return;
+      const t0 = performance.now();
+      while (pending.length && performance.now() - t0 < 10) {
+        try {
+          r.initTexture(pending.shift()!);
+        } catch {
+          // a texture that cannot be uploaded now is uploaded by the first frame instead
+        }
+      }
+      if (pending.length && performance.now() - started < 4000) requestAnimationFrame(step);
+      else compile();
+    };
+    if (pending.length) requestAnimationFrame(step);
+    else compile();
   }
 
   private buildRoofMesh(): void {
@@ -5444,6 +5537,8 @@ export class FloorplanViewer {
   }
 
   private renderScene(camera: CameraForPbr): void {
+    // AUREON speed: a scene still warming up (textures, shaders) keeps the previous picture
+    if (this.aureonWarming) return;
     aureonMark("aureon:3d-first-frame");
     // the frame that first drew the own models has finished (shaders compiled): timing for the device diagnostics
     if (typeof performance !== "undefined" && performance.getEntriesByName?.("aureon:models-drawn").length) aureonMark("aureon:models-shown");

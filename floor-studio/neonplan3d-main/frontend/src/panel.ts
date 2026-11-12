@@ -7,6 +7,7 @@ import { css, html, LitElement, nothing, type PropertyValues } from "lit";
 import { BuildingController } from "./building-controller.ts";
 import { countView } from "./diagnostics.ts";
 import { loadEditor } from "./load-editor.ts";
+import { load3d } from "./load3d.ts";
 import { importOwnFurniture, listOwnFurniture } from "./aureon-own.ts";
 import "./components/plan-overview.ts";
 import "./components/plan-picker.ts";
@@ -706,7 +707,16 @@ export class Floorplan3dPanel extends LitElement {
     this.tt.start({ live: this.hass, building: b, spec: view.historyEntities(), quality: this._quality, at, t: (k, vars) => translate(this.hass, k as I18nKey, vars) });
   }
 
+  /** AUREON speed: the editor bundle is fetched in a quiet moment after the house is shown (admins only), so
+   *  "Editor" opens at once. */
+  private editorPrefetched = false;
+
   protected updated(): void {
+    if (!this.editorPrefetched && this.hass?.user?.is_admin && this.data.building && this._mode === "view") {
+      this.editorPrefetched = true;
+      const idle = (globalThis as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback;
+      window.setTimeout(() => (idle ? idle(() => void loadEditor().catch(() => undefined), { timeout: 4000 }) : void loadEditor().catch(() => undefined)), 3500);
+    }
     if (this.data.plans.length > 1) this.watch.watch(this.hass, this.data);
     // a warning's plan has loaded: into its room
     const pending = this.pendingRoom;
@@ -746,6 +756,8 @@ export class Floorplan3dPanel extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
+    // AUREON speed: the 3D bundle starts downloading at once, not only after the plan has arrived
+    void load3d().catch(() => undefined);
     this.syncTheme();
     window.addEventListener("keydown", this.onKey);
     // the card's Pro hint links here ("?tab=extensions")

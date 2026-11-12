@@ -137,7 +137,7 @@ export class RealPbrRenderer {
   * AUREON: the scene once into a target with its depth, ambient occlusion from that depth (so cut walls and clipped
   * models are seen exactly as drawn), then tone mapping to the canvas. The canvas stays transparent around the house.
   */
- private drawAo(scene:Scene,camera:Camera):void {
+ private ensureAo(scene:Scene,camera:Camera):void {
   const r=this.renderer,size=r.getDrawingBufferSize(new Vector2());
   // a new size (rotated tablet, resized panel): the targets are made again (the pass cannot resize a given depth buffer)
   if(this.aoTarget&&!size.equals(this.aoSize)){this.aoTarget.depthTexture?.dispose();this.aoTarget.dispose();this.aoOut?.dispose();this.gtao?.dispose();this.output?.dispose();this.aoTarget=this.aoOut=null;this.gtao=null;this.output=null;}
@@ -147,6 +147,18 @@ export class RealPbrRenderer {
    this.gtao.updateGtaoMaterial({radius:.45,distanceExponent:1.4,thickness:1.2,scale:1.15,samples:12,distanceFallOff:1,screenSpaceRadius:false});
    this.gtao.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:6,rings:2,samples:12});
    this.output=new OutputPass();this.aoSize.copy(size);}
+ }
+ /** AUREON speed: compiles the Real look's shaders in the background, staged exactly as `render` draws (materials,
+  *  lights, tone mapping and the ambient-occlusion target), so the first frame does not compile them again. */
+ compileAsync(scene:Scene,camera:Camera,frame:PbrFrame={}):Promise<unknown>{
+  let job:Promise<unknown>=Promise.resolve();
+  this.run(scene,camera,frame,()=>{const r=this.renderer,prev=r.getRenderTarget();
+   try{if(this.ao&&RealPbrRenderer.AO){this.ensureAo(scene,camera);r.setRenderTarget(this.aoTarget);}job=r.compileAsync(scene,camera);}finally{r.setRenderTarget(prev);}});
+  return job;
+ }
+ private drawAo(scene:Scene,camera:Camera):void {
+  this.ensureAo(scene,camera);
+  const r=this.renderer;
   const g=this.gtao!;g.scene=scene;g.camera=camera;
   const prev=r.getRenderTarget(),prevClear=r.getClearAlpha();
   try{
