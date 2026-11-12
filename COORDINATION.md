@@ -1248,3 +1248,8 @@ The Music browser suite passed again with that label and native transfer.
 ### Codex batch 2026-11-12 — Spotify setup HTTP 500 compatibility fix
 
 - Music `1155024` publishes `1.1.0b3`. The Home Assistant 2025.4 HTTP form serializer raised TypeError on the Client ID regex schema. The form now exposes a text field and validates the Client ID server-side on submission. Reproduced the serializer failure before the fix and added a regression to the integration suite. All 32 tests passed on HA 2025.4.0 and 2026.10.4. The single-form setup remains in place.
+
+
+### Codex batch 2026-11-12 — Spotify speaker selection while idle
+
+- Music `c6c26cd` publishes `1.1.0b4`. With no playback session, choosing a discovered Spotify Connect speaker stores the destination for the next play request. Active playback still uses Spotify transfer. The 32-test suite passed on HA 2026.10.4, including the reproduced idle transfer 404 and direct playback to the selected device. Physical playback remains for owner verification. No Dashboard runtime edits.
