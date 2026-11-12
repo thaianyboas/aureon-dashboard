@@ -4,7 +4,7 @@
  * other renderers keep working); only the 3D view adds the finish. Textures are painted in code (albedo only: the
  * lighting comes from the renderer), in world metres, so the pattern runs on through doorways.
  */
-import { BufferAttribute, BufferGeometry, CanvasTexture, FrontSide, Group, Mesh, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from "three";
+import { BoxGeometry, BufferAttribute, BufferGeometry, CanvasTexture, FrontSide, Group, Mesh, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from "three";
 import { triangulate } from "./geo.ts";
 import { generateWalls, type Wall } from "../geometry/walls.ts";
 import { railingMesh } from "./aureon-railing.ts";
@@ -313,8 +313,25 @@ function material(id: string, floor: boolean, color: string | null = null): Mesh
   m = new MeshStandardMaterial({ map: tex, roughness: def.roughness, metalness: 0, side: FrontSide, polygonOffset: true, polygonOffsetFactor: floor ? 0 : -1, polygonOffsetUnits: floor ? -4 : -2 });
   if (id === "paint") {
     m.color.set(color ?? AUREON_WALL_PAINTS[0].color);
+    // a touch of its own light: white paint reads white in the shade too, as a real white wall does to the eye
+    m.emissive.copy(m.color).multiplyScalar(0.08);
     m.name = "paint";
   }
+  materials.set(key, m);
+  return m;
+}
+
+/** Ceiling paint (owner 2026-11-12: "o teto não fica branco"): a ceiling is lit only from below, so it gets more of
+ *  its own light than a wall; a separate material, so walls of the same colour keep theirs. */
+function ceilingMaterial(color: string): MeshStandardMaterial | null {
+  const key = `ceiling|${color}`;
+  const cached = materials.get(key);
+  if (cached) return cached;
+  const base = material("paint", false, color);
+  if (!base) return null;
+  const m = base.clone();
+  m.emissive.copy(m.color).multiplyScalar(0.42);
+  m.name = "ceiling";
   materials.set(key, m);
   return m;
 }
@@ -404,7 +421,7 @@ export function buildFinishes(floor: FloorLike, interior: number, exterior = 0.3
     // every room gets a ceiling (owner 2026-11-10: walking through the flat showed the open sky above the rooms);
     // it faces down only, so views from above never see it
     const H = room.ceiling_height ?? floor.height;
-    const ceilingMat = H > 0.3 ? material("paint", false, paintColor(room.aureon_finish?.ceiling?.color) ?? DEFAULT_CEILING) : null;
+    const ceilingMat = H > 0.3 ? ceilingMaterial(paintColor(room.aureon_finish?.ceiling?.color) ?? DEFAULT_CEILING) : null;
     if (ceilingMat) group.add(ceilingMesh(innerFaces(room, floor.rooms, interior, footprints).map((face) => face.a), H - 0.004, ceilingMat));
     paint(room, 0);
   }
@@ -421,6 +438,23 @@ export function buildFinishes(floor: FloorLike, interior: number, exterior = 0.3
       y = OUTDOOR_TOP[a.type] ?? 0;
     }
     paint({ id: a.id, points: a.points, wall_heights: a.points.map(() => 0), aureon_finish: f }, y);
+  }
+  // columns (owner 2026-11-12: "não consigo pintar a coluna"): a coat of paint 2 mm around the column – its own
+  // colour, else the wall paint of the room it stands in
+  type ColumnLike = { type: string; x: number; z: number; w: number; d: number; h: number; rotation: number; mount_y?: number | null; aureon_finish?: { color?: string | null } | null };
+  for (const c of ((floor as { furniture?: ColumnLike[] }).furniture ?? [])) {
+    if (c.type !== "column" || !(c.w > 0) || !(c.d > 0) || !(c.h > 0)) continue;
+    const room = floor.rooms.find((r) => r.points.length >= 3 && pointInPolygon([c.x, c.z], r.points));
+    const roomPaint = room?.aureon_finish?.walls?.material === "paint" ? paintColor(room.aureon_finish.walls.color) ?? AUREON_WALL_PAINTS[0].color : null;
+    const color = paintColor(c.aureon_finish?.color) ?? roomPaint;
+    const mat = color ? material("paint", false, color) : null;
+    if (!mat) continue;
+    const box = new Mesh(new BoxGeometry(c.w + 0.004, c.h + 0.002, c.d + 0.004), mat);
+    box.position.set(c.x, Math.max(0, c.mount_y ?? 0) + c.h / 2, c.z);
+    box.rotation.y = (-c.rotation * Math.PI) / 180;
+    box.castShadow = box.receiveShadow = true;
+    box.userData.aureonModelMaterial = mat;
+    group.add(box);
   }
   // every balcony gets a metal railing on its open sides (owner 2026-11-12: posts, panel, bars, handrail)
   for (const a of ((floor as { outdoor?: OutdoorArea[] }).outdoor ?? [])) {
@@ -532,40 +566,64 @@ export function ceilingMesh(points: Vec2[], y: number, mat: MeshStandardMaterial
 
 /** The height of a wall the 3D really builds along a room edge (free walls included), or null when there is none. */
 export function wallAlong(a: Vec2, b: Vec2, walls: Pick<Wall, "a" | "b" | "left" | "right" | "height">[]): number | null {
+  return wallAlongInfo(a, b, walls)?.h ?? null;
+}
+
+/** Like wallAlong, and how far the wall's face stands beyond the edge on the side away from `inward` (a free wall
+ *  drawn a few centimetres outside the room: owner 2026-11-12, "paredes que não ficam brancas"). */
+export function wallAlongInfo(a: Vec2, b: Vec2, walls: Pick<Wall, "a" | "b" | "left" | "right" | "height">[], inward?: Vec2): { h: number; gap: number } | null {
   const d = sub(b, a), L = len(d);
   if (L < 0.02) return null;
   const u: Vec2 = [d[0] / L, d[1] / L];
-  let best: number | null = null;
+  let best: number | null = null, gap = 0;
   for (const w of walls) {
     const wd = sub(w.b, w.a), wl = len(wd);
     if (wl < 0.02) continue;
     const wu: Vec2 = [wd[0] / wl, wd[1] / wl];
     if (Math.abs(u[0] * wu[1] - u[1] * wu[0]) > 0.05) continue; // not parallel
     const off = (q: Vec2) => Math.abs((q[0] - w.a[0]) * wu[1] - (q[1] - w.a[1]) * wu[0]);
-    const reach = Math.max(w.left, w.right) + 0.05;
+    // a wall a little beside the room's edge still is that edge's wall (up to 20 cm of gap)
+    const reach = Math.max(w.left, w.right) + 0.2;
     if (off(a) > reach || off(b) > reach) continue;
     const s = (q: Vec2) => (q[0] - w.a[0]) * wu[0] + (q[1] - w.a[1]) * wu[1];
     const lo = Math.max(0, Math.min(s(a), s(b))), hi = Math.min(wl, Math.max(s(a), s(b)));
     if (hi - lo < Math.min(0.2, L * 0.5)) continue; // must cover a good part of the edge
     const h = typeof w.height === "number" && w.height > 0 ? w.height : 0;
     best = Math.max(best ?? 0, h);
+    if (inward) {
+      // the wall's centre beyond the edge (against the inward normal), less its half thickness: the gap to its face
+      const mid: Vec2 = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      const t = (mid[0] - w.a[0]) * wu[0] + (mid[1] - w.a[1]) * wu[1];
+      const c: Vec2 = [w.a[0] + wu[0] * t, w.a[1] + wu[1] * t];
+      const beyond = -((c[0] - mid[0]) * inward[0] + (c[1] - mid[1]) * inward[1]);
+      const face = beyond - Math.max(w.left, w.right);
+      if (face > gap && face < 0.2) gap = face;
+    }
   }
-  return best;
+  return best === null ? null : { h: best, gap };
 }
 
 function wallMesh(room: RoomLike, floor: FloorLike, ref: AureonFinishRef & { edges?: number[] | null }, interior: number, mat: MeshStandardMaterial, footprints: Vec2[][] = [], walls: Wall[] = []): Mesh | null {
   const faces = innerFaces(room, floor.rooms, interior, footprints);
   const pos: number[] = [], uv: number[] = [], nor: number[] = [];
   const def = FINISHES[ref.material];
-  faces.forEach((face, i) => {
+  faces.forEach((face0, i) => {
+    let face = face0;
     if (ref.edges && !ref.edges.includes(i)) return;
     const hRaw = room.wall_heights?.[i];
     let H = typeof hRaw === "number" ? hRaw : (room.ceiling_height ?? floor.height);
     // owner plan 2026-11-11: a room edge set to "no wall" (height 0) whose wall is drawn as a free wall – the 3D
     // shows that wall, so its paint is drawn too (at the free wall's height, else the room's)
     if (hRaw === 0) {
-      const along = wallAlong(room.points[i], room.points[(i + 1) % room.points.length], walls);
-      if (along !== null) H = along > 0 ? along : (room.ceiling_height ?? floor.height);
+      const along = wallAlongInfo(room.points[i], room.points[(i + 1) % room.points.length], walls, face.inward);
+      if (along !== null) {
+        H = along.h > 0 ? along.h : (room.ceiling_height ?? floor.height);
+        // the free wall stands a little outside the room: the paint goes onto its face, not into the air before it
+        if (along.gap > 0.004) {
+          const g = along.gap - 0.002;
+          face = { ...face, a: [face.a[0] - face.inward[0] * g, face.a[1] - face.inward[1] * g], b: [face.b[0] - face.inward[0] * g, face.b[1] - face.inward[1] * g], offset: face.offset - g };
+        }
+      }
     }
     if (!(H > 0.05)) return;
     const d = sub(face.b, face.a), L = len(d);

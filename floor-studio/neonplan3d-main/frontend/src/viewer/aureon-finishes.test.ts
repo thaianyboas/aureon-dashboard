@@ -136,3 +136,39 @@ test("balcony finishes: a covering on its slab and paint on the free wall beside
   assert.ok(wall, "paint on the wall beside the balcony");
   assert.ok(nz(wall) > 0, "facing +z, into the balcony");
 });
+
+test("a free wall a few cm outside the room gets the room's paint on its face; a column takes paint (owner 2026-11-12)", async () => {
+  const { buildFinishes, wallAlongInfo } = await import("./aureon-finishes.ts");
+  const room = {
+    id: "q", points: [[0, 0], [4, 0], [4, 3], [0, 3]] as [number, number][], wall_heights: [2.5, 2.5, 0, 2.5],
+    aureon_finish: { walls: { material: "paint", color: "#ffffff" } },
+  };
+  // the wall along edge 2 (z = 3) stands 10 cm outside, 8 cm thick: its face is 6 cm beyond the edge
+  const walls = [{ id: "w", a: [0, 3.1] as [number, number], b: [4, 3.1] as [number, number] }];
+  const generated = [{ a: [0, 3.1] as [number, number], b: [4, 3.1] as [number, number], left: 0.04, right: 0.04, height: undefined }];
+  const info = wallAlongInfo([4, 3], [0, 3], generated as never, [0, -1]);
+  assert.ok(info, "the wall counts for the edge");
+  assert.ok(Math.abs(info!.gap - 0.06) < 0.005, "6 cm to its face");
+  const ctx = new Proxy({}, { get: (_t, k) => (k === "createLinearGradient" || k === "createRadialGradient" ? () => ({ addColorStop() {} }) : () => undefined), set: () => true });
+  const g0 = globalThis as { document?: unknown };
+  const had = "document" in g0;
+  if (!had) g0.document = { createElement: () => ({ width: 0, height: 0, getContext: () => ctx }) };
+  try {
+    const floor = { height: 2.5, rooms: [room], openings: [], walls, furniture: [{ id: "c", type: "column", x: 1, z: 1, w: 0.3, d: 0.3, h: 2.5, rotation: 0 }] };
+    const g = buildFinishes(floor as never, 0.08);
+    const zs: number[] = [];
+    for (const c of g.children) {
+      const geo = (c as Mesh).geometry;
+      if (geo?.type === "BoxGeometry") continue;
+      const pos = geo.getAttribute("position"), nor = geo.getAttribute("normal");
+      if (!nor) continue;
+      // the wall faces looking into the room from z = 3 (normal towards -z)
+      for (let i = 0; i < pos.count; i++) if (nor.getZ(i) < -0.5 ) zs.push(pos.getZ(i));
+    }
+    assert.ok(zs.length && zs.every((z) => Math.abs(z - 3.058) < 0.004), `paint on the wall face at z 3.06 (got ${zs.slice(0, 3)})`);
+    const column = g.children.find((c) => (c as Mesh).geometry?.type === "BoxGeometry");
+    assert.ok(column, "the column gets a coat of the room's paint");
+  } finally {
+    if (!had) delete g0.document;
+  }
+});

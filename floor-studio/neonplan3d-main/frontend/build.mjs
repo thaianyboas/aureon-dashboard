@@ -184,8 +184,8 @@ function copyFonts() {
 // AUREON editor layout (2026-11-11, owner request): editor +10 KiB for the four areas with their drawers (paint fan deck,
 // floor and ceiling finishes, own furniture in pages); the old paint panels and their texts were removed in return.
 // AUREON 2026-11-12: editor +14 KiB, card editor +2 KiB – details, tool choices and settings in the side panel, finishes on
-// balconies and terraces (the texts of the settings list are shared with the card editor); 3D +4 KiB for acacia deck tiles and the background warm-up of textures and shaders
-const BUDGET = { "neonplan3d-pathtrace.js": 240 * 1024, "neonplan3d.js": 878 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 990 * 1024, "neonplan3d-editor.js": 1130 * 1024, "neonplan3d-card-editor.js": 329 * 1024 };
+// balconies and terraces (the texts of the settings list are shared with the card editor); 3D +6 KiB for column paint, acacia deck tiles and the background warm-up of textures and shaders
+const BUDGET = { "neonplan3d-pathtrace.js": 240 * 1024, "neonplan3d.js": 878 * 1024, "neonplan3d-fun.js": 40 * 1024, "neonplan3d-voice.js": 60 * 1024, "neonplan3d-locate.js": 160 * 1024, "neonplan3d-timetravel.js": 120 * 1024, "neonplan3d-3d.js": 992 * 1024, "neonplan3d-editor.js": 1130 * 1024, "neonplan3d-card-editor.js": 329 * 1024 };
 
 copyFonts();
 if (watch) {

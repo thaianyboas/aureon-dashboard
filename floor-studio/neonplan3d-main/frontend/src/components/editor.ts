@@ -5210,6 +5210,19 @@ export class Fp3dEditor extends LitElement {
   private aureonPaintPick(screen: [number, number], world: Vec2): void {
     const floor = this.floor;
     if (!floor) return;
+    // AUREON (owner 2026-11-12: "não consigo pintar a coluna"): a tap on a column picks the column
+    const column = floor.furniture.find((f) => {
+      if (f.type !== "column") return false;
+      const r = (-f.rotation * Math.PI) / 180, dx = world[0] - f.x, dz = world[1] - f.z;
+      const lx = dx * Math.cos(r) - dz * Math.sin(r), lz = dx * Math.sin(r) + dz * Math.cos(r);
+      return Math.abs(lx) <= f.w / 2 + 0.04 && Math.abs(lz) <= f.d / 2 + 0.04;
+    });
+    if (column) {
+      this.selectItem("furniture", column.id);
+      this._aureonWall = null;
+      this._studioDetails = this._aureonArea !== "finish";
+      return;
+    }
     let best: { room: Room; edge: number; d: number } | null = null;
     for (const room of floor.rooms) {
       if (room.points.length < 3) continue;
@@ -6499,6 +6512,22 @@ export class Fp3dEditor extends LitElement {
     if (key === "finish" || key === "furniture") this._studioDetails = false;
   }
 
+  /** AUREON: the colour of a column (owner 2026-11-12); without one it takes the paint of the room it stands in. */
+  private renderAureonColumnPaint(col: Furniture) {
+    const own = paintColor(((col as Furniture & { aureon_finish?: { color?: string | null } | null }).aureon_finish ?? null)?.color);
+    const set = (color: string | null) => {
+      if (!this.isAdmin || this.isFixedItem("furniture", col.id)) return;
+      const patch = { aureon_finish: color ? { color } : null } as unknown as Partial<Furniture>;
+      this.change((_, floor) => patchItem(floor.furniture.find((f) => f.id === col.id), patch));
+    };
+    const chip = (color: string, name: string, key: string) =>
+      html`<button class="aureon-chip" data-paint=${key} aria-pressed=${own === color} ?disabled=${!this.isAdmin} @click=${() => set(color)}><i style=${`background:${color}`}></i><span>${name}</span></button>`;
+    return html`<p class="aureon-finish-for">${col.name || this.t("furn_column")}</p>
+      <div class="aureon-fan">${AUREON_WALL_PAINTS.map((p) => chip(p.color, this.t(`aureon_paint_${p.id}` as I18nKey), p.id))}<label class="aureon-chip aureon-chip-free"><i></i><span>${this.t("aureon_paint_custom")}</span><input type="color" .value=${own ?? AUREON_WALL_PAINTS[0].color} ?disabled=${!this.isAdmin} @change=${(e: Event) => { const c = paintColor((e.target as HTMLInputElement).value); if (c) set(c); }} /></label></div>
+      <p class="fp3d-sub">${own ? this.t("column_paint_own") : this.t("column_paint_room")}</p>
+      ${own ? html`<button class="aureon-link" @click=${() => set(null)}>${this.t("column_paint_clear")}</button>` : nothing}`;
+  }
+
   /** AUREON: what the Finishes drawer works on – the open room, or a selected balcony / terrace (they have a floor
    *  and walls too; owner 2026-11-12). The area is handed over like a room: id, name, points and its aureon_finish. */
   private aureonFinishTarget(): { kind: "room" | "outdoor"; item: { id: string; name: string; points: Vec2[] } } | null {
@@ -6513,6 +6542,8 @@ export class Fp3dEditor extends LitElement {
     type Fin = { floor?: { material: string; rotation?: number } | null; walls?: { material: string; color?: string | null; edges?: number[] | null } | null; ceiling?: { color?: string | null } | null; wall_paints?: (string | null)[] };
     const tab = this._aureonFinishTab ?? "walls";
     const tabs = html`<div class="aureon-tabs-sm" role="tablist">${(["walls", "floor", "ceiling"] as const).map((k) => html`<button role="tab" data-finish-tab=${k} aria-selected=${tab === k} @click=${() => (this._aureonFinishTab = k)}>${this.t(`finish_tab_${k}` as I18nKey)}</button>`)}</div>`;
+    const col = this._furnitureId ? this.floor?.furniture.find((f) => f.id === this._furnitureId && f.type === "column") : undefined;
+    if (col) return this.renderAureonColumnPaint(col);
     const target = this.aureonFinishTarget();
     if (!target) return html`${tabs}<p class="aureon-drawer-empty">${this.t("area_finish_pick")}</p>`;
     const room = target.item as Room;
