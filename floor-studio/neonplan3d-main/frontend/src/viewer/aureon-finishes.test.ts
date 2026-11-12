@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { MeshStandardMaterial } from "three";
+import { Mesh, MeshStandardMaterial } from "three";
 import { AUREON_FINISH_IDS, buildFinishes, ceilingMesh, innerFaces, wallAlong } from "./aureon-finishes.ts";
 import { generateWalls } from "../geometry/walls.ts";
 
@@ -109,4 +109,30 @@ test("owner plan 2026-11-11: an edge set to 'no wall' whose wall is a free wall 
   const walls = generateWalls([{ ...room, wall_heights: [0, 0, 0, 0] }] as never, { exterior: 0.235, interior: 0.235 }, free as never).walls;
   assert.equal(wallAlong(room.points[3], room.points[0], walls), 0); // a wall is there, full height
   assert.equal(wallAlong(room.points[1], room.points[2], walls), null); // nothing built on the open side
+});
+
+test("balcony finishes: a covering on its slab and paint on the free wall beside it (owner 2026-11-12)", () => {
+  const r = { id: "r", points: [[0, 0], [4, 0], [4, 3], [0, 3]] as [number, number][], wall_heights: [2.5, 2.5, 0, 2.5] };
+  const balcony = {
+    id: "b", type: "balcony", points: [[0, 3], [4, 3], [4, 4.5], [0, 4.5]] as [number, number][],
+    aureon_finish: { floor: { material: "deck_tiles" }, wall_paints: ["#d9b29a", null, null, null] },
+  };
+  const floor = { id: "f", height: 2.5, elevation: 0, rooms: [r], openings: [], walls: [{ id: "w", a: [0, 3] as [number, number], b: [4, 3] as [number, number] }], outdoor: [balcony] };
+  // a stand-in canvas: the materials draw their textures into it (nothing is checked about the pixels)
+  const ctx = new Proxy({}, { get: (_t, k) => (k === "createLinearGradient" || k === "createRadialGradient" ? () => ({ addColorStop() {} }) : () => undefined), set: () => true });
+  const g0 = globalThis as { document?: unknown };
+  const had = "document" in g0;
+  if (!had) g0.document = { createElement: () => ({ width: 0, height: 0, getContext: () => ctx }) };
+  let g: ReturnType<typeof buildFinishes> | undefined;
+  try {
+    g = buildFinishes(floor as never, 0.24);
+  } finally {
+    if (!had) delete g0.document;
+  }
+  const lifted = g!.children.filter((c) => c.position.y !== 0);
+  assert.equal(lifted.length, 2, "the deck and the painted wall");
+  const nz = (c: unknown) => (c as Mesh).geometry.getAttribute("normal").getZ(0);
+  const wall = lifted.find((c) => nz(c) !== 0);
+  assert.ok(wall, "paint on the wall beside the balcony");
+  assert.ok(nz(wall) > 0, "facing +z, into the balcony");
 });

@@ -38,3 +38,6 @@ export function spliceWallPaints(room: { points: unknown[]; aureon_finish?: unkn
   list.splice(index, remove, ...insert);
   finish.wall_paints = list;
 }
+
+/** Outdoor areas that take finishes like a room (a floor covering and paint on the walls along them; owner 2026-11-12). */
+export const AUREON_FINISH_OUTDOOR: ReadonlySet<string> = new Set(["balcony", "terrace"]);

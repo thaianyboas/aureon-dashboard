@@ -7,8 +7,8 @@
 import { BufferAttribute, BufferGeometry, CanvasTexture, FrontSide, Group, Mesh, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from "three";
 import { triangulate } from "./geo.ts";
 import { generateWalls, type Wall } from "../geometry/walls.ts";
-import { pointInPolygon } from "../model.ts";
-import { AUREON_WALL_PAINTS, paintColor, wallPaints } from "../aureon-paints.ts";
+import { areaGround, OUTDOOR_TOP, pointInPolygon, type Floor, type OutdoorArea } from "../model.ts";
+import { AUREON_FINISH_OUTDOOR, AUREON_WALL_PAINTS, paintColor, wallPaints } from "../aureon-paints.ts";
 
 type Vec2 = [number, number];
 export interface AureonFinishRef {
@@ -94,6 +94,61 @@ function oakPlank(ctx: CanvasRenderingContext2D, x: number, y: number, w: number
   ctx.globalAlpha = 1;
 }
 
+/** Acacia click tiles for balconies and terraces (owner 2026-11-12): 30 x 30 cm, six slats of 4.5 cm with 5 mm gaps over a
+ *  dark plastic grid, warm orange-brown oiled acacia with darker grain; `checker` turns every other tile by 90°. */
+function acaciaTiles(ctx: CanvasRenderingContext2D, W: number, checker: boolean): void {
+  ctx.fillStyle = "#1f1712";
+  ctx.fillRect(0, 0, W, W);
+  const t = W / 2, edge = t * 0.008, gap = t * 0.017, sw = (t - 2 * edge - 5 * gap) / 6;
+  const palette = [[178, 98, 46], [190, 110, 54], [165, 86, 40], [184, 104, 50], [158, 80, 38], [196, 118, 62]];
+  for (let ty = 0; ty < 2; ty++) for (let tx = 0; tx < 2; tx++) {
+    const turn = checker && (tx + ty) % 2 === 1;
+    for (let k = 0; k < 6; k++) {
+      const r = rng(tx * 131 + ty * 53 + k * 11 + (checker ? 7 : 0));
+      const c = palette[Math.floor(r() * palette.length)], tone = 0.9 + 0.16 * r();
+      const base = c.map((v) => Math.min(255, v * tone));
+      const along = edge + k * (sw + gap);
+      const x = tx * t + (turn ? edge : along), y = ty * t + (turn ? along : edge);
+      const w = turn ? t - 2 * edge : sw, h = turn ? sw : t - 2 * edge;
+      ctx.fillStyle = rgb(base);
+      ctx.fillRect(x, y, w, h);
+      // grain: long darker streaks along the slat, a few lighter ones, now and then a small knot
+      const len = turn ? w : h, across = turn ? h : w;
+      for (let i = 0; i < 9; i++) {
+        const a = (i + r()) / 9, phase = r() * 6.28, amp = across * (0.03 + 0.08 * r()), freq = (1 + 3 * r()) / len;
+        ctx.strokeStyle = rgb(base, r() < 0.65 ? 0.78 : 1.12);
+        ctx.globalAlpha = 0.22 + 0.3 * r();
+        ctx.lineWidth = Math.max(0.6, across * (0.015 + 0.03 * r()));
+        ctx.beginPath();
+        for (let q = 0; q <= len; q += Math.max(2, len / 50)) {
+          const off = a * across + amp * Math.sin(q * freq * 6.28 + phase);
+          const px = turn ? x + q : x + off, py = turn ? y + off : y + q;
+          if (q === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      }
+      if (r() < 0.25) {
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = rgb(base, 0.6);
+        ctx.beginPath();
+        ctx.ellipse(turn ? x + w * (0.2 + 0.6 * r()) : x + w / 2, turn ? y + h / 2 : y + h * (0.2 + 0.6 * r()), turn ? across * 0.18 : across * 0.12, turn ? across * 0.12 : across * 0.18, 0, 0, 6.28);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      // a soft bevel: the slat edges a little darker
+      ctx.fillStyle = "rgba(60,25,8,0.25)";
+      if (turn) {
+        ctx.fillRect(x, y, w, across * 0.06);
+        ctx.fillRect(x, y + h - across * 0.06, w, across * 0.06);
+      } else {
+        ctx.fillRect(x, y, across * 0.06, h);
+        ctx.fillRect(x + w - across * 0.06, y, across * 0.06, h);
+      }
+    }
+  }
+}
+
 /** Wall height (m) of the classic tile band: one texture repeat runs from the floor to this height. */
 export const TILE_BAND = { repeat: 2.4, bottom: 1.2, top: 1.32 };
 
@@ -172,6 +227,8 @@ export const FINISHES: Record<string, FinishDef> = {
       }
     },
   },
+  acacia_tiles: { period: [0.6, 0.6], roughness: 0.6, ppm: 1200, draw: (ctx, W) => acaciaTiles(ctx, W, false) },
+  acacia_tiles_checker: { period: [0.6, 0.6], roughness: 0.6, ppm: 1200, draw: (ctx, W) => acaciaTiles(ctx, W, true) },
   // light brick: beige, sand, light terracotta; 24 x 7.1 cm, 1 cm light grey mortar, running bond
   light_brick: {
     period: [0.5, 0.162],
@@ -348,30 +405,53 @@ export function buildFinishes(floor: FloorLike, interior: number, exterior = 0.3
     const H = room.ceiling_height ?? floor.height;
     const ceilingMat = H > 0.3 ? material("paint", false, paintColor(room.aureon_finish?.ceiling?.color) ?? DEFAULT_CEILING) : null;
     if (ceilingMat) group.add(ceilingMesh(innerFaces(room, floor.rooms, interior, footprints).map((face) => face.a), H - 0.004, ceilingMat));
+    paint(room, 0);
+  }
+  // balconies and terraces (owner 2026-11-12: "na varanda não consigo pôr o piso nem pintar a parede"): a covering on
+  // their slab and paint on the walls along them. They have no walls of their own – the free walls beside them are
+  // painted, as for a room edge set to "no wall".
+  for (const a of ((floor as { outdoor?: OutdoorArea[] }).outdoor ?? [])) {
+    const f = (a as OutdoorArea & { aureon_finish?: AureonRoomFinish | null }).aureon_finish;
+    if (!f || !AUREON_FINISH_OUTDOOR.has(a.type) || a.points.length < 3) continue;
+    let y = 0;
+    try {
+      y = areaGround(floor as unknown as Floor, a) + OUTDOOR_TOP[a.type];
+    } catch {
+      y = OUTDOOR_TOP[a.type] ?? 0;
+    }
+    paint({ id: a.id, points: a.points, wall_heights: a.points.map(() => 0), aureon_finish: f }, y);
+  }
+  return group;
+
+  function paint(room: RoomLike, y: number): void {
     const f = room.aureon_finish;
-    if (!f) continue;
+    if (!f) return;
+    // a balcony's slab lies a little below the rooms' floor: the covering sits on it, the paint reaches down to it
+    const H = floor.height > 0.3 ? floor.height : 2.5;
+    const lift = (m: Mesh | null, wall = true) => {
+      if (m) {
+        m.position.y = y;
+        if (wall && y !== 0) m.scale.y = (H - y) / H;
+        group.add(m);
+      }
+    };
     if (f.floor && FINISHES[f.floor.material]) {
       const mat = material(f.floor.material, true);
-      if (mat) group.add(floorMesh(room.points, f.floor, mat));
+      if (mat) lift(floorMesh(room.points, f.floor, mat), false);
     }
     // single walls painted on their own leave the room finish and get a surface of their colour
     const single = wallPaints(f, room.points.length);
     if (f.walls && FINISHES[f.walls.material]) {
       const mat = material(f.walls.material, false, paintColor(f.walls.color));
       const edges = room.points.map((_, i) => i).filter((i) => single[i] === null && (!f.walls!.edges || f.walls!.edges.includes(i)));
-      if (mat && edges.length) {
-        const g = wallMesh(room, floor, { ...f.walls, edges }, interior, mat, footprints, walls);
-        if (g) group.add(g);
-      }
+      if (mat && edges.length) lift(wallMesh(room, floor, { ...f.walls, edges }, interior, mat, footprints, walls));
     }
     for (const color of new Set(single.filter((c): c is string => c !== null))) {
       const mat = material("paint", false, color);
       const edges = single.flatMap((c, i) => (c === color ? [i] : []));
-      const g = mat ? wallMesh(room, floor, { material: "paint", color, edges }, interior, mat, footprints, walls) : null;
-      if (g) group.add(g);
+      lift(mat ? wallMesh(room, floor, { material: "paint", color, edges }, interior, mat, footprints, walls) : null);
     }
   }
-  return group;
 }
 
 function uvOf(x: number, z: number, ref: AureonFinishRef): [number, number] {

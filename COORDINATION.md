@@ -1223,6 +1223,7 @@ The Music browser suite passed again with that label and native transfer.
 - (17b) The wall colour bands on the 2D plan show only while Acabamentos is open (owner read them as a second wall).
 - (18) Thin furniture (depth ≤ 8 cm, e.g. acoustic slat panels) standing 0.5–30 mm in front of a wall face is moved 1 mm into the wall in 3D only (`snapThinToWalls` in viewer/aureon-openings.ts); the stored plan is unchanged. Owner saw a slit between oak panels and wall.
 - (19) Tool choices (Exterior type/shape, Piscina shape, Divisão shape) and the overlap warning moved from the floating toolbar into an in-flow `.aureon-optbar` above the plan/3D, in labelled groups; they no longer cover the 3D view's own buttons (Paredes altas/Corte, Passeio).
+- (20) Side panel for everything (owner 2026-11-12): selection details, tool choices, the overlap warning and the settings (grouped list, topics open in the panel; only card templates keep a dialog) live in the left column – nothing floats over the plan or 3D. Outdoor areas get a short card. Balconies/terraces take finishes (`aureon_finish` on the outdoor area: floor covering on the slab, wall paint on free walls beside them). New floor finishes `acacia_tiles` / `acacia_tiles_checker`. Budgets: editor 1130, card editor 329, 3D 988 KiB.
 
 
 ### Codex batch 2026-11-11 — two native Spotify accounts

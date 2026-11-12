@@ -162,7 +162,7 @@ import { packsVersion as libPacksVersion } from "../packs.ts";
 import type { WallMode } from "../viewer/viewer3d.ts";
 import { furnitureName } from "../furniture-names.ts";
 import { importOwnFurniture, listOwnFurniture, type AureonOwnModel } from "../aureon-own.ts";
-import { AUREON_WALL_PAINTS, paintColor, spliceWallPaints, wallPaints } from "../aureon-paints.ts";
+import { AUREON_FINISH_OUTDOOR, AUREON_WALL_PAINTS, paintColor, spliceWallPaints, wallPaints } from "../aureon-paints.ts";
 
 /** One own model in <config>/aureon_models (see the integration's aureon_models.py). */
 import { furnitureShown } from "../show-if.ts";
@@ -605,7 +605,7 @@ export class Fp3dEditor extends LitElement {
   /** AUREON (owner 2026-11-10): paint mode – a tap on a wall in the plan picks it for paint; nothing moves. */
   private declare _aureonPaint: boolean;
   /** AUREON editor 2026-11-11: the open area of the rail (construction, finishes, furniture, smart home) or "". */
-  private declare _aureonArea: "" | "build" | "finish" | "furniture" | "smart";
+  private declare _aureonArea: "" | "build" | "finish" | "furniture" | "smart" | "settings";
   private declare _aureonFinishTab: "walls" | "floor" | "ceiling";
   /** Where a colour goes: the tapped wall or the whole room; null = the wall when one is tapped. */
   private declare _aureonApply: "wall" | "room" | null;
@@ -1353,7 +1353,7 @@ export class Fp3dEditor extends LitElement {
   protected updated(): void {
     this.checkDiagInvite();
     // the settings dialog shows its section unfolded (its summary is hidden there)
-    if (this._settingsDialog) for (const d of this.renderRoot.querySelectorAll<HTMLDetailsElement>(".fp3d-dialog details")) d.open = true;
+    if (this._settingsDialog) for (const d of this.renderRoot.querySelectorAll<HTMLDetailsElement>(".fp3d-dialog details, .aureon-settings-body details")) d.open = true;
     // the item preview is placed in window coordinates; with the 3D view beside the plan an ancestor becomes its
     // containing block (a transform or filter), so "fixed" no longer means the window: measure and correct once
     const preview = this._preview ? this.renderRoot.querySelector<HTMLElement>(".fp3d-preview") : null;
@@ -1568,7 +1568,7 @@ export class Fp3dEditor extends LitElement {
     const band = Math.max(3, Math.min(9, this.toScreen([0.07, 0])[0] - this.toScreen([0, 0])[0]));
     const half = (this._doc?.settings?.wall_interior ?? 0.12) / 2;
     const out: unknown[] = [];
-    for (const r of floor.rooms) {
+    for (const r of [...floor.rooms, ...(floor.outdoor ?? []).filter((a) => AUREON_FINISH_OUTDOOR.has(a.type))]) {
       const finish = (r as Room & { aureon_finish?: { walls?: { material?: string; color?: string; edges?: number[] | null } | null } | null }).aureon_finish;
       if (!finish) continue;
       const single = wallPaints(finish, r.points.length);
@@ -1592,7 +1592,7 @@ export class Fp3dEditor extends LitElement {
 
   private renderAureonWallLine() {
     const w = this._aureonWall;
-    const r = w ? this.floor?.rooms.find((x) => x.id === w.roomId) : undefined;
+    const r = w ? (this.floor?.rooms.find((x) => x.id === w.roomId) ?? this.floor?.outdoor?.find((x) => x.id === w.roomId)) : undefined;
     if (!w || !r || w.index >= r.points.length) return nothing;
     const [x1, y1] = this.toScreen(r.points[w.index]);
     const [x2, y2] = this.toScreen(r.points[(w.index + 1) % r.points.length]);
@@ -5226,6 +5226,31 @@ export class Fp3dEditor extends LitElement {
       }
     }
     const room = best?.room ?? floor.rooms.find((r) => r.points.length >= 3 && pointInPolygon(world, r.points));
+    // AUREON (owner 2026-11-12: "na varanda não consigo pôr o piso nem pintar a parede"): balconies and terraces
+    // take finishes like rooms; a tap inside one (or on its edge, when no room wall is nearer) picks it
+    let outBest: { id: string; edge: number; d: number } | null = null;
+    for (const a of floor.outdoor ?? []) {
+      if (!AUREON_FINISH_OUTDOOR.has(a.type) || a.points.length < 3) continue;
+      const inside = pointInPolygon(world, a.points);
+      for (let i = 0; i < a.points.length; i++) {
+        const [ax, ay] = this.toScreen(a.points[i]);
+        const [bx, by] = this.toScreen(a.points[(i + 1) % a.points.length]);
+        const l2 = (bx - ax) ** 2 + (by - ay) ** 2 || 1;
+        const t = Math.min(1, Math.max(0, ((screen[0] - ax) * (bx - ax) + (screen[1] - ay) * (by - ay)) / l2));
+        const d = Math.hypot(screen[0] - ax - (bx - ax) * t, screen[1] - ay - (by - ay) * t) - (inside ? 3 : 0);
+        if (d < SNAP_PX * 2.6 && (!outBest || d < outBest.d)) outBest = { id: a.id, edge: i, d };
+      }
+      if (inside && !outBest) outBest = { id: a.id, edge: -1, d: Infinity };
+    }
+    const outInside = (floor.outdoor ?? []).find((a) => AUREON_FINISH_OUTDOOR.has(a.type) && a.points.length >= 3 && pointInPolygon(world, a.points));
+    if (outBest && (outInside?.id === outBest.id || !best || outBest.d < best.d)) {
+      this.selectItem("outdoor", outBest.id);
+      this._aureonWall = outBest.edge >= 0 && outBest.d !== Infinity ? { roomId: outBest.id, index: outBest.edge } : null;
+      if (this._aureonArea === "finish") { if (this._aureonWall) this._aureonApply = null; this._studioDetails = false; return; }
+      this._studioDetails = true;
+      this.setSideFolded(false);
+      return;
+    }
     if (!room) return;
     if (room.id !== this._roomId) this.selectItem("room", room.id);
     this._aureonWall = best ? { roomId: room.id, index: best.edge } : null;
@@ -6181,6 +6206,68 @@ export class Fp3dEditor extends LitElement {
    * and warnings, the live director, voice control, favourites, the background, the ground, the backup and the
    * modules. One button in the toolbar opens the list; a topic opens as a dialog over the plan.
    */
+  /** Opens one settings topic (its dialog, or the locating assistant). */
+  private openSettingsTopic(key: SettingsTopic): void {
+    // locating has its own assistant (a bundle of its own), not a dialog
+    if (key === "locate") {
+      // Live Presence works on one plan: its rooms, doors and scanners
+      if ((this.locatePlan ?? MAIN_PLAN) !== (this.planId ?? MAIN_PLAN)) {
+        alert(this.t("plan_locate_other", { name: planLabel(this.hass, this.plans ?? [], this.locatePlan ?? MAIN_PLAN) }));
+        return;
+      }
+      if (this.hass) void loadLocate().then((m) => m.openLocateSetup(this.hass!, this._doc, () => this.hass, (look) => this.setSettings({ person_look: look === "figure" ? null : look })));
+      return;
+    }
+    this._settingsDialog = key;
+    if (key === "diagnostics") void this.loadDiagnostics();
+    // the modules' sentences for the voice list: loaded here as well (the editor is its own bundle), once per opening
+    if (key === "voice" && this.hass) void syncModules(this.hass, this.packs ?? []).then(() => this.requestUpdate());
+  }
+
+  /** AUREON editor (owner 2026-11-12: "essas configurações também, o design ainda está igual ao original"): the
+   *  settings in the side panel – grouped, with line icons and a short line on what each one is; a topic opens there
+   *  too (only the wide card templates keep their dialog). */
+  private renderAureonSettings() {
+    void this.renderSettingsMenu;
+    const admin = this.isAdmin;
+    const topic = this._settingsDialog;
+    if (topic && topic !== "cards" && !this.narrow) {
+      const { title, body } = this.settingsParts(topic);
+      return html`<button class="aureon-inspector-back aureon-settings-back" data-settings-back @click=${() => (this._settingsDialog = null)}>‹ ${this.t("settings")}</button>
+        <div class="aureon-drawer-head"><h2>${title}</h2><button class="aureon-drawer-close" aria-label=${this.t("close")} @click=${() => { this._settingsDialog = null; this.openAureonArea("settings"); }}>✕</button></div>
+        <div class="aureon-settings-body">${body}</div>`;
+    }
+    type Item = { key: SettingsTopic; icon: string; admin: boolean };
+    const groups: [I18nKey, Item[]][] = [
+      ["set_group_home", [
+        { key: "plans", icon: "M3 7l9-4 9 4-9 4z M3 12l9 4 9-4 M3 17l9 4 9-4", admin: true },
+        { key: "house", icon: "M3 21h18 M5 21V9.5L12 4l7 5.5V21 M10 21v-5h4v5", admin: true },
+        { key: "terrain", icon: "M2 20l7-11 4 6 3-4 6 9z", admin: true },
+        { key: "backdrop", icon: "M3 5h18v14H3z M3 15l5-5 4 4 3-3 6 6", admin: true },
+        { key: "backup", icon: "M12 3v12 M7 10l5 5 5-5 M4 17v3h16v-3", admin: true },
+      ]],
+      ["set_group_live", [
+        { key: "weather", icon: "M7 18h10a4 4 0 00.5-8A6 6 0 006 11a3.5 3.5 0 001 7z", admin: true },
+        { key: "director", icon: "M3 7h13v10H3z M16 10l5-3v10l-5-3", admin: true },
+        { key: "favorites", icon: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z", admin: true },
+        { key: "cards", icon: "M3 4h18v12H3z M8 20h8 M12 16v4", admin: true },
+      ]],
+      ["set_group_extras", [
+        { key: "voice", icon: "M12 3a3 3 0 013 3v6a3 3 0 01-6 0V6a3 3 0 013-3z M5 11a7 7 0 0014 0 M12 18v3", admin: false },
+        ...(released("locate") ? [{ key: "locate" as const, icon: "M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z M12 12a2 2 0 100-4 2 2 0 000 4z", admin: true }] : []),
+        { key: "modules", icon: "M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z", admin: true },
+        { key: "fun", icon: "M12 3a6 6 0 016 6c0 4-6 8-6 8s-6-4-6-8a6 6 0 016-6z M12 17v4", admin: true },
+      ]],
+    ];
+    return html`<div class="aureon-drawer-head"><h2>${this.t("settings")}</h2><button class="aureon-drawer-close" aria-label=${this.t("close")} @click=${() => this.openAureonArea("settings")}>✕</button></div>
+      <p class="aureon-drawer-lead">${this.t("set_lead")}</p>
+      ${groups.map(([label, items]) => {
+        const shown = items.filter((i) => admin || !i.admin);
+        return shown.length ? html`<p class="aureon-drawer-group">${this.t(label)}</p>
+          ${shown.map((i) => html`<button class="aureon-row aureon-set-row" data-settings-topic=${i.key} @click=${() => this.openSettingsTopic(i.key)}>${studioIcon(i.icon)}<span><b>${this.settingsParts(i.key, false).title}</b><small>${this.t(`set_desc_${i.key}` as I18nKey)}</small></span><i aria-hidden="true">›</i></button>`)}` : nothing;
+      })}`;
+  }
+
   private renderSettingsMenu(closeTools: () => void) {
     const admin = this.isAdmin;
     const open = this._settingsMenu;
@@ -6219,20 +6306,7 @@ export class Fp3dEditor extends LitElement {
                     class="fp3d-menu-item"
                     @click=${() => {
                       this._settingsMenu = false;
-                      // locating has its own assistant (a bundle of its own), not a dialog
-                      if (t.key === "locate") {
-                        // Live Presence works on one plan: its rooms, doors and scanners
-                        if ((this.locatePlan ?? MAIN_PLAN) !== (this.planId ?? MAIN_PLAN)) {
-                          alert(this.t("plan_locate_other", { name: planLabel(this.hass, this.plans ?? [], this.locatePlan ?? MAIN_PLAN) }));
-                          return;
-                        }
-                        if (this.hass) void loadLocate().then((m) => m.openLocateSetup(this.hass!, this._doc, () => this.hass, (look) => this.setSettings({ person_look: look === "figure" ? null : look })));
-                        return;
-                      }
-                      this._settingsDialog = t.key;
-                      if (t.key === "diagnostics") void this.loadDiagnostics();
-                      // the modules' sentences for the voice list: loaded here as well (the editor is its own bundle), once per opening
-                      if (t.key === "voice" && this.hass) void syncModules(this.hass, this.packs ?? []).then(() => this.requestUpdate());
+                      this.openSettingsTopic(t.key);
                     }}
                   >
                     ${t.icon} ${t.label}
@@ -6257,6 +6331,23 @@ export class Fp3dEditor extends LitElement {
   private renderSettingsDialog() {
     const topic = this._settingsDialog;
     if (!topic) return nothing;
+    // AUREON editor: the topics open in the side panel (renderAureonSettings); only the wide card templates keep a dialog
+    if (this._aureonArea === "settings" && !this.narrow && topic !== "cards") return nothing;
+    const close = () => (this._settingsDialog = null);
+    const { title, body } = this.settingsParts(topic);
+    return html`<div class="fp3d-dialog-veil" @click=${(e: Event) => e.target === e.currentTarget && close()}>
+      <div class="fp3d-dialog ${topic === "cards" ? "fp3d-dialog-wide" : ""}" role="dialog" aria-label=${title} tabindex="-1" @keydown=${(e: KeyboardEvent) => e.key === "Escape" && close()}>
+        <div class="fp3d-dialog-head">
+          <h3>${title}</h3>
+          <button class="fp3d-btn" aria-label=${this.t("close")} @click=${close}>✕</button>
+        </div>
+        <div class="fp3d-dialog-body">${body}</div>
+      </div>
+    </div>`;
+  }
+
+  /** The title and the content of a settings topic (shown in the side panel or, for card templates, a dialog). */
+  private settingsParts(topic: SettingsTopic, withBody = true): { title: string; body: unknown } {
     const close = () => (this._settingsDialog = null);
     const titles: Record<SettingsTopic, string> = {
       plans: this.t("plans_title"),
@@ -6274,6 +6365,7 @@ export class Fp3dEditor extends LitElement {
       cards: this.t("card_templates"),
       diagnostics: this.t("diag_title"),
     };
+    if (!withBody) return { title: titles[topic], body: nothing };
     const body =
       topic === "plans"
         ? html`<fp3d-plan-manager
@@ -6307,15 +6399,7 @@ export class Fp3dEditor extends LitElement {
                           : topic === "cards"
                             ? html`<fp3d-card-templates .hass=${this.hass} .building=${this._doc} .plan=${this.planId ?? null} .initial=${this.openTemplate} ?admin=${this.isAdmin} .edit=${(fn: (b: Building) => void) => this.change((d) => fn(d))}></fp3d-card-templates>`
                             : this.renderModuleSettings();
-    return html`<div class="fp3d-dialog-veil" @click=${(e: Event) => e.target === e.currentTarget && close()}>
-      <div class="fp3d-dialog ${topic === "cards" ? "fp3d-dialog-wide" : ""}" role="dialog" aria-label=${titles[topic]} tabindex="-1" @keydown=${(e: KeyboardEvent) => e.key === "Escape" && close()}>
-        <div class="fp3d-dialog-head">
-          <h3>${titles[topic]}</h3>
-          <button class="fp3d-btn" aria-label=${this.t("close")} @click=${close}>✕</button>
-        </div>
-        <div class="fp3d-dialog-body">${body}</div>
-      </div>
-    </div>`;
+    return { title: titles[topic], body };
   }
 
   /** Modules installed from the shop; a module's own settings will show here once modules bring some. */
@@ -6381,14 +6465,25 @@ export class Fp3dEditor extends LitElement {
       {key:"furniture",label:"area_furniture",icon:"M5 11V8.5A2.5 2.5 0 017.5 6h9A2.5 2.5 0 0119 8.5V11 M3 12.5a1.5 1.5 0 013 0V15h12v-2.5a1.5 1.5 0 013 0V18H3z M6 18v2 M18 18v2"},
       {key:"smart",label:"area_smart",icon:"M9 18h6 M10 21h4 M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z"},
     ];
-    return html`<nav class="studio-rail aureon-areas" aria-label=${this.t("studio_tools")}>${areas.map(a=>html`<button data-studio-area=${a.key} title=${this.t(a.label)} aria-pressed=${this._aureonArea===a.key} ?disabled=${!this.floor||!this.isAdmin} @click=${()=>this.openAureonArea(a.key)}>${studioIcon(a.icon)}<span>${this.t(a.label)}</span></button>`)}<button class="aureon-rail-settings-btn" data-studio-tool="settings" title=${this.t("settings")} aria-haspopup="menu" aria-expanded=${this._settingsMenu} @click=${()=>{this._aureonMore=false;this._settingsMenu=!this._settingsMenu;}}>${studioIcon("M12 15a3 3 0 100-6 3 3 0 000 6z M12 2v3 M12 19v3 M2 12h3 M19 12h3 M4.9 4.9l2.1 2.1 M17 17l2.1 2.1 M4.9 19.1L7 17 M17 7l2.1-2.1")}<span>${this.t("settings")}</span></button></nav>`;
+    return html`<nav class="studio-rail aureon-areas" aria-label=${this.t("studio_tools")}>${areas.map(a=>html`<button data-studio-area=${a.key} title=${this.t(a.label)} aria-pressed=${this._aureonArea===a.key} ?disabled=${!this.floor||!this.isAdmin} @click=${()=>this.openAureonArea(a.key)}>${studioIcon(a.icon)}<span>${this.t(a.label)}</span></button>`)}<button class="aureon-rail-settings-btn" data-studio-tool="settings" title=${this.t("settings")} aria-pressed=${this._aureonArea==="settings"} @click=${()=>{this._aureonMore=false;this.openAureonArea("settings");}}>${studioIcon("M12 15a3 3 0 100-6 3 3 0 000 6z M12 2v3 M12 19v3 M2 12h3 M19 12h3 M4.9 4.9l2.1 2.1 M17 17l2.1 2.1 M4.9 19.1L7 17 M17 7l2.1-2.1")}<span>${this.t("settings")}</span></button></nav>`;
   }
 
   /** AUREON editor: opens (or closes, on a second tap) an area of the rail. */
-  private openAureonArea(key: "build" | "finish" | "furniture" | "smart"): void {
+  private openAureonArea(key: "build" | "finish" | "furniture" | "smart" | "settings"): void {
     this._settingsMenu = false;
     this._aureonMore = false;
     this._aureonContour = false;
+    if (key === "settings" || this._aureonArea === "settings") this._settingsDialog = null;
+    // one panel at a time: picking an area shows it, not the details of a selection
+    this._studioDetails = false;
+    if (key === "settings") {
+      this._aureonArea = this._aureonArea === "settings" ? "" : "settings";
+      this._studioDetails = false;
+      this._studioLibrary = false;
+      if (this._tool === "furniture") this.setTool("select");
+      this._aureonPaint = false;
+      return;
+    }
     if (this._aureonArea === key) {
       this._aureonArea = "";
       if (key === "finish") this._aureonPaint = false;
@@ -6404,20 +6499,31 @@ export class Fp3dEditor extends LitElement {
     if (key === "finish" || key === "furniture") this._studioDetails = false;
   }
 
+  /** AUREON: what the Finishes drawer works on – the open room, or a selected balcony / terrace (they have a floor
+   *  and walls too; owner 2026-11-12). The area is handed over like a room: id, name, points and its aureon_finish. */
+  private aureonFinishTarget(): { kind: "room" | "outdoor"; item: { id: string; name: string; points: Vec2[] } } | null {
+    if (this.room) return { kind: "room", item: this.room };
+    const a = this._outdoorId ? (this.floor?.outdoor ?? []).find((o) => o.id === this._outdoorId) : undefined;
+    if (!a || !AUREON_FINISH_OUTDOOR.has(a.type) || a.points.length < 3) return null;
+    return { kind: "outdoor", item: { ...a, name: a.name || this.t(`out_${a.type}` as I18nKey) } };
+  }
+
   /** AUREON editor: the Finishes drawer – a paint fan deck, coverings, floor and ceiling, one tab at a time. */
   private renderAureonFinishes() {
     type Fin = { floor?: { material: string; rotation?: number } | null; walls?: { material: string; color?: string | null; edges?: number[] | null } | null; ceiling?: { color?: string | null } | null; wall_paints?: (string | null)[] };
     const tab = this._aureonFinishTab ?? "walls";
     const tabs = html`<div class="aureon-tabs-sm" role="tablist">${(["walls", "floor", "ceiling"] as const).map((k) => html`<button role="tab" data-finish-tab=${k} aria-selected=${tab === k} @click=${() => (this._aureonFinishTab = k)}>${this.t(`finish_tab_${k}` as I18nKey)}</button>`)}</div>`;
-    const room = this.room;
-    if (!room) return html`${tabs}<p class="aureon-drawer-empty">${this.t("area_finish_pick")}</p>`;
+    const target = this.aureonFinishTarget();
+    if (!target) return html`${tabs}<p class="aureon-drawer-empty">${this.t("area_finish_pick")}</p>`;
+    const room = target.item as Room;
+    const outdoor = target.kind === "outdoor";
     const fin = ((room as Room & { aureon_finish?: Fin | null }).aureon_finish ?? null) as Fin | null;
     const save = (next: Fin) => {
-      if (!this.isAdmin || this.isFixedItem("room", room.id)) return;
+      if (!this.isAdmin || this.isFixedItem(target.kind, room.id)) return;
       const clean = { ...next } as Record<string, unknown>;
       for (const k of Object.keys(clean)) if (clean[k] == null) delete clean[k];
       const patch = { aureon_finish: Object.keys(clean).length ? clean : null } as unknown as Partial<Room>;
-      this.change((_, floor) => patchItem(floor.rooms.find((r) => r.id === room.id), patch));
+      this.change((_, floor) => patchItem(outdoor ? (floor.outdoor ?? []).find((a) => a.id === room.id) as unknown as Room | undefined : floor.rooms.find((r) => r.id === room.id), patch));
     };
     const roomPaint = fin?.walls?.material === "paint" ? paintColor(fin.walls.color) : null;
     const chip = (color: string, name: string, on: boolean, pick: () => void, key: string) =>
@@ -6430,9 +6536,10 @@ export class Fp3dEditor extends LitElement {
       const cur = fin?.floor?.material ?? null;
       const set = (id: string | null) => save({ ...(fin ?? {}), floor: id ? { material: id, rotation: fin?.floor?.rotation ?? 0 } : null });
       return html`${tabs}<p class="aureon-finish-for">${room.name}</p>
-        <div class="aureon-tiles">${(["oak_planks", "oak_herringbone", "white_tiles_floor", "deck_tiles"] as const).map((id) => tile(id, this.t(`finish_${id}` as I18nKey), cur === id, () => set(id)))}</div>
+        <div class="aureon-tiles">${(outdoor ? (["acacia_tiles", "acacia_tiles_checker", "deck_tiles", "white_tiles_floor", "oak_planks"] as const) : (["oak_planks", "oak_herringbone", "white_tiles_floor", "deck_tiles", "acacia_tiles", "acacia_tiles_checker"] as const)).map((id) => tile(id, this.t(`finish_${id}` as I18nKey), cur === id, () => set(id)))}</div>
         ${cur ? html`<button class="aureon-link" @click=${() => set(null)}>${this.t("finish_floor_clear")}</button>` : nothing}`;
     }
+    if (tab === "ceiling" && outdoor) return html`${tabs}<p class="aureon-drawer-empty">${this.t("finish_no_ceiling")}</p>`;
     if (tab === "ceiling") {
       const cur = paintColor(fin?.ceiling?.color);
       const set = (c: string | null) => save({ ...(fin ?? {}), ceiling: c ? { color: c } : null });
@@ -6466,7 +6573,7 @@ export class Fp3dEditor extends LitElement {
       ${mode === "room" ? html`<p class="aureon-drawer-group">${this.t("aureon_cover_title")}</p>
         <div class="aureon-tiles">${(["white_tiles_wall", "white_tiles_navy_band", "light_brick"] as const).map((id) => tile(id, this.t(`finish_${id}` as I18nKey), fin?.walls?.material === id, () => save({ ...(fin ?? {}), walls: { material: id } })))}</div>` : nothing}
       <div class="aureon-finish-actions">
-        ${mode === "wall" && w !== null ? html`<button class="aureon-link" data-paint-see3d @click=${() => { this._wallView3d = true; this.openWallView(room.id, w); }}>${this.t("aureon_paint_see3d")}</button>` : nothing}
+        ${mode === "wall" && w !== null && !outdoor ? html`<button class="aureon-link" data-paint-see3d @click=${() => { this._wallView3d = true; this.openWallView(room.id, w); }}>${this.t("aureon_paint_see3d")}</button>` : nothing}
         ${mode === "wall" && own ? html`<button class="aureon-link" @click=${() => setWall(null)}>${this.t("aureon_paint_wall_clear")}</button>` : nothing}
         ${mode === "room" && fin?.walls ? html`<button class="aureon-link" @click=${() => setRoom(null)}>${this.t("aureon_paint_clear")}</button>` : nothing}
       </div>`;
@@ -6516,6 +6623,7 @@ export class Fp3dEditor extends LitElement {
   private renderAureonDrawer() {
     const floor = this.floor;
     const area = this._aureonArea;
+    if (area === "settings") return this.renderAureonSettings();
     if (!area || !floor || !this.isAdmin) return nothing;
     const row = (key: string, label: string, icon: string, on: boolean, pick: () => void, extra: unknown = nothing) =>
       html`<button class="aureon-row" data-studio-tool=${key} aria-pressed=${on} @click=${() => {this._aureonContour = false; this._aureonPaint = area === "finish"; pick();}}>${studioIcon(icon)}<span>${label}</span>${extra}</button>`;
@@ -6523,7 +6631,11 @@ export class Fp3dEditor extends LitElement {
     const head = (title: I18nKey, lead: I18nKey) => html`<div class="aureon-drawer-head"><h2>${this.t(title)}</h2><button class="aureon-drawer-close" aria-label=${this.t("close")} @click=${() => this.openAureonArea(area)}>✕</button></div><p class="aureon-drawer-lead">${this.t(lead)}</p>`;
     if (area === "build") {
       const t = this._tool;
+      // AUREON (owner 2026-11-12: "tudo na lateral"): the warning and the choices of the tool sit here, not over the plan
+      const choices = this.renderAureonToolChoices();
       return html`${head("area_build", "area_build_lead")}
+        ${this.aureonOverlapWarn ? html`<p class="fp3d-warn aureon-drawer-warn">${this.t("overlap_warning")}${this.isAdmin ? html` <button class="aureon-link aureon-warn-fix" data-fix-overlaps @click=${() => this.aureonFixOverlaps()}>${this.t("overlaps_fix_short")}</button>` : nothing}</p>` : nothing}
+        ${choices !== nothing ? html`<div class="aureon-drawer-opts">${choices}</div>` : nothing}
         ${row("select", this.t("tool_select"), "M5 3l14 10-7 1-3 7z", t === "select", () => this.setTool("select"), kbd("V"))}
         ${row("room", this.t("tool_room"), "M4 4h16v16H4z M4 13h7v7", t === "rect" || t === "polygon", () => this.setTool("rect"), kbd("R"))}
         ${row("contour", this.t("aureon_contour_edit"), "M4 4h16v16H4z M2 2h4v4H2z M18 18h4v4h-4z", this._aureonContour, () => {this.setTool("select"); this._aureonContour = true; this._studioDetails = true;})}
@@ -6589,7 +6701,9 @@ export class Fp3dEditor extends LitElement {
     if (this._furnitureId) { const f = this.floor?.furniture.find((x) => x.id === this._furnitureId); if (f) return f.name || furnitureName(this.hass, f.type); }
     if (this._openingId) return this.t("tool_opening");
     if (this._deviceId) return entityName(this.hass, this._deviceId);
+    if (this._aureonWall && this._outdoorId) { const a = this.floor?.outdoor?.find((o) => o.id === this._outdoorId); if (a) return a.name || this.t(`out_${a.type}` as I18nKey); }
     if (this._aureonWall || this._wallId) return this.t("tool_wall");
+    if (this._outdoorId) { const a = this.floor?.outdoor?.find((o) => o.id === this._outdoorId); if (a) return a.name || this.t(`out_${a.type}` as I18nKey); }
     return this.room?.name || this.t("side_details");
   }
 
@@ -6627,6 +6741,43 @@ export class Fp3dEditor extends LitElement {
     </div>`;
   }
 
+  /** Rooms overlap on this floor (shown in the Construction panel with its one-tap fix). */
+  private aureonOverlapWarn = false;
+
+  /** Only an outdoor area is selected (the short card instead of the long list). */
+  private aureonOutdoorOnly(): boolean {
+    return !this.narrow && !!this._outdoorId && !this._furnitureId && !this._openingId && !this._deviceId && !this._wallId && !this._aureonContour && this._tool === "select" && !!this.floor?.outdoor?.some((a) => a.id === this._outdoorId);
+  }
+
+  /** AUREON editor (owner 2026-11-12): an outdoor area gets a short card like a room – kind, name, size and, for a
+   *  balcony or terrace, its floor and walls; everything else stays under "Todas as opções". */
+  private renderAureonOutdoorCard(floor: Floor) {
+    const a = (floor.outdoor ?? []).find((o) => o.id === this._outdoorId)!;
+    const admin = this.isAdmin;
+    const b = bounds(a.points);
+    const fin = (a as OutdoorArea & { aureon_finish?: { floor?: { material?: string } | null; wall_paints?: (string | null)[] } | null }).aureon_finish;
+    const finishable = AUREON_FINISH_OUTDOOR.has(a.type);
+    const kinds = OUTDOOR_TYPES.filter((k) => k !== "pool");
+    const act = (icon: string, label: string, pick: () => void, key: string) => html`<button class="aureon-card-act" data-card=${key} ?disabled=${!admin} @click=${pick}>${studioIcon(icon)}<span>${label}</span></button>`;
+    return html`<div class="aureon-room-card aureon-outdoor-card">
+      <p class="aureon-card-sub">${this.t(`out_${a.type}` as I18nKey)} · ${this.area(polygonArea(a.points))}</p>
+      <label class="aureon-card-name"><span>${this.t("room_name")}</span><input .value=${a.name ?? ""} placeholder=${this.t(`out_${a.type}` as I18nKey)} ?disabled=${!admin} @change=${(e: Event) => this.updateOutdoor({ name: (e.target as HTMLInputElement).value.trim() || null })} /></label>
+      <p class="aureon-card-label">${this.t("outdoor_type")}</p>
+      <div class="aureon-card-chips">${kinds.map((k) => html`<button class="fp3d-chip" aria-pressed=${a.type === k} ?disabled=${!admin} @click=${() => this.updateOutdoor({ type: k })}>${this.t(`out_${k}` as I18nKey)}</button>`)}</div>
+      <dl class="aureon-card-dl">
+        <dt>${this.t("ocard_size")}</dt><dd>${this.m(b.x1 - b.x0, 2)} × ${this.m(b.z1 - b.z0, 2)}</dd>
+        ${a.type === "balcony" ? html`<dt>${this.t("ocard_rail")}</dt><dd><input type="number" min="0.3" max="2" step="0.05" .value=${a.height != null ? String(a.height) : ""} placeholder="1" ?disabled=${!admin} @change=${(e: Event) => { const v = parseFloat((e.target as HTMLInputElement).value.replace(",", ".")); this.updateOutdoor({ height: Number.isFinite(v) && v > 0 ? Math.min(2, Math.max(0.3, v)) : null }); }} /> m</dd>` : nothing}
+        ${finishable ? html`<dt>${this.t("rcard_floor")}</dt><dd>${fin?.floor?.material ? this.t(`finish_${fin.floor.material}` as I18nKey) : this.t("rcard_none")}</dd>
+        <dt>${this.t("rcard_walls")}</dt><dd>${(fin?.wall_paints ?? []).some((c) => c) ? this.t("rcard_painted", { n: (fin?.wall_paints ?? []).filter((c) => c).length }) : this.t("rcard_none")}</dd>` : nothing}
+      </dl>
+      <div class="aureon-card-acts">
+        ${finishable ? act("M5 4h11v4H5z M16 6h3v5h-7v3 M11 14h2v7h-2z", this.t("ocard_finishes"), () => { const id = a.id; this.openAureonArea("finish"); this.selectItem("outdoor", id); this._studioDetails = false; }, "finishes") : nothing}
+        ${act("M8 8h8v8H8z M4 12h4 M16 12h4", this.t("duplicate"), () => this.duplicateOutdoor(), "duplicate")}
+      </div>
+      <details class="aureon-more"><summary>${this.t("rcard_more")}</summary><aside class="fp3d-side">${this.renderSide(floor)}</aside></details>
+    </div>`;
+  }
+
   /** AUREON editor: "Concluir" goes back to the view of the house (the panel keeps the saved plan). */
   private aureonDone(): void {
     const host = (this.getRootNode() as ShadowRoot | Document) instanceof ShadowRoot ? ((this.getRootNode() as ShadowRoot).host as HTMLElement & { setMode?: (m: string) => void }) : null;
@@ -6644,17 +6795,16 @@ export class Fp3dEditor extends LitElement {
   protected render(): TemplateResult {
     const floor = this.floor;
     const walls = floor ? generateWalls(floor.rooms, { exterior: this._doc.settings.wall_exterior, interior: this._doc.settings.wall_interior }, floor.walls ?? []) : null;
+    this.aureonOverlapWarn = !!walls?.warnings.length;
     return html`
       ${this.renderPreview()} ${this.renderWallView()} ${this.renderPartCard()} ${this.renderDiagnosticsView()}  ${this.renderSettingsDialog()}
-      <div class="fp3d-editor ${this.narrow ? "fp3d-narrow" : ""} ${this._studioLibrary || this._aureonArea ? "studio-has-library" : ""} ${this._studioDetails ? "studio-details-open" : ""} ${this._studio3d ? "studio-view3d" : ""} ${this._aureonMore ? "aureon-more-open" : ""}" style=${`--fp3d-side-w:${this._sideWidth}px`}>
+      <div class="fp3d-editor ${this.narrow ? "fp3d-narrow" : ""} ${this._studioLibrary || this._aureonArea ? "studio-has-library" : ""} ${this._studioDetails ? "studio-details-open" : ""} ${this._studio3d ? "studio-view3d" : ""} ${this._aureonMore ? "aureon-more-open" : ""} ${this._aureonArea === "settings" && this._settingsDialog ? "aureon-settings-wide" : ""}" style=${`--fp3d-side-w:${this._sideWidth}px`}>
         ${this.renderStudioHeader()} ${this.renderStudioRail()}
-        ${this._settingsMenu ? html`<div class="aureon-rail-settings">${this.renderSettingsMenu(() => {})}</div>` : nothing}
         <div class="studio-library aureon-drawer">${this._aureonArea?this.renderAureonDrawer():this._studioLibrary&&floor&&this.isAdmin?html`<div class="studio-library-head"><h2>${this.t("studio_library")}</h2><button class="fp3d-btn" aria-label=${this.t("close")} @click=${()=>{this._studioLibrary=false;}}>✕</button></div>${this.renderAureonFurniture()}`:nothing}</div>
         <div class="fp3d-main">
           <div class="fp3d-toolbar">
             ${this._wallPick ? html`<div class="fp3d-pick-tip" style=${`left:${this.wallPickTip[0]}px;top:${this.wallPickTip[1]}px`} @click=${() => (this._wallPick = false)}>${this.t("hint_wall_pick")}</div>` : nothing}
           </div>
-          ${(() => { const choices = this.renderAureonToolChoices(); const warn = walls?.warnings.length ? html`<span class="fp3d-warn">${this.t("overlap_warning")}${this.isAdmin ? html` <button class="aureon-link aureon-warn-fix" data-fix-overlaps @click=${() => this.aureonFixOverlaps()}>${this.t("overlaps_fix_short")}</button>` : nothing}</span>` : nothing; return choices === nothing && warn === nothing ? nothing : html`<div class="aureon-optbar">${choices}${warn}</div>`; })()}
           <div class="fp3d-stage-pair ${this._split ? "fp3d-split" : ""}" style=${this._split && !this.narrow ? `--fp3d-split:${Math.round(this._splitRatio * 100)}%` : ""}>
           <div class="fp3d-canvas-wrap">
             ${this._phoneHint
@@ -6727,7 +6877,7 @@ export class Fp3dEditor extends LitElement {
           ${this._split ? this.render3d() : nothing}
           </div>
         </div>
-        <div class="studio-inspector"><div class="studio-inspector-head"><strong>${this.aureonCardTitle()}</strong><button class="fp3d-btn" aria-label=${this.t("close")} @click=${()=>{this._studioDetails=false;if(!this.narrow)this.setSideFolded(true);}}>✕</button></div>${this.aureonRoomOnly()?this.renderAureonRoomCard(this.room!,floor):this.renderAside(floor)}</div>${this.renderStudioDock()}
+        <div class="studio-inspector">${this._aureonArea ? html`<button class="aureon-inspector-back" data-inspector-back @click=${()=>{this._studioDetails=false;}}>‹ ${this.t(`area_${this._aureonArea}` as I18nKey)}</button>` : nothing}<div class="studio-inspector-head"><strong>${this.aureonCardTitle()}</strong><button class="fp3d-btn" aria-label=${this.t("close")} @click=${()=>{this._studioDetails=false;if(!this.narrow)this.setSideFolded(true);}}>✕</button></div>${this.aureonRoomOnly()?this.renderAureonRoomCard(this.room!,floor):this.aureonOutdoorOnly()?this.renderAureonOutdoorCard(floor!):this.renderAside(floor)}</div>${this.renderStudioDock()}
       </div>
     `;
   }
