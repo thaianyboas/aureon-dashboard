@@ -166,3 +166,13 @@ test('native Spotify uses the chosen account and unwraps HA entity service respo
    entity_id:entity,action:'player_transfer_playback',arguments:{device_id:'native-device',play:true},
  }]);
 });
+test('play with no active Spotify speaker wakes the chosen speaker; pause then does nothing (owner 2026-11-12)',async()=>{
+ const {c,hass,state,calls}=fixture();state.attributes.source='Wohnung Musik';
+ const noDevice=new Error('Validation error: Spotify device or item unavailable (404)');
+ hass.callService=async(...args)=>{calls.push(args);if(args[0]==='media_player')throw noDevice;if(args[1]==='get_spotify_connect_devices')return {response:{result:{Items:[{Id:'d1',Name:'Alexa - Küche'},{Id:'d2',Name:'Wohnung Musik'}]}}};return {};};
+ assert.equal(await c.command('play'),true);
+ const transfer=calls.find(x=>x[1]==='player_transfer_playback');
+ assert.ok(transfer,'playback moves to a speaker');assert.equal(transfer[2].device_id,'d2');assert.equal(transfer[2].play,true);
+ calls.length=0;assert.equal(await c.command('pause'),true);assert.equal(c.error,'');
+ hass.callService=async()=>{throw new Error('Not permitted');};assert.equal(await c.command('play'),false);
+});

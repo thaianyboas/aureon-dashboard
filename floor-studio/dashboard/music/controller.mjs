@@ -1,4 +1,6 @@
 // Original AUREON adapter. Integrations remain external; HA enforces service permissions.
+/** Spotify's "no active device" answer (HTTP 404 / NO_ACTIVE_DEVICE), as SpotifyPlus and HA pass it on. */
+export const noActiveDevice = error => /404|no active device|NO_ACTIVE_DEVICE|device or item unavailable|Player command failed: No active device/i.test(String(error?.message||error?.body?.message||error||''));
 export const FEATURES = { pause:1, seek:2, volume:4, previous:16, next:32, playMedia:512, source:2048, play:16384, shuffle:32768, browse:131072, repeat:262144, search:4194304 };
 export const supported = (state, feature) => !!(Number(state?.attributes?.supported_features || 0) & FEATURES[feature]);
 export const available = state => !!state && !['unknown','unavailable'].includes(state.state);
@@ -128,7 +130,32 @@ export class MusicController {
     const spec=specs[action];if(!spec || !this.can(spec[0]) || !this.service('media_player',spec[1]))return false;
     if(['volume','seek'].includes(action)&&(!Number.isFinite(Number(value))||(action==='seek'&&!position(this.state).duration)))return false;
     const entity=this.entityId;
-    return this.request('transport',async()=>{await this.hass.callService('media_player',spec[1],{entity_id:entity,...spec[2]});return true;});
+    return this.request('transport',async()=>{
+      try{await this.hass.callService('media_player',spec[1],{entity_id:entity,...spec[2]});}
+      catch(error){
+        // Owner 2026-11-12: "eu aperto play ou pausa e sempre dá esse erro" – Spotify answers 404 when no speaker is
+        // active. Pausing then has nothing to do; playing wakes the chosen speaker and resumes there.
+        if(!noActiveDevice(error))throw error;
+        if(action==='pause')return true;
+        if(action!=='play'||!(await this.resumeOnSpeaker(entity)))throw error;
+      }
+      return true;});
+  }
+  /** Resumes Spotify on the speaker shown on the player card (its source), or the last one used, when none is active. */
+  async resumeOnSpeaker(entity){
+    const source=this.hass?.states?.[entity]?.attributes?.source;
+    if(this.advanced('player_transfer_playback')&&this.advanced('get_spotify_connect_devices')){
+      let devices=this.devices;
+      if(!devices.some(d=>d.name===source)){try{devices=connectDevices(await this.callSpotify('get_spotify_connect_devices',{refresh:true,sort_result:true},true));this.devices=devices;}catch{devices=[];}}
+      const target=devices.find(d=>d.name===source)||devices.find(d=>d.active)||devices[0];
+      if(target){await this.callSpotify('player_transfer_playback',{device_id:target.id,play:true});return true;}
+    }
+    const list=this.hass?.states?.[entity]?.attributes?.source_list||[];
+    if(source&&list.includes(source)&&this.service('media_player','select_source')){
+      await this.hass.callService('media_player','select_source',{entity_id:entity,source});
+      await this.hass.callService('media_player','media_play',{entity_id:entity});return true;
+    }
+    return false;
   }
   async browse(kind='playlists',query='',page=0,categoryId=''){
     if(this.pending.has('browse'))return false;
