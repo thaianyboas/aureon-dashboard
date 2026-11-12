@@ -1269,3 +1269,14 @@ The Music browser suite passed again with that label and native transfer.
 ### Codex batch 2026-11-12 — refresh Spotify Connect destination before playback
 
 - Owner reports that Spotify can play on Wohnung Musik from her phone while AUREON Play returns 404. Music `d6f6fac` publishes `1.1.0b6`, refreshes playback before resume, and resolves the selected device against the current Connect list before starting playback. An already active target uses Spotify's default active-device route. When an expired ID has no unique replacement, the command fails without switching to another output. The 32-test suite passed with simulated Spotify; real group playback is pending owner verification.
+
+### Claude batch 2026-11-12 — Play still answered 404 (Music 1.1.0b7, local until the owner approves)
+
+- Owner: "ainda tá com o erro … quero que toque a última música que estava tocando, seja no celular ou não". Native
+  `async_media_play`: an active playing session just resumes; a song Spotify still holds paused (e.g. on the phone,
+  no active device) is moved with its position to the chosen speaker (`transfer_playback(play=True)`); otherwise the last
+  recently-played song starts inside its playlist/album (`offset`). A 404 from a sleeping Connect speaker is answered by
+  a transfer, then the play is retried; then a clear message names the speaker. No speaker chosen and none active: a
+  "choose a speaker" message without any write. Pause with nothing playing (404) is quiet. 33 tests passed (new scenario
+  test with phone-paused, idle, sleeping speaker, no speaker). Physical playback still needs the owner's check.
+
