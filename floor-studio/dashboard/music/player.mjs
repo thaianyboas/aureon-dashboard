@@ -124,7 +124,17 @@ export class AureonMusicPlayer extends LitElement {
       ${this.volumeControl(a,busy,'now-volume')}
     </section>`;}
   shelfRow(kind,label,items){const c=this.controller,t=this.t,service=kind==='recommended'?c.shelfSources?.recommended:BROWSE[kind],browseKind=kind==='recommended'?(service==='get_playlist_favorites'?'playlists':''):kind;
-    return html`<div class="shelf" data-shelf=${kind}><div class="shelf-head"><h3>${label}${browseKind?html`<button class="head-link" aria-label=${`${label}: ${t.showMore}`} ?disabled=${c.pending.has('browse')} @click=${()=>c.browse(browseKind)}>${icon('chevron')}</button>`:nothing}</h3>${browseKind?html`<button class="link" ?disabled=${c.pending.has('browse')} @click=${()=>c.browse(browseKind)}>${t.showMore}${icon('chevron')}</button>`:nothing}</div><div class=${`shelf-row ${kind==='categories'?'cats':''}`}>${items.map(item=>this.tile(item))}</div></div>`;}
+    return html`<div class="shelf" data-shelf=${kind}><div class="shelf-head"><h3>${label}${browseKind?html`<button class="head-link" aria-label=${`${label}: ${t.showMore}`} ?disabled=${c.pending.has('browse')} @click=${()=>c.browse(browseKind)}>${icon('chevron')}</button>`:nothing}</h3>${browseKind?html`<button class="link" ?disabled=${c.pending.has('browse')} @click=${()=>c.browse(browseKind)}>${t.showMore}${icon('chevron')}</button>`:nothing}</div>${this.shelfBody(kind,items)}</div>`;}
+  // Owner 2026-11-12 ("gostei da C e B"): recently played as a quick list, playlists as a mosaic with one large cover;
+  // categories keep their row.
+  shelfBody(kind,items){
+    if(kind==='recent')return html`<div class="shelf-list">${items.slice(0,9).map(item=>this.listTile(item))}</div>`;
+    if(kind==='recommended'&&items.length>=3)return html`<div class="shelf-mosaic">${items.slice(0,7).map((item,i)=>this.mosaicTile(item,i===0))}</div>`;
+    return html`<div class=${`shelf-row ${kind==='categories'?'cats':''}`}>${items.map(item=>this.tile(item))}</div>`;}
+  itemPlay(item){const c=this.controller;return item.category?c.openCategory(item):c.playItem(item,{spotcastTarget:this._spotcastTarget});}
+  itemSub(item){return item.artists?.map(a=>a.name).join(', ') || item.owner?.display_name || '';}
+  listTile(item){const c=this.controller,art=this.art(item);return html`<button class="row-item" title=${item.name} ?disabled=${c.pending.has('play-item')||c.pending.has('browse')} @click=${()=>this.itemPlay(item)}>${art?html`<img loading="lazy" src=${art} alt="" referrerpolicy="no-referrer">`:html`<span class="row-ph">${icon('album')}</span>`}<span class="row-text"><strong>${item.name}</strong><small>${this.itemSub(item)}</small></span><span class="row-play" aria-hidden="true">${icon('play')}</span></button>`;}
+  mosaicTile(item,hero){const c=this.controller,art=this.art(item),count=item.tracks?.total??item.total_tracks;return html`<button class=${`mos-item ${hero?'hero':''}`} title=${item.name} ?disabled=${c.pending.has('play-item')||c.pending.has('browse')} @click=${()=>this.itemPlay(item)}>${art?html`<img loading="lazy" src=${art} alt="" referrerpolicy="no-referrer">`:html`<span class="row-ph">${icon('album')}</span>`}<span class="mos-text"><strong>${item.name}</strong><small>${[this.itemSub(item),hero&&count?`${count} ${this.t.tracks.toLocaleLowerCase()}`:''].filter(Boolean).join(' · ')}</small></span></button>`;}
   overview(){const c=this.controller,t=this.t,sh=c.shelves||{};
     const recLabel=c.shelfSources?.recommended==='get_playlist_favorites'?t.yourPlaylists:t.recommended;
     const rows=[['categories',t.categories],['recent',t.recent],['recommended',recLabel]].filter(([k])=>sh[k]?.length);
