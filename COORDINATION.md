@@ -1238,3 +1238,8 @@ The Music browser suite passed again with that label and native transfer.
 ### Codex batch 2026-11-11 — HACS preview published for owner's HA test
 
 - Owner chose to test directly in her HA and authorized publishing the preview. Music `8376300` identifies the opt-in native preview as version `1.1.0b1` on master and documents HACS installation. The 32-test Music suite and smoke check passed. Dashboard master already distributes native-account support. Live Spotify consent and device checks are pending; no remote install or migration was performed.
+
+
+### Codex batch 2026-11-12 — single Spotify setup form
+
+- Music `1ba7383` publishes HACS preview `1.1.0b2`. Adding AUREON Música now opens the native Spotify form directly. Previously configured legacy accounts retain their settings and reauthentication paths. The 32-test suite passed on HA 2025.4.0 and 2026.10.4. No Dashboard UI or Floor Studio edits in this batch.
