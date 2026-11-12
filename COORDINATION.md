@@ -1253,3 +1253,12 @@ The Music browser suite passed again with that label and native transfer.
 ### Codex batch 2026-11-12 — Spotify speaker selection while idle
 
 - Music `c6c26cd` publishes `1.1.0b4`. With no playback session, choosing a discovered Spotify Connect speaker stores the destination for the next play request. Active playback still uses Spotify transfer. The 32-test suite passed on HA 2026.10.4, including the reproduced idle transfer 404 and direct playback to the selected device. Physical playback remains for owner verification. No Dashboard runtime edits.
+
+### Codex batch 2026-11-12 — AUREON theme and Spotify overview
+
+- Media and the mini player always inherit the AUREON theme. The Music appearance selector is removed.
+- Opening the full player loads recent tracks and personal playlists once per selected account. The mini player
+  does not load the library. Overview requests are read-only, and old account responses are discarded.
+- Music `ff3d956` publishes `1.1.0b5`. With an idle player, Play requests the latest track from Spotify history and
+  sends its URI to the selected speaker. Existing playback still resumes. Physical Spotify playback needs verification.
+- Music's 32 tests, the 23 Music browser checks and HACS distribution validation passed. Floor Studio code untouched.

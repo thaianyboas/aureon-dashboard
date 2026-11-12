@@ -20,14 +20,20 @@ try{
   const Player=customElements.get('aureon-music-player');const controller=Player.createController();window.controller=controller;
   const services=['media_play','media_pause','media_next_track','media_previous_track','media_seek','volume_set','shuffle_set','repeat_set','select_source','play_media'];
   const state={entity_id:'media_player.fixture',state:'playing',attributes:{friendly_name:'Test player',media_title:'Browser fixture track',media_artist:'Test artist',media_album_name:'Test album',entity_picture:'/cover.svg',supported_features:1|2|4|16|32|512|2048|16384|32768|262144,media_position:92,media_duration:227,volume_level:.45,shuffle:true,repeat:'all',sp_user_id:'fixture',media_content_id:'spotify:track:abc',source_list:['Test speaker']}};
-  const names=['get_browse_categorys_list','get_category_playlists','get_spotify_connect_devices','player_transfer_playback','get_playlist_favorites','get_album_favorites','get_track_favorites','search_tracks','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks'];
+  const names=['get_browse_categorys_list','get_category_playlists','get_spotify_connect_devices','player_transfer_playback','get_player_recent_tracks','get_playlist_favorites','get_album_favorites','get_track_favorites','search_tracks','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks'];
   window.hass={user:{id:'test-user'},connection:{},language:'en',themes:{darkMode:true},states:{[state.entity_id]:state},services:{media_player:Object.fromEntries(services.map(s=>[s,{}])),spotifyplus:Object.fromEntries(names.map(s=>[s,{}]))},callService:async(...args)=>{calls.push(args);if(failService)throw new Error('Fixture permission error');return {response:{result:args[1]==='check_track_favorites'?{abc:false}:args[1]==='get_spotify_connect_devices'?{Items:[{Id:'test-speaker',Name:'Test speaker'}]}:args[1]==='get_browse_categorys_list'?[{id:'focus',name:'Focus',icons:[{url:'/cover.svg'}]}]:{items:[{name:'Fixture playlist',uri:'spotify:playlist:fixture',images:[{url:'/cover.svg'}]}],total:args[2]?.offset?1:21,next:args[2]?.offset?null:'https://provider.invalid/next'}}};}};
   controller.setHass(hass);
   const full=document.createElement('aureon-music-player');full.id='full';full.controller=controller;
   const compact=document.createElement('aureon-music-player');compact.id='compact';compact.compact=true;compact.controller=controller;document.body.append(full,compact);
  });
  await page.waitForFunction(()=>document.querySelector('#full')?.shadowRoot?.querySelector('.title'));
- await page.waitForFunction(()=>calls.length>0,{timeout:5000});await new Promise(r=>setTimeout(r,300));{const auto=await page.evaluate(()=>calls.map(c=>[c[1],c[2]?.ids]));assert.deepEqual(auto,[['check_track_favorites','abc']]);await page.evaluate(()=>{calls.length=0;});checks.push('mount performs no service calls except one read-only liked-song lookup for the playing song');}
+ await page.waitForFunction(()=>controller.shelves.recent?.length&&controller.shelves.recommended?.length&&calls.some(c=>c[1]==='check_track_favorites'));
+ const auto=await page.evaluate(()=>calls.map(c=>c[1]).sort());
+ assert.deepEqual(auto,['check_track_favorites','get_browse_categorys_list','get_player_recent_tracks','get_playlist_favorites']);
+ assert.ok(await page.$('#full >>> .shell.custom'));assert.ok(await page.$('#compact >>> .shell.custom'));
+ await page.click('#full >>> [data-action="settings"]');assert.equal(await page.$('#full >>> .look-choice'),null);
+ await page.click('#full >>> [data-action="settings"]');
+ await page.evaluate(()=>{calls.length=0;});checks.push('full player loads recent tracks and playlists once; both players follow the AUREON theme');
  await page.click('#full >>> [data-action="pause"]');assert.equal(await page.evaluate(()=>calls.at(-1)[1]),'media_pause');checks.push('pause service payload');
  await page.evaluate(()=>{hass.states['media_player.fixture']={...hass.states['media_player.fixture'],state:'paused'};controller.setHass(hass);});
  await page.waitForFunction(()=>document.querySelector('#compact').shadowRoot.querySelector('[data-action="play"]'));checks.push('Full and Compact synchronize backend state');
@@ -63,7 +69,7 @@ try{
  await page.evaluate(()=>{window.dashboardShell=dashboard.shadowRoot.querySelector('.wrap');window.sharedMusic=dashboard._musicController;window.navigationCalls=calls.length;window.selectedEntity=sharedMusic.entityId;});
  await page.click('#dashboard >>> aureon-music-player >>> .open-full');
  await page.waitForFunction(()=>{const p=document.querySelector('#dashboard').shadowRoot.querySelector('aureon-music-player');return p && !p.compact && p.shadowRoot.querySelector('.now');});
- assert.ok(await page.evaluate(()=>dashboard.shadowRoot.querySelector('.wrap')===dashboardShell));assert.ok(await page.evaluate(()=>dashboard._musicController===sharedMusic));assert.equal(await page.evaluate(()=>calls.length),await page.evaluate(()=>navigationCalls));assert.equal(await page.evaluate(()=>sharedMusic.entityId),await page.evaluate(()=>selectedEntity));checks.push('internal navigation preserves shell, controller and selected entity without playback calls');
+ assert.ok(await page.evaluate(()=>dashboard.shadowRoot.querySelector('.wrap')===dashboardShell));assert.ok(await page.evaluate(()=>dashboard._musicController===sharedMusic));assert.ok(await page.evaluate(()=>calls.slice(navigationCalls).every(c=>c[5]===true)));assert.equal(await page.evaluate(()=>sharedMusic.entityId),await page.evaluate(()=>selectedEntity));checks.push('internal navigation preserves shell, controller and selected entity without playback calls');
  assert.equal(await page.evaluate(()=>document.querySelector('#dashboard')._page),'Medien');checks.push('Startseite Compact opens Medien Full inside actual dashboard candidate');
  await page.click('#dashboard >>> aureon-music-player >>> [data-action="play"]');assert.equal(await page.evaluate(()=>calls.at(-1)[1]),'media_play');checks.push('integrated dashboard controls reach HA service adapter');
  await page.evaluate(()=>{

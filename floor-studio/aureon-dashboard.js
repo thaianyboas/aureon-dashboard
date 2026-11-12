@@ -311,9 +311,6 @@
       this._musicController.setHass(this._hass);
       const player = make('aureon-music-player');
       player.compact = compact;
-      const musicLook=this._platformController?.preferences?.music?.appearance || 'auto',shellLook=this._platformController?.preferences?.appearance||'auto';
-      // Inside AUREON an automatic player follows the dashboard palette, not only HA's dark/light flag.
-      player.appearance=musicLook==='auto'&&shellLook!=='auto'?'custom':musicLook;
       player.addEventListener('aureon-music-preferences',e=>{if(this._platformController)this._platformController.patch('music',e.detail);});
       player.controller = this._musicController;
       player.style.marginTop = compact||this._page==='Medien'?'0':'24px';if(compact&&target.tagName==='AUREON-PLATFORM')player.slot='mini-player';

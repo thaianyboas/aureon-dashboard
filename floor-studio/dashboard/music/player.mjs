@@ -7,10 +7,10 @@ const icon=name=>svg`<svg viewBox="0 0 24 24" aria-hidden="true"><path d=${paths
 const BROWSE={categories:'get_browse_categorys_list',recent:'get_player_recent_tracks',recommended:'get_featured_playlists',playlists:'get_playlist_favorites',favorites:'get_track_favorites',albums:'get_album_favorites'};
 const time=value=>{const v=Math.max(0,Math.floor(value || 0)),h=Math.floor(v/3600),m=Math.floor(v%3600/60),s=String(v%60).padStart(2,'0');return h?`${h}:${String(m).padStart(2,'0')}:${s}`:`${m}:${s}`;};
 export class AureonMusicPlayer extends LitElement {
-  static properties={compact:{type:Boolean,reflect:true},appearance:{type:String}};
+  static properties={compact:{type:Boolean,reflect:true}};
   static styles=unsafeCSS(styles);
   static createController(){return new MusicController();}
-  constructor(){super();this.compact=false;this.appearance='auto';this._controller=null;this._unsubscribe=null;this._timer=null;this._search='';this._searchKind='search';this._spotcastTarget='';this._moreOutputs=false;}
+  constructor(){super();this.compact=false;this._controller=null;this._unsubscribe=null;this._timer=null;this._search='';this._searchKind='search';this._spotcastTarget='';this._moreOutputs=false;}
   set controller(value){
     if(value===this._controller)return;
     this._unsubscribe?.();this._controller=value;this._spotcastTarget=value?.config?.spotcastTargets?.[0]||'';
@@ -20,8 +20,9 @@ export class AureonMusicPlayer extends LitElement {
   set hass(value){if(!this._controller)this.controller=new MusicController();this._controller.setHass(value);}
   connectedCallback(){super.connectedCallback();if(this._controller&&!this._unsubscribe)this._unsubscribe=this._controller.subscribe(()=>this.requestUpdate());this._timer=setInterval(()=>{if(!document.hidden&&this._controller?.state?.state==='playing')this.requestUpdate();},1000);}
   disconnectedCallback(){super.disconnectedCallback();this._unsubscribe?.();this._unsubscribe=null;clearInterval(this._timer);this._timer=null;}
+  updated(){if(!this.compact&&this.controller?.view==='player')this.controller.ensureShelves();}
   get t(){return labels(this._controller?.config?.language?{language:this._controller.config.language}:this._controller?.hass);}
-  commitPreferences(){const c=this.controller;this._saved=Date.now();clearTimeout(this._savedTimer);this._savedTimer=setTimeout(()=>this.requestUpdate(),2600);this.requestUpdate();this.dispatchEvent(new CustomEvent('aureon-music-preferences',{detail:{entity:c.entityId,appearance:this.appearance,providers:c.config.providers||{},spotcastTargets:c.config.spotcastTargets||[],hiddenSpeakers:c.config.hiddenSpeakers||[]},bubbles:true,composed:true}));}
+  commitPreferences(){const c=this.controller;this._saved=Date.now();clearTimeout(this._savedTimer);this._savedTimer=setTimeout(()=>this.requestUpdate(),2600);this.requestUpdate();this.dispatchEvent(new CustomEvent('aureon-music-preferences',{detail:{entity:c.entityId,providers:c.config.providers||{},spotcastTargets:c.config.spotcastTargets||[],hiddenSpeakers:c.config.hiddenSpeakers||[]},bubbles:true,composed:true}));}
   selectPlayer(id){this.controller.select(id);this.commitPreferences();}
   navigate(view){if(!this._controller)return;this._controller.view=view;this.requestUpdate();}
   control(name,handler,{disabled=false,active=false,primary=false,extra=false}={}){
@@ -78,7 +79,6 @@ export class AureonMusicPlayer extends LitElement {
      :html`<p class="hint">${t.spotifyNone}</p>`}
     </div>
     ${this.speakersBlock()}
-    <div class="set-block"><span class="set-title">${t.appearance}</span><div class="look-choice" role="group" aria-label=${t.appearance}>${['auto','dark','custom'].map(mode=>html`<button type="button" aria-pressed=${String(mode===this.appearance||(mode==='auto'&&this.appearance==='light'))} @click=${()=>{this.appearance=mode;this.commitPreferences();}}>${t[mode]}</button>`)}</div></div>
     ${!c.nativeSpotify&&c.service(spotcastDomain(c.hass),'play_media')&&casts.length?html`<details class="set-block advanced"><summary>${t.advanced}</summary><label>${t.spotcast}<select aria-label=${t.spotcast} @change=${e=>{this._spotcastTarget=e.target.value;c.configure({...c.config,spotcastTargets:this._spotcastTarget?[this._spotcastTarget]:[]});this.commitPreferences();this.requestUpdate();}}><option value="" ?selected=${!this._spotcastTarget}>${t.disabled}</option>${casts.map(p=>html`<option value=${p.entity_id} ?selected=${p.entity_id===this._spotcastTarget}>${p.attributes.friendly_name || p.entity_id}</option>`)}</select></label></details>`:nothing}
     <div class="set-foot">${this._saved&&Date.now()-this._saved<2500?html`<p class="saved" role="status">✓ ${t.saved}</p>`:html`<span></span>`}<button class="chip" @click=${()=>this.navigate('player')}>${t.close}</button></div></section>`;}
   devices(){return this.settings();}
@@ -128,9 +128,9 @@ export class AureonMusicPlayer extends LitElement {
   overview(){const c=this.controller,t=this.t,sh=c.shelves||{};
     const recLabel=c.shelfSources?.recommended==='get_playlist_favorites'?t.yourPlaylists:t.recommended;
     const rows=[['categories',t.categories],['recent',t.recent],['recommended',recLabel]].filter(([k])=>sh[k]?.length);
-    const any=['get_browse_categorys_list','get_player_recent_tracks','get_featured_playlists','get_playlist_favorites'].some(n=>c.advanced(n));
-    if(!rows.length)return html`<section class="shelves empty-shelves" data-empty=${any?'load':'unsupported'}><div><h2>${c.spotify?t.overview:t.nativeLibrary}</h2><p class="hint">${any?t.libraryHint:t.needsSpotify}</p></div>
-      <div class="empty-actions">${any?html`<button class="chip primary-chip" data-action="load-library" ?disabled=${c.pending.has('shelves')} @click=${()=>c.loadShelves()}>${c.pending.has('shelves')?t.loading:t.loadLibrary}</button>`:nothing}${c.canBrowse?html`<button class="chip" data-action="native-library" @click=${()=>c.nativeBrowse('library')}>${icon('folder')}${t.browse}</button>`:nothing}</div></section>`;
+    const any=c.canLoadShelves,loading=any&&(!c.shelvesRequested||c.pending.has('shelves'));
+    if(!rows.length)return html`<section class="shelves empty-shelves" data-empty=${any?'load':'unsupported'}><div><h2>${c.spotify?t.overview:t.nativeLibrary}</h2><p class="hint">${loading?t.loading:any?t.noResults:t.needsSpotify}</p></div>
+      <div class="empty-actions">${any&&!loading&&c.error?html`<button class="chip" data-action="retry-library" @click=${()=>c.loadShelves()}>${t.retry}</button>`:nothing}${c.canBrowse?html`<button class="chip" data-action="native-library" @click=${()=>c.nativeBrowse('library')}>${icon('folder')}${t.browse}</button>`:nothing}</div></section>`;
     return html`<section class="shelves">${rows.map(([k,label])=>this.shelfRow(k,label,sh[k]))}</section>`;}
   nativeView(){const c=this.controller,t=this.t,n=c.native,loading=c.pending.has('browse'),title=n.kind==='radio'?t.radio:n.kind==='search'?`${t.search}: ${n.title}`:(n.title||t.nativeLibrary);
     return html`<section class="pane native"><div class="pane-head">${n.stack.length>1||(n.stack.length&&n.kind!=='radio')?html`<button class="circle back" aria-label=${t.back} @click=${()=>c.nativeBack()}>${icon('back')}</button>`:nothing}<h2>${title}</h2></div>
@@ -157,12 +157,11 @@ export class AureonMusicPlayer extends LitElement {
     const active=view==='player'?'player':view==='native'?(n.kind==='radio'?'radio':n.kind==='library'?'library':''):view==='library'?({favorites:'favorites',playlists:'library',podcasts:'podcasts'}[c.libraryKind]||''):'';
     return html`<nav class="sources" aria-label=${t.sourceHint}>${tabs.map(tab=>html`<button type="button" data-tab=${tab.key} class=${active===tab.key?'active':''} aria-current=${active===tab.key?'page':nothing} title=${tab.enabled?tab.label:`${tab.label} — ${tab.hint}`} ?disabled=${!tab.enabled||c.pending.has('browse')} @click=${tab.go}>${icon(tab.ic)}<span>${tab.label}</span></button>`)}</nav>`;}
   render(){const c=this.controller,t=this.t;this.hidden=!!(this.compact&&!relevantMedia(c?.state));if(this.hidden)return nothing;if(!c)return html`<p>${t.loading}</p>`;const art=artworkUrl(c.state?.attributes?.entity_picture_local || c.state?.attributes?.entity_picture || c.state?.attributes?.sp_nowplaying_image_url,c.hass);
-    const mode=this.appearance==='auto'?(c.hass?.themes?.darkMode===false?'light':'dark'):this.appearance;
     const notices=html`${c.error?html`<p class="notice error" role="alert">${t.error}: ${c.error}</p>`:nothing}${c.pending.size?html`<p class="notice busy" role="status">${t.loading}</p>`:nothing}${!c.players.length?html`<p class="notice">${t.configure}</p>`:nothing}`;
-    if(this.compact)return html`<div class=${`shell compact ${mode}`}><div class="ambient" style=${art?`background-image:url(${JSON.stringify(art)})`:''}></div><div class="wash"></div><div class="body">${this.player()}</div>${notices}</div>`;
+    if(this.compact)return html`<div class=${`shell compact custom`}><div class="ambient" style=${art?`background-image:url(${JSON.stringify(art)})`:''}></div><div class="wash"></div><div class="body">${this.player()}</div>${notices}</div>`;
     const view=c.view,canSearch=c.advanced('search_tracks')||(c.ready&&(Number(c.state?.attributes?.supported_features)&4194304));
     const library=(c.shelves&&Object.keys(c.shelves).length)||view!=='player';
-    return html`<div class=${`shell full ${mode} ${library?'has-library':'no-library'}`}><div class="ambient" style=${art?`background-image:url(${JSON.stringify(art)})`:''}></div><div class="wash"></div>
+    return html`<div class=${`shell full custom ${library?'has-library':'no-library'}`}><div class="ambient" style=${art?`background-image:url(${JSON.stringify(art)})`:''}></div><div class="wash"></div>
       <header class="top"><form class="search" role="search" @submit=${e=>{e.preventDefault();if(c.advanced('search_tracks'))c.browse(this._searchKind,this._search);else c.nativeSearch(this._search);}}><button type="submit" aria-label=${t.search} title=${canSearch?t.search:t.unsupported} ?disabled=${!canSearch||c.pending.has('browse')}>${icon('search')}</button><input type="search" maxlength="200" aria-label=${t.searchHint} placeholder=${c.spotify?t.searchHint:t.searchNative} ?disabled=${!canSearch} .value=${this._search} @input=${e=>{this._search=e.target.value;}}></form>
         ${this.sourceTabs()}
         <button type="button" class="circle settings-btn" data-action="settings" aria-label=${t.settings} title=${t.settings} @click=${()=>this.navigate(view==='settings'?'player':'settings')}>${icon('gear')}</button></header>

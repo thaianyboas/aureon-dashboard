@@ -62,7 +62,7 @@ const ADVANCED = new Set(['get_player_recent_tracks','get_featured_playlists','g
 const NATIVE_READ = new Set(['get_show_favorites','get_player_recent_tracks','get_playlist_favorites','get_album_favorites','get_track_favorites','search_tracks','search_albums','search_playlists','check_track_favorites','get_spotify_connect_devices']);
 const NATIVE_WRITE = new Set(['playlist_items_add','save_track_favorites','remove_track_favorites','player_transfer_playback','player_media_play_tracks','player_media_play_context']);
 export class MusicController {
-  constructor(){ this.listeners=new Set(); this.config={}; this.entityId='';this.hass=null;this.epoch=0;this.pending=new Set();this.error='';this.results=[];this.devices=[];this.favorite=null;this.view='player';this.libraryKind='playlists';this.query='';this._scope=null;this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};this.shelfSources={};this.native={kind:'',stack:[],items:[],title:''};this.ownPlaylists=null;this.addedTo=''; }
+  constructor(){ this.listeners=new Set(); this.config={}; this.entityId='';this.hass=null;this.epoch=0;this.pending=new Set();this.error='';this.results=[];this.devices=[];this.favorite=null;this.view='player';this.libraryKind='playlists';this.query='';this._scope=null;this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};this.shelfSources={};this.shelvesRequested=false;this.native={kind:'',stack:[],items:[],title:''};this.ownPlaylists=null;this.addedTo=''; }
   subscribe(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
   emit(){for(const fn of this.listeners)fn();}
   configure(config={}) {this.config={...config}; if(this.hass)this.setHass(this.hass);}
@@ -97,7 +97,7 @@ export class MusicController {
   _blockedKey(){return 'aureon.music.blocked:'+this.entityId;}
   blocked(name){if(!this._blocked||this._blockedFor!==this.entityId){this._blockedFor=this.entityId;try{this._blocked=new Set(JSON.parse(globalThis.localStorage?.getItem(this._blockedKey())||'[]'));}catch{this._blocked=new Set();}}return this._blocked.has(name);}
   _markBlocked(name,error){if(!/forbidden|\b403\b/i.test(String(error?.message||error||'')))return false;this.blocked(name);this._blocked.add(name);try{globalThis.localStorage?.setItem(this._blockedKey(),JSON.stringify([...this._blocked]));}catch{}return true;}
-  invalidate(){this.epoch++;this.error='';this.results=[];this.devices=[];this.favorite=null;this.pending.clear();this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};this.shelfSources={};this.native={kind:'',stack:[],items:[],title:''};this.ownPlaylists=null;this.addedTo='';}
+  invalidate(){this.epoch++;this.error='';this.results=[];this.devices=[];this.favorite=null;this.pending.clear();this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};this.shelfSources={};this.shelvesRequested=false;this.native={kind:'',stack:[],items:[],title:''};this.ownPlaylists=null;this.addedTo='';}
   reset(){this.entityId='';this.view='player';this.query='';this.invalidate();}
   select(id){if(!this.players.some(p=>p.entity_id===id))return false;this.entityId=id;this.invalidate();this.emit();return true;}
   async request(key,fn){
@@ -155,10 +155,13 @@ export class MusicController {
     return this.browse(this.libraryKind,this.query,this.pageIndex+delta,this.categoryId);
   }
   async openCategory(item){if(!item?.category || !(this.results.some(x=>x.category&&x.id===item.id)||this.shelves.categories?.some(x=>x.id===item.id)))return false;return this.browse('category','',0,item.id);}
-  // Overview shelves: read-only library listings, only after an explicit user request.
+  get canLoadShelves(){return ['get_browse_categorys_list','get_player_recent_tracks','get_playlist_favorites','get_featured_playlists'].some(name=>this.advanced(name));}
+  ensureShelves(){if(!this.shelvesRequested&&this.canLoadShelves)return this.loadShelves();}
+  // Load the overview once per selected account; allow a manual retry on failure.
   async loadShelves(){
-    const plan=[['categories',['get_browse_categorys_list']],['recent',['get_player_recent_tracks']],['recommended',['get_featured_playlists','get_playlist_favorites']]].map(([kind,names])=>[kind,names.filter(n=>this.advanced(n))]).filter(([,names])=>names.length);
+    const plan=[['categories',['get_browse_categorys_list']],['recent',['get_player_recent_tracks']],['recommended',['get_playlist_favorites','get_featured_playlists']]].map(([kind,names])=>[kind,names.filter(n=>this.advanced(n))]).filter(([,names])=>names.length);
     if(!plan.length)return false;
+    this.shelvesRequested=true;
     return this.request('shelves',async current=>{const out={},sources={},errors=[];
       for(const [kind,names] of plan){for(const name of names){try{
         const args=name==='get_browse_categorys_list'?{refresh:false}:name==='get_player_recent_tracks'?{limit:24}:{limit:16,offset:0,...(name==='get_playlist_favorites'?{sort_result:false}:{})};

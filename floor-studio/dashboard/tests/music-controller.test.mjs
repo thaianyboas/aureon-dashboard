@@ -119,7 +119,7 @@ test('the heart shows the liked status of a new song with one read-only lookup',
 test('Spotify "Forbidden" features are remembered and not asked again; no Home Assistant error toast',async()=>{
  const calls=[],id='media_player.acc2',mem=new Map();globalThis.localStorage={getItem:k=>mem.get(k)??null,setItem:(k,v)=>mem.set(k,v)};
  const hass={user:{id:'u'},connection:{},entities:{[id]:{platform:'aureon_music'}},states:{[id]:{entity_id:id,state:'idle',attributes:{sp_user_id:'me'}}},services:{aureon_music:{get_browse_categorys_list:{},get_featured_playlists:{},get_playlist_favorites:{},get_player_recent_tracks:{}}},
-  callService:async(...a)=>{calls.push(a);if(['get_browse_categorys_list','get_featured_playlists'].includes(a[1]))throw new Error('Validation error: Forbidden');return {response:{result:{items:[{name:'P',uri:'spotify:playlist:abc'}]}}};}};
+  callService:async(...a)=>{calls.push(a);if(['get_browse_categorys_list','get_featured_playlists'].includes(a[1]))throw new Error('Validation error: Forbidden');return {response:{result:{items:a[1]==='get_playlist_favorites'?[]:[{name:'P',uri:'spotify:playlist:abc'}]}}};}};
  const c=new MusicController();c.setHass(hass);
  await c.loadShelves();
  assert.ok(calls.every(x=>x[4]===false),'notifyOnError must be false');
