@@ -1325,3 +1325,17 @@ The Music browser suite passed again with that label and native transfer.
   and is not the Floor Studio link; scroll is restored once when the content is tall enough (up to 40 frames).
   Internal sub-state of platform pages (an open room sheet, settings tab) is not restored.
 - New `scripts/test-page-memory-browser.mjs` (part of `npm run test:browser`). All dashboard gates pass; no HA test.
+
+### Claude batch 2026-11-13 — Standard speaker and steadier play/pause (local until the owner approves)
+
+- Owner: "um botao que eu clique e selecione o meu speaker standard" and "os botoes play e pausa nao responde
+  instantaneamente". Music `41d1be0` (1.1.0b13): `default_speaker` in the native config entry options (no reload
+  listener), new `native_write` action `set_default_speaker` (name must be listed by Spotify; "" clears), attribute
+  `aureon_default_speaker`. `async_target_device`: chosen speaker, else the standard speaker unless music is playing
+  right now (a sleeping Amazon speaker missing from Spotify's list is woken by Alexa), else the active one. A paused
+  session elsewhere moves to the standard speaker. Optimistic `_set` values are held for 8 s (`_held`) so stale
+  Spotify refreshes after a press cannot flip the button back; failures clear the hold. 38 tests.
+- Dashboard: speaker cards in Settings → Alto-falantes get a "Tornar padrão" / "Padrão" pill (native accounts only);
+  the destination chip falls back to the standard speaker. A play/pause press while the previous one is on its way
+  now changes the button and is sent afterwards (last wish wins) instead of being ignored. No HA test with the
+  owner's speakers.

@@ -60,9 +60,9 @@ export function categoryItems(response){const result=resultOf(response),list=Arr
 // Native Home Assistant media browser (media_player/browse_media, media_player/search_media).
 export function nativeChildren(result){const list=Array.isArray(result)?result:Array.isArray(result?.children)?result.children:Array.isArray(result?.result)?result.result:[];return list.filter(x=>x&&typeof x.title==='string'&&typeof x.media_content_id==='string'&&typeof x.media_content_type==='string').slice(0,200).map(x=>({title:x.title.slice(0,300),thumbnail:typeof x.thumbnail==='string'?x.thumbnail:'',media_content_id:x.media_content_id,media_content_type:x.media_content_type,media_class:String(x.media_class||''),can_play:!!x.can_play,can_expand:!!x.can_expand,native:true}));}
 function pageContainer(response){const r=resultOf(response);return r.tracks || r.albums || r.playlists || r;}
-const ADVANCED = new Set(['get_player_recent_tracks','get_featured_playlists','get_show_favorites','playlist_items_add','get_browse_categorys_list','get_category_playlists','get_spotify_connect_devices','player_transfer_playback','search_tracks','search_albums','search_playlists','get_playlist_favorites','get_album_favorites','get_track_favorites','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks']);
+const ADVANCED = new Set(['get_player_recent_tracks','get_featured_playlists','get_show_favorites','playlist_items_add','get_browse_categorys_list','get_category_playlists','get_spotify_connect_devices','player_transfer_playback','search_tracks','search_albums','search_playlists','get_playlist_favorites','get_album_favorites','get_track_favorites','check_track_favorites','save_track_favorites','remove_track_favorites','player_media_play_context','player_media_play_tracks','set_default_speaker']);
 const NATIVE_READ = new Set(['get_show_favorites','get_player_recent_tracks','get_playlist_favorites','get_album_favorites','get_track_favorites','search_tracks','search_albums','search_playlists','check_track_favorites','get_spotify_connect_devices']);
-const NATIVE_WRITE = new Set(['playlist_items_add','save_track_favorites','remove_track_favorites','player_transfer_playback','player_media_play_tracks','player_media_play_context']);
+const NATIVE_WRITE = new Set(['playlist_items_add','save_track_favorites','remove_track_favorites','player_transfer_playback','player_media_play_tracks','player_media_play_context','set_default_speaker']);
 export class MusicController {
   constructor(){ this.listeners=new Set(); this.config={}; this.entityId='';this.hass=null;this.epoch=0;this.pending=new Set();this.error='';this.results=[];this.devices=[];this.favorite=null;this.view='player';this.libraryKind='playlists';this.query='';this._scope=null;this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};this.shelfSources={};this.shelvesRequested=false;this.native={kind:'',stack:[],items:[],title:''};this.ownPlaylists=null;this.addedTo=''; }
   subscribe(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
@@ -139,9 +139,10 @@ export class MusicController {
     // Owner 2026-11-13 ("fica carregando por um bom tempo"): play and pause change the button at once and run
     // without the busy spinner; Amazon speakers can keep Spotify's answer waiting for seconds.
     const toggle=action==='play'||action==='pause';
-    if(toggle&&this.pending.has('playpause'))return false;
-    if(toggle){this.optimistic={playing:action==='play',entity,until:Date.now()+10000};this.emit();}
-    return this.request(toggle?'playpause':'transport',async()=>{
+    // Owner 2026-11-13 ("ainda nao responde instantaneamente"): a press while the previous one is still on its way
+    // changes the button at once too; the last wish is sent as soon as the speaker has answered the first.
+    if(toggle){this.optimistic={playing:action==='play',entity,until:Date.now()+10000};this.emit();if(this.pending.has('playpause')){this._nextToggle=action;return true;}this._nextToggle=null;}
+    const result=await this.request(toggle?'playpause':'transport',async()=>{
       try{await this.hass.callService('media_player',spec[1],{entity_id:entity,...spec[2]});}
       catch(error){
         // Owner 2026-11-12: "eu aperto play ou pausa e sempre dá esse erro" – Spotify answers 404 when no speaker is
@@ -151,6 +152,16 @@ export class MusicController {
         if(action!=='play'||!(await this.resumeOnSpeaker(entity)))throw error;
       }
       return true;});
+    const next=toggle?this._nextToggle:null;this._nextToggle=null;
+    if(next&&next!==action&&result!==false&&this.entityId===entity)return this.command(next);
+    return result;
+  }
+  /** The standard speaker of a native AUREON Música account (owner 2026-11-13): Play goes there when nothing plays. */
+  get defaultSpeaker(){const name=this.state?.attributes?.aureon_default_speaker;return typeof name==='string'?name:'';}
+  get canSetDefaultSpeaker(){return this.nativeSpotify&&this.advanced('set_default_speaker');}
+  async setDefaultSpeaker(name){
+    if(!this.canSetDefaultSpeaker||typeof name!=='string'||(name&&!this.devices.some(d=>d.name===name)&&name!==this.defaultSpeaker))return false;
+    return this.request('default-speaker',async()=>{await this.callSpotify('set_default_speaker',{name});return true;});
   }
   /** Resumes Spotify on the speaker shown on the player card (its source), or the last one used, when none is active. */
   async resumeOnSpeaker(entity){
