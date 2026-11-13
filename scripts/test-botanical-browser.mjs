@@ -84,7 +84,7 @@ try{const executablePath=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr
      roomsInNav:!!shell.querySelector('nav [data-route="Räume"]'),devices:!!shell.querySelector('nav [data-route="Geräte"]'),
      room:!!root.querySelector('.cine-room'),agenda:!!root.querySelector('.home-agenda'),self:!!root.querySelector('[data-person="person.alex"]')};
    });
-   assert.deepEqual(layout,{overflow:false,roomsInNav:false,devices:true,room:true,agenda:true,self:false},JSON.stringify({width,withPlan,layout}));
+   assert.deepEqual(layout,{overflow:false,roomsInNav:false,devices:true,room:true,agenda:true,self:true},JSON.stringify({width,withPlan,layout}));
    await page.screenshot({path:out+'/'+(withPlan?'with-plan':'without-plan')+'-'+width+'.png'});
   }
  }
