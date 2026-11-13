@@ -83,3 +83,7 @@ Object.assign(pt,{"setAureonMusicHint": "Conta do Spotify e caixas Cast / Alexa 
 Object.assign(en,{homeShowPlan:'Show 3D floor plan',homePlanSelection:'Floor plan shown on Home',homeMainPlan:'Main plan',homeRoomName:'Room name in AUREON',homeNextClean:'Next cleaning'});
 Object.assign(de,{homeShowPlan:'3D-Grundriss anzeigen',homePlanSelection:'Grundriss auf der Startseite',homeMainPlan:'Hauptgrundriss',homeRoomName:'Raumname in AUREON',homeNextClean:'Nächste Reinigung'});
 Object.assign(pt,{setStartLook:'Página Início',homeShowPlan:'Exibir planta 3D',homePlanSelection:'Planta exibida no Início',homeMainPlan:'Planta principal',homeRoomName:'Nome do cômodo no AUREON',homeNextClean:'Próxima limpeza'});
+
+en.homeWeatherSetup='Add a weather integration in Home Assistant to show the forecast.';
+de.homeWeatherSetup='Für die Vorhersage eine Wetterintegration in Home Assistant hinzufügen.';
+pt.homeWeatherSetup='Adicione uma integração de clima no Home Assistant para exibir a previsão.';

@@ -4,7 +4,7 @@ import {build} from '../floor-studio/neonplan3d-main/frontend/node_modules/esbui
 import {setupPlatformFixture} from './platform-fixture.mjs';
 const root=resolve('.'),out=resolve('build/botanical-browser');mkdirSync(out,{recursive:true});
 await build({stdin:{contents:`import {emptyBuilding,newFloor} from './floor-studio/neonplan3d-main/frontend/src/model.ts';window.nativeFixtureBuilding=()=>{const b=emptyBuilding(),f=newFloor('floor','Synthetic apartment',0);f.rooms=[{id:'native-room',name:'Living room',area_id:null,points:[[0,0],[5,0],[5,5],[0,5]],floor_material:'wood'},{id:'bedroom',name:'Bedroom',points:[[5,0],[9,0],[9,3],[5,3]],floor_material:'wood'},{id:'kitchen',name:'Kitchen',points:[[5,3],[9,3],[9,5],[5,5]],floor_material:'tiles'}];const item=(id,type,x,z,w,d,h,rotation=0)=>({id,type,x,z,w,d,h,rotation,variant:null});f.furniture=[{...item('native-lamp','lamp_floor',.6,.7,.4,.4,1.7),name:'Lamp model',entity:null},item('sofa','sofa',1.7,1.1,2.4,.9,.8),item('table','table',2,2.8,1.6,.8,.75),item('bed','bed',7,1.4,1.8,2,.7),item('plant','plant',.6,4.3,.6,.6,1.2)];f.openings=[{id:'window',room_id:'native-room',edge:0,offset:2.5,width:1.8,type:'window',sill:.8,height:1.3,hinge:'left',leaves:2,swing:'in',contact2:null,contact:null,cover:null,tilt:null}];b.floors=[f];return b;};`,resolveDir:root},bundle:true,outfile:out+'/model.js'});
-const server=createServer((req,res)=>{const pathname=new URL(req.url,'http://local').pathname;if(pathname==='/'){res.writeHead(200,{'content-type':'text/html'}).end('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{background:#101c18;margin:12px}body>footer{color:#b3c4b9;font:12px system-ui;padding:20px}</style><script src="/build/botanical-browser/model.js"></script><script type="module" src="/floor-studio/neonplan3d-main/custom_components/aureon_floor/frontend/neonplan3d.js"></script><script src="/build/dashboard/aureon-dashboard.js"></script><footer>Isolated synthetic fixture — not a Home Assistant installation</footer>');return;}const file=resolve(root,'.'+pathname);if(!file.startsWith(root+sep)||!existsSync(file)){res.writeHead(404).end();return;}res.writeHead(200,{'content-type':file.endsWith('.webp')?'image/webp':file.endsWith('.svg')?'image/svg+xml':file.endsWith('.woff2')?'font/woff2':file.endsWith('.json')?'application/json':'text/javascript; charset=utf-8'}).end(readFileSync(file));});
+const server=createServer((req,res)=>{const pathname=new URL(req.url,'http://local').pathname;if(pathname==='/'){res.writeHead(200,{'content-type':'text/html'}).end('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{background:#101c18;margin:0}body>footer{display:none}</style><script src="/build/botanical-browser/model.js"></script><script type="module" src="/floor-studio/neonplan3d-main/custom_components/aureon_floor/frontend/neonplan3d.js"></script><script src="/build/dashboard/aureon-dashboard.js"></script><footer>Isolated synthetic fixture — not a Home Assistant installation</footer>');return;}const file=resolve(root,'.'+pathname);if(!file.startsWith(root+sep)||!existsSync(file)){res.writeHead(404).end();return;}res.writeHead(200,{'content-type':file.endsWith('.webp')?'image/webp':file.endsWith('.svg')?'image/svg+xml':file.endsWith('.woff2')?'font/woff2':file.endsWith('.json')?'application/json':'text/javascript; charset=utf-8'}).end(readFileSync(file));});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
 try{const executablePath=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr/bin/chromium','/tmp/chromium'].find(existsSync);if(!executablePath)throw Error('Set CHROME_BIN');browser=await puppeteer.launch({executablePath,headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--use-angle=swiftshader','--enable-unsafe-swiftshader']});const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.setViewport({width:1440,height:1100,hasTouch:true});await page.goto(`http://127.0.0.1:${server.address().port}`,{waitUntil:'networkidle0'});await page.evaluate(setupPlatformFixture);await page.waitForFunction(()=>dashboard._platformController?.rows.length>10);
 
@@ -56,16 +56,17 @@ try{const executablePath=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr
   c.patch('waste',['calendar.collection']);
   dashboard._theme={...dashboard._theme,mode:'custom',palette:'forest-botanical'};
   dashboard.hass={...h};dashboard._render();dashboard._loadRegistry(true);
-  window.homeRoot=()=>dashboard.shadowRoot.querySelector('aureon-platform')?.shadowRoot;
+  window.homeRoot=()=>dashboard.shadowRoot.querySelector('aureon-platform:not([style*="display: none"])')?.shadowRoot;
  });
  await page.waitForFunction(()=>homeRoot()?.querySelectorAll('.cine-room').length===6&&homeRoot().querySelector('.home-agenda').textContent.includes('Compromisso'));
  const path='#platform-dashboard >>> aureon-platform';
- await page.locator(path+' >>> .cine-room').click();
+ await page.waitForFunction(()=>homeRoot()?.querySelector('slot[name=mini-player]')?.assignedElements()[0]?.shadowRoot?.querySelector('.stage'));
+ await page.evaluate(()=>homeRoot().querySelector('.cine-room').click());
  await page.waitForFunction(()=>homeRoot()?.querySelector('[data-platform-page="rooms"]'));
  await page.evaluate(()=>dashboard._navigate('Einstellungen'));
- await page.click(path+' >>> [data-settings-tab="start"]');
+ await page.evaluate(()=>homeRoot().querySelector('[data-settings-tab="start"]').click());
  await page.waitForSelector(path+' >>> .set-choices');
- await page.click(path+' >>> .set-choices button:nth-child(2)');
+ await page.evaluate(()=>homeRoot().querySelector('.set-choices button:nth-child(2)').click());
  await page.select(path+' >>> .set-panel select','test-plan');
  await page.evaluate(()=>dashboard._navigate('Início'));
  for(const withPlan of [false,true]){
@@ -77,6 +78,8 @@ try{const executablePath=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr
    await new Promise(r=>setTimeout(r,600));
    const layout=await read(()=>{const root=homeRoot(),shell=dashboard.shadowRoot;
     const main=shell.querySelector('main'),content=root.querySelector('.aureon-home');
+    if(!getComputedStyle(shell.querySelector('.wrap'),':before').backgroundImage.includes('botanical-canopy.webp'))throw Error('Missing Botanical artwork');
+    if(!root.querySelector('.home-robot')||!root.querySelector('[data-person]'))throw Error('Missing footer cards');
     return {overflow:main.scrollWidth>main.clientWidth+1||content.scrollWidth>content.clientWidth+1,
      roomsInNav:!!shell.querySelector('nav [data-route="Räume"]'),devices:!!shell.querySelector('nav [data-route="Geräte"]'),
      room:!!root.querySelector('.cine-room'),agenda:!!root.querySelector('.home-agenda'),self:!!root.querySelector('[data-person="person.alex"]')};

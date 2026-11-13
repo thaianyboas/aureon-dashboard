@@ -1363,3 +1363,10 @@ The Music browser suite passed again with that label and native transfer.
 - Local build, 856 JS/TS tests, fidelity audit, browser suites and HACS source/distribution checks passed. Botanical browser exercise uses the compiled renderer and synthetic HA data at 1440, 1280, 820 and 390 px. Browser reload restores selection. Real HA restart, HACS upgrade of this candidate, and physical iSG acceptance remain pending. Do not promote dist until the pending release checks are resolved.
 
 - Owner approved publishing the candidate for testing in her own HA. Dashboard preview `0.29.0-test.4` packages the two layouts in dist. The physical iSG and actual installation remain owner validation. Integration pin unchanged.
+
+### Codex batch 2026-11-13 — Botanical fidelity follow-up
+
+- Baseline Dashboard `2e196a1`. Refined the two Botanical layouts using the reference proportions, added a compact WebP foliage background, added room icons, and kept the Home mini-player mounted at idle. The saved plan still renders through Floor Studio.
+- Build and 856 JS/TS tests passed. The music browser suite passed 23 checks. Visual acceptance uses a synthetic Home Assistant fixture and the compiled app. The reference artwork is composited, so the foliage is reconstructed as a standalone asset and the plan appearance depends on the loaded project. Keep the existing HACS distribution until the final comparison is reviewed.
+
+- Owner approved publication of the revision as preview `0.29.0-test.5`. The Botanical browser suite completed for both layouts at 1440, 1280, 820 and 390 px. Physical iSG and owner HA remain unverified. Previous package available at `2e196a1`.

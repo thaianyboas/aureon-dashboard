@@ -175,4 +175,11 @@ export const styles=`
 .music-settings .set-actions .link.strong{color:var(--m-accent,#d9b77e);opacity:1}
 .music-settings .set-row{align-items:center}
 @media(max-width:620px){.music-settings .set-actions{width:auto;margin-left:0}.music-settings .set-actions>button,.music-settings .set-actions .link{padding:0 10px;font-size:12px;gap:6px}}
+
+@container (max-width:440px){
+ :host([home-player]) .compact .panel{grid-template-columns:minmax(0,1fr);grid-template-areas:"meta" "transport" "progress";padding:9px 14px}
+ :host([home-player]) .compact .title-row{padding-inline-end:18px}
+ :host([home-player]) .compact .title,:host([home-player]) .compact .artist,:host([home-player]) .compact .destination{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ :host([home-player]) .compact .transport{justify-content:start}
+}
 `;

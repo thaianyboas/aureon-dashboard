@@ -90,6 +90,6 @@ try{
  const native=await page.evaluate(()=>calls.at(-1).slice(0,3));
  assert.deepEqual(native,['aureon_music','native_write',{entity_id:'media_player.fixture',action:'player_transfer_playback',arguments:{device_id:'native-speaker',play:false}}]);
  checks.push('native Spotify discovers and transfers through the same approved player');
- await page.evaluate(()=>{dashboard._navigate('Início');hass.states['media_player.fixture']={...hass.states['media_player.fixture'],state:'idle'};dashboard.hass={...hass};});await page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-music-player[compact]')?.hidden);checks.push('home mini player hides irrelevant idle media');
+ await page.evaluate(()=>{dashboard._navigate('Início');hass.states['media_player.fixture']={...hass.states['media_player.fixture'],state:'idle'};dashboard.hass={...hass};});await page.waitForFunction(()=>dashboard.shadowRoot.querySelector('aureon-music-player[compact]')?.shadowRoot.querySelector('.compact .stage'));checks.push('home mini player remains available when playback is idle');
  assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:checks.length,checks,environment:'isolated browser fixture; no Home Assistant installation'},null,2));
 }finally{await browser?.close();server.close();}
