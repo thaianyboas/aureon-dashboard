@@ -10,11 +10,20 @@ const PAGES=[['home','Início'],['rooms','Räume'],['devices','Geräte'],['energ
 function lookCard(ui,value,title,hint,art){const on=Boolean(ui.c.preferences.home3d)===value;return html`<button type="button" class="set-choice" aria-pressed=${String(on)} @click=${()=>ui.save('home3d',value)}><span class="set-choice-art">${art}</span><strong>${title}</strong><small>${hint}</small></button>`;}
 const cinemaArt=svg`<svg viewBox="0 0 120 72" aria-hidden="true"><rect width="120" height="72" rx="8" fill="#0e0d0c"/><circle cx="34" cy="20" r="30" fill="var(--p-accent)" opacity=".14"/><text x="10" y="30" font-family="Georgia,serif" font-size="15" fill="#f4efe6">Bom dia</text><rect x="10" y="42" width="22" height="20" rx="5" fill="#ffffff14"/><rect x="36" y="42" width="22" height="20" rx="5" fill="#ffffff14"/><rect x="62" y="42" width="22" height="20" rx="5" fill="var(--p-accent)" opacity=".35"/><rect x="88" y="42" width="22" height="20" rx="5" fill="#ffffff14"/><rect x="88" y="10" width="22" height="26" rx="5" fill="#ffffff14"/></svg>`;
 const classicArt=svg`<svg viewBox="0 0 120 72" aria-hidden="true"><rect width="120" height="72" rx="8" fill="#141414"/><path d="M18 50 48 34l30 12-30 16z" fill="#e9e1d2" opacity=".85"/><path d="M48 34v-8l30 12v8M18 50v-8l30-16" fill="none" stroke="#bfb6a6" stroke-width="1.2"/><rect x="88" y="10" width="22" height="22" rx="5" fill="#ffffff14"/><rect x="88" y="36" width="22" height="12" rx="4" fill="#ffffff14"/><rect x="88" y="52" width="22" height="12" rx="4" fill="#ffffff14"/></svg>`;
-function appearancePanel(ui){const c=ui.c,t=ui.t,p=c.preferences,ha=p.appearance==='auto';
+function startPanel(ui){
+ const c=ui.c,t=ui.t,p=c.preferences,plans=ui._homePlans||[];
  return html`<section class="set-panel glass">
-  <h2>${t.setStartLook}</h2><p class="set-hint">${t.setStartLookHint}</p>
+  <h2>${t.homeShowPlan}</h2><p class="set-hint">${t.setStartLookHint}</p>
   <div class="set-choices">${lookCard(ui,false,t.setStartTiles,t.setStartTilesHint,cinemaArt)}${lookCard(ui,true,t.setStart3d,t.setStart3dHint,classicArt)}</div>
- </section>
+  ${p.home3d&&plans.length?html`<label class="field">${t.homePlanSelection}<select .value=${p.homePlan}
+   @change=${event=>ui.save('homePlan',event.target.value)}>
+   <option value="">${t.homeMainPlan}</option>
+   ${plans.filter(plan=>plan.id!=='main').map(plan=>html`<option value=${plan.id} ?selected=${p.homePlan===plan.id}>${plan.name||plan.id}</option>`)}
+  </select></label>`:nothing}
+ </section>`;
+}
+function appearancePanel(ui){const c=ui.c,t=ui.t,p=c.preferences,ha=p.appearance==='auto';
+ return html`
  <section class="set-panel glass">
   <h2>${t.setTheme}</h2><p class="set-hint">${t.setThemeHint}</p>
   <button type="button" class="set-ha-theme" aria-pressed=${String(ha)} @click=${()=>ui.save('appearance','auto')}><span class="set-ha-dot" aria-hidden="true"></span><span><strong>${t.themeFollowHa}</strong><small>${t.themeFollowHaHint}</small></span></button>
@@ -64,9 +73,18 @@ function summary(ui,id){const c=ui.c,t=ui.t,p=c.preferences;const pal=(ui.palett
   case'visibility':return p.hidden.length?`${p.hidden.length} ${t.setHiddenDevices}`:t.setAllVisible;
   default:return '';}}
 export function settingsCinema(ui,items,content){const c=ui.c,t=ui.t,tab=ui._settingsTab;
- const cats=[['appearance','appearance',t.appearance,t.setAppearanceHint],['cards','cards',t.setCards,t.setCardsShort],['music','music',t.music,t.setMusicShort],['labels','labels',t.setLabelsTitle,t.setLabelsShort],...items.filter(([id])=>id!=='appearance').map(([id,,label,hint])=>[id,id,t[label],t[hint]])];
- const panels={...content,appearance:appearancePanel(ui),cards:cardsPanel(ui),music:musicPanel(ui),labels:labelsPanel(ui)};
- const go=id=>{ui._settingsTab=id;ui._search='';ui._settingsLimit=30;ui.getRootNode().querySelector('main')?.scrollTo({top:0});ui.requestUpdate();};
+ const cats=[['start','start',t.setStartLook,t.setStartLookHint],['appearance','appearance',t.appearance,t.setAppearanceHint],['cards','cards',t.setCards,t.setCardsShort],['music','music',t.music,t.setMusicShort],['labels','labels',t.setLabelsTitle,t.setLabelsShort],...items.filter(([id])=>id!=='appearance').map(([id,,label,hint])=>[id,id,t[label],t[hint]])];
+ const panels={...content,start:startPanel(ui),appearance:appearancePanel(ui),cards:cardsPanel(ui),music:musicPanel(ui),labels:labelsPanel(ui)};
+ const go=id=>{
+  if(id==='start'){
+   const epoch=c.epoch;ui._homePlans=[];
+   c.hass?.callWS?.({type:'aureon_floor/plans/list'}).then(result=>{
+    if(c.epoch!==epoch)return;
+    ui._homePlans=Array.isArray(result?.plans)?result.plans:[];
+    ui.requestUpdate();
+   }).catch(()=>{});
+  }
+  ui._settingsTab=id;ui._search='';ui._settingsLimit=30;ui.getRootNode().querySelector('main')?.scrollTo({top:0});ui.requestUpdate();};
  const current=cats.find(x=>x[0]===tab);
  return html`<div class="cine cine-settings">
  <div class="cine-glow" aria-hidden="true"></div>

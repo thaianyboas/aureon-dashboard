@@ -4,7 +4,7 @@ import {wasteName} from '../integrations/waste.mjs';
 // month overview and the waste pickups. Events are only read (GET /api/calendars/...); nothing is changed here.
 const HUES=['var(--p-accent)','#7fb4e6','#e59a8c','#8fd0a8','#c39be8','#e8c26a','#6fcfcf','#e88fb8'];
 const PERIODS=[7,14,30,90];
-function dayKey(date,timeZone){try{return new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).format(date);}catch{return date.toISOString().slice(0,10);}}
+export function dayKey(date,timeZone){try{return new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).format(date);}catch{return date.toISOString().slice(0,10);}}
 function addDays(key,n){const d=new Date(key+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
 function fmt(lang,opts,date,timeZone){try{return new Intl.DateTimeFormat(lang,{timeZone,...opts}).format(date);}catch{return '';}}
 const cap=s=>s?s.charAt(0).toLocaleUpperCase()+s.slice(1):s;

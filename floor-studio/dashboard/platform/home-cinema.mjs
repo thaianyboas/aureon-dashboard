@@ -3,6 +3,8 @@ import {isAvailable} from './actions.mjs';
 import {artworkUrl} from '../music/controller.mjs';
 import {syncLayer} from './layer.mjs';
 import {roomArt} from './room-art.mjs';
+import {DREAME} from '../integrations/dreame.mjs';
+import {agenda,dayKey} from './calendar-cinema.mjs';
 // "Cinema" start page (the design approved by the owner): greeting with scenes, people, waste collection, the
 // home right now as illustrated tiles (lights, windows, curtains/blinds, robot, energy, security), cameras, music
 // and rooms. All data comes from Home Assistant; every action is a tap by the user, sensitive ones still confirm.
@@ -29,23 +31,35 @@ function wxArt(kind,small=false){const cloud='M22 46h30a10 10 0 0 0 1-20 14 14 0
  ${kind==='fog'?svg`<g class="wx-fog" stroke="#c9ced4" stroke-width="2.4" stroke-linecap="round" opacity=".85"><line x1="16" y1="52" x2="56" y2="52"/><line x1="22" y1="58" x2="62" y2="58"/></g>`:nothing}
  ${kind==='wind'?svg`<g class="wx-fog" stroke="#c9ced4" stroke-width="2" fill="none" stroke-linecap="round"><path d="M14 52h34a5 5 0 1 0-5-5"/><path d="M20 58h26a4 4 0 1 1-4 4"/></g>`:nothing}
  </svg>`;}
-export function syncForecast(ui){const c=ui.c,weather=ui.page==='home'&&c?.preferences.widgets.weather?c.list(['weather'])[0]:null,conn=c?.hass?.connection,key=weather&&conn?weather.id:'';
- if(ui._wxKey===key)return;ui._wxUnsub?.then?.(u=>u&&u()).catch(()=>{});ui._wxUnsub=null;ui._wxKey=key;if(!key)return;
- const features=Number(c.state(key)?.attributes?.supported_features||0),type=features&1?'daily':features&4?'twice_daily':features&2?'hourly':'';if(!type)return;
- ui._wxUnsub=conn.subscribeMessage(msg=>{c._forecast={...(c._forecast||{}),[key]:(msg?.forecast||[]).slice(0,6)};ui.requestUpdate();},{type:'weather/subscribe_forecast',entity_id:key,forecast_type:type}).catch(()=>null);}
-function weatherHero(ui,weather,ws){const c=ui.c,t=ui.t,a=ws?.attributes||{},kind=wxKind(String(ws?.state||'')),unit=a.temperature_unit||'°',fc=c._forecast?.[weather.id]||[];
- const day=iso=>{try{return new Intl.DateTimeFormat(c.language,{weekday:'short',timeZone:c.hass?.config?.time_zone||'UTC'}).format(new Date(iso));}catch{return '';}};
+export function syncForecast(ui){
+ const c=ui.c,conn=c?.hass?.connection;
+ const weather=ui.page==='home'&&c?.preferences.widgets.weather?c.list(['weather'])[0]:null;
+ const id=weather?.id,state=id&&c.state(id),features=Number(state?.attributes?.supported_features||0);
+ const type=features&2?'hourly':features&1?'daily':features&4?'twice_daily':'';
+ const key=id&&type&&conn?.subscribeMessage?`${c.epoch}:${id}:${type}`:'';
+ if(ui._wxKey===key)return;
+ ui._wxUnsub?.then(unsubscribe=>unsubscribe?.()).catch(()=>{});
+ ui._wxUnsub=null;ui._wxKey=key;ui._homeForecast=null;
+ if(!key)return;
+ ui._wxUnsub=conn.subscribeMessage(message=>{
+  if(ui._wxKey!==key)return;
+  ui._homeForecast={id,epoch:c.epoch,rows:(message?.forecast||[]).slice(0,4)};
+  ui.requestUpdate();
+ },{type:'weather/subscribe_forecast',entity_id:id,forecast_type:type}).catch(()=>null);
+}
+function weatherHero(ui,weather,ws){const c=ui.c,t=ui.t,a=ws?.attributes||{},kind=wxKind(String(ws?.state||'')),unit=a.temperature_unit||'°',fc=ui._homeForecast?.id===weather.id&&ui._homeForecast.epoch===c.epoch?ui._homeForecast.rows:[];
+ const day=iso=>{try{return new Intl.DateTimeFormat(c.language,{...(a.supported_features&2?{hour:'2-digit',minute:'2-digit'}:{weekday:'short'}),timeZone:c.hass?.config?.time_zone||'UTC'}).format(new Date(iso));}catch{return '';}};
  const temp=v=>v==null||!Number.isFinite(Number(v))?'—':ui.format(Number(v),Math.abs(Number(v))<10?1:0);
  return html`<button type="button" class="cine-wx glass" data-layout-key="cine:weather" @click=${()=>ui.native(weather.id,'weather-forecast')}>
-  <span class="cine-wx-now">${wxArt(kind)}<span class="cine-wx-text"><span class="cine-wx-temp">${temp(a.temperature)}<small>${unit.replace(/^°?/,'°').replace('°°','°')}</small></span><strong>${ui.name(weather)}</strong><small>${ui.stateText(ws)}${a.humidity!=null?` · ${a.humidity}%`:''}${a.wind_speed!=null?` · ${ui.format(Number(a.wind_speed),0)} ${a.wind_speed_unit||''}`:''}</small></span></span>
-  ${fc.length?html`<span class="cine-wx-days">${fc.slice(1,6).map(f=>html`<span class="cine-wx-day"><small>${day(f.datetime)}</small>${wxArt(wxKind(f.condition),true)}<b>${temp(f.temperature)}°</b><small>${f.templow!=null?temp(f.templow)+'°':''}</small></span>`)}</span>`:nothing}
+  <span class="cine-wx-now">${wxArt(kind)}<span class="cine-wx-text"><span class="cine-wx-temp">${isAvailable(ws)?html`${temp(a.temperature)}<small>${unit.replace(/^°?/,'°').replace('°°','°')}</small>`:t.unavailable}</span><strong>${ui.name(weather)}</strong><small>${ui.stateText(ws)}${a.humidity!=null?` · ${a.humidity}%`:''}${a.wind_speed!=null?` · ${ui.format(Number(a.wind_speed),0)} ${a.wind_speed_unit||''}`:''}</small></span></span>
+  ${fc.length?html`<span class="cine-wx-days">${fc.slice(0,4).map(f=>html`<span class="cine-wx-day"><small>${day(f.datetime)}</small>${wxArt(wxKind(f.condition),true)}<b>${temp(f.temperature)}°</b><small>${f.templow!=null?temp(f.templow)+'°':''}</small></span>`)}</span>`:nothing}
  </button>`;}
 
 export function homeData(ui){const c=ui.c,st=id=>c.state(id);
  const lights=c.list(['light']).filter(r=>isAvailable(st(r.id))),lightsOn=lights.filter(r=>st(r.id)?.state==='on');
  const windows=c.list(['binary_sensor']).filter(r=>WINDOW_CLASSES.includes(st(r.id)?.attributes?.device_class)),openWindows=windows.filter(r=>st(r.id)?.state==='on');
  const shades=c.list(['cover']).filter(r=>!SHADE_SKIP.includes(st(r.id)?.attributes?.device_class)&&isAvailable(st(r.id))),openShades=shades.filter(r=>{const s=st(r.id);return s?.state==='open'||Number(s?.attributes?.current_position)>0;});
- const robot=c.list(['vacuum'])[0],cameras=c.list(['camera']).filter(r=>isAvailable(st(r.id))),scenes=c.list(['scene']).slice(0,4);
+ const robot=c.list(['vacuum']).find(row=>row.source===DREAME)||c.list(['vacuum'])[0],cameras=c.list(['camera']).filter(r=>isAvailable(st(r.id))),scenes=c.list(['scene']).slice(0,4);
  const locks=c.list(['lock']),alarm=c.list(['alarm_control_panel'])[0];
  return {lights,lightsOn,windows,openWindows,shades,openShades,robot,cameras,scenes,locks,alarm};}
 
@@ -69,45 +83,94 @@ function windowSheet(ui,d){const c=ui.c,t=ui.t,st=id=>c.state(id);const groups=n
 
 // Called after each render (also on other pages, which closes it).
 export function syncCinemaSheet(ui){const show=ui._cineSheet&&['home','security'].includes(ui.page)&&ui.c?.preferences.look!=='classic';syncLayer(ui,'cine-sheet',show?windowSheet(ui,homeData(ui)):null);}
+// Read only visible calendars through HA, refreshing the two-day overview as time passes.
+export function syncHomeAgenda(ui){
+ const c=ui.c;
+ if(ui.page!=='home'||!c?.registry)return;
+ const ids=c.list(['calendar']).map(row=>row.id);
+ if(!ids.length)return;
+ const key=[c.epoch,Math.floor(c.now()/300000),...ids].join('|');
+ if(ui._homeAgendaKey===key)return;
+ ui._homeAgendaKey=key;
+ void c.loadCalendars(7,ids);
+}
+function homeAgenda(ui,zone){
+ const c=ui.c,t=ui.t,today=dayKey(new Date(c.now()),zone);
+ const ids=c.list(['calendar']).filter(row=>!c.preferences.waste.includes(row.id)).map(row=>row.id);
+ const groups=agenda(ids.map(id=>[id,c.events[id]]),{timeZone:zone,todayKey:today,days:2});
+ const clock=new Intl.DateTimeFormat(c.language,{timeZone:zone,hour:'2-digit',minute:'2-digit'});
+ const status=ids.some(id=>c.busy.has('calendar:'+id))?t.loading:ids.some(id=>c.errors['calendar:'+id])?t.unavailable:t.calFree;
+ return html`<section class="cine-card glass home-agenda" data-layout-key="cine:agenda">
+  <button type="button" class="home-widget-link" @click=${()=>ui.nav('Agenda')}>${ui.homeIcon('calendar')}<strong>${t.calendar}</strong><span aria-hidden="true">›</span></button>
+  ${groups.size?[...groups].map(([key,rows])=>html`<div class="home-agenda-day"><b>${key===today?t.today:t.tomorrow}</b>
+   <ul>${rows.slice(0,3).map(row=>html`<li><span>${row.e.summary||row.e.message||'—'}</span>${row.allDay?nothing:html`<time>${clock.format(row.ms)}</time>`}</li>`)}</ul></div>`):html`<small class="cine-sub" role="status">${ids.length?status:t.noData}</small>`}
+ </section>`;
+}
 export function homeCinema(ui){const c=ui.c,t=ui.t,p=c.preferences,zone=c.hass?.config?.time_zone||'UTC',d=homeData(ui),st=id=>c.state(id);
  let clock='',date='',hour=12;try{clock=new Intl.DateTimeFormat(c.language,{timeZone:zone,hour:'2-digit',minute:'2-digit'}).format(c.now());date=new Intl.DateTimeFormat(c.language,{timeZone:zone,weekday:'long',day:'numeric',month:'long'}).format(c.now());hour=Number(new Intl.DateTimeFormat('en',{timeZone:zone,hour:'2-digit',hourCycle:'h23'}).format(c.now()));}catch{}
- const first=c.hass?.user?.name?.split(' ')[0]||'';
- const weather=p.widgets.weather?c.list(['weather'])[0]:null,ws=weather&&st(weather.id),temp=ws?.attributes?.temperature!=null?Math.round(Number(ws.attributes.temperature)):null;
- const people=p.widgets.people?c.list(['person']):[];
- const waste=p.widgets.waste?[...new Map(c.waste.map(x=>[x.type+':'+x.date,x])).values()]:[];const next=waste[0],later=waste.slice(1,4);
+ const first=c.hass?.user?.name?.trim().split(/\s+/)[0]||'';
+ const weather=p.widgets.weather?c.list(['weather'])[0]:null,ws=weather&&st(weather.id);
+ const persons=c.list(['person']);
+ const own=persons.find(row=>st(row.id)?.attributes?.user_id===c.hass?.user?.id&&c.hass?.user?.id);
+ const people=p.widgets.people?persons.filter(row=>row!==own&&!/^isg[ _-]+display(?:[ _-]+max)?$/i.test(ui.name(row).trim())):[];
+ const photo=artworkUrl(own&&st(own.id)?.attributes?.entity_picture,c.hass);
+ const botanical=p.appearance==='dark'||(p.appearance==='custom'&&p.palette==='forest-botanical');
+ const waste=p.widgets.waste?[...new Map(c.waste.map(x=>[x.type+':'+x.date,x])).values()]:[];
  const when=x=>x.today?t.today:x.tomorrow?t.tomorrow:(()=>{try{return new Intl.DateTimeFormat(c.language,{weekday:'short',timeZone:zone}).format(new Date(x.date+'T12:00:00'));}catch{return x.date;}})();
  const pw=ui.power(),e=c.energy(),daily=e.daily.value;
  const lit=d.lightsOn.length>0,openW=d.openWindows.length,shadesOpen=d.openShades.length>0;
  const rs=d.robot&&st(d.robot.id),cleaning=['cleaning','returning'].includes(rs?.state);
+ const nextCleaning=rs?.attributes?.next_scheduled_cleaning;
+ const nextMs=typeof nextCleaning==='string'?Date.parse(nextCleaning):NaN;
+ const schedule=Number.isFinite(nextMs)&&nextMs>=c.now()?new Intl.DateTimeFormat(c.language,{timeZone:zone,dateStyle:'short',timeStyle:'short'}).format(nextMs):'';
  const locked=d.locks.length?d.locks.every(r=>st(r.id)?.state==='locked'):null,alarmState=d.alarm?st(d.alarm.id):null;
  const glow=Math.min(1,.35+d.lightsOn.length/Math.max(1,d.lights.length)*.65);
  const tile=(key,on,head,art,main,sub,hint,click,label)=>html`<button type="button" class=${'cine-tile glass '+(on?'on':'')} data-layout-key=${'cine:'+key} aria-label=${label||head} @click=${click}><span class="cine-art-slot">${art}</span><span class="cine-head">${head}</span>${main}<span class="cine-sub">${sub}</span>${hint?html`<span class="cine-hint">${hint}</span>`:nothing}</button>`;
- return html`<div class="cine" style=${'--cine-glow:'+glow.toFixed(2)}>
- <div class="cine-glow" aria-hidden="true"></div>
- <div class="cine-hero">
-  <section class="cine-welcome" aria-label=${t.cineWelcome}>
-   ${weather?weatherHero(ui,weather,ws):nothing}
-   <span class="cine-eyebrow">${date}${clock?' · '+clock:''}</span>
-   <h1>${t[hour<12?'morning':hour<18?'afternoon':'evening']}${first?html`,<br><em>${first}</em>`:nothing}</h1>
-   ${d.scenes.length?html`<div class="cine-scenes" role="group" aria-label=${t.scenes||'Cenas'}>${d.scenes.map(r=>{const action=c.actions(r.id).find(a=>a.key==='activate');return html`<button type="button" class="cine-scene glass" data-layout-key=${'scene:'+r.id} ?disabled=${!action} title=${ui.name(r)} @click=${()=>action&&ui.invoke(r,action)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d=${sceneIcon(ui.name(r))}></path></svg><span><strong>${ui.name(r)}</strong>${r.areaId&&r.areaName?html`<small>${r.areaName}</small>`:nothing}</span></button>`;})}</div>`:nothing}
-  </section>
-  <div class="cine-side">
-   ${people.length?html`<section class="cine-card glass cine-people" aria-label=${t.people}><span class="cine-head">${t.cineAtHome}</span><div class="cine-people-grid">${people.map(row=>{const s=st(row.id),photo=artworkUrl(s?.attributes?.entity_picture,c.hass),home=s?.state==='home',trackers=s?.attributes?.device_trackers||[],devs=new Set(c.rows.filter(r=>trackers.includes(r.id)&&r.deviceId).map(r=>r.deviceId));if(row.deviceId)devs.add(row.deviceId);const battery=c.rows.find(r=>r.deviceId&&devs.has(r.deviceId)&&st(r.id)?.attributes?.device_class==='battery'),level=battery?Number(st(battery.id)?.state):NaN;return html`<div class=${'cine-person '+(home?'home':'')} data-person=${row.id}><span class="cine-avatar">${photo?html`<img src=${photo} alt="" referrerpolicy="no-referrer">`:html`<span>${ui.name(row).slice(0,1)}</span>`}<i aria-hidden="true"></i></span><span><strong>${ui.name(row)}</strong><small>${home?t.cineHome:s?.state==='not_home'?t.away:ui.stateText(s)}${Number.isFinite(level)?` · ${Math.round(level)}%`:''}</small></span></div>`;})}</div></section>`:nothing}
-   ${p.widgets.waste?html`<button type="button" class="cine-card glass cine-waste" @click=${()=>ui.nav('Agenda')}><span class="cine-head">${t.waste}</span>${next?html`<span class="cine-waste-next"><i style=${'background:'+wasteColour(next.type)} aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></i><span><strong>${next.type}</strong><small>${when(next)}${next.tomorrow?' · '+t.cineWasteTonight:''}</small></span></span>${later.length?html`<span class="cine-waste-later">${later.map(x=>html`<span><i style=${'background:'+wasteColour(x.type)}></i>${x.type} <small>${when(x)}</small></span>`)}</span>`:nothing}`:html`<small class="cine-sub">${t.noData}</small>`}</button>`:nothing}
-  </div>
- </div>
- ${p.home3d?html`<section class="cine-plan glass" data-layout-key="cine:plan" aria-label=${t.floor}><aureon-home-plan .hass=${c.hass} .look=${'real'} .labels=${t}></aureon-home-plan><button type="button" class="cine-plan-open" @click=${()=>ui.nav('Planta')}>${t.floor} ↗</button></section>`:nothing}
- <section class="cine-now" aria-label=${t.cineNow}>
+ const summaryTiles=html`<section class="cine-now" aria-label=${t.cineNow}>
   ${d.lights.length?tile('lights',lit,t.cineLights,lampArt(lit),html`<span class="cine-count"><b>${d.lightsOn.length}</b><small>${t.cineOf} ${d.lights.length} ${t.cineOnLower}</small></span>`,'',lit?t.cineTapAllOff:t.cineTapLights,()=>lit?allLightsOff(ui,d.lightsOn):ui.nav('Geräte'),lit?t.cineTapAllOff:t.cineTapLights):nothing}
   ${d.windows.length?tile('windows',openW>0,t.cineWindows,windowArt(openW>0),html`<span class="cine-count"><b>${openW}</b><small>${t.cineOf} ${d.windows.length} ${t.cineOpenLower}</small></span><span class="cine-bar"><i style=${'width:'+Math.round(100*openW/d.windows.length)+'%'}></i></span>`,'',t.cineDetails,()=>{ui._cineSheet=true;ui.requestUpdate();}):nothing}
-  ${d.shades.length?tile('shades',!shadesOpen,t.cineShades,shadeArt(shadesOpen),html`<span class="cine-big">${shadesOpen?t.cineOpenTitle:t.cineClosedTitle}</span>`,`${d.openShades.length} ${t.cineOf} ${d.shades.length} ${t.cineOpenLower}`,shadesOpen?t.cineTapCloseAll:t.cineTapOpenAll,()=>allShades(ui,d.shades,shadesOpen?'close':'open')):nothing}
-  ${d.robot?tile('robot',cleaning,t.cineRobot,robotArt(cleaning),html`<span class="cine-big">${cleaning?t.cineCleaning:ui.stateText(rs)}</span>`,[ui.name(d.robot),rs?.attributes?.battery_level!=null?`${rs.attributes.battery_level}%`:''].filter(Boolean).join(' · '),cleaning?t.cineTapDock:t.cineTapClean,()=>{const key=cleaning?'dock':'start';if(c.actions(d.robot.id).some(a=>a.key===key))c.act(d.robot.id,key);}):nothing}
-  ${p.widgets.energy?tile('energy',false,t.energy,energyArt(Number.isFinite(e.power.value)?e.power.value/3000:0),html`<span class="cine-big">${pw.value}<small> ${pw.unit}</small></span>`,daily!=null?`${t.today} ${ui.format(daily,1)} kWh`:t.noData,'',()=>ui.nav('Energie')):nothing}
+
+
   ${p.widgets.security?tile('security',false,t.security,lockArt(locked!==false),html`<span class="cine-big">${locked===null?(alarmState?ui.stateText(alarmState):t.noData):locked?t.cineLocked:t.cineUnlocked}</span>`,alarmState?ui.stateText(alarmState):'','',()=>ui.nav('Sicherheit')):nothing}
- </section>
- <div class="cine-row">
-  ${d.cameras.length?html`<section class="cine-card glass cine-cameras" aria-label=${t.cameras}><span class="cine-row-head"><span class="cine-head">${t.cameras}</span><button type="button" class="cine-link" @click=${()=>ui.nav('Kameras')}>${t.cineSeeAll} ›</button></span><div class="cine-cam-grid">${d.cameras.slice(0,2).map(r=>{const s=st(r.id),pic=artworkUrl(s?.attributes?.entity_picture,c.hass);return html`<button type="button" class="cine-cam" aria-label=${ui.name(r)} @click=${()=>ui.native(r.id)}>${pic?html`<img src=${pic} alt="" referrerpolicy="no-referrer" @error=${ev=>ev.target.remove()}>`:nothing}<span class="cine-live"><i></i>${t.cineLive}</span><strong>${ui.name(r)}</strong></button>`;})}</div></section>`:nothing}
-  ${p.widgets.music?html`<section class="cine-card glass cine-music"><slot name="mini-player"></slot></section>`:nothing}
+  ${p.widgets.energy?tile('energy',false,t.energy,energyArt(Number.isFinite(e.power.value)?e.power.value/3000:0),html`<span class="cine-big">${pw.value}<small> ${pw.unit}</small></span>`,daily!=null?`${t.today} ${ui.format(daily,1)} kWh`:t.noData,'',()=>ui.nav('Energie')):nothing}
+ </section>`;
+ return html`<div class=${'cine aureon-home '+(p.home3d?'with-plan':'without-plan')+(botanical?' botanical':'')} style=${'--cine-glow:'+glow.toFixed(2)}>
+ <div class="cine-glow" aria-hidden="true"></div>
+ <header class="cine-welcome home-greeting" aria-label=${t.cineWelcome}>
+   <span class="cine-avatar">${photo?html`<img src=${photo} alt="" referrerpolicy="no-referrer">`:html`<span>${first.slice(0,1)}</span>`}${own&&st(own.id)?.state==='home'?html`<i aria-hidden="true"></i>`:nothing}</span>
+   <div><h1>${t[hour<12?'morning':hour<18?'afternoon':'evening']}${first?html`, <em>${first}</em>`:nothing}</h1>
+   <span class="home-date">${date}${clock?' · '+clock:''}</span></div>
+ </header>
+ <div class="home-composition">
+ <div class="home-primary">
+
+ ${p.home3d?html`<section class="cine-plan glass" data-layout-key="cine:plan" aria-label=${t.floor}><aureon-home-plan .hass=${c.hass} .plan=${p.homePlan} .look=${'real'} .labels=${t}></aureon-home-plan><button type="button" class="cine-plan-open" @click=${()=>ui.nav('Planta')}>${t.floor} ↗</button></section>`:nothing}
+ ${!p.home3d?summaryTiles:nothing}
+ ${p.widgets.music?html`<section class="cine-card cine-music" data-layout-key="cine:music"><slot name="mini-player"></slot></section>`:nothing}
+ ${c.rooms.length?html`<section class="home-rooms"><button type="button" class="home-widget-link" @click=${()=>ui.nav('Räume')}>${ui.homeIcon('sofa')}<strong>${t.rooms}</strong><span aria-hidden="true">›</span></button><nav class="cine-rooms" aria-label=${t.rooms}>${c.rooms.map(area=>{const sum=ui.areaSummary(area),img=ui.roomImage(area),lightShare=sum.lights.length?sum.on/sum.lights.length:0;return html`<button type="button" class="cine-room" data-room=${area.id} aria-label=${area.name} @click=${()=>{ui.c._cineRoom=area.id;ui.c._roomOpenNext=true;ui.nav('Räume');}}>${!img.url?roomArt(area.name):nothing}${img.url?html`<img src=${img.small||img.url} srcset=${ui.cardSrcset(img)||nothing} sizes="(max-width:700px) 90vw, 30vw" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style=${'filter:brightness('+(.38+.62*(sum.lights.length?lightShare:.8)).toFixed(2)+')'} @error=${ev=>ev.target.remove()}>`:nothing}<span class="cine-room-text"><strong>${area.name}</strong><small>${new Set(sum.rows.filter(row=>c.kind(row)!=='technical').map(row=>row.deviceId||row.id)).size} ${t.devices}</small></span></button>`;})}</nav></section>`:nothing}
  </div>
- ${c.rooms.length?html`<nav class="cine-rooms" aria-label=${t.rooms}>${c.rooms.map(area=>{const sum=ui.areaSummary(area),img=ui.roomImage(area),lightShare=sum.lights.length?sum.on/sum.lights.length:0;return html`<button type="button" class="cine-room" data-room=${area.id} aria-label=${area.name} @click=${()=>{ui.c._cineRoom=area.id;ui.c._roomOpenNext=true;ui.nav('Räume');}}>${!img.url?roomArt(area.name):nothing}${img.url?html`<img src=${img.small||img.url} srcset=${ui.cardSrcset(img)||nothing} sizes="(max-width:700px) 90vw, 30vw" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style=${'filter:brightness('+(.38+.62*(sum.lights.length?lightShare:.8)).toFixed(2)+')'} @error=${ev=>ev.target.remove()}>`:nothing}<span class="cine-room-text"><strong>${area.name}</strong><small>${[sum.temp!=null?ui.format(sum.temp,1)+'°':'',sum.lights.length?(sum.on?`${sum.on} ${t.lightsOn}`:t.lightsOff):''].filter(Boolean).join(' · ')}</small></span></button>`;})}</nav>`:nothing}
+ <aside class="cine-side home-rail">
+  ${weather?weatherHero(ui,weather,ws):p.widgets.weather?html`<section class="cine-card glass" data-layout-key="cine:weather"><strong>${t.weather}</strong><small class="cine-sub">${t.noData}</small></section>`:nothing}
+  ${p.widgets.waste?html`<section class="cine-card glass cine-waste" data-layout-key="cine:waste">
+   <button type="button" class="home-widget-link" @click=${()=>ui.nav('Agenda')}>${ui.homeIcon('calendar')}<strong>${t.waste}</strong><span aria-hidden="true">›</span></button>
+   ${waste.length?html`<div class="home-waste-grid">${waste.slice(0,3).map(row=>html`<div class="home-waste-item">
+    <svg viewBox="0 0 24 24" style=${'--waste-color:'+wasteColour(row.type)} aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M4 7h16M9 7V4h6v3M10 11v6M14 11v6"/></svg>
+    <strong>${row.type}</strong><small>${when(row)}</small>
+   </div>`)}</div>`:html`<small class="cine-sub" role="status">${p.waste.some(id=>c.busy.has('calendar:'+id))?t.loading:p.waste.some(id=>c.errors['calendar:'+id])?t.unavailable:t.noData}</small>`}
+  </section>`:nothing}
+  ${homeAgenda(ui,zone)}
+ </aside>
+ </div>
+ <div class="home-bottom">
+  ${people.length?html`<section class="cine-card glass cine-people" data-layout-key="cine:people" aria-label=${t.people}><span class="cine-head">${t.cineAtHome}</span><div class="cine-people-grid">${people.map(row=>{const s=st(row.id),photo=artworkUrl(s?.attributes?.entity_picture,c.hass),home=s?.state==='home',trackers=s?.attributes?.device_trackers||[],devs=new Set(c.rows.filter(r=>trackers.includes(r.id)&&r.deviceId).map(r=>r.deviceId));if(row.deviceId)devs.add(row.deviceId);const battery=c.rows.find(r=>r.deviceId&&devs.has(r.deviceId)&&st(r.id)?.attributes?.device_class==='battery'),level=battery?Number(st(battery.id)?.state):NaN;return html`<div class=${'cine-person '+(home?'home':'')} data-person=${row.id}><span class="cine-avatar">${photo?html`<img src=${photo} alt="" referrerpolicy="no-referrer">`:html`<span>${ui.name(row).slice(0,1)}</span>`}<i aria-hidden="true"></i></span><span><strong>${ui.name(row)}</strong><small>${home?t.cineHome:s?.state==='not_home'?t.away:ui.stateText(s)}${Number.isFinite(level)?` · ${Math.round(level)}%`:''}</small></span></div>`;})}</div></section>`:nothing}
+  ${d.robot?html`<button type="button" class="cine-card glass home-robot" data-layout-key="cine:robot" @click=${()=>ui.nav('Staubsauger')}>
+   ${robotArt(cleaning)}<span><strong>${ui.name(d.robot)}</strong><small>${ui.stateText(rs)}${rs?.attributes?.battery_level!=null?` · ${rs.attributes.battery_level}%`:''}</small>${schedule?html`<small>${t.homeNextClean} · ${schedule}</small>`:nothing}</span><span aria-hidden="true">›</span>
+  </button>`:nothing}
+ </div>
+ ${p.home3d?summaryTiles:nothing}
+ <div class="cine-row home-extra">
+  ${d.scenes.length?html`<div class="cine-scenes" role="group" aria-label=${t.scenes||'Cenas'}>${d.scenes.map(r=>{const action=c.actions(r.id).find(a=>a.key==='activate');return html`<button type="button" class="cine-scene glass" data-layout-key=${'scene:'+r.id} ?disabled=${!action} title=${ui.name(r)} @click=${()=>action&&ui.invoke(r,action)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d=${sceneIcon(ui.name(r))}></path></svg><span><strong>${ui.name(r)}</strong>${r.areaId&&r.areaName?html`<small>${r.areaName}</small>`:nothing}</span></button>`;})}</div>`:nothing}
+  ${d.shades.length?tile('shades',!shadesOpen,t.cineShades,shadeArt(shadesOpen),html`<span class="cine-big">${shadesOpen?t.cineOpenTitle:t.cineClosedTitle}</span>`,`${d.openShades.length} ${t.cineOf} ${d.shades.length} ${t.cineOpenLower}`,shadesOpen?t.cineTapCloseAll:t.cineTapOpenAll,()=>allShades(ui,d.shades,shadesOpen?'close':'open')):nothing}
+  ${d.cameras.length?html`<section class="cine-card glass cine-cameras" data-layout-key="cine:cameras" aria-label=${t.cameras}><span class="cine-row-head"><span class="cine-head">${t.cameras}</span><button type="button" class="cine-link" @click=${()=>ui.nav('Kameras')}>${t.cineSeeAll} ›</button></span><div class="cine-cam-grid">${d.cameras.slice(0,2).map(r=>{const s=st(r.id),pic=artworkUrl(s?.attributes?.entity_picture,c.hass);return html`<button type="button" class="cine-cam" aria-label=${ui.name(r)} @click=${()=>ui.native(r.id)}>${pic?html`<img src=${pic} alt="" referrerpolicy="no-referrer" @error=${ev=>ev.target.remove()}>`:nothing}<span class="cine-live"><i></i>${t.cineLive}</span><strong>${ui.name(r)}</strong></button>`;})}</div></section>`:nothing}
+ </div>
  </div>`;}

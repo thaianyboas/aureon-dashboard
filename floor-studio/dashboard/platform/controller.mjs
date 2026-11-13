@@ -31,7 +31,7 @@ export class PlatformController{
  get areas(){return this.registry?.rows||[];}
  // Owner 2026-11-10: a room without any equipment is left out of the dashboard (rooms page, start page, filters).
  // Technical/diagnostic entities alone do not count. Settings still list every Home Assistant area.
- get rooms(){const off=this.preferences.hiddenRooms;if(this._roomsFor!==this._rows||this._roomsAreas!==this.areas||this._roomsOff!==off){this._roomsFor=this._rows;this._roomsAreas=this.areas;this._roomsOff=off;const used=new Set(this._rows.filter(r=>r.areaId&&this.kind(r)!=='technical').map(r=>r.areaId)),hide=new Set(off||[]);this._roomList=this.areas.filter(a=>used.has(a.id)&&!hide.has(a.id));}return this._roomList;}
+ get rooms(){const off=this.preferences.hiddenRooms;if(this._roomsFor!==this._rows||this._roomsAreas!==this.areas||this._roomsOff!==off||this._roomNames!==this.preferences.roomNames){this._roomsFor=this._rows;this._roomsAreas=this.areas;this._roomsOff=off;this._roomNames=this.preferences.roomNames;const used=new Set(this._rows.filter(r=>r.areaId&&this.kind(r)!=='technical').map(r=>r.areaId)),hide=new Set(off||[]);this._roomList=this.areas.filter(a=>used.has(a.id)&&!hide.has(a.id)).map(a=>this._roomNames[a.id]?{...a,name:this._roomNames[a.id]}:a);}return this._roomList;}
  // Owner 2026-11-10: rooms (and "without a room") can be hidden in Settings → Cômodos.
  get showNoRoom(){return !(this.preferences.hiddenRooms||[]).includes('__no_area');}
  // Dreame robots (integrations/dreame.mjs): only visible entities; a call is sent only after a tap, only to a Dreame entity

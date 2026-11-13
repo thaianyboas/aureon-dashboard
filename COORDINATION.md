@@ -1355,3 +1355,11 @@ The Music browser suite passed again with that label and native transfer.
   turns the speaker cards themselves into a radio choice ("Remover padrão" next to "Pronto"); the chip row and the
   "Padrão ·" subtitle are gone. "Pausar todos / Atualizar / Ocultar" (was "Escolher") form one capsule toolbar with
   icons (`refresh`, `eye`, `check` added to the icon paths).
+
+### Codex batch 2026-11-13 — Forest Luxe · Botanical Home candidate
+
+- Based on Dashboard `2c3e485` and integration `d329d16`. Source-only worktree pending acceptance. Existing HACS distribution and rollback untouched.
+- Home composition uses native Floor Studio or the summary tiles, with shared music, room cards, weather, waste, agenda, people and vacuum. The sidebar now exposes Devices instead of Rooms. Room routes remain available from Home. Personal preferences store the Home plan choice and room aliases; Floor Studio still manages plan data.
+- Local build, 856 JS/TS tests, fidelity audit, browser suites and HACS source/distribution checks passed. Botanical browser exercise uses the compiled renderer and synthetic HA data at 1440, 1280, 820 and 390 px. Browser reload restores selection. Real HA restart, HACS upgrade of this candidate, and physical iSG acceptance remain pending. Do not promote dist until the pending release checks are resolved.
+
+- Owner approved publishing the candidate for testing in her own HA. Dashboard preview `0.29.0-test.4` packages the two layouts in dist. The physical iSG and actual installation remain owner validation. Integration pin unchanged.

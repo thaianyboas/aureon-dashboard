@@ -1,5 +1,7 @@
 # AUREON Dashboard
 
+**Prévia HACS 0.29.0-test.4.** Selecione Forest Luxe · Botanical em Configurações → Aparência. Alterne em Configurações → Página Início → Exibir planta 3D. A versão anterior pode ser recuperada pelo commit `2c3e485`, e a versão estável continua em `rollback/v0.28.0/`.
+
 **Owner test build 0.29.0-test.3 (2026-11-03).** At the owner's request the HACS distribution in `dist/` now carries the current AUREON platform build for testing in her own Home Assistant. The compact settings and visual theme gallery have owner approval; this remains an owner test build. It needs the matching NeonPlan3D AUREON integration from `thaianyboas/aureon-integration` (same `neonplan3d` domain; replaces the official integration, keeps its storage). The previous stable v0.28.0 file is kept in `rollback/v0.28.0/`. See [OWNER_TEST_2026-11-01.md](OWNER_TEST_2026-11-01.md).
 
 ## Balance and personal cards — 2026-11-02

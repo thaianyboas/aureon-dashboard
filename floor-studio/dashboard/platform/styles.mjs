@@ -443,4 +443,63 @@ export const platformStyles=`
 .cal-waste .card{margin:0}
 @media(max-width:900px){.cal-layout{grid-template-columns:1fr}.cal-side{position:static;order:-1}.cal-next{flex:1 1 100%}}
 @media(max-width:600px){.cal-event{grid-template-columns:56px 3px minmax(0,1fr);gap:12px;padding:12px 4px}.cal-day-name{font-size:22px}.cal-seg{width:100%;justify-content:space-between}.cal-seg button{padding:8px 10px}}
+
+/* Início shares a single composition. The native plan is mounted only in the 3D version. */
+[data-platform-page="home"]:has(.aureon-home){margin-top:8px}
+[data-platform-page="home"]:has(.aureon-home)>.layout-bar{margin-bottom:0}
+.aureon-home{--home-gap:clamp(12px,1.25vw,22px);display:grid;gap:var(--home-gap);padding:clamp(10px,1.4vw,22px);min-width:0;container:home/inline-size}
+.aureon-home .home-greeting{display:flex;flex-direction:row;align-items:center;gap:18px;min-width:0;animation:none}
+.aureon-home .home-greeting h1{font:500 clamp(28px,3.8vw,60px)/1.1 Georgia,serif;overflow-wrap:anywhere}
+.aureon-home .home-greeting h1 em{font-style:normal}
+.home-greeting .cine-avatar{width:clamp(52px,6vw,98px);height:auto;aspect-ratio:1;flex:none;border:1px solid var(--p-accent)}
+.home-date{display:block;margin-top:6px;color:var(--p-muted);font-size:clamp(12px,1.25vw,16px)}
+.home-composition{display:grid;grid-template-columns:minmax(0,2.55fr) minmax(245px,1fr);gap:var(--home-gap);align-items:start}
+.home-primary,.home-rail{display:grid;gap:var(--home-gap);min-width:0}
+.aureon-home.without-plan .home-primary{padding-top:clamp(28px,9vw,144px)}
+.aureon-home.with-plan .cine-plan{height:clamp(340px,calc(100dvh - 490px),510px);margin:0;background:transparent;border-color:transparent;box-shadow:none}
+.aureon-home .cine-now{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.aureon-home .cine-tile{min-width:0;min-height:82px;padding:12px;display:grid;grid-template-columns:auto minmax(0,1fr);align-content:center;align-items:center;gap:4px 8px;text-align:left}.aureon-home .cine-tile .cine-art-slot{grid-row:span 2}.aureon-home .cine-tile .cine-sub{grid-column:2}.aureon-home .cine-sub:empty{display:none}
+.aureon-home .cine-tile .cine-head{font:500 clamp(14px,1.5vw,21px)/1.15 Georgia,serif;padding-right:0;letter-spacing:normal;text-transform:none;overflow-wrap:anywhere}
+.aureon-home .cine-tile .cine-big,.aureon-home .cine-tile .cine-count b{font-size:16px}
+.aureon-home .cine-count{align-items:baseline;gap:5px}
+.aureon-home .cine-hint,.aureon-home .cine-bar{display:none}
+.aureon-home .cine-art-slot{width:36px;height:36px;position:static;transform:none;float:none}
+.aureon-home .cine-art-slot svg{width:36px;height:36px}
+.aureon-home .cine-music{padding:0;background:none;border:0;box-shadow:none}
+.aureon-home .cine-music{min-height:0}
+.home-rooms .cine-rooms{margin-top:4px;grid-template-columns:repeat(auto-fit,minmax(min(100%,115px),1fr))}
+.home-rooms .cine-room{height:clamp(100px,9vw,146px);border-radius:15px}
+.home-rooms .cine-room-text{max-width:100%;overflow-wrap:anywhere}
+.home-widget-link{border:0;background:none;color:inherit;display:flex;align-items:center;gap:10px;text-align:left;padding:0;min-height:44px;width:100%;font:500 20px/1.2 Georgia,serif;cursor:pointer}
+.home-widget-link svg{width:20px;height:20px;color:var(--p-accent);flex:none}
+.home-widget-link>span{margin-left:auto;color:var(--p-accent)}
+.aureon-home .cine-wx{position:static;width:100%;max-width:none;margin:0;padding:15px;text-align:left}
+.aureon-home .cine-wx-temp{font-size:clamp(28px,3vw,46px)}
+.aureon-home .cine-card,.aureon-home .cine-tile,.aureon-home .cine-wx{border-radius:18px;min-width:0;overflow-wrap:anywhere}
+.home-waste-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,72px),1fr));gap:8px}
+.home-waste-item{display:grid;justify-items:center;align-content:start;gap:4px;min-width:0;padding:8px 4px;border:1px solid var(--cine-line);border-radius:12px;text-align:center;font-size:12px}
+.home-waste-item svg{width:32px;height:32px;stroke:var(--waste-color);stroke-width:1.5;fill:color-mix(in srgb,var(--waste-color) 20%,transparent)}
+.home-agenda{padding:10px 16px 16px}
+.home-agenda-day{padding:8px 0;border-top:1px solid var(--cine-line)}
+.home-agenda-day b{color:var(--p-accent);font-size:13px}
+.home-agenda-day ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:5px}
+.home-agenda-day li{display:flex;align-items:baseline;gap:8px;font-size:13px}
+.home-agenda-day li::before{content:'';width:5px;height:5px;background:var(--au-sage);border-radius:50%;flex:none}
+.home-agenda-day time{margin-left:auto;white-space:nowrap}
+.home-bottom{display:flex;flex-wrap:wrap;gap:var(--home-gap)}
+.home-bottom .cine-people{flex:1 1 330px}
+.home-bottom .cine-people-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr))}
+.home-robot{flex:1 1 260px;display:flex;align-items:center;gap:12px;text-align:left;color:inherit;cursor:pointer}
+.home-robot svg{width:58px;height:58px;flex:none}
+.home-robot strong,.home-robot small{display:block}
+.home-robot strong{font:500 21px Georgia,serif}
+.home-robot>span:last-child{margin-left:auto;color:var(--p-accent)}
+.home-extra{gap:var(--home-gap)}
+.home-extra .cine-scenes{flex:1 1 100%}
+.aureon-home.botanical{--cine-line:#d9c6925c;--cine-glass:linear-gradient(145deg,#52604454,#14251bdc 66%,#2f36289e)}
+.aureon-home.botanical .glass:not(.cine-plan){background:var(--cine-glass);border-color:var(--cine-line);box-shadow:inset 0 1px #e3c99423,0 8px 20px #030a064a}
+.aureon-home.botanical .cine-glow{opacity:.45}.aureon-home.botanical .glass{backdrop-filter:none;-webkit-backdrop-filter:none}.home-bottom .cine-person strong{white-space:normal;overflow-wrap:anywhere}
+@container home (max-width:940px){.aureon-home .cine-now{grid-template-columns:repeat(2,minmax(0,1fr))}.aureon-home.without-plan .home-primary{padding-top:clamp(14px,6vw,68px)}}
+@container home (max-width:660px){.home-composition{grid-template-columns:minmax(0,1fr)}.aureon-home.without-plan .home-primary{padding-top:18px}.aureon-home .home-rail{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}}
+@media(prefers-reduced-motion:reduce){.aureon-home *,.aureon-home *::before,.aureon-home *::after{animation:none!important;scroll-behavior:auto!important}}
 `;

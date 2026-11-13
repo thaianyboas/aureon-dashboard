@@ -9,7 +9,7 @@ assert.ok(existsSync(`dist/${h.filename}`));
 execFileSync(process.execPath, ['--check', `dist/${h.filename}`]);
 const digest = createHash('sha256').update(readFileSync(`dist/${h.filename}`)).digest('hex');
 const expected = readFileSync('scripts/stable-dashboard.sha256', 'utf8').trim();
-assert.equal(digest, expected, 'HACS distribution changed without updating scripts/stable-dashboard.sha256 (owner test build 0.29.0-test.3)');
+assert.equal(digest, expected, 'HACS distribution changed without updating scripts/stable-dashboard.sha256 (owner test build 0.29.0-test.4)');
 for (const file of ['announcements', 'window-watch', 'heat-monitor', 'house-answers', 'module-settings']) {
   assert.deepEqual(readFileSync(`floor-studio/module-suite/src/${file}.mjs`), readFileSync(`floor-studio/neonplan3d-main/frontend/src/aureon-modules/${file}.mjs`), `Module source drift: ${file}`);
 }

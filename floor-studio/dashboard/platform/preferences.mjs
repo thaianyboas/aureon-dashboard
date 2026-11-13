@@ -1,6 +1,6 @@
 import {cleanLayouts} from './card-layout-model.mjs';
 import {equipmentKinds} from './discovery.mjs';
-export const defaults=()=>({schema:1,floorLook:'real',language:'auto',appearance:'auto',palette:'forest',accent:'',look:'cinema',home3d:false,density:'compact',hidden:[],labelVisibility:{include:[],exclude:[]},labelKinds:{},equipmentOverrides:{},cardLayouts:{},widgets:{music:true,weather:true,people:true,energy:true,waste:true,security:true},energy:{power:'',total:'',daily:'',weekly:'',monthly:'',yearly:'',tariff:null,currency:'EUR',auto:true},waste:[],hiddenRooms:[],roomFloor:{},roomImages:{},music:{entity:'',appearance:'auto',providers:{},spotcastTargets:[],hiddenSpeakers:[]}});
+export const defaults=()=>({schema:1,floorLook:'real',language:'auto',appearance:'auto',palette:'forest',accent:'',look:'cinema',home3d:false,homePlan:'',roomNames:{},density:'compact',hidden:[],labelVisibility:{include:[],exclude:[]},labelKinds:{},equipmentOverrides:{},cardLayouts:{},widgets:{music:true,weather:true,people:true,energy:true,waste:true,security:true},energy:{power:'',total:'',daily:'',weekly:'',monthly:'',yearly:'',tariff:null,currency:'EUR',auto:true},waste:[],hiddenRooms:[],roomFloor:{},roomImages:{},music:{entity:'',appearance:'auto',providers:{},spotcastTargets:[],hiddenSpeakers:[]}});
 // Room pictures: the owner's own files in Home Assistant (/local/…, media/image proxy) or an https address. Never embedded data.
 export function roomImageUrl(value){if(typeof value!=='string'||value.length>2048)return '';const v=value.trim();if(v==='none'||/^preset:(living|kitchen|dining|bedroom|bathroom|hallway|balcony|entrance|controlroom|pool|office|hobby)$/.test(v))return v;if(/^\/(local|media|api\/image\/serve)\/[^\s"'<>\\]+$/.test(v)&&!v.includes('..'))return v;try{const u=new URL(v);return u.protocol==='https:'&&!u.username&&!u.password?u.href:'';}catch{return '';}}
 const id=value=>typeof value==='string'&&/^[a-z_]+\.[a-z0-9_]+$/.test(value)?value:'';
@@ -24,6 +24,11 @@ export function validatePreferences(raw){
  if(raw.energy){for(const key of ['power','total','daily','weekly','monthly','yearly'])out.energy[key]=id(raw.energy[key]);const rate=Number(raw.energy.tariff);if(raw.energy.tariff!==null&&String(raw.energy.tariff??'').trim()!==''&&Number.isFinite(rate)&&rate>=0&&rate<=10000)out.energy.tariff=rate;if(/^[A-Z]{3}$/.test(raw.energy.currency||''))out.energy.currency=raw.energy.currency;if(typeof raw.energy.auto==='boolean')out.energy.auto=raw.energy.auto;}
  if(Array.isArray(raw.waste))out.waste=[...new Set(raw.waste.map(id).filter(x=>x.startsWith('sensor.')||x.startsWith('calendar.')))].slice(0,30);
  // Rooms the owner does not want on the dashboard (HA area ids, '__no_area' = equipment without a room).
+ if(typeof raw.homePlan==='string'&&/^[a-zA-Z0-9_-]{1,100}$/.test(raw.homePlan))out.homePlan=raw.homePlan;
+ if(raw.roomNames&&typeof raw.roomNames==='object'&&!Array.isArray(raw.roomNames))
+  for(const [area,name] of Object.entries(raw.roomNames).slice(0,200)){
+   if(/^[a-zA-Z0-9_-]{1,100}$/.test(area)&&typeof name==='string'&&name.trim())out.roomNames[area]=name.trim().slice(0,80);
+  }
  if(Array.isArray(raw.hiddenRooms))out.hiddenRooms=[...new Set(raw.hiddenRooms.filter(x=>typeof x==='string'&&/^[a-zA-Z0-9_-]{1,100}$/.test(x)))].slice(0,200);
  if(raw.roomFloor&&typeof raw.roomFloor==='object')for(const [area,floor] of Object.entries(raw.roomFloor).slice(0,200))if(/^[a-zA-Z0-9_-]{1,100}$/.test(area)&&typeof floor==='string'&&floor.length<=100)out.roomFloor[area]=floor;
  if(raw.roomImages&&typeof raw.roomImages==='object'&&!Array.isArray(raw.roomImages))for(const [area,url] of Object.entries(raw.roomImages).slice(0,200)){const clean=roomImageUrl(url);if(/^[a-zA-Z0-9_-]{1,100}$/.test(area)&&clean)out.roomImages[area]=clean;}
