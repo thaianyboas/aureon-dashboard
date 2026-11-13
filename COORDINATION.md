@@ -1300,3 +1300,10 @@ The Music browser suite passed again with that label and native transfer.
   the Echo of that name, or for a speaker group (no serial number) to another Echo with "… auf <group>", phrased in the
   language of the Amazon site (de/pt/es/it/fr/en). Without either integration the message says so and shows Spotify's HTTP status. Codex's b8/b9
   retries are kept unchanged before this step. 35 tests passed; physical check still needs the owner.
+- 2026-11-13 (Music 1.1.0b11, local until approved): with b10 the group played, but pause answered "Spotify returned HTTP
+  502" every time. Player commands now go through `_command`: on 502/503/504 (or a timeout) the playback state is read
+  again and the command counts as done when it took effect; otherwise it is sent once more and a real failure is
+  shown. `_quick` sets the expected state at once and lets a command that takes longer than 2 s finish in the
+  background (later failures are logged and the state refreshed). A non-active speaker known to Alexa (Alexa Media
+  Player entity or Alexa Devices device of that name) is woken by Alexa first instead of after the Web API attempts,
+  which each waited for a gateway timeout. 36 tests passed.
