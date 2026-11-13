@@ -109,7 +109,7 @@ export function homeCinema(ui){const c=ui.c,t=ui.t,p=c.preferences,zone=c.hass?.
  const weather=p.widgets.weather?c.list(['weather'])[0]:null,ws=weather&&st(weather.id);
  const persons=c.list(['person']);
  const own=persons.find(row=>st(row.id)?.attributes?.user_id===c.hass?.user?.id&&c.hass?.user?.id);
- const people=p.widgets.people?persons.filter(row=>row!==own&&!/^isg[ _-]+display(?:[ _-]+max)?$/i.test(ui.name(row).trim())):[];
+ const people=p.widgets.people?persons.filter(row=>!/^isg[ _-]+display(?:[ _-]+max)?$/i.test(ui.name(row).trim())):[];
  const photo=artworkUrl((own&&st(own.id)?.attributes?.entity_picture)||c.hass?.user?.picture,c.hass);
  const botanical=p.appearance==='dark'||(p.appearance==='custom'&&p.palette==='forest-botanical');
  const waste=p.widgets.waste?[...new Map(c.waste.map(x=>[x.type+':'+x.date,x])).values()]:[];
@@ -152,7 +152,7 @@ export function homeCinema(ui){const c=ui.c,t=ui.t,p=c.preferences,zone=c.hass?.
    <button type="button" class="home-widget-link" @click=${()=>ui.nav('Agenda')}>${ui.homeIcon('calendar')}<strong>${t.waste}</strong><span aria-hidden="true">›</span></button>
    ${waste.length?html`<div class="home-waste-grid">${waste.slice(0,3).map(row=>html`<div class="home-waste-item">
     <svg viewBox="0 0 24 24" style=${'--waste-color:'+wasteColour(row.type)} aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M4 7h16M9 7V4h6v3M10 11v6M14 11v6"/></svg>
-    <strong title=${row.type}>${row.type}</strong><small>${when(row)}</small>
+    <strong title=${row.type}>${/gelb|yellow|amarel|verpack/i.test(row.type)?'Gelbe Tonne':/papier|paper|papel|blau/i.test(row.type)?'Papier':/rest|schwarz|black|grau/i.test(row.type)?'Restmüll':row.type}</strong><small>${when(row)}</small>
    </div>`)}</div>`:html`<small class="cine-sub" role="status">${p.waste.some(id=>c.busy.has('calendar:'+id))?t.loading:p.waste.some(id=>c.errors['calendar:'+id])?t.unavailable:t.noData}</small>`}
   </section>`:nothing}
   ${homeAgenda(ui,zone)}
