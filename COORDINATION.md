@@ -1280,3 +1280,7 @@ The Music browser suite passed again with that label and native transfer.
   "choose a speaker" message without any write. Pause with nothing playing (404) is quiet. 33 tests passed (new scenario
   test with phone-paused, idle, sleeping speaker, no speaker). Physical playback still needs the owner's check.
 
+
+### Codex batch 2026-11-13 — Spotify Connect playback recovery
+
+- Music `183d126` publishes preview `1.1.0b8` on master. Playback re-resolves the selected Connect speaker after transfer, retries using its current ID, and plays the track directly if its recent playlist returns 404. Explicit track playback uses the same recovery path. 33 tests passed on HA 2025.4 and 2026.10 with simulated Spotify. Physical Wohnung Musik playback remains pending. Dashboard runtime and Floor Studio were left untouched.
