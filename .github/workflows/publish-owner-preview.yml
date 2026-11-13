@@ -35,6 +35,8 @@ jobs:
       - run: node scripts/check-neonplan-migration-contract.mjs
       - run: node scripts/package-hacs-integration-candidate.mjs
       - run: node scripts/verify-hacs-integration-candidate.mjs
+      - run: pip install -r requirements_test.txt
+        working-directory: floor-studio/neonplan3d-main
       - run: pytest -q
         working-directory: floor-studio/neonplan3d-main
       - name: Promote dashboard preview (not a stable release)
