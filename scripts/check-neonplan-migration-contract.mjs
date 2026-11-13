@@ -37,6 +37,6 @@ assert.equal([...storage.matchAll(/async_remove\(\)/g)].length, 3, 'Store remova
 assert.match(storage, /async def async_remove\(self\) -> None:\n        \"\"\"Remove the plan's stores \(only for a plan whose time in the bin is over\)\.\"\"\"\n        await self\._building_store\.async_remove\(\)\n        await self\._history_store\.async_remove\(\)/, 'Unexpected store removal');
 assert.match(storage, /def _plan_keys\(plan_id: str\) -> tuple\[str, str\]:[\s\S]{0,260}return f"\{STORAGE_KEY_BUILDING\}\.\{plan_id\}", f"\{STORAGE_KEY_HISTORY\}\.\{plan_id\}"/, 'Plan stores must be AUREON keys');
 assert.match(storage, /if await Store\[dict\[str, Any\]\]\(hass, STORAGE_VERSION, key\)\.async_load\(\) is not None:/, 'Existing stores must not be overwritten');
-assert.match(stable, /0\.29\.0-test\.3/, 'Dashboard distribution version unexpectedly changed (owner test build)');
+assert.match(stable, /0\.29\.0-test\.5/, 'Dashboard distribution version unexpectedly changed (owner test build)');
 assert.match(readFileSync('rollback/v0.28.0/aureon-dashboard.js', 'utf8'), /const VERSION = '0\.28\.0'/, 'Rollback copy of v0.28.0 missing');
 console.log('PASS: own integration identity (aureon_floor), storage compatibility, legacy migration and stable dashboard version. Runtime migration remains untested.');
