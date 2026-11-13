@@ -576,4 +576,20 @@ export const platformStyles=`
  .aureon-home.botanical.with-plan .cine-plan{height:clamp(340px,calc(100dvh - 492px),500px)}
  .aureon-home.botanical .home-composition{margin-top:-8px}
 }
+
+/* Botanical fidelity: bundled artwork, legible room names, restrained warm glass. */
+.aureon-home.botanical{position:relative;isolation:isolate;background:radial-gradient(ellipse at 58% 12%,#61724742,transparent 52%),linear-gradient(130deg,#14251c,#0b1a13 75%);border-radius:22px;overflow:hidden}
+.aureon-home.botanical::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(90deg,#0c1c15a0,#0d21135c 58%,#0d1b12a8),var(--botanical-bg);background-size:cover;background-position:center;opacity:.85}
+.aureon-home.botanical::after{content:"";position:absolute;right:0;top:0;width:min(58%,750px);height:clamp(150px,22vw,330px);z-index:-1;pointer-events:none;background:var(--botanical-canopy) top right/contain no-repeat;opacity:.72}
+.aureon-home.botanical .glass:not(.cine-plan),.aureon-home.botanical .cine-tile{background:linear-gradient(145deg,#344738c9,#13241bdc 70%);border:1px solid #c9b67b55;box-shadow:inset 0 1px #f4dfab23,0 12px 26px #0003}
+.aureon-home.botanical .cine-glow{opacity:.06}
+.aureon-home.botanical .home-rooms .cine-rooms{gap:10px}
+.aureon-home.botanical .cine-room-text{display:flex;flex-wrap:nowrap;align-items:center;min-width:0;gap:5px;inset:auto 7px 8px}
+.aureon-home.botanical .cine-room-text>span:last-child{min-width:0}
+.aureon-home.botanical .cine-room-text strong{display:block;font:600 clamp(11px,.95vw,15px)/1.2 system-ui,sans-serif;overflow-wrap:anywhere;hyphens:auto}
+.aureon-home.botanical .cine-room-text small{display:block;font-size:clamp(9px,.7vw,11px);white-space:nowrap}
+.aureon-home.botanical .home-waste-item strong{overflow-wrap:anywhere;word-break:normal;hyphens:auto;font-size:11px}
+.aureon-home.botanical .home-waste-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@container home (min-width:941px){.aureon-home.botanical.without-plan .home-primary{padding-top:clamp(72px,6vw,105px)}}
+@media(prefers-reduced-motion:reduce){.aureon-home.botanical::before,.aureon-home.botanical::after{animation:none}}
 `;
