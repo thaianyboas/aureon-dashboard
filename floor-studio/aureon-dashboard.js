@@ -23,6 +23,18 @@
     catch (_) { return {}; }
   }
   function storeTheme(data) { try { localStorage.setItem(THEME_KEY,JSON.stringify(data)); } catch (_) {} }
+  // Owner 2026-11-13 ("ele nao fica onde eu parei"): Home Assistant (and the phone app) rebuilds a dashboard that was in
+  // the background for a while. The open page and its scroll position are kept per dashboard path in this browser, so
+  // the rebuilt dashboard opens where it was left instead of at Início. Only page names and a number are stored.
+  const PAGE_KEY = 'aureon.page.v1';
+  function pageStoreKey() { try { return location.pathname || '/'; } catch (_) { return '/'; } }
+  function getSavedPage() {
+    try { const data=JSON.parse(localStorage.getItem(PAGE_KEY)||'{}'); const entry=data&&typeof data==='object'?data[pageStoreKey()]:null; return entry&&typeof entry==='object'?entry:null; }
+    catch (_) { return null; }
+  }
+  function storePage(entry) {
+    try { const data=JSON.parse(localStorage.getItem(PAGE_KEY)||'{}'); const next=data&&typeof data==='object'&&!Array.isArray(data)?data:{}; next[pageStoreKey()]=entry; localStorage.setItem(PAGE_KEY,JSON.stringify(next)); } catch (_) {}
+  }
   // Own accent colour chosen by the owner: applied on top of any theme (also Home Assistant's own theme).
   function themeTokens(selection, hass) {
     const tokens=baseThemeTokens(selection, hass), accent=clampHex(selection?.accent);
@@ -121,6 +133,8 @@
       super();
       this.attachShadow({ mode: 'open' });
       this._page = 'Início';
+      const saved=getSavedPage();
+      if(saved&&typeof saved.page==='string'&&saved.page!=='Planta'&&saved.page!==EDIT_ONLY_IN_HA&&PAGES.some(([,name])=>name===saved.page)){this._page=saved.page;this._restoreScroll=Number(saved.scroll)>0?Math.round(Number(saved.scroll)):0;}
       this._configured = false;
       this._theme = getSavedTheme();
       this._registry = null;
@@ -263,7 +277,7 @@
       // the plan opens in the Home Assistant panel "AUREON Floor Studio" (one place for editing)
       if (name==='Planta'||name===EDIT_ONLY_IN_HA){history.pushState(null,'','/aureon-floor-studio');window.dispatchEvent(new CustomEvent('location-changed',{detail:{replace:false}}));return;}
       if (!PAGES.some(([,page])=>page===name)) return;
-      this._page=name;
+      this._page=name;this._restoreScroll=0;storePage({page:name,scroll:0});
       const main=this.shadowRoot.querySelector('main'),wrap=this.shadowRoot.querySelector('.wrap');
       if (!main||!wrap) { this._render();return; }
       main.scrollTop=0;
@@ -286,6 +300,15 @@
       if(!this._platformSection(main,make)){if(name==='Medien')this._musicSection(main,make,false);else if(name==='Planta')this._floorSection(main,make);}
       // the active page comes before the hidden home page in the document (focus order, first match)
       if(keep)for(const child of [...main.childNodes])if(child!==header&&child!==keep&&keep.compareDocumentPosition(child)&Node.DOCUMENT_POSITION_FOLLOWING)main.insertBefore(child,keep);
+    }
+    // Remembers the scroll position of the open page and, once after a rebuild, scrolls back to it when the content
+    // has grown tall enough (platform pages render a frame or two later).
+    _watchScroll(main) {
+      main.addEventListener('scroll',()=>{clearTimeout(this._scrollSaveTimer);this._scrollSaveTimer=setTimeout(()=>{if(main.isConnected)storePage({page:this._page,scroll:Math.round(main.scrollTop)});},250);},{passive:true});
+      const target=this._restoreScroll;this._restoreScroll=0;
+      if(!(target>0))return;
+      let tries=0;const step=()=>{if(!main.isConnected||++tries>40)return;if(main.scrollHeight-main.clientHeight>=target){main.scrollTop=target;return;}requestAnimationFrame(step);};
+      requestAnimationFrame(step);
     }
     _platformSection(target, make) {
       const Page=customElements.get('aureon-platform');
@@ -472,7 +495,7 @@
       this._deviceAvailability='all';
       this._deviceSearch='';
       this._deviceLimit=80;
-      this._page='Geräte';
+      this._page='Geräte';this._restoreScroll=0;storePage({page:'Geräte',scroll:0});
       try { this._render(); }
       catch(error) { console.error('[AUREON] Room navigation failed',error); }
     }
@@ -1635,7 +1658,7 @@
        if(person){const Page=customElements.get('aureon-platform'),labels=Page?.labels?.(this._platformController?.language||h?.locale?.language||h?.language||'en')||{};const box=make('div','au-rail-person');const pic=person.attributes.entity_picture;
         if(typeof pic==='string'&&pic.startsWith('/')&&!pic.startsWith('//')){const img=make('img');img.src=h.hassUrl?h.hassUrl(pic):pic;img.alt='';box.append(img);}else box.append(make('span','au-rail-initial',(person.attributes.friendly_name||'?').trim().charAt(0).toUpperCase()));
         const home=person.state==='home';box.classList.toggle('home',home);box.append(make('strong','',person.attributes.friendly_name||person.entity_id),make('small','',home?(labels.homeState||'Home'):(labels.away||person.state)));nav.append(box);}}
-      const main = make('main');main.dataset.auPage=customElements.get('aureon-platform')?.routeNames?.[this._page]||'';
+      const main = make('main');this._watchScroll(main);main.dataset.auPage=customElements.get('aureon-platform')?.routeNames?.[this._page]||'';
       const header = make('header');header.hidden=['Geräte','Planta'].includes(this._page)||(['Räume','Sicherheit','Energie','Einstellungen','Agenda','Staubsauger'].includes(this._page)&&this._platformController?.preferences?.look!=='classic');
       const heading = make('div');
       heading.append(make('div','small','AUREON / '+(this._page==='Einstellungen'?(customElements.get('aureon-platform')?.labels(this._platformController?.language)?.settings||'Settings').toUpperCase():'CONTROL CENTER')));

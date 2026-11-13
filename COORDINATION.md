@@ -1314,3 +1314,14 @@ The Music browser suite passed again with that label and native transfer.
   (no GET player/devices first) and `_quick` waits 0.8 s instead of 2 s before letting a slow speaker finish in the
   background. Each command is followed by refreshes at 1, 2.5 and 5 s (`_refreshed`), and the coordinator polls every 5 s
   while playing (15 s otherwise).
+
+### Claude batch 2026-11-13 — Dashboard keeps the open page (local until the owner approves)
+
+- Owner: "se eu saio da pagina do Aureon ele carrega dnv voltando para o inicio dps de um tempo". Home Assistant and
+  the Companion app rebuild a Lovelace dashboard that sat in the background (WebView discarded, reconnect, another HA
+  panel opened), and the new `aureon-dashboard` element always started at Início. `floor-studio/aureon-dashboard.js`
+  now stores the open page and the scroll position of `main` in localStorage `aureon.page.v1`, keyed by
+  `location.pathname` (page name + a number only, try/catch). The constructor restores it when the name is in `PAGES`
+  and is not the Floor Studio link; scroll is restored once when the content is tall enough (up to 40 frames).
+  Internal sub-state of platform pages (an open room sheet, settings tab) is not restored.
+- New `scripts/test-page-memory-browser.mjs` (part of `npm run test:browser`). All dashboard gates pass; no HA test.
