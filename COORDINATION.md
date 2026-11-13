@@ -1288,3 +1288,15 @@ The Music browser suite passed again with that label and native transfer.
 ### Codex batch 2026-11-13 — Spotify playback gateway failure
 
 - Music `2e249f5` publishes `1.1.0b9`. On 502/503/504 the native player reads Spotify state before retrying once on the same resolved destination. Regression checks cover both a failed write and playback that started despite a 502. All 33 tests passed on both HA test environments. Physical playback on Wohnung Musik remains unverified.
+
+### Claude batch 2026-11-13 — Music 1.1.0b10: Amazon speakers (local until the owner approves)
+
+- Owner (b9 still failed): "Spotify could not start playback on Wohnung Musik … corrija esse problema de vez".
+  Wohnung Musik is an Alexa group; Amazon speakers often refuse Spotify Web API starts until Alexa has started Spotify
+  on them. When every Web API attempt fails, `_wake_with_alexa` looks for an Alexa Media Player entity of the same
+  name (entity registry, platform `alexa_media`), calls `media_player.play_media` with type `SPOTIFY` and the song as a
+  search phrase ("Title Artist"), waits up to 12 s for the Connect device to turn active, then plays the exact song in
+  its playlist on it. The owner has Home Assistant's Alexa Devices instead: then `alexa_devices.send_text_command` goes to
+  the Echo of that name, or for a speaker group (no serial number) to another Echo with "… auf <group>", phrased in the
+  language of the Amazon site (de/pt/es/it/fr/en). Without either integration the message says so and shows Spotify's HTTP status. Codex's b8/b9
+  retries are kept unchanged before this step. 35 tests passed; physical check still needs the owner.
