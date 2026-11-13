@@ -176,3 +176,16 @@ test('play with no active Spotify speaker wakes the chosen speaker; pause then d
  calls.length=0;assert.equal(await c.command('pause'),true);assert.equal(c.error,'');
  hass.callService=async()=>{throw new Error('Not permitted');};assert.equal(await c.command('play'),false);
 });
+test('play and pause show at once and do not hold the busy spinner (owner 2026-11-13)',async()=>{
+ const {c,hass,state}=fixture();state.state='playing';
+ let finish;hass.callService=()=>new Promise(r=>{finish=r;});
+ const job=c.command('pause');
+ assert.equal(c.isPlaying,false,'the button shows paused at once');
+ assert.equal(c.pending.has('transport'),false,'no spinner on the transport buttons');
+ assert.equal(await c.command('play'),false,'a second press while the first is on its way is ignored');
+ assert.equal(c.isPlaying,false);
+ finish();assert.equal(await job,true);
+ state.state='paused';assert.equal(c.isPlaying,false);assert.equal(c.optimistic,null);
+ hass.callService=async()=>{throw new Error('Spotify denied this action');};
+ assert.equal(await c.command('play'),false);assert.equal(c.isPlaying,false,'a failed press shows the real state again');
+});

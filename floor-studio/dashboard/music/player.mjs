@@ -31,7 +31,7 @@ export class AureonMusicPlayer extends LitElement {
   onExpand(){if(this.compact){this.controller.view='player';this.controller.emit();this.dispatchEvent(new CustomEvent('aureon-music-open',{bubbles:true,composed:true}));return;}if(document.fullscreenElement===this)this.ownerDocument.exitFullscreen?.().catch(()=>{});else this.requestFullscreen?.().catch(()=>{});}
   player(){
     const c=this.controller,t=this.t,state=c.state,a=state?.attributes || {},p=position(state),art=artworkUrl(a.entity_picture_local || a.entity_picture || a.sp_nowplaying_image_url,c.hass);
-    const playing=state?.state==='playing',busy=c.pending.has('transport'),live=c.ready;
+    const playing=c.isPlaying,busy=c.pending.has('transport'),live=c.ready;
     const title=!state?t.none:!live?t.unavailable:a.media_title || t.idle;
     const favorite=c.advanced('check_track_favorites')&&c.advanced('save_track_favorites')&&c.advanced('remove_track_favorites')&&!!trackId(state);
     return html`<section class="stage" aria-label=${t.player}>
@@ -110,7 +110,7 @@ export class AureonMusicPlayer extends LitElement {
   volumeControl(a,busy,cls){const c=this.controller,t=this.t,v=Number(a.volume_level)||0;return html`<label class=${cls}>${icon('volume')}<input type="range" aria-label=${t.volume} min="0" max="1" step=".01" .value=${String(v)} style=${`--progress:${v*100}%`} ?disabled=${!c.can('volume')||busy} @change=${e=>c.command('volume',e.target.value)}><span>${c.can('volume')?Math.round(v*100):'–'}</span></label>`;}
   favoriteButton(cls){const c=this.controller,t=this.t;return html`<button type="button" class=${`circle favorite ${cls} ${c.favorite===true?'liked':''}`} data-action="favorite" title=${!this.favoriteAvailable()?t.needsSpotifyShort:c.favoriteUnknown?t.favoriteNoStatus:t.favoriteUnknown} aria-label=${t.favoriteUnknown} aria-pressed=${c.favorite===null?'mixed':String(c.favorite)} ?disabled=${!this.favoriteAvailable() || c.pending.has('favorite')} @click=${()=>c.toggleFavorite()}>${icon('heart')}</button>`;}
   nowPlaying(){const c=this.controller,t=this.t,state=c.state,a=state?.attributes || {},p=position(state),art=artworkUrl(a.entity_picture_local || a.entity_picture || a.sp_nowplaying_image_url,c.hass);
-    const playing=state?.state==='playing',busy=c.pending.has('transport'),live=c.ready,title=!state?t.none:!live?t.unavailable:a.media_title || t.idle;
+    const playing=c.isPlaying,busy=c.pending.has('transport'),live=c.ready,title=!state?t.none:!live?t.unavailable:a.media_title || t.idle;
     const dest=state?(c.spotify?(a.source||a.sp_device_name||t.chooseSpeaker):(a.source||a.sp_device_name||a.friendly_name||c.entityId)):'';
     return html`<section class="now" aria-label=${t.player}>
       <div class="cover">${art?html`<img src=${art} alt=${t.artwork} referrerpolicy="no-referrer" @load=${e=>{e.target.hidden=false;}} @error=${e=>{e.target.hidden=true;}}>`:html`<span class="placeholder" aria-hidden="true">${icon('album')}</span>`}
@@ -152,7 +152,7 @@ export class AureonMusicPlayer extends LitElement {
   // Spotify Connect devices (transfer) when available; otherwise reveal the Home Assistant players list.
   showOutputs(){const c=this.controller;if(c.advanced('get_spotify_connect_devices')&&!c.devices.length){c.loadDevices();return;}this.navigate('settings');this.updateComplete.then(()=>this.renderRoot.querySelector('.speakers-block')?.scrollIntoView({block:'nearest',behavior:'smooth'}));}
   pauseAllButton(){const c=this.controller,t=this.t;return html`<button type="button" class="link" data-action="pause-all" ?disabled=${!c.players.some(pl=>pl.state==='playing')||c.pending.has('pause-all')} @click=${()=>c.pauseAll()}>${icon('pause')}${t.pauseAll}</button>`;}
-  bar(){const c=this.controller,t=this.t,state=c.state,a=state?.attributes||{},p=position(state),art=artworkUrl(a.entity_picture_local || a.entity_picture || a.sp_nowplaying_image_url,c.hass),playing=state?.state==='playing',busy=c.pending.has('transport');
+  bar(){const c=this.controller,t=this.t,state=c.state,a=state?.attributes||{},p=position(state),art=artworkUrl(a.entity_picture_local || a.entity_picture || a.sp_nowplaying_image_url,c.hass),playing=c.isPlaying,busy=c.pending.has('transport');
     if(!relevantMedia(state))return nothing;
     return html`<section class="bar" aria-label=${t.player}><div class="bar-track"><span class="bar-art">${art?html`<img src=${art} alt="" referrerpolicy="no-referrer">`:icon('album')}</span><span class="bar-meta"><strong>${a.media_title||t.idle}</strong><small>${a.media_artist||''}</small></span>${this.favoriteButton('bar-fav')}</div>
       <div class="bar-center">${this.transport(a,busy,playing)}${this.seek(p,busy,'progress bar-progress')}</div>

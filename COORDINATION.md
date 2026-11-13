@@ -1307,3 +1307,10 @@ The Music browser suite passed again with that label and native transfer.
   background (later failures are logged and the state refreshed). A non-active speaker known to Alexa (Alexa Media
   Player entity or Alexa Devices device of that name) is woken by Alexa first instead of after the Web API attempts,
   which each waited for a gateway timeout. 36 tests passed.
+- 2026-11-13 (Music 1.1.0b12 + dashboard, local until approved): b11 worked but play/pause "fica carregando por um bom
+  tempo". Dashboard: play/pause set an optimistic state (`controller.isPlaying`, cleared when HA reports it, on failure
+  or after 10 s) and run under their own pending key, so the transport buttons show no spinner; a second press while
+  one is on its way is ignored. Music: `async_media_play` resumes an active session straight from coordinator data
+  (no GET player/devices first) and `_quick` waits 0.8 s instead of 2 s before letting a slow speaker finish in the
+  background. Each command is followed by refreshes at 1, 2.5 and 5 s (`_refreshed`), and the coordinator polls every 5 s
+  while playing (15 s otherwise).

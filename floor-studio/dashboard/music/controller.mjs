@@ -102,11 +102,17 @@ export class MusicController {
   invalidate(){this.epoch++;this.error='';this.results=[];this.devices=[];this.favorite=null;this.pending.clear();this._track='';this.pageIndex=0;this.hasNext=false;this.categoryId='';this._categories=[];this.shelves={};this.shelfSources={};this.shelvesRequested=false;this.native={kind:'',stack:[],items:[],title:''};this.ownPlaylists=null;this.addedTo='';}
   reset(){this.entityId='';this.view='player';this.query='';this.invalidate();}
   select(id){if(!this.players.some(p=>p.entity_id===id))return false;this.entityId=id;this.invalidate();this.emit();return true;}
+  /** Playing as the buttons should show it: what was just pressed, until Home Assistant reports it (or 10 s). */
+  get isPlaying(){
+    const o=this.optimistic,actual=this.state?.state==='playing';
+    if(!o||o.entity!==this.entityId||Date.now()>o.until||o.playing===actual){this.optimistic=null;return actual;}
+    return o.playing;
+  }
   async request(key,fn){
     if(this.pending.has(key))return false;
     const epoch=this.epoch,entity=this.entityId;this.pending.add(key);this.error='';this.emit();
     const current=()=>this.epoch===epoch && this.entityId===entity;
-    try {const result=await fn(current);return current()?result:false;}catch(error){if(current())this.error=String(error?.message || error || 'Service error');return false;}
+    try {const result=await fn(current);return current()?result:false;}catch(error){if(key==='playpause')this.optimistic=null;if(current())this.error=String(error?.message || error || 'Service error');return false;}
     finally{if(current()){this.pending.delete(key);this.emit();}}
   }
   async callSpotify(name,data={},response=false){
@@ -130,7 +136,12 @@ export class MusicController {
     const spec=specs[action];if(!spec || !this.can(spec[0]) || !this.service('media_player',spec[1]))return false;
     if(['volume','seek'].includes(action)&&(!Number.isFinite(Number(value))||(action==='seek'&&!position(this.state).duration)))return false;
     const entity=this.entityId;
-    return this.request('transport',async()=>{
+    // Owner 2026-11-13 ("fica carregando por um bom tempo"): play and pause change the button at once and run
+    // without the busy spinner; Amazon speakers can keep Spotify's answer waiting for seconds.
+    const toggle=action==='play'||action==='pause';
+    if(toggle&&this.pending.has('playpause'))return false;
+    if(toggle){this.optimistic={playing:action==='play',entity,until:Date.now()+10000};this.emit();}
+    return this.request(toggle?'playpause':'transport',async()=>{
       try{await this.hass.callService('media_player',spec[1],{entity_id:entity,...spec[2]});}
       catch(error){
         // Owner 2026-11-12: "eu aperto play ou pausa e sempre dá esse erro" – Spotify answers 404 when no speaker is
