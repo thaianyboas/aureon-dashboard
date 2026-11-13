@@ -1351,3 +1351,7 @@ The Music browser suite passed again with that label and native transfer.
   `controller.startingUri` marks only the tapped tile (pulsing outline). `BUILD_ID` is now `AUREON-20261113-MUSICA`
   so the owner can confirm in the footer that the new file loaded. Music `1.1.0b14`: `async_play_spotify` on an
   already playing speaker goes through `_quick` (optimistic PLAYING, 0.8 s, then background).
+- 2026-11-13 (published with owner approval): no repeated speaker names when choosing the standard speaker — "Trocar"
+  turns the speaker cards themselves into a radio choice ("Remover padrão" next to "Pronto"); the chip row and the
+  "Padrão ·" subtitle are gone. "Pausar todos / Atualizar / Ocultar" (was "Escolher") form one capsule toolbar with
+  icons (`refresh`, `eye`, `check` added to the icon paths).

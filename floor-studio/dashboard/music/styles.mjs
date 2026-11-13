@@ -159,4 +159,20 @@ export const styles=`
 .starting{position:relative}.starting::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 2px var(--m-accent,#d9b77e);animation:m-starting 1.1s ease-in-out infinite;pointer-events:none}
 @keyframes m-starting{50%{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--m-accent,#d9b77e) 25%,transparent)}}
 @media(prefers-reduced-motion:reduce){.starting::after{animation:none}}
+
+.default-actions{display:flex;align-items:center;gap:6px;flex:none}.default-actions .link{font-size:12.5px;padding:6px 10px;color:var(--m-muted);border-radius:999px}
+.music-settings .account.picking .radio{flex:none;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--m-muted);font-style:normal}.music-settings .account.picking.active .radio{border:6px solid var(--m-accent,#d9b77e)}.music-settings .account.picking small{color:var(--m-muted)}.music-settings .account.picking.active small{color:var(--m-accent,#d9b77e)}
+@media(max-width:620px){.default-actions{margin-left:60px}.default-card .default-change{margin-left:0}}
+
+/* the speaker tools as one quiet capsule (owner 2026-11-13: "os botoes atualizar, esconder e pausar todos nao estao bonitos") */
+.music-settings .set-actions{gap:0;padding:3px;border:1px solid var(--m-line);border-radius:999px;background:color-mix(in srgb,var(--m-text) 3%,transparent);flex-wrap:nowrap}
+.music-settings .set-actions>button,.music-settings .set-actions .link{display:flex;align-items:center;gap:7px;min-height:32px;padding:0 13px;border-radius:999px;font-size:12.5px;color:var(--m-text);opacity:.82}
+.music-settings .set-actions>button+button{position:relative}.music-settings .set-actions>button+button::before{content:'';position:absolute;left:0;top:9px;bottom:9px;width:1px;background:var(--m-line)}
+.music-settings .set-actions>button:hover:not(:disabled){opacity:1;background:color-mix(in srgb,var(--m-text) 7%,transparent)}
+.music-settings .set-actions>button:hover:not(:disabled)::before,.music-settings .set-actions>button:hover+button::before{opacity:0}
+.music-settings .set-actions>button:disabled{opacity:.38}
+.music-settings .set-actions svg{width:15px;height:15px;stroke-width:1.9}
+.music-settings .set-actions .link.strong{color:var(--m-accent,#d9b77e);opacity:1}
+.music-settings .set-row{align-items:center}
+@media(max-width:620px){.music-settings .set-actions{width:auto;margin-left:0}.music-settings .set-actions>button,.music-settings .set-actions .link{padding:0 10px;font-size:12px;gap:6px}}
 `;
