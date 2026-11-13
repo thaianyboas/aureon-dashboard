@@ -1284,3 +1284,7 @@ The Music browser suite passed again with that label and native transfer.
 ### Codex batch 2026-11-13 — Spotify Connect playback recovery
 
 - Music `183d126` publishes preview `1.1.0b8` on master. Playback re-resolves the selected Connect speaker after transfer, retries using its current ID, and plays the track directly if its recent playlist returns 404. Explicit track playback uses the same recovery path. 33 tests passed on HA 2025.4 and 2026.10 with simulated Spotify. Physical Wohnung Musik playback remains pending. Dashboard runtime and Floor Studio were left untouched.
+
+### Codex batch 2026-11-13 — Spotify playback gateway failure
+
+- Music `2e249f5` publishes `1.1.0b9`. On 502/503/504 the native player reads Spotify state before retrying once on the same resolved destination. Regression checks cover both a failed write and playback that started despite a 502. All 33 tests passed on both HA test environments. Physical playback on Wohnung Musik remains unverified.
