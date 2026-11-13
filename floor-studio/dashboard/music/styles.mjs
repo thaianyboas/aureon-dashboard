@@ -122,4 +122,31 @@ export const styles=`
 .mos-item.hero .mos-text{padding:40px 16px 14px}.mos-item.hero strong{font:400 22px Georgia,'Times New Roman',serif;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.mos-item.hero small{font-size:12px}
 @media(max-width:900px){.shelf-list{grid-template-columns:repeat(2,minmax(0,1fr))}.shelf-mosaic{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:110px}.mos-item.hero{grid-column:1/-1;grid-row:span 2}}
 @media(max-width:620px){.shelf-list{grid-template-columns:1fr}.shelf-list .row-item:nth-child(n+6){display:none}.shelf-mosaic{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Music settings (owner 2026-11-13: "esse design ali das configuracoes ta tao feio, tem letras sendo cortadas"): the
+   panel gets its own inner margins, sections are named in sentence case, account and speakers are roomy rows whose
+   names are never cut, and the standard-speaker choice sits at the end of each row. */
+.pane.music-settings{display:grid;gap:26px;padding:28px 30px 22px;border-radius:24px}
+.pane.music-settings>h2{font:400 26px/1.2 Georgia,'Times New Roman',serif;margin:0;letter-spacing:.005em}
+.music-settings .set-block{gap:12px}
+.music-settings .set-row{flex-wrap:wrap;row-gap:6px;align-items:baseline}
+.music-settings .set-title{font-size:13px;font-weight:600;letter-spacing:.01em;text-transform:none;color:var(--m-text)}
+.music-settings .muted-count{font-weight:400;color:var(--m-muted)}
+.music-settings .set-actions{gap:2px;flex-wrap:wrap}
+.music-settings .set-actions .link,.music-settings .set-actions button{font-size:12.5px;padding:6px 10px;border-radius:999px;min-height:30px;color:var(--m-muted)}
+.music-settings .set-actions .link:hover:not(:disabled){color:var(--m-text);background:color-mix(in srgb,var(--m-text) 6%,transparent)}
+.music-settings .set-actions .link.strong{color:var(--m-accent,#d9b77e)}
+.music-settings .account-list{grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:10px}
+.music-settings .account{gap:14px;padding:15px 18px;border-radius:16px;min-height:72px;background:color-mix(in srgb,var(--m-text) 3%,transparent)}
+.music-settings .account:hover:not(:disabled){border-color:color-mix(in srgb,var(--m-accent,#d9b77e) 45%,var(--m-line))}
+.music-settings .account.active{background:color-mix(in srgb,var(--m-accent,#d9b77e) 9%,transparent)}
+.music-settings .account-text{gap:3px}
+.music-settings .account-text strong{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.25}
+.music-settings .account-text small{line-height:1.35}
+.music-settings .speaker-slot>.account{padding-right:140px}
+.music-settings .default-pill{right:16px;padding:6px 12px;font-size:12px}
+.music-settings .hint{font-size:12.5px;line-height:1.6}
+.music-settings .set-foot{padding-top:2px}
+.music-settings .set-foot .chip{min-height:38px;padding:8px 18px}
+@media(max-width:620px){.music-settings .set-actions{width:100%;margin-left:-8px;gap:0}.music-settings .set-actions .link,.music-settings .set-actions button{padding:6px 8px;font-size:12px}.pane.music-settings{padding:22px 18px 18px;gap:22px}.pane.music-settings>h2{font-size:23px}.music-settings .account{padding:14px 15px}.music-settings .speaker-slot>.account{padding-right:15px;padding-bottom:50px}.music-settings .default-pill{top:auto;bottom:12px;transform:none;left:69px;right:auto}}
 `;

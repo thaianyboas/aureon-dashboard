@@ -1339,3 +1339,8 @@ The Music browser suite passed again with that label and native transfer.
   the destination chip falls back to the standard speaker. A play/pause press while the previous one is on its way
   now changes the button and is sent afterwards (last wish wins) instead of being ignored. No HA test with the
   owner's speakers.
+- 2026-11-13 (dashboard, local until approved): owner found the music settings "tão feio, tem letras sendo cortadas".
+  `styles.mjs` ends with a `.music-settings` block: inner padding for the pane, serif title, sentence-case section
+  names, roomier account/speaker cards (min 330 px, names wrap instead of being cut), the standard-speaker pill at
+  the end of each card (below the name on phones), action links as quiet pills. Checked with screenshots at
+  1406/1100/390 px in the dark and Pearl palettes; no HA test.
