@@ -301,7 +301,14 @@ export class MusicController {
       if(current()&&trackId(this.state)===id){this.favorite=!saved;this._liked??=new Set();saved?this._liked.delete(id):this._liked.add(id);}return true;
     });
   }
-  async playItem(item,{spotcastTarget=''}={}){
+  // Owner 2026-11-13 ("continua aparecendo carregando por um bom tempo"): while a song starts, only the tapped tile
+  // shows it (startingUri); the other tiles stay as they are instead of all dimming until the speaker answers.
+  async playItem(item,options){
+    if(this.pending.has('play-item'))return false;
+    this.startingUri=typeof item?.uri==='string'?item.uri:'';this.emit();
+    try{return await this._playItem(item,options);}finally{this.startingUri='';this.emit();}
+  }
+  async _playItem(item,{spotcastTarget=''}={}){
     if(!item || !/^spotify:(track|album|playlist):[A-Za-z0-9]+$/.test(item.uri || ''))return false;
     const track=item.uri.startsWith('spotify:track:');
     const name=track?'player_media_play_tracks':'player_media_play_context';

@@ -143,10 +143,20 @@ export const styles=`
 .music-settings .account-text{gap:3px}
 .music-settings .account-text strong{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.25}
 .music-settings .account-text small{line-height:1.35}
-.music-settings .speaker-slot>.account{padding-right:140px}
-.music-settings .default-pill{right:16px;padding:6px 12px;font-size:12px}
+.music-settings .speaker-slot>.account,.music-settings .speaker-slot>.account.active{padding-right:18px}
 .music-settings .hint{font-size:12.5px;line-height:1.6}
 .music-settings .set-foot{padding-top:2px}
 .music-settings .set-foot .chip{min-height:38px;padding:8px 18px}
-@media(max-width:620px){.music-settings .set-actions{width:100%;margin-left:-8px;gap:0}.music-settings .set-actions .link,.music-settings .set-actions button{padding:6px 8px;font-size:12px}.pane.music-settings{padding:22px 18px 18px;gap:22px}.pane.music-settings>h2{font-size:23px}.music-settings .account{padding:14px 15px}.music-settings .speaker-slot>.account{padding-right:15px;padding-bottom:50px}.music-settings .default-pill{top:auto;bottom:12px;transform:none;left:69px;right:auto}}
+@media(max-width:620px){.music-settings .set-actions{width:100%;margin-left:-8px;gap:0}.music-settings .set-actions .link,.music-settings .set-actions button{padding:6px 8px;font-size:12px}.pane.music-settings{padding:22px 18px 18px;gap:22px}.pane.music-settings>h2{font-size:23px}.music-settings .account{padding:14px 15px}.music-settings .speaker-slot>.account,.music-settings .speaker-slot>.account.active{padding-right:15px}}
+
+.default-card{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:18px;border:1px solid color-mix(in srgb,var(--m-accent,#d9b77e) 35%,var(--m-line));background:linear-gradient(120deg,color-mix(in srgb,var(--m-accent,#d9b77e) 12%,transparent),color-mix(in srgb,var(--m-accent,#d9b77e) 3%,transparent))}
+.default-icon{display:grid;place-items:center;flex:none;width:46px;height:46px;border-radius:50%;background:color-mix(in srgb,var(--m-accent,#d9b77e) 20%,transparent);color:var(--m-accent,#d9b77e)}.default-icon svg{width:22px;height:22px}
+.default-text{display:grid;gap:2px;min-width:0;flex:1}.default-text small{font-size:12px;color:var(--m-muted)}.default-text strong{font:400 21px/1.2 Georgia,'Times New Roman',serif;overflow-wrap:anywhere}.default-card:not(.set) .default-text strong{color:var(--m-muted)}.default-text em{font-style:normal;font-size:12.5px;color:var(--m-muted);line-height:1.45}
+.default-change{flex:none;padding:9px 18px;border-radius:999px;border:1px solid var(--m-accent,#d9b77e);color:var(--m-accent,#d9b77e);font-size:13px;font-weight:600}.default-change:hover,.default-change[aria-expanded="true"]{background:var(--m-accent,#d9b77e);color:#1b1408}
+.default-options{display:flex;flex-wrap:wrap;gap:8px;padding:2px 2px 6px}.default-options button{display:flex;align-items:center;gap:9px;padding:9px 15px 9px 12px;border-radius:999px;border:1px solid var(--m-line);font-size:13.5px;background:color-mix(in srgb,var(--m-text) 3%,transparent)}.default-options button:hover:not(:disabled){border-color:color-mix(in srgb,var(--m-accent,#d9b77e) 55%,var(--m-line))}.default-options i{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--m-muted);flex:none}.default-options .on{border-color:var(--m-accent,#d9b77e);background:color-mix(in srgb,var(--m-accent,#d9b77e) 12%,transparent)}.default-options .on i{border:4px solid var(--m-accent,#d9b77e)}.default-options .none{color:var(--m-muted)}
+@media(max-width:620px){.default-card{flex-wrap:wrap;padding:16px;gap:14px}.default-text{flex:1 1 calc(100% - 62px)}.default-change{margin-left:60px}}
+
+.starting{position:relative}.starting::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 2px var(--m-accent,#d9b77e);animation:m-starting 1.1s ease-in-out infinite;pointer-events:none}
+@keyframes m-starting{50%{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--m-accent,#d9b77e) 25%,transparent)}}
+@media(prefers-reduced-motion:reduce){.starting::after{animation:none}}
 `;

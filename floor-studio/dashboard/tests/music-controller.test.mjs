@@ -205,3 +205,9 @@ test('a standard speaker is set and cleared through AUREON Música (owner 2026-1
  c.devices=[];assert.equal(await c.setDefaultSpeaker(''),true,'cleared even before the list is loaded');assert.equal(calls.at(-1)[2].arguments.name,'');
  delete state.attributes.aureon_music_native;assert.equal(c.canSetDefaultSpeaker,false,'SpotifyPlus accounts have no standard speaker here');
 });
+test('while a song starts only that tile is marked; the others stay usable (owner 2026-11-13)',async()=>{
+ const {c,hass}=fixture();let finish;hass.callService=()=>new Promise(r=>{finish=r;});
+ const job=c.playItem({uri:'spotify:playlist:abc',name:'Mix'});
+ assert.equal(c.startingUri,'spotify:playlist:abc');assert.equal(await c.playItem({uri:'spotify:playlist:def',name:'Other'}),false,'a second song waits for the first');
+ finish({});await job;assert.equal(c.startingUri,'');
+});

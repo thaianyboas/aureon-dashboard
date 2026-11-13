@@ -1344,3 +1344,10 @@ The Music browser suite passed again with that label and native transfer.
   names, roomier account/speaker cards (min 330 px, names wrap instead of being cut), the standard-speaker pill at
   the end of each card (below the name on phones), action links as quiet pills. Checked with screenshots at
   1406/1100/390 px in the dark and Pearl palettes; no HA test.
+- 2026-11-13 (local until approved): owner wants the standard speaker chosen in one place and still sees "carregando".
+  Settings → Alto-falantes: the per-card pills are gone; one "Alto-falante padrão" card above the list with
+  "Trocar"/"Escolher" opens the speakers as a radio choice (loads the list first if needed; "Sem alto-falante padrão"
+  clears). The standard speaker's card subtitle starts with "Padrão". Starting a song no longer dims every tile:
+  `controller.startingUri` marks only the tapped tile (pulsing outline). `BUILD_ID` is now `AUREON-20261113-MUSICA`
+  so the owner can confirm in the footer that the new file loaded. Music `1.1.0b14`: `async_play_spotify` on an
+  already playing speaker goes through `_quick` (optimistic PLAYING, 0.8 s, then background).
