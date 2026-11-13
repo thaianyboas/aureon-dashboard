@@ -12,7 +12,7 @@ const executablePath=process.env.CHROME_BIN || ['/usr/bin/google-chrome','/usr/b
 if(!executablePath){server.close();throw new Error('Set CHROME_BIN to run the real browser tests');}
 let browser;const checks=[];
 try{
- browser=await puppeteer.launch({executablePath,headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--use-gl=angle','--use-angle=swiftshader']});
+ browser=await puppeteer.launch({executablePath,headless:true,timeout:90000,dumpio:true,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--no-zygote','--use-gl=angle','--use-angle=swiftshader']});
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.setViewport({width:1440,height:1000});await page.goto(`http://127.0.0.1:${server.address().port}`,{waitUntil:'networkidle0'});
  await page.evaluate(()=>{
