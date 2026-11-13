@@ -1,0 +1,57 @@
+name: Publish AUREON owner preview to HACS master
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/publish-owner-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: aureon-owner-preview
+  cancel-in-progress: false
+jobs:
+  publish-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: npm ci
+      - run: npm ci --prefix floor-studio/neonplan3d-main/frontend
+      - run: npm run validate
+      - run: python -m unittest discover -s floor-studio/tests -p 'test_*.py'
+      - run: npm test
+      - run: npm run build
+      - run: npm run test:browser
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+      - run: node scripts/check-neonplan-migration-contract.mjs
+      - run: node scripts/package-hacs-integration-candidate.mjs
+      - run: node scripts/verify-hacs-integration-candidate.mjs
+      - run: pytest -q
+        working-directory: floor-studio/neonplan3d-main
+      - name: Promote dashboard preview (not a stable release)
+        run: |
+          cp build/dashboard/aureon-dashboard.js dist/aureon-dashboard.js
+          rm -rf dist/aureon-assets
+          cp -a build/dashboard/aureon-assets dist/aureon-assets
+          sha256sum dist/aureon-dashboard.js | awk '{print $1}' > scripts/stable-dashboard.sha256
+          npm run validate
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/aureon-dashboard.js dist/aureon-assets scripts/stable-dashboard.sha256
+          if ! git diff --cached --quiet; then
+            git commit -m "preview(hacs): publish owner-requested Botanical dashboard test build"
+            git push origin HEAD:master
+          fi
+      - name: Mark owner preview limitations
+        run: |
+          echo 'Owner-requested HACS test preview published to master, NOT stable release.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Home Assistant runtime integration, user permissions and visual fidelity still require owner testing.' >> "$GITHUB_STEP_SUMMARY"
