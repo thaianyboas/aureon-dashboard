@@ -2,7 +2,7 @@ import {html,svg,nothing} from '../../neonplan3d-main/frontend/node_modules/lit/
 import {isAvailable} from './actions.mjs';
 import {artworkUrl} from '../music/controller.mjs';
 import {syncLayer} from './layer.mjs';
-import {presetForArea} from './assets.mjs';
+import {presetForArea,assetUrl} from './assets.mjs';
 import {roomArt} from './room-art.mjs';
 import {DREAME} from '../integrations/dreame.mjs';
 import {agenda,dayKey} from './calendar-cinema.mjs';
@@ -131,7 +131,7 @@ export function homeCinema(ui){const c=ui.c,t=ui.t,p=c.preferences,zone=c.hass?.
   ${p.widgets.security?tile('security',false,t.security,ui.homeIcon('lock'),html`<span class="cine-big">${locked===null?(alarmState?ui.stateText(alarmState):t.noData):locked?t.cineLocked:t.cineUnlocked}</span>`,alarmState?ui.stateText(alarmState):'','',()=>ui.nav('Sicherheit')):nothing}
   ${p.widgets.energy?tile('energy',false,t.energy,ui.homeIcon('bolt'),html`<span class="cine-big">${pw.value}<small> ${pw.unit}</small></span>`,daily!=null?`${t.today} ${ui.format(daily,1)} kWh`:t.noData,'',()=>ui.nav('Energie')):nothing}
  </section>`;
- return html`<div class=${'cine aureon-home '+(p.home3d?'with-plan':'without-plan')+(botanical?' botanical':'')} style=${'--cine-glow:'+glow.toFixed(2)}>
+ return html`<div class=${'cine aureon-home '+(p.home3d?'with-plan':'without-plan')+(botanical?' botanical':'')} style=${'--cine-glow:'+glow.toFixed(2)+';--botanical-bg:url("'+assetUrl('botanical-background.webp')+'");--botanical-canopy:url("'+assetUrl('botanical-canopy.webp')+'")'}>
  <div class="cine-glow" aria-hidden="true"></div>
  <header class="cine-welcome home-greeting" aria-label=${t.cineWelcome}>
    <span class="cine-avatar">${photo?html`<img src=${photo} alt="" referrerpolicy="no-referrer">`:html`<span>${first.slice(0,1)}</span>`}${own&&st(own.id)?.state==='home'?html`<i aria-hidden="true"></i>`:nothing}</span>
