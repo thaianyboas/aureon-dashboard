@@ -146,6 +146,8 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 @container (max-width:460px){.prow{padding-left:14px}}
 .byplug{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:var(--mut)}
 .spinarc{transform-origin:36px 36px;animation:spin 1.6s linear infinite}
+.mall{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;padding:0 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));background:color-mix(in srgb,var(--accent) 6%,transparent);color:var(--accent);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.mpage{display:flex;flex-direction:column;gap:14px}.mpbar{display:flex;align-items:center;gap:10px}
 .mlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:2px 16px}
 .mli{display:grid;grid-template-columns:48px minmax(0,1fr) 34px;align-items:center;gap:14px;min-height:64px;padding:8px 6px;border:0;border-radius:12px;background:transparent;color:var(--fg);font:inherit;text-align:left;cursor:pointer;transition:background .2s}
 .mli:hover,.mli:focus-visible{background:color-mix(in srgb,var(--fg) 5%,transparent)}

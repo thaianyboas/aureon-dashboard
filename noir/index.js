@@ -100,8 +100,8 @@ class AureonDashboard extends LitElement {
 
   setConfig(config) { this._config = { ...(config || {}) }; }
   getCardSize() { return 14; }
-  connectedCallback() { super.connectedCallback(); this._timer = setInterval(() => { this._tick = Date.now(); this._toasts = this._toasts.filter((t) => t.exp > Date.now()); }, 1000); }
-  disconnectedCallback() { clearInterval(this._timer); this._lblRO?.disconnect(); this._lblRO = null; this._lblObs = null; (this._unsubs || []).forEach((u) => { try { u(); } catch { /* ok */ } }); this._unsubs = []; this._fcFor = null; super.disconnectedCallback(); }
+  connectedCallback() { super.connectedCallback(); this._timer = setInterval(() => { this._tick = Date.now(); this._toasts = this._toasts.filter((t) => t.exp > Date.now()); }, 1000); window.addEventListener('popstate', this._onPop); if (location.hash === '#aureon-music' && this._ui) this._ui = { ...this._ui, musicPage: true, libMore: true }; }
+  disconnectedCallback() { window.removeEventListener('popstate', this._onPop); clearInterval(this._timer); this._lblRO?.disconnect(); this._lblRO = null; this._lblObs = null; (this._unsubs || []).forEach((u) => { try { u(); } catch { /* ok */ } }); this._unsubs = []; this._fcFor = null; super.disconnectedCallback(); }
 
   // ── preferences (per HA user, this browser) ──────────────────────────────
   get _key() { return 'aureon.noir.v1.' + (this.hass?.user?.id || 'local'); }
@@ -304,6 +304,9 @@ class AureonDashboard extends LitElement {
     const secs = prefs.secOrder.filter((k) => show[k] && !(prefs.secHidden || []).includes(k) && (ui.domain === 'all' || ui.domain === k));
     return html`<div lang=${lang} class="page ${ui.edit ? 'editing' : ''}" style=${vars + pagebg} @click=${(e) => { if (ui.themeOpen && !e.composedPath().some((n) => n.classList?.contains('themeWrap'))) this._set({ themeOpen: false }); }}>
       <div class="wrap">
+        ${ui.musicPage ? html`<div class="mpage">
+          <div class="mpbar"><button class="btn sm" @click=${() => this._musicPage(false)}>${ic('left', 'i s')}${t('backHome')}</button></div>
+          ${this.sMusic(ctx, true)}</div>` : html`
         ${this.header(ctx)}
         ${ui.edit ? this.banner(t) : nothing}
         ${this.pushes(ctx)}
@@ -314,7 +317,7 @@ class AureonDashboard extends LitElement {
         ${this.filters(ctx, show)}
         ${ui.room !== 'all' ? this.roomHead(ctx) : nothing}
         ${secs.map((k) => secRender[k]())}
-        ${secs.every((k) => !secRender[k]) || !secs.length ? html`<div class="empty">${t('nothingHere')}</div>` : nothing}
+        ${secs.every((k) => !secRender[k]) || !secs.length ? html`<div class="empty">${t('nothingHere')}</div>` : nothing}`}
       </div>
       ${ui.settings ? this.settings(ctx) : nothing}
       <div class="toasts" aria-live="polite">${repeat(this._toasts, (x) => x.id, (x) => html`<div class="toast rise" role="status">
@@ -671,6 +674,14 @@ class AureonDashboard extends LitElement {
       else if (!a.running && r.end && now - r.end < 3 * 3600000 && (this._prefs.cycleAck || {})[a.id] !== r.end) { a.done = true; a.idle = false; a.endedAt = new Date(r.end); a.runEnd = r.end; a.status = 'plugdone'; }
     }
   }
+  // AUREON Music page (owner 2026-11-16: the home shows a short list; "ver mais" opens a complete music page).
+  _musicPage(open) {
+    if (open) { try { history.pushState({ ...(history.state || {}), aureonMusic: true }, '', location.pathname + location.search + '#aureon-music'); } catch { /* ok */ } }
+    else if (location.hash === '#aureon-music') { history.back(); return; }
+    this._set({ musicPage: open, libMore: open }); this.requestUpdate();
+    requestAnimationFrame(() => { (this.closest?.('hui-view') || window).scrollTo?.({ top: 0 }); window.scrollTo({ top: 0 }); });
+  }
+  _onPop = () => { const want = location.hash === '#aureon-music'; if (want !== !!this._ui.musicPage) { this._set({ musicPage: want, libMore: want }); this.requestUpdate(); } };
   _moreInfo(id) { this.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId: id }, bubbles: true, composed: true })); }
   _labelList(m) {
     const ids = new Set(Object.keys(this._labels || {}));
@@ -1155,7 +1166,7 @@ class AureonDashboard extends LitElement {
         <svg viewBox="0 0 64 64" aria-hidden="true"><path class="ktrack" d=${arc(A0, A0 + SW, 29)}></path>${vol > 0 ? svg`<path class="kval2" d=${arc(A0, Math.max(A0 + 0.5, ang), 29)}></path>` : nothing}</svg>
         <span class="kcap" style=${`transform:rotate(${ang}deg)`}><i></i></span></span></span>`;
   }
-  sMusic({ m, t, now, aRgb }) {
+  sMusic({ m, t, now, aRgb }, full = false) {
     const ui = this._ui, mc = this._mc;
     const acct = mc.state;
     const spIds = new Set(mc.players.filter((p) => isSpotifyPlus(this.hass, p.entity_id)).map((p) => p.entity_id));
@@ -1218,7 +1229,7 @@ class AureonDashboard extends LitElement {
             ${mc.advanced('get_spotify_connect_devices') ? html`<button class="dc" aria-pressed=${panel === 'devices' ? 'true' : 'false'} style=${panel === 'devices' ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicPanel: 'devices', musicSearch: false }); mc.loadDevices(false); }}>${ic('speaker', 'i s')} ${t('whereToPlay')}</button>` : nothing}
             ${mc.advanced('search_tracks') ? html`<button class="dc" aria-pressed=${ui.musicSearch ? 'true' : 'false'} aria-label=${t('searchS')} style=${ui.musicSearch ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicSearch: !ui.musicSearch, musicPanel: 'library' }); if (!ui.musicSearch) setTimeout(() => this.renderRoot.querySelector('.msearch')?.focus(), 50); }}>${ic('search', 'i s')}</button>` : nothing}
           </div>
-          ${ui.musicSearch && mc.advanced('search_tracks') ? html`<input class="msearch" type="search" .value=${ui.musicQuery || ''} placeholder=${t('searchS')} aria-label=${t('searchS')} @input=${(e) => this._set({ musicQuery: e.target.value })} @keydown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) { mc.browse('search', e.target.value); } }}
+          ${(ui.musicSearch || full) && mc.advanced('search_tracks') ? html`<input class="msearch" type="search" .value=${ui.musicQuery || ''} placeholder=${t('searchS')} aria-label=${t('searchS')} @input=${(e) => this._set({ musicQuery: e.target.value })} @keydown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) { mc.browse('search', e.target.value); } }}
             style="min-height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit;font-size:13px">` : nothing}
           ${panel === 'devices' ? html`<div class="mrow">${mc.pending.has('devices') ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
               ${mc.devices.map((d) => html`<button class="dc" style=${'min-height:44px;' + (d.active ? 'border-color:var(--accent);color:var(--fg)' : '')} aria-pressed=${d.active ? 'true' : 'false'} ?disabled=${mc.pending.has('transfer')} @click=${() => mc.transfer(d.id)}>${ic('speaker', 'i s')} ${d.name}${d.active ? ' · ' + t('playing') : d.ready ? '' : ' · ' + t('openSpotify')}</button>`)}
@@ -1227,16 +1238,17 @@ class AureonDashboard extends LitElement {
               // Owner 2026-11-16 ("playlists daquele jeito tá feio"): a calm list — small cover, name, who/what, play.
               const sub = (it) => [it.owner?.display_name, (it.artists || it.album?.artists || []).map((x) => x.name).join(', '), it.publisher, it.tracks?.total ? t('tracksN', { n: it.tracks.total }) : null].filter(Boolean).slice(0, 2).join(' · ');
               const nowUri = a.media_context_content_id || a.sp_context_uri || a.media_content_id || '';
-              const all = mc.results.slice(0, 20), more = ui.libMore, shown = more ? all : all.slice(0, 6);
+              const all = mc.results.slice(0, full ? 50 : 20), more = full, shown = full ? all : all.slice(0, 4);
               return html`<div class="mlist">${busy && !all.length ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
               ${shown.map((it) => { const im = imgOf(it), starting = mc.startingUri === it.uri, cur = it.uri && nowUri === it.uri; return html`<button class=${'mli' + (cur ? ' cur' : '')} aria-label=${t('play') + ' · ' + it.name} ?disabled=${starting} @click=${() => mc.playItem(it)}>
                 <span class="mcov" style=${`background:${im ? `center/cover url("${im}")` : `radial-gradient(70% 70% at 25% 25%, ${rgba(aRgb, 0.7)} 0%, ${rgba(aRgb, 0)} 70%), var(--raise)`}`}>${starting ? html`<span class="pulse" style="position:absolute;inset:0;background:rgba(0,0,0,.35)"></span>` : nothing}</span>
                 <span class="mtx"><b class="txt">${it.name}</b>${sub(it) ? html`<span class="txt">${sub(it)}</span>` : nothing}</span>
                 <span class="mplay" aria-hidden="true">${cur && playing ? html`<span class="eq"><i></i><i></i><i></i></span>` : ic('play', 'i s f')}</span></button>`; })}
               </div>
-              ${all.length > 6 || mc.hasNext ? html`<div class="row" style="gap:8px;justify-content:center">
-                ${all.length > 6 ? html`<button class="btn sm" @click=${() => this._set({ libMore: !more })}>${more ? t('fewer') : t('more', { n: all.length - 6 })}</button>` : nothing}
-                ${more && mc.hasNext ? html`<button class="ib" aria-label=${t('fwd')} @click=${() => mc.changePage(1)}>${ic('right', 'i s')}</button>` : nothing}</div>` : nothing}
+              ${!full && (all.length > 4 || mc.hasNext) ? html`<button class="mall" @click=${() => this._musicPage(true)}><span>${t('seeAllMusic')}</span>${ic('right', 'i s')}</button>` : nothing}
+              ${full && (mc.pageIndex > 0 || mc.hasNext) ? html`<div class="row" style="gap:8px;justify-content:center">
+                ${mc.pageIndex > 0 ? html`<button class="ib" aria-label=${t('back')} @click=${() => mc.changePage(-1)}>${ic('left', 'i s')}</button>` : nothing}
+                ${mc.hasNext ? html`<button class="ib" aria-label=${t('fwd')} @click=${() => mc.changePage(1)}>${ic('right', 'i s')}</button>` : nothing}</div>` : nothing}
               ${!busy && !mc.results.length && !kinds.length && !mc.spotify ? html`<span class="muted txt" style="font-size:13px">${t('noSpotify')}</span>` : nothing}`;
             })()}
         </div>
