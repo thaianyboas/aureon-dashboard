@@ -1424,3 +1424,15 @@ The Music browser suite passed again with that label and native transfer.
   Floor Studio integration is untouched but no longer used by the dashboard; old `aureon-home-plan`/`aureon-platform` cards gone.
 - CI follow-up: `test:browser` runs `test-noir-browser.mjs` instead of `test-page-memory-browser.mjs` (that one tested the old
   dist page navigation and failed after the replacement).
+
+### Claude batch 2026-11-16c — AUREON Noir 1.1.0 (owner-approved preview, then her live feedback)
+
+- Hero text → weather forecast (`weather/subscribe_forecast`, hourly + daily). Reminders ("pushes") with actions, minimizable
+  (`pushMin`), per-kind toggles. House modes home/away/vacation/night with a confirmation sheet (alarm service, lights off,
+  chosen plugs off — protected never — and restore on Em casa; alarm code field when `code_format`).
+- Settings sheet: general, sections (show/order), label rules per section (include/exclude; fixed semantic labels unchanged),
+  devices (hide/show, `forceShow` for registry-hidden media players), export/import. All local per HA user.
+- Robot map camera (camera on the vacuum's device) moved from Security to the robot card; cameras open `hass-more-info`.
+- AUREON Music compact card (cover 112 px, library as a horizontal row). Blueprints for Alexa end-of-cycle announcements.
+- Validation: unit tests, real-Chrome synthetic suite (modes, reminders, settings, labels, cameras, layout at 4 widths),
+  validate-distribution, migration contract. Owner HA test pending; blueprints not run in a real HA.

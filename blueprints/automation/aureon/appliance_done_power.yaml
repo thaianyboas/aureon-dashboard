@@ -1,0 +1,82 @@
+blueprint:
+  name: AUREON · Alexa avisa o fim do ciclo (tomada com medição)
+  description: >
+    A Alexa anuncia quando a máquina termina, usando o consumo de uma tomada com medição
+    (para máquinas sem integração própria). A máquina conta como "ligada" quando passa do
+    consumo de trabalho e como "terminou" quando fica abaixo do consumo de repouso pelo tempo escolhido.
+    Precisa da integração Alexa Media Player.
+  domain: automation
+  source_url: https://github.com/thaianyboas/aureon-dashboard/blob/master/blueprints/automation/aureon/appliance_done_power.yaml
+  input:
+    power_entity:
+      name: Sensor de potência da tomada (W)
+      selector:
+        entity:
+          domain: sensor
+          device_class: power
+    running_w:
+      name: Trabalhando acima de (W)
+      default: 20
+      selector:
+        number: {min: 1, max: 3000, unit_of_measurement: W}
+    idle_w:
+      name: Em repouso abaixo de (W)
+      default: 5
+      selector:
+        number: {min: 0, max: 500, unit_of_measurement: W}
+    idle_minutes:
+      name: Minutos em repouso para considerar "terminou"
+      default: 5
+      selector:
+        number: {min: 1, max: 60, unit_of_measurement: min}
+    speakers:
+      name: Alexas que anunciam
+      selector:
+        entity:
+          domain: media_player
+          integration: alexa_media
+          multiple: true
+    message:
+      name: Mensagem
+      default: A lava-louças terminou.
+      selector:
+        text: {}
+    quiet_start:
+      name: Silêncio a partir de
+      default: "22:00:00"
+      selector:
+        time: {}
+    quiet_end:
+      name: Silêncio até
+      default: "07:30:00"
+      selector:
+        time: {}
+mode: single
+max_exceeded: silent
+triggers:
+  - trigger: numeric_state
+    entity_id: !input power_entity
+    above: !input running_w
+    for:
+      minutes: 2
+actions:
+  - wait_for_trigger:
+      - trigger: numeric_state
+        entity_id: !input power_entity
+        below: !input idle_w
+        for:
+          minutes: !input idle_minutes
+    timeout:
+      hours: 8
+    continue_on_timeout: false
+  - condition: not
+    conditions:
+      - condition: time
+        after: !input quiet_start
+        before: !input quiet_end
+  - action: notify.alexa_media
+    data:
+      message: !input message
+      target: !input speakers
+      data:
+        type: announce

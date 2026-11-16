@@ -1,5 +1,17 @@
 // AUREON Noir — interface texts. Language follows Home Assistant (hass.locale.language).
 const pt = {
+  settings: 'Configurações', stGeneral: 'Geral', stSections: 'Seções', stLabels: 'Etiquetas', stDevices: 'Dispositivos', stAbout: 'Sobre', stDefaultView: 'Vista da casa', stPushMin: 'Lembretes minimizados',
+  stSectionsHint: 'Escolha quais seções aparecem e em que ordem.', stLabelsHint: 'Use as etiquetas do Home Assistant para decidir o que aparece. "Mostrar só com": a seção mostra apenas o que tem uma dessas etiquetas. "Esconder com": tudo que tem a etiqueta some.',
+  stAllSections: 'Todas as seções', stNoLabels: 'Nenhuma etiqueta encontrada. Crie em Configurações → Áreas, etiquetas e zonas → Etiquetas.', stOnlyWith: 'Mostrar só com', stHideWith: 'Esconder com',
+  stLabelsFixed: 'Sempre valem: no_dboard esconde, protegida tranca a tomada, steckdosen_dashboard marca como tomada.', speakersAll: 'Caixas de som', stSearch: 'Buscar dispositivo', stHiddenInHa: 'oculto no Home Assistant',
+  stAboutHint: 'As configurações ficam neste navegador, para este usuário do Home Assistant. Exporte para levar a outro aparelho (iSG, celular).', stCopied: 'Configurações copiadas', stExport: 'Exportar', stImport: 'Importar', stImported: 'Configurações importadas', stImportFail: 'Texto inválido',
+  stResetQ: 'Voltar todas as configurações ao padrão?', stReset: 'Restaurar tudo', stLocal: 'Salvo neste navegador para o seu usuário do Home Assistant.', expand: 'Abrir', minimize: 'Minimizar', openCam: 'Abrir câmera', robotMap: 'Mapa',
+  effPlug: 'desliga 1 tomada',
+  turnOff: 'Apagar', lockS: 'Trancar', okS: 'Ok', doneS: 'Feito', lightsRoom: '{n} luzes acesas · {r}', lightRoom: '1 luz acesa · {r}', openedIn: '{n} aberta · {r}', heatingWaste: 'o aquecimento está ligado', unlockedN: '{n} destrancada',
+  reminders: 'Lembretes', more: 'Ver mais {n}', fewer: 'Ver menos', modeTitle: 'Modo da casa', modeHome: 'Em casa', modeAway: 'Fora', modeVacation: 'Férias', modeNight: 'Noite', alarmTo: 'Alarme → {s}', lightsOffAll: 'Apagar todas as luzes',
+  plugsOffSel: 'Tomadas para desligar neste modo', restorePlugs: 'Religar as tomadas que Fora/Férias desligaram', activate: 'Ativar {m}', modeOn: 'Modo {m} ativado', code: 'Código do alarme', effAlarmOff: 'alarme desligado', effAlarmOn: 'alarme ligado', effAlarmNight: 'alarme noturno',
+  effLights: 'apaga as luzes', effPlugs: 'desliga {n} tomadas', effRestore: 'religa as tomadas', noAlarm: 'Nenhum alarme no Home Assistant: o modo só cuida de luzes e tomadas.', forecastT: 'Previsão', maxmin: 'máx. {h}° mín. {l}°', now2: 'Agora',
+  'wx_clear-night': 'Céu limpo', wx_cloudy: 'Nublado', wx_exceptional: 'Excepcional', wx_fog: 'Neblina', wx_hail: 'Granizo', wx_lightning: 'Trovoada', 'wx_lightning-rainy': 'Trovoada com chuva', wx_partlycloudy: 'Parcialmente nublado', wx_pouring: 'Chuva forte', wx_rainy: 'Chuva', wx_snowy: 'Neve', 'wx_snowy-rainy': 'Neve e chuva', wx_sunny: 'Ensolarado', wx_windy: 'Ventando', 'wx_windy-variant': 'Vento e nuvens',
   wasteDone: 'Já coloquei na rua',
   recentS: 'Recentes', albumsS: 'Álbuns', likedS: 'Curtidas', library: 'Biblioteca', whereToPlay: 'Onde tocar', loadingS: 'Carregando…', ready: 'Pronta', openSpotify: 'Abra o Spotify nela uma vez', noDevices: 'Nenhuma caixa do Spotify Connect encontrada.', searchS: 'Buscar no Spotify', noSpotify: 'Conecte o SpotifyPlus para ver playlists e biblioteca.', onSpeaker: 'Tocando em {s}',
   morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite', theme: 'Tema', themeTitle: 'Tema do painel',
@@ -33,6 +45,18 @@ const pt = {
   sunUp: 'sol às {t}', sunLeft: '{t} de sol', night: 'noite', nothingHere: 'Nenhum dispositivo deste tipo neste cômodo.', loading: 'Carregando a casa…', min: 'min'
 };
 const de = {
+  settings: 'Einstellungen', stGeneral: 'Allgemein', stSections: 'Bereiche', stLabels: 'Labels', stDevices: 'Geräte', stAbout: 'Info', stDefaultView: 'Hausansicht', stPushMin: 'Hinweise minimiert',
+  stSectionsHint: 'Welche Bereiche erscheinen und in welcher Reihenfolge.', stLabelsHint: 'Mit Home-Assistant-Labels bestimmen, was erscheint. „Nur mit“: der Bereich zeigt nur Geräte mit einem dieser Labels. „Ausblenden mit“: alles mit dem Label verschwindet.',
+  stAllSections: 'Alle Bereiche', stNoLabels: 'Keine Labels gefunden. In Einstellungen → Bereiche, Labels & Zonen → Labels anlegen.', stOnlyWith: 'Nur mit', stHideWith: 'Ausblenden mit',
+  stLabelsFixed: 'Immer aktiv: no_dboard blendet aus, protegida schützt die Steckdose, steckdosen_dashboard markiert als Steckdose.', speakersAll: 'Lautsprecher', stSearch: 'Gerät suchen', stHiddenInHa: 'in Home Assistant ausgeblendet',
+  stAboutHint: 'Die Einstellungen liegen in diesem Browser, für diesen Home-Assistant-Benutzer. Exportieren, um sie auf ein anderes Gerät zu bringen.', stCopied: 'Einstellungen kopiert', stExport: 'Exportieren', stImport: 'Importieren', stImported: 'Einstellungen importiert', stImportFail: 'Ungültiger Text',
+  stResetQ: 'Alle Einstellungen zurücksetzen?', stReset: 'Alles zurücksetzen', stLocal: 'In diesem Browser für deinen Home-Assistant-Benutzer gespeichert.', expand: 'Öffnen', minimize: 'Minimieren', openCam: 'Kamera öffnen', robotMap: 'Karte',
+  effPlug: '1 Steckdose aus',
+  turnOff: 'Ausschalten', lockS: 'Verriegeln', okS: 'Ok', doneS: 'Erledigt', lightsRoom: '{n} Lichter an · {r}', lightRoom: '1 Licht an · {r}', openedIn: '{n} offen · {r}', heatingWaste: 'die Heizung läuft', unlockedN: '{n} entriegelt',
+  reminders: 'Hinweise', more: '{n} weitere', fewer: 'Weniger', modeTitle: 'Hausmodus', modeHome: 'Zuhause', modeAway: 'Abwesend', modeVacation: 'Urlaub', modeNight: 'Nacht', alarmTo: 'Alarm → {s}', lightsOffAll: 'Alle Lichter aus',
+  plugsOffSel: 'Steckdosen, die in diesem Modus ausgehen', restorePlugs: 'Von Abwesend/Urlaub ausgeschaltete Steckdosen wieder an', activate: '{m} aktivieren', modeOn: 'Modus {m} aktiv', code: 'Alarmcode', effAlarmOff: 'Alarm aus', effAlarmOn: 'Alarm an', effAlarmNight: 'Nachtalarm',
+  effLights: 'Lichter aus', effPlugs: '{n} Steckdosen aus', effRestore: 'Steckdosen wieder an', noAlarm: 'Keine Alarmanlage in Home Assistant: der Modus schaltet nur Licht und Steckdosen.', forecastT: 'Vorhersage', maxmin: 'max. {h}° min. {l}°', now2: 'Jetzt',
+  'wx_clear-night': 'Klar', wx_cloudy: 'Bewölkt', wx_exceptional: 'Außergewöhnlich', wx_fog: 'Nebel', wx_hail: 'Hagel', wx_lightning: 'Gewitter', 'wx_lightning-rainy': 'Gewitter mit Regen', wx_partlycloudy: 'Teilweise bewölkt', wx_pouring: 'Starkregen', wx_rainy: 'Regen', wx_snowy: 'Schnee', 'wx_snowy-rainy': 'Schneeregen', wx_sunny: 'Sonnig', wx_windy: 'Windig', 'wx_windy-variant': 'Windig und bewölkt',
   wasteDone: 'Ist draußen',
   recentS: 'Zuletzt', albumsS: 'Alben', likedS: 'Lieblingssongs', library: 'Mediathek', whereToPlay: 'Wo abspielen', loadingS: 'Lädt…', ready: 'Bereit', openSpotify: 'Einmal Spotify darauf öffnen', noDevices: 'Keine Spotify-Connect-Lautsprecher gefunden.', searchS: 'In Spotify suchen', noSpotify: 'SpotifyPlus verbinden, um Playlists und Mediathek zu sehen.', onSpeaker: 'Läuft auf {s}',
   morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend', theme: 'Design', themeTitle: 'Dashboard-Design',
@@ -66,6 +90,18 @@ const de = {
   sunUp: 'Sonne um {t}', sunLeft: 'noch {t} Sonne', night: 'Nacht', nothingHere: 'Keine Geräte dieser Art in diesem Raum.', loading: 'Zuhause wird geladen…', min: 'Min.'
 };
 const en = {
+  settings: 'Settings', stGeneral: 'General', stSections: 'Sections', stLabels: 'Labels', stDevices: 'Devices', stAbout: 'About', stDefaultView: 'House view', stPushMin: 'Reminders minimized',
+  stSectionsHint: 'Choose which sections appear and in which order.', stLabelsHint: 'Use Home Assistant labels to decide what appears. "Only with": the section shows only devices with one of these labels. "Hide with": everything with the label disappears.',
+  stAllSections: 'All sections', stNoLabels: 'No labels found. Create them in Settings → Areas, labels & zones → Labels.', stOnlyWith: 'Only with', stHideWith: 'Hide with',
+  stLabelsFixed: 'Always on: no_dboard hides, protegida protects the plug, steckdosen_dashboard marks a plug.', speakersAll: 'Speakers', stSearch: 'Search device', stHiddenInHa: 'hidden in Home Assistant',
+  stAboutHint: 'Settings live in this browser, for this Home Assistant user. Export them to bring them to another device.', stCopied: 'Settings copied', stExport: 'Export', stImport: 'Import', stImported: 'Settings imported', stImportFail: 'Invalid text',
+  stResetQ: 'Reset all settings to default?', stReset: 'Reset everything', stLocal: 'Saved in this browser for your Home Assistant user.', expand: 'Open', minimize: 'Minimize', openCam: 'Open camera', robotMap: 'Map',
+  effPlug: '1 plug off',
+  turnOff: 'Turn off', lockS: 'Lock', okS: 'Ok', doneS: 'Done', lightsRoom: '{n} lights on · {r}', lightRoom: '1 light on · {r}', openedIn: '{n} open · {r}', heatingWaste: 'heating is on', unlockedN: '{n} unlocked',
+  reminders: 'Reminders', more: '{n} more', fewer: 'Fewer', modeTitle: 'House mode', modeHome: 'Home', modeAway: 'Away', modeVacation: 'Vacation', modeNight: 'Night', alarmTo: 'Alarm → {s}', lightsOffAll: 'Turn all lights off',
+  plugsOffSel: 'Plugs to switch off in this mode', restorePlugs: 'Turn back on the plugs Away/Vacation switched off', activate: 'Activate {m}', modeOn: '{m} mode on', code: 'Alarm code', effAlarmOff: 'alarm off', effAlarmOn: 'alarm on', effAlarmNight: 'night alarm',
+  effLights: 'lights off', effPlugs: '{n} plugs off', effRestore: 'plugs back on', noAlarm: 'No alarm in Home Assistant: the mode only handles lights and plugs.', forecastT: 'Forecast', maxmin: 'high {h}° low {l}°', now2: 'Now',
+  'wx_clear-night': 'Clear', wx_cloudy: 'Cloudy', wx_exceptional: 'Exceptional', wx_fog: 'Fog', wx_hail: 'Hail', wx_lightning: 'Thunderstorm', 'wx_lightning-rainy': 'Thunder and rain', wx_partlycloudy: 'Partly cloudy', wx_pouring: 'Heavy rain', wx_rainy: 'Rain', wx_snowy: 'Snow', 'wx_snowy-rainy': 'Sleet', wx_sunny: 'Sunny', wx_windy: 'Windy', 'wx_windy-variant': 'Windy and cloudy',
   wasteDone: 'It is out',
   recentS: 'Recent', albumsS: 'Albums', likedS: 'Liked', library: 'Library', whereToPlay: 'Where to play', loadingS: 'Loading…', ready: 'Ready', openSpotify: 'Open Spotify on it once', noDevices: 'No Spotify Connect speakers found.', searchS: 'Search Spotify', noSpotify: 'Connect SpotifyPlus to see playlists and library.', onSpeaker: 'Playing on {s}',
   morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening', theme: 'Theme', themeTitle: 'Dashboard theme',

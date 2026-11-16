@@ -1,5 +1,20 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.1.0 — 2026-11-16
+
+- **Lembretes** no topo (luzes acesas por cômodo, janela aberta com aquecimento ligado, porta destrancada, fim de ciclo,
+  coleta de lixo), cada um com ação; **Minimizar** deixa só uma barrinha (lembrado neste navegador).
+- **Previsão do tempo** da cidade (agora, próximas horas, máx./mín.) via `weather/subscribe_forecast`.
+- **Modo da casa**: Em casa · Fora · Férias · Noite. Cada modo mostra o que vai fazer e só age depois de **Ativar**:
+  alarme, apagar luzes, desligar as tomadas escolhidas (protegidas nunca), e Em casa religa as que Fora/Férias desligaram.
+- **Configurações** (engrenagem): tema, vista 3D/Planta, previsão, quais lembretes aparecem, seções (mostrar/ordem),
+  **etiquetas** por seção ("mostrar só com" / "esconder com"), **dispositivos** (mostrar/ocultar cada um, inclusive caixas
+  de som ocultas no Home Assistant), exportar/importar configurações.
+- AUREON Music mais compacto; o mapa do robô (câmera do Dreame) aparece no cartão do robô; tocar numa câmera abre a câmera do HA.
+- **Blueprints da Alexa** (fim de ciclo): `blueprints/automation/aureon/appliance_done_status.yaml` (sensor de status) e
+  `appliance_done_power.yaml` (tomada com medição). Importar: Configurações → Automações → Blueprints → Importar blueprint →
+  colar o link do arquivo no GitHub. Precisam da integração Alexa Media Player.
+
 ## AUREON Noir 1.0.0 — 2026-11-16 (painel inteiro substituído a pedido da dona)
 
 O painel do HACS agora é o **AUREON Noir**: uma página só com a casa inteira, lida direto dos registros do Home Assistant

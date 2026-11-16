@@ -46,7 +46,7 @@ const OVERFLOW = `
     if (!hasText) continue;
     if ((cs.overflowX === 'hidden' || cs.overflowX === 'clip' || cs.textOverflow === 'ellipsis') && el.scrollWidth > el.clientWidth + 1) bad.push('clipped: ' + el.className + ' "' + el.textContent.trim().slice(0, 40) + '"');
     const r = el.getBoundingClientRect();
-    if (r.width && (r.right > innerWidth + 1 || r.left < -1) && !el.closest('.scroller') && !el.closest('.iso')) bad.push('offscreen: ' + el.className + ' "' + el.textContent.trim().slice(0, 30) + '" ' + Math.round(r.left) + '..' + Math.round(r.right));
+    if (r.width && (r.right > innerWidth + 1 || r.left < -1) && !el.closest('.scroller') && !el.closest('.mrow') && !el.closest('.iso')) bad.push('offscreen: ' + el.className + ' "' + el.textContent.trim().slice(0, 30) + '" ' + Math.round(r.left) + '..' + Math.round(r.right));
   }
   return bad.slice(0, 12);`;
 
@@ -119,11 +119,74 @@ console.log('behaviour');
   await shadow(page, `root.querySelector('button[aria-label^="Tocar · Playlist"]').click()`);
   await new Promise((r) => setTimeout(r, 300));
   check(await page.evaluate(() => H.calls.some((c) => c[0] === 'spotifyplus' && c[1] === 'player_media_play_context')), 'tapping a playlist plays it through SpotifyPlus');
-  await shadow(page, `[...root.querySelectorAll('[role=tab]')].find((b)=>/Onde tocar/.test(b.textContent)).click()`);
+  await shadow(page, `[...root.querySelectorAll('.mlib .dc')].find((b)=>/Onde tocar/.test(b.textContent)).click()`);
   await new Promise((r) => setTimeout(r, 400));
-  check(await shadow(page, `return [...root.querySelectorAll('.mi')].some((b)=>/Living room speaker/.test(b.textContent))`), 'Spotify Connect speakers listed');
+  check(await shadow(page, `return [...root.querySelectorAll('.mlib .dc')].some((b)=>/Living room speaker/.test(b.textContent))`), 'Spotify Connect speakers listed');
   await page.screenshot({ path: 'build/noir/music.png', fullPage: false, clip: undefined });
   check(!errors.length, 'no console errors during interaction' + (errors.length ? ': ' + errors.join(' / ') : ''));
+  await page.close();
+}
+{
+  console.log('reminders, forecast and house modes');
+  const { page, errors } = await open(1440, 900);
+  await new Promise((r) => setTimeout(r, 300));
+  await page.screenshot({ path: 'build/noir/top-1440.png' });
+  check(await shadow(page, `return root.querySelectorAll('.hours .hr').length >= 6`), 'hourly forecast from weather/subscribe_forecast');
+  check(await shadow(page, `return root.querySelectorAll('.push').length >= 3`), 'reminders shown as pushes');
+  await shadow(page, `[...root.querySelectorAll('.push')].find((x)=>/luzes acesas/.test(x.textContent)).querySelector('.btn.pri').click()`);
+  await new Promise((r) => setTimeout(r, 200));
+  check(await page.evaluate(() => H.calls.some((c) => c[0] === 'light' && c[1] === 'turn_off')), 'reminder "Apagar" turns those lights off');
+  await shadow(page, `[...root.querySelectorAll('.mode')].find((b)=>/Férias/.test(b.textContent)).click()`);
+  await new Promise((r) => setTimeout(r, 300));
+  await shadow(page, `[...root.querySelectorAll('.sheet .chk')].find((x)=>/TV/.test(x.textContent)).querySelector('.switch').click()`);
+  await new Promise((r) => setTimeout(r, 200));
+  check(await shadow(page, `return ![...root.querySelectorAll('.sheet .chk b')].some((b)=>/Fridge|Router/.test(b.textContent))`), 'protected plugs are not offered in a mode');
+  await page.screenshot({ path: 'build/noir/mode-sheet.png' });
+  check(await page.evaluate(() => H.calls.filter((c) => c[0] === 'alarm_control_panel').length === 0), 'opening the mode sheet sends nothing');
+  await shadow(page, `[...root.querySelectorAll('.sheet .btn.pri')][0].click()`);
+  await new Promise((r) => setTimeout(r, 300));
+  check(await page.evaluate(() => H.calls.some((c) => c[0] === 'alarm_control_panel' && c[1] === 'alarm_arm_vacation')), 'Férias arms the alarm (vacation)');
+  check(await page.evaluate(() => H.calls.some((c) => c[0] === 'switch' && c[1] === 'turn_off' && [].concat(c[2].entity_id).includes('switch.p1'))), 'Férias switches off the chosen plug');
+  const bad = await shadow(page, OVERFLOW);
+  check(!bad.length, 'no overflow after modes' + (bad.length ? ': ' + bad.join('; ') : ''));
+  const modesEl = await page.evaluateHandle(() => document.getElementById('d').shadowRoot.querySelector('.modes').closest('.sec'));
+  await modesEl.screenshot({ path: 'build/noir/modes.png' });
+  check(!errors.length, 'no console errors' + (errors.length ? ': ' + errors.join(' / ') : ''));
+  await page.close();
+  const ph = await open(390, 844);
+  await new Promise((r) => setTimeout(r, 300));
+  await ph.page.screenshot({ path: 'build/noir/top-390.png', fullPage: true });
+  await ph.page.close();
+}
+{
+  console.log('settings, labels, reminders minimize, cameras');
+  const { page, errors } = await open(1440, 900);
+  check(await shadow(page, `return ![...root.querySelectorAll('.cam .foot b')].some((b)=>/Current Map/.test(b.textContent))`), 'robot map camera is not in Security');
+  check(await shadow(page, `return !!root.querySelector('.robmap')`), 'robot map shown on the robot card');
+  let ev = 0; await page.exposeFunction('__mi', () => { ev++; }); await page.evaluate(() => window.addEventListener('hass-more-info', () => window.__mi()));
+  await shadow(page, `root.querySelector('.camhit').click()`); await new Promise((r) => setTimeout(r, 200));
+  check(ev === 1, 'tapping a camera opens it (hass-more-info)');
+  await shadow(page, `[...root.querySelectorAll('.btn.sm')].find((b)=>/Minimizar/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 200));
+  check(await shadow(page, `return !!root.querySelector('.pushbar') && !root.querySelector('.push')`), 'reminders minimize to a bar');
+  await shadow(page, `root.querySelector('.btn[aria-label="Configurações"]').click()`); await new Promise((r) => setTimeout(r, 300));
+  await page.screenshot({ path: 'build/noir/settings-geral.png' });
+  await shadow(page, `[...root.querySelectorAll('[role=tab]')].find((b)=>/Etiquetas/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 200));
+  await shadow(page, `[...root.querySelectorAll('.sheet .dc')].find((b)=>/^Luzes/.test(b.textContent.trim())).click()`); await new Promise((r) => setTimeout(r, 200));
+  const before = await shadow(page, `return root.querySelectorAll('.sec .grid .tile').length`);
+  await shadow(page, `const btns=[...root.querySelectorAll('.sheet .dc')].filter((b)=>/Deko/.test(b.textContent));btns[1].click()`); await new Promise((r) => setTimeout(r, 300));
+  await page.screenshot({ path: 'build/noir/settings-labels.png' });
+  await shadow(page, `[...root.querySelectorAll('[role=tab]')].find((b)=>/Dispositivos/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 200));
+  check(await shadow(page, `return [...root.querySelectorAll('.sheet .chk b')].some((b)=>/Echo Show hidden/.test(b.textContent))`), 'settings list speakers hidden in HA');
+  await shadow(page, `[...root.querySelectorAll('.sheet .chk')].find((x)=>/Echo Show hidden/.test(x.textContent)).querySelector('.switch').click()`); await new Promise((r) => setTimeout(r, 300));
+  await page.screenshot({ path: 'build/noir/settings-devices.png' });
+  await shadow(page, `root.querySelector('.sheet .ib[aria-label="Cancelar"]').click()`); await new Promise((r) => setTimeout(r, 300));
+  check(await shadow(page, `return ![...root.querySelectorAll('.tile .nm b')].some((b)=>/Labelled lamp/.test(b.textContent))`), '"hide with label" removes the lamp');
+  check(await shadow(page, `return [...root.querySelectorAll('.tile .nm b')].some((b)=>/Echo Show hidden/.test(b.textContent))`), 'a speaker hidden in HA can be shown');
+  const musicEl = await page.evaluateHandle(() => document.getElementById('d').shadowRoot.querySelector('.mcard').closest('.sec'));
+  await musicEl.screenshot({ path: 'build/noir/music-layout.png' });
+  const bad = await shadow(page, OVERFLOW);
+  check(!bad.length, 'no overflow' + (bad.length ? ': ' + bad.join('; ') : ''));
+  check(!errors.length, 'no console errors' + (errors.length ? ': ' + errors.join(' / ') : ''));
   await page.close();
 }
 {

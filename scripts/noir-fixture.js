@@ -28,7 +28,7 @@ window.makeHass = function makeHass(lang) {
   ent('binary_sensor.d1', 'off', { friendly_name: 'Front door', device_class: 'door' }, { area_id: 'hall' });
   // security
   ent('lock.front', 'locked', { friendly_name: 'Front door' }, { area_id: 'hall' });
-  ent('alarm_control_panel.home', 'disarmed', { friendly_name: 'Alarm', code_format: null }, {});
+  ent('alarm_control_panel.home', 'disarmed', { friendly_name: 'Alarm', code_format: null, supported_features: 63 }, {});
   ent('camera.entry', 'idle', { friendly_name: 'Entrance' }, { area_id: 'hall' });
   // media: a Spotify account + speakers
   dev('dsp', 'Spotify', null, 'SpotifyPlus');
@@ -40,6 +40,9 @@ window.makeHass = function makeHass(lang) {
   ent('vacuum.robot', 'cleaning', { friendly_name: 'Robot' }, { device_id: 'dvac' });
   ent('sensor.robot_battery', '81', { device_class: 'battery', unit_of_measurement: '%' }, { device_id: 'dvac', entity_category: 'diagnostic' });
   ent('sensor.robot_current_room', 'Kitchen', {}, { device_id: 'dvac' });
+  ent('camera.robot_map', 'idle', { friendly_name: 'Current Map', entity_picture: '/api/camera_proxy/camera.robot_map?token=x' }, { device_id: 'dvac', area_id: 'living' });
+  ent('media_player.hidden_echo', 'idle', { friendly_name: 'Echo Show hidden', volume_level: 0.2, supported_features: 4 }, { area_id: 'bedroom', hidden: true });
+  ent('light.labelled', 'on', { friendly_name: 'Labelled lamp', brightness: 100, supported_color_modes: ['brightness'] }, { area_id: 'office', labels: ['deko'] });
   // appliances
   dev('dwash', 'Washing machine', 'bath', 'WM');
   ent('sensor.washer_operation', 'run', { friendly_name: 'Washer status' }, { device_id: 'dwash' });
@@ -50,7 +53,7 @@ window.makeHass = function makeHass(lang) {
   // others
   ent('scene.morning', iso(60 * 20), { friendly_name: 'Morning' }, {}); ent('scene.cinema', iso(30), { friendly_name: 'Cinema' }, {}); ent('scene.dinner', iso(60 * 30), { friendly_name: 'Dinner' }, {}); ent('scene.night', iso(60 * 40), { friendly_name: 'Good night' }, {});
   ent('person.a', 'home', { friendly_name: 'Alex' }, {}); ent('person.b', 'not_home', { friendly_name: 'Sam' }, {});
-  ent('weather.home', 'cloudy', { friendly_name: 'Home', temperature: 7 }, {});
+  ent('weather.home', 'partlycloudy', { friendly_name: 'Sample City', temperature: 7, temperature_unit: '°C' }, {});
   ent('sun.sun', 'above_horizon', { next_setting: new Date(Date.now() + 3 * 3600e3).toISOString(), next_rising: new Date(Date.now() + 18 * 3600e3).toISOString() }, {});
   ent('sensor.waste_collection', '0', { friendly_name: 'Waste collection', [day(0)]: 'Restmüll', [day(2)]: 'Bio', [day(4)]: 'Papier', [day(9)]: 'Gelbe Tonne' }, {});
   ent('switch.hidden_thing', 'on', { friendly_name: 'Hidden' }, { area_id: 'living', labels: ['no_dboard'] });
@@ -67,8 +70,11 @@ window.makeHass = function makeHass(lang) {
       if (d === 'spotifyplus' && s === 'check_track_favorites') return { response: { result: { abc123: false } } };
       return { response: { result: {} } };
     },
-    callWS: async (msg) => { H.ws.push(msg); if (msg.type === 'config/label_registry/list') return [{ label_id: 'protegida', name: 'Protegida' }, { label_id: 'no_dboard', name: 'no_dboard' }]; return {}; },
-    callApi: async () => []
+    callWS: async (msg) => { H.ws.push(msg); if (msg.type === 'config/label_registry/list') return [{ label_id: 'protegida', name: 'Protegida' }, { label_id: 'no_dboard', name: 'no_dboard' }, { label_id: 'deko', name: 'Deko' }]; return {}; },
+    callApi: async () => [],
+    connection: { subscribeMessage: async (cb, msg) => { H.ws.push(msg); const conds = ['partlycloudy', 'cloudy', 'rainy', 'rainy', 'cloudy', 'clear-night', 'clear-night'];
+      setTimeout(() => cb({ forecast: msg.forecast_type === 'daily' ? [{ datetime: new Date().toISOString(), condition: 'partlycloudy', temperature: 9, templow: 3 }] : conds.map((c, i) => ({ datetime: new Date(Date.now() + i * 3600e3).toISOString(), condition: c, temperature: 7 - Math.floor(i / 2), precipitation_probability: c === 'rainy' ? 60 : 0 })) }), 10);
+      return () => {}; } }
   };
   return hass;
 };

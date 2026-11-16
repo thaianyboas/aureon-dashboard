@@ -9,11 +9,15 @@ const hass = () => globalThis.window.makeHass('pt');
 
 test('classifies devices from the native registries', () => {
   const m = buildModel(hass(), { labels: { protegida: 'Protegida', no_dboard: 'no_dboard' } });
-  assert.equal(m.lights.length, 10);
+  assert.equal(m.lights.length, 11);
   assert.equal(m.climate.length, 4);
   assert.equal(m.covers.length, 3);
   assert.equal(m.openings.length, 4);
   assert.equal(m.cams.length, 1);
+  assert.equal(m.vacuums[0].map.id, 'camera.robot_map');
+  assert.ok(!m.speakers.some((s) => s.id === 'media_player.hidden_echo'));
+  assert.ok(m.hiddenMedia.some((s) => s.id === 'media_player.hidden_echo'));
+  assert.ok(buildModel(hass(), { forceShow: ['media_player.hidden_echo'] }).speakers.some((s) => s.id === 'media_player.hidden_echo'));
   assert.equal(m.locks.length, 1);
   assert.equal(m.vacuums.length, 1);
   assert.deepEqual(m.accounts.map((a) => a.id), ['media_player.spotifyplus_demo']);

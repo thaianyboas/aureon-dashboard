@@ -1,0 +1,68 @@
+blueprint:
+  name: AUREON · Alexa avisa o fim do ciclo (sensor de status)
+  description: >
+    A Alexa anuncia quando a máquina de lavar, a secadora ou a lava-louças termina.
+    Use quando a máquina tem um sensor de status/programa no Home Assistant
+    (Home Connect, LG ThinQ, SmartThings, Miele…). Precisa da integração Alexa Media Player.
+  domain: automation
+  source_url: https://github.com/thaianyboas/aureon-dashboard/blob/master/blueprints/automation/aureon/appliance_done_status.yaml
+  input:
+    status_entity:
+      name: Sensor de status da máquina
+      description: O sensor que muda para "terminou" (por exemplo "finished", "Ende", "Fertig").
+      selector:
+        entity:
+          domain: [sensor, select, binary_sensor]
+    finished_states:
+      name: Estados que significam "terminou"
+      default: [finished, Finished, end, End, ende, Ende, fertig, Fertig, done, Done, complete, Programmende, programm_ende]
+      selector:
+        text:
+          multiple: true
+    speakers:
+      name: Alexas que anunciam
+      selector:
+        entity:
+          domain: media_player
+          integration: alexa_media
+          multiple: true
+    message:
+      name: Mensagem
+      default: A máquina de lavar terminou.
+      selector:
+        text: {}
+    quiet_start:
+      name: Silêncio a partir de
+      default: "22:00:00"
+      selector:
+        time: {}
+    quiet_end:
+      name: Silêncio até
+      default: "07:30:00"
+      selector:
+        time: {}
+mode: single
+variables:
+  finished_states: !input finished_states
+triggers:
+  - trigger: state
+    entity_id: !input status_entity
+conditions:
+  - condition: template
+    value_template: >
+      {{ trigger.to_state is not none and trigger.from_state is not none
+         and trigger.to_state.state in finished_states
+         and trigger.from_state.state not in finished_states
+         and trigger.from_state.state not in ['unknown', 'unavailable'] }}
+  - condition: not
+    conditions:
+      - condition: time
+        after: !input quiet_start
+        before: !input quiet_end
+actions:
+  - action: notify.alexa_media
+    data:
+      message: !input message
+      target: !input speakers
+      data:
+        type: announce

@@ -91,6 +91,7 @@ export function buildModel(hass, opts = {}) {
   const labels = opts.labels || {};           // label_id → name (optional, from the label registry)
   const aliases = opts.aliases || {};         // entity_id → name kept only in this browser
   const hidden = new Set(opts.hidden || []);
+  const forceShow = new Set(opts.forceShow || []);
   const zone = hass?.config?.time_zone || 'UTC';
   const states = hass?.states || {}, regs = hass?.entities || {}, devices = hass?.devices || {}, areaReg = hass?.areas || {};
 
@@ -98,12 +99,15 @@ export function buildModel(hass, opts = {}) {
   const areaName = (id) => areaReg[id]?.name || '';
 
   const byDevice = {};
-  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], accounts: [], vacuums: [], scenes: [], people: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], energyToday: null, solarW: null, gridW: null, batterySoc: null, all: [] };
+  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], energyToday: null, solarW: null, gridW: null, batterySoc: null, all: [] };
 
   for (const [eid, st] of Object.entries(states)) {
     const reg = regs[eid] || {};
     const domain = eid.split('.')[0];
-    if (reg.hidden || reg.hidden_by) continue;
+    if ((reg.hidden || reg.hidden_by) && !forceShow.has(eid)) {
+      if (domain === 'media_player') m.hiddenMedia.push({ id: eid, name: st.attributes?.friendly_name || eid });
+      continue;
+    }
     if (hasLabel(reg, labels, HIDE)) continue;
     const dev = reg.device_id ? devices[reg.device_id] : null;
     const area = reg.area_id || dev?.area_id || null;
@@ -191,6 +195,10 @@ export function buildModel(hass, opts = {}) {
     m.appliances.push({ id: devId, kind, name: cleanName(dev.name_by_user || dev.name || kind, areaName(area)), area, areaName: areaName(area), pct, mins, endAt, status: stText, statusLabel: status ? (status.attrs?.options ? stText : stText) : '', done, running: !done && !idle, idle });
   }
 
+  // The robot's map is a camera of the robot's own device (Dreame & co.): it belongs to the robot, not to Security.
+  const vacDevices = new Set(m.vacuums.map((v) => v.device).filter(Boolean));
+  for (const v of m.vacuums) v.map = m.cams.find((c) => c.device && c.device === v.device) || null;
+  m.cams = m.cams.filter((c) => !(c.device && vacDevices.has(c.device)));
   for (const v of m.vacuums) {
     const items = v.device ? (byDevice[v.device] || []) : [];
     const bat = items.find((x) => x.domain === 'sensor' && x.attrs.device_class === 'battery' && !x.unavailable);
