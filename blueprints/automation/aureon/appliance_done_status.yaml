@@ -3,7 +3,7 @@ blueprint:
   description: >
     A Alexa anuncia quando a máquina de lavar, a secadora ou a lava-louças termina.
     Use quando a máquina tem um sensor de status/programa no Home Assistant
-    (Home Connect, LG ThinQ, SmartThings, Miele…). Precisa da integração Alexa Media Player.
+    (Home Connect, LG ThinQ, SmartThings, Miele…). Funciona com a integração Alexa Devices (já vem no Home Assistant) ou com a Alexa Media Player.
   domain: automation
   source_url: https://github.com/thaianyboas/aureon-dashboard/blob/master/blueprints/automation/aureon/appliance_done_status.yaml
   input:
@@ -21,11 +21,17 @@ blueprint:
           multiple: true
     speakers:
       name: Alexas que anunciam
+      description: >
+        Integração "Alexa Devices" (já vem com o Home Assistant): escolha as entidades que terminam em
+        "Anunciar" / "Ankündigen" / "Announce". Integração Alexa Media Player (HACS): escolha a Echo.
       selector:
         entity:
-          domain: media_player
-          integration: alexa_media
           multiple: true
+          filter:
+            - integration: alexa_devices
+              domain: notify
+            - integration: alexa_media
+              domain: media_player
     message:
       name: Mensagem
       default: A máquina de lavar terminou.
@@ -44,6 +50,7 @@ blueprint:
 mode: single
 variables:
   finished_states: !input finished_states
+  speakers: !input speakers
 triggers:
   - trigger: state
     entity_id: !input status_entity
@@ -60,9 +67,25 @@ conditions:
         after: !input quiet_start
         before: !input quiet_end
 actions:
-  - action: notify.alexa_media
-    data:
-      message: !input message
-      target: !input speakers
-      data:
-        type: announce
+  - variables:
+      alexa_notify: "{{ speakers | select('match', '^notify\\.') | list }}"
+      alexa_media: "{{ speakers | select('match', '^media_player\\.') | list }}"
+  - if:
+      - condition: template
+        value_template: "{{ alexa_notify | count > 0 }}"
+    then:
+      - action: notify.send_message
+        target:
+          entity_id: "{{ alexa_notify }}"
+        data:
+          message: !input message
+  - if:
+      - condition: template
+        value_template: "{{ alexa_media | count > 0 }}"
+    then:
+      - action: notify.alexa_media
+        data:
+          message: !input message
+          target: "{{ alexa_media }}"
+          data:
+            type: announce
