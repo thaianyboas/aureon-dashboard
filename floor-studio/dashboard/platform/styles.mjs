@@ -592,7 +592,6 @@ export const platformStyles=`
 .aureon-home.botanical .home-waste-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 @container home (min-width:941px){.aureon-home.botanical.without-plan .home-primary{padding-top:clamp(72px,6vw,105px)}}
 @media(prefers-reduced-motion:reduce){.aureon-home.botanical::before,.aureon-home.botanical::after{animation:none}}
-`;
 
 /* Botanical approved composition: keep content in the viewport and restore the lower resident/robot row. */
 @container home (min-width:941px){
@@ -619,3 +618,4 @@ export const platformStyles=`
 .aureon-home.botanical .cine-room img{filter:brightness(1.12) saturate(1.06)}
 .aureon-home.botanical .cine-room-text strong{white-space:normal;overflow-wrap:anywhere}
 .aureon-home.botanical .home-bottom .cine-card{border-radius:18px}
+`;
