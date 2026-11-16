@@ -53,6 +53,23 @@ const P = {
   mapI: 'M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14',
   palette: 'M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 21 9.8C21 6 17 3 12 3zM7.5 12.5h.01M9.5 8h.01M14.5 8h.01'
 };
+// A refined wheelie bin in the bin's colour (owner 2026-11-16: "algo como a opção A, porém mais elegante").
+let binSeq = 0;
+const binSvg = (c, open, key, cls = '') => {
+  const id = 'b' + (++binSeq % 100000) + key, dk = `color-mix(in srgb,${c} 45%,#000)`, md = `color-mix(in srgb,${c} 80%,#000)`, lt = `color-mix(in srgb,${c} 70%,#fff)`;
+  return svg`<svg class=${'wb ' + cls + (open ? ' open' : '')} viewBox="0 0 60 78"><defs>
+    <linearGradient id=${id + 'g'} x1="0" x2="1"><stop offset="0" style=${'stop-color:' + dk}></stop><stop offset=".28" style=${'stop-color:' + lt}></stop><stop offset=".55" style=${'stop-color:' + c}></stop><stop offset="1" style=${'stop-color:' + dk}></stop></linearGradient>
+    <linearGradient id=${id + 'l'} x1="0" x2="0" y1="0" y2="1"><stop offset="0" style=${'stop-color:' + lt}></stop><stop offset="1" style=${'stop-color:' + md}></stop></linearGradient></defs>
+    <ellipse cx="30" cy="74" rx="21" ry="2.6" fill="rgba(0,0,0,.55)"></ellipse>
+    <path d="M10.5 17h39l-3.6 49.2a3 3 0 0 1-3 2.8H17.1a3 3 0 0 1-3-2.8z" fill=${'url(#' + id + 'g)'}></path>
+    <path d="M21.5 25v36M30 25v37M38.5 25v36" stroke="rgba(0,0,0,.22)" stroke-width="1.6" stroke-linecap="round"></path>
+    <path d="M22.6 25v36M31.1 25v37M39.6 25v36" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-linecap="round"></path>
+    <path d="M15 19.5 L17.6 64" stroke="rgba(255,255,255,.16)" stroke-width="2.2" stroke-linecap="round"></path>
+    <rect x="8.5" y="14.5" width="43" height="4.5" rx="1.6" style=${'fill:' + dk}></rect>
+    <circle cx="16.5" cy="69.5" r="4.2" fill="#0b0b0c" stroke="#2c2c30" stroke-width="1.2"></circle><circle cx="43.5" cy="69.5" r="4.2" fill="#0b0b0c" stroke="#2c2c30" stroke-width="1.2"></circle>
+    <g class="lid"><path d="M6.5 13.6V9.8a3 3 0 0 1 3-3h41a3 3 0 0 1 3 3v3.8z" fill=${'url(#' + id + 'l)'}></path><rect x="23" y="3.4" width="14" height="3.4" rx="1.6" style=${'fill:' + md}></rect></g>
+  </svg>`;
+};
 const ic = (n, cls = 'i') => svg`<svg class=${cls} viewBox="0 0 24 24" aria-hidden="true"><path d=${P[n]}></path></svg>`;
 const WX = { 'clear-night': 'moon', cloudy: 'cloud', exceptional: 'sun', fog: 'fog', hail: 'snow', lightning: 'storm', 'lightning-rainy': 'storm', partlycloudy: 'partly', pouring: 'rain', rainy: 'rain', snowy: 'snow', 'snowy-rainy': 'snow', sunny: 'sun', windy: 'wind', 'windy-variant': 'wind' };
 const WXC = { sun: '#F5D08A', moon: '#C9D8F5', partly: '#F5D08A', rain: '#8FB8FF', storm: '#B9A8FF', snow: '#E6F0FF', fog: '#A1A1AA', wind: '#C9D8F5', cloud: '#C9D8F5' };
@@ -719,24 +736,30 @@ class AureonDashboard extends LitElement {
             <span class="ttl">${a.name}</span><span class="muted txt" style="font-size:13px">${detail}</span></div></div></article>`);
     }
     if (m.waste.length) {
-      // Owner 2026-11-16: always today and tomorrow, then the next days; short names, nothing cut.
+      // Owner 2026-11-16: the next pickup as a big, refined bin; today is always stated; the next days on a shelf.
       const ack = this._prefs.wasteAck || {};
       const byDay = new Map();
       for (const w of m.waste) { if (!byDay.has(w.days)) byDay.set(w.days, { date: w.date, days: w.days, items: [] }); const d = byDay.get(w.days); if (!d.items.some((x) => x.type === w.type)) d.items.push(w); }
-      const day = (n) => byDay.get(n) || { days: n, items: [] };
-      const later = [...byDay.values()].filter((d) => d.days >= 2).sort((x, y) => x.days - y.days).slice(0, 4);
+      const days = [...byDay.values()].sort((x, y) => x.days - y.days);
+      const hero = days[0], keys = hero.items.map((x) => hero.date + x.type), out = keys.every((k) => ack[k]);
       const wd = (date, opt) => new Date(date + 'T12:00:00').toLocaleDateString(lang, opt);
-      const tom = day(1), tomKey = tom.items.map((x) => tom.date + x.type), tomOut = tom.items.length && tomKey.every((k) => ack[k]);
-      const urgent = (day(0).items.some((x) => !ack[x.date + x.type])) || (tom.items.length && !tomOut);
-      const slot = (d, label) => html`<div class=${'wslot' + (d.items.length ? ' has' : '')}>
-          <span class="wlab">${label}</span>
-          ${d.items.length ? d.items.map((w) => html`<span class="wbin"><i style=${'background:' + binColor(w.type)}></i><b class="txt">${shortBin(w.type)}</b></span>`) : html`<span class="wnone">${t('wasteNone')}</span>`}
-          ${d.days === 1 && d.items.length ? (tomOut ? html`<span class="wok">${ic('check', 'i s')}${t('wasteOut')}</span>` : html`<button class="wbtn" @click=${() => this._save({ wasteAck: { ...ack, ...Object.fromEntries(tomKey.map((k) => [k, true])) } })}>${ic('check', 'i s')}${t('wasteDoneS')}</button>`) : nothing}
-        </div>`;
-      cards.push(html`<article class="act waste" style=${urgent ? 'border-color:color-mix(in srgb,var(--accent) 55%,transparent)' : ''}>
-        <div class="row sp" style="gap:10px"><span class="tag" style=${urgent ? 'color:var(--accent)' : 'color:var(--mut)'}>${t('waste')}</span><span style=${urgent ? 'color:var(--accent)' : 'color:var(--mut)'}>${ic('trash', 'i s')}</span></div>
-        <div class="wdays">${slot(day(0), t('today'))}${slot(tom, t('tomorrow'))}</div>
-        ${later.length ? html`<div class="wnext">${later.map((d) => html`<span class="wn"><span class="mono">${wd(d.date, { weekday: 'short', day: 'numeric' })}</span>${d.items.map((w) => html`<span class="wbin sm"><i style=${'background:' + binColor(w.type)}></i><span class="txt">${shortBin(w.type)}</span></span>`)}</span>`)}</div>` : nothing}
+      const when = hero.days === 0 ? t('today') : hero.days === 1 ? t('tomorrow') : wd(hero.date, { weekday: 'long' });
+      const urgent = hero.days <= 1 && !out;
+      const today = byDay.get(0);
+      const sub = hero.days === 0 ? (out ? t('wasteOut') : t('wasteToday')) : today ? '' : t('wasteTodayNone');
+      const shelf = days.filter((d) => d !== hero).flatMap((d) => d.items.map((w) => ({ ...w }))).slice(0, 4);
+      cards.push(html`<article class=${'act wst' + (urgent ? ' urgent' : '')}>
+        <span class="wglow" aria-hidden="true" style=${'background:radial-gradient(closest-side,' + binColor(hero.items[0].type) + '55,transparent)'}></span>
+        <span class="tag wtag">${t('waste')} · ${when}${hero.days > 1 ? '' : ' · ' + wd(hero.date, { weekday: 'short', day: 'numeric' })}</span>
+        <div class="whero">
+          <span class="wbins" aria-hidden="true">${hero.items.slice(0, 2).map((w, i) => binSvg(binColor(w.type), urgent, 'h' + i, i ? 'back' : ''))}</span>
+          <div class="wtxt">
+            <span class="wname txt">${hero.items.map((w) => shortBin(w.type)).join(' + ')}</span>
+            ${sub ? html`<span class="wsub txt">${sub}</span>` : nothing}
+            ${hero.days <= 1 ? (out ? html`<span class="wok">${ic('check', 'i s')}${t('wasteOut')}</span>` : html`<button class="wbtn" @click=${() => this._save({ wasteAck: { ...ack, ...Object.fromEntries(keys.map((k) => [k, true])) } })}>${ic('check', 'i s')}${t('wasteDone')}</button>`) : nothing}
+          </div>
+        </div>
+        ${shelf.length ? html`<div class="wshelf">${shelf.map((w, i) => html`<span class="wsi">${binSvg(binColor(w.type), false, 's' + i, 'sm')}<b class="txt">${shortBin(w.type)}</b><span class="mono">${w.days === 0 ? t('today') : w.days === 1 ? t('tomorrow') : wd(w.date, { weekday: 'short', day: 'numeric' })}</span></span>`)}</div>` : nothing}
       </article>`);
     }
     for (const v of m.vacuums) {

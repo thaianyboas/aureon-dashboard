@@ -121,21 +121,26 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .grid.w{grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))}
 .tile{position:relative;overflow:hidden;padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:14px;transition:border-color .35s,opacity .25s,transform .2s}
 .tile.ghosted{opacity:.45}
-.act.waste{gap:12px}
-.wdays{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.wslot{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;background:var(--sunk);border:1px solid var(--line);min-width:0}
-.wslot.has{background:color-mix(in srgb,var(--accent) 7%,var(--sunk));border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}
-.wlab{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
-.wslot.has .wlab{color:var(--accent)}
-.wbin{display:flex;align-items:center;gap:8px;min-width:0;font-size:15px}
-.wbin i{flex:none;width:10px;height:14px;border-radius:2px 2px 3px 3px;box-shadow:inset 0 2px 0 rgba(255,255,255,.25)}
-.wbin b{font-weight:500;overflow-wrap:normal;word-break:normal}
-.wbin.sm{font-size:12px;gap:5px;color:var(--fg2)}.wbin.sm i{width:7px;height:10px}
-.wnone{font-size:13px;color:var(--dim)}
-.wbtn{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;min-height:32px;padding:0 12px;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent);font:inherit;font-size:12px;font-weight:500}
-.wok{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent)}
-.wnext{display:flex;flex-wrap:wrap;gap:6px 14px;padding-top:10px;border-top:1px solid var(--line)}
-.wn{display:inline-flex;align-items:center;gap:8px;font-size:12px}.wn .mono{font-size:11px;color:var(--mut)}
+.act.wst{position:relative;overflow:hidden;gap:16px;padding:20px}
+.act.wst.urgent{border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
+.wglow{position:absolute;left:-30px;top:10px;width:210px;height:210px;pointer-events:none;opacity:.55}
+.wtag{position:relative;color:var(--accent)}.act.wst:not(.urgent) .wtag{color:var(--mut)}
+.whero{position:relative;display:flex;align-items:center;gap:22px;margin-top:6px}
+.wbins{position:relative;display:flex;flex:none;align-items:flex-end}
+.wb{width:78px;height:auto;overflow:visible;filter:drop-shadow(0 18px 18px rgba(0,0,0,.55))}
+.wb .lid{transform-box:view-box;transform-origin:7px 13px;transition:transform .8s cubic-bezier(.3,.8,.2,1)}
+.wb.open .lid{transform:rotate(-24deg)}
+.wb.back{width:62px;margin-left:-22px;order:-1;opacity:.92}
+.wb.sm{width:30px;filter:drop-shadow(0 6px 6px rgba(0,0,0,.5))}
+.wtxt{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0}
+.wname{font-family:'Playfair Display','Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;font-style:italic;font-size:32px;line-height:1.05;letter-spacing:-.01em}
+.wsub{font-size:13px;color:var(--mut)}
+.wbtn{display:inline-flex;align-items:center;gap:6px;margin-top:6px;min-height:34px;padding:0 14px;border-radius:999px;border:1px solid color-mix(in srgb,var(--accent) 55%,transparent);background:transparent;color:var(--accent);font:inherit;font-size:13px;font-weight:500;transition:background .25s,color .25s}
+.wbtn:hover{background:var(--accent);color:var(--on-accent)}
+.wok{display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:var(--accent)}
+.wshelf{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding-top:16px;border-top:1px solid var(--line)}
+.wsi{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0}
+.wsi b{font-size:12px;font-weight:500}.wsi .mono{font-size:10px;color:var(--mut);letter-spacing:.06em}
 .tile.mini{padding:10px 12px;gap:6px;border-radius:16px}.tile.mini .tbtn{min-height:40px}.tile.mini .ic{width:36px;height:36px}
 .sgrid{grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:8px}
 .tile .orb{position:absolute;width:180px;height:180px;left:-60px;top:-80px;border-radius:50%;transition:opacity .5s;pointer-events:none}
