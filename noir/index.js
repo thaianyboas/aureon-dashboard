@@ -1009,13 +1009,13 @@ class AureonDashboard extends LitElement {
     return html`<section class="sec">${this.secHead('music', html`<span style="letter-spacing:.28em;font-size:15px;font-weight:500;color:var(--accent)">AUREON</span> ${t('music')}`, status, html`
         ${accounts.length > 1 ? html`<span class="seg" role="group" aria-label="Spotify">${accounts.map((p) => html`<button aria-pressed=${p.entity_id === mc.entityId ? 'true' : 'false'} style="font-family:inherit;font-size:12px;letter-spacing:0" @click=${() => { mc.select(p.entity_id); this._libAsked = null; }}>${p.attributes.friendly_name || p.entity_id}</button>`)}</span>` : nothing}
         ${groupable.length > 1 ? html`<button class="btn sm" @click=${() => grouped ? this._call('media_player', 'unjoin', { entity_id: members.filter((x) => x !== lead.id) }) : this._call('media_player', 'join', { entity_id: lead.id, group_members: groupable.filter((s) => s.id !== lead.id).map((s) => s.id) })}>${grouped ? t('ungroup') : t('groupAll')}</button>` : nothing}`, t)}
-      ${acct ? html`<div class="mcard">
-        <div aria-hidden="true" class="spot" style=${`opacity:${playing ? 1 : 0.45};background:radial-gradient(55% 85% at 14% -10%, ${rgba(aRgb, 0.22)} 0%, ${rgba(aRgb, 0)} 70%)`}></div>
+      ${acct ? html`<div class="mcard jzc">
+        <div aria-hidden="true" class="amb" style=${art ? `background-image:url("${art}")` : `background:radial-gradient(60% 90% at 20% 10%, ${rgba(aRgb, 0.5)} 0%, ${rgba(aRgb, 0)} 70%)`}></div>
+        <div aria-hidden="true" class="ambv"></div>
         <div class="jz">
-        <div class="deck" aria-hidden="true">
-          <div class=${'vinyl' + (playing ? ' on' : '')}><span class="label" style=${art ? `background:center/cover url("${art}")` : `background:radial-gradient(circle at 35% 30%, ${rgba(aRgb, 0.95)} 0%, ${rgba(aRgb, 0.55)} 60%, ${rgba(aRgb, 0.35)} 100%)`}></span></div>
-          <span class="sheen"></span>
-          <svg class=${'arm' + (playing ? ' on' : '')} viewBox="0 0 60 100"><circle cx="48" cy="10" r="7"></circle><circle cx="48" cy="10" r="2.5" class="pin"></circle><path d="M48 10 L44 70 L30 88"></path><rect x="22" y="84" width="14" height="9" rx="2" transform="rotate(-35 29 88)"></rect></svg>
+        <div class=${'deck' + (playing ? ' on' : '')} aria-hidden="true">
+          <div class="vwrap"><div class="vinyl"><span class="label" style=${art ? `background:center/cover url("${art}")` : `background:radial-gradient(circle at 35% 30%, ${rgba(aRgb, 0.95)} 0%, ${rgba(aRgb, 0.5)} 100%)`}></span></div><span class="sheen"></span></div>
+          <div class="jacket" style=${art ? `background:center/cover url("${art}")` : `background:linear-gradient(135deg, ${rgba(aRgb, 0.9)} 0%, ${rgba(aRgb, 0.25)} 100%)`}>${art ? nothing : html`<span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:rgba(0,0,0,.55)">${ic('note')}</span>`}</div>
         </div>
         <div class="mhead">
           <div class="grow" style="display:flex;flex-direction:column;gap:4px;min-width:0">
