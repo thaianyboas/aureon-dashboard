@@ -618,4 +618,12 @@ export const platformStyles=`
 .aureon-home.botanical .cine-room img{filter:brightness(1.12) saturate(1.06)}
 .aureon-home.botanical .cine-room-text strong{white-space:normal;overflow-wrap:anywhere}
 .aureon-home.botanical .home-bottom .cine-card{border-radius:18px}
+
+/* Illustrated waste bins, owner-approved visual language. */
+.aureon-home.botanical .home-waste-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:106px;padding:8px 4px;background:linear-gradient(155deg,#4d5b3a55,#15241a88);border:1px solid #d9c69233;border-radius:14px}
+.aureon-home.botanical .home-waste-item .home-waste-bin{display:block;width:clamp(30px,3.6vw,52px);height:clamp(38px,4.5vw,65px);filter:drop-shadow(0 5px 4px #0008)}
+.aureon-home.botanical .home-waste-item strong{font:500 clamp(10px,.85vw,13px)/1.15 system-ui,sans-serif;text-align:center;white-space:normal}
+.aureon-home.botanical .home-waste-item small{text-align:center;font-size:clamp(9px,.75vw,12px)}
+.aureon-home.botanical .home-robot-empty{cursor:default;opacity:.8}
+.aureon-home.botanical .home-bottom .cine-people{display:flex;flex-direction:column;justify-content:center}
 `;
