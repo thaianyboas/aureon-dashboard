@@ -67,7 +67,7 @@ function homeEntities(c,domain){
  return indexed.concat(extra);
 }
 function homeState(c,id){return c.state(id)||c.hass?.states?.[id]||null;}
-function homeData(ui){const c=ui.c,st=id=>homeState(c,id);
+export function homeData(ui){const c=ui.c,st=id=>homeState(c,id);
  const lights=c.list(['light']).filter(r=>isAvailable(st(r.id))),lightsOn=lights.filter(r=>st(r.id)?.state==='on');
  const windows=c.list(['binary_sensor']).filter(r=>WINDOW_CLASSES.includes(st(r.id)?.attributes?.device_class)),openWindows=windows.filter(r=>st(r.id)?.state==='on');
  const shades=c.list(['cover']).filter(r=>!SHADE_SKIP.includes(st(r.id)?.attributes?.device_class)&&isAvailable(st(r.id))),openShades=shades.filter(r=>{const s=st(r.id);return s?.state==='open'||Number(s?.attributes?.current_position)>0;});
