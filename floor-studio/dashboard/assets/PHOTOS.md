@@ -15,3 +15,10 @@ then resized to 2560×1440 (WebP q86). Same pictures and style as before, only s
 2026-11-10: every room picture also comes as `room-<key>-md.webp` (1280×720) and `room-<key>-sm.webp` (640×360),
 resized from the 2560×1440 file: cards load the small one, the room page shows it at once (blurred) and fades the
 large one in (1280 on phones/tablets, 2560 on large screens).
+
+2026-11-16: `robot-vacuum.webp` and `waste-bin-<colour>.webp` (yellow, grey, blue, brown, green) are AUREON's own
+three.js renders: a slim round robot vacuum modelled after the owner's own robot (matte graphite top, navigation
+turret with a champagne cap and blue ring, stereo camera window) and a wheelie bin with a recycling mark — no logo,
+no brand name, no photo.
+The scenes are in `scripts/art/robot-vacuum.html` and `scripts/art/waste-bins.html` (render with three.js, transparent
+background, cropped, WebP q90).

@@ -1,6 +1,6 @@
 import {html,svg,nothing} from '../../neonplan3d-main/frontend/node_modules/lit/index.js';
 import {isAvailable} from './actions.mjs';
-import {robotArt as robotPortrait} from './home-botanical.mjs';
+import {robotArt as robotPortrait,robotFacts,robotFactChips} from './home-botanical.mjs';
 import {VACUUM_CONTROLS,VACUUM_STATS,vacuumShowDefaults} from './preferences.mjs';
 import {converter,mapRooms,segmentCall,zoneCall,spotCall,gotoCall,selectCall,serviceAvailable,MAX_REPEATS,DREAME} from '../integrations/dreame.mjs';
 // Robot vacuum page in the Cinema look. Map functions of the Xiaomi Vacuum Map Card for Dreame robots (rooms, zones,
@@ -63,13 +63,14 @@ export function vacuumCinema(ui){const c=ui.c,t=ui.t,v=vacState(ui);
  return html`<div class="cine cine-vacuum">
  <div class="cine-glow" aria-hidden="true"></div>
  <div class="cine-sec-hero vac-hero">
-  <div class="vac-hero-art">${robotPortrait(cleaning)}${Number.isFinite(battery)?html`<span class="vac-battery" title=${t.battery}><i style=${'width:'+Math.max(4,Math.min(100,battery))+'%'}></i><b>${battery}%</b></span>`:nothing}</div>
+  <div class="vac-hero-art">${robotPortrait(cleaning,'bh-robot-art vac-portrait')}${Number.isFinite(battery)?html`<span class="vac-battery" title=${t.battery}><i style=${'width:'+Math.max(4,Math.min(100,battery))+'%'}></i><b>${battery}%</b></span>`:nothing}</div>
   <section class="cine-sec-text" aria-label=${t.vacPage}>
    <span class="cine-eyebrow">${t.vacPage}${vacuums.length>1?nothing:html` · ${ui.name(row)}`}</span>
    ${vacuums.length>1?html`<div class="vac-pick" role="group" aria-label=${t.vacPage}>${vacuums.map(r=>html`<button type="button" class="cal-chip" aria-pressed=${String(r.id===row.id)} @click=${()=>{v.id=r.id;clearSel(v);ui.requestUpdate();}}>${ui.name(r)}</button>`)}</div>`:nothing}
    <button type="button" class="vac-customize" aria-pressed=${String(editing)} @click=${()=>{ui._vacEdit=!editing;ui.requestUpdate();}}>${editing?t.layoutDone:t.vacCustomize}</button>
    <h1>${status}${a.status&&String(a.status)!==String(s?.state)?html`<br><em>${String(a.status).replaceAll('_',' ')}</em>`:nothing}</h1>
    ${errorText?html`<p class="vac-error" role="alert">${errorText}</p>`:nothing}
+   ${robotFactChips(robotFacts(ui,row).filter(f=>f.kind!=='alert'||!errorText))}
    <div class="vac-controls">${[['start',cleaning&&s?.state!=='returning'?null:act('start')],['pause',cleaning?act('pause'):null],['dock',docked?null:act('dock')],['stop',act('stop')],['locate',act('locate')]].filter(([key,x])=>x&&show.controls.includes(key)).map(([key,x])=>html`<button type="button" class=${'vac-ctl'+(key==='start'?' primary':'')} ?disabled=${busy} @click=${()=>ui.invoke(row,x)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d=${ICON[key]}></path></svg><span>${ui.controlLabel(key)}</span></button>`)}</div>
    ${stats.length?html`<div class="cine-stats vac-stats">${stats.map(([label,val,u])=>html`<div class="glass"><span class="cine-head">${label}</span><span class="cine-big">${typeof val==='number'?ui.format(val,val>=100?0:1):val}<small> ${u}</small></span></div>`)}</div>`:nothing}
   </section>

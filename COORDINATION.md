@@ -1396,3 +1396,10 @@ The Music browser suite passed again with that label and native transfer.
 - Tests: `tests/home-botanical.test.mjs`, preference validation, Botanical browser test updated (no agenda, `.bh-*`).
   All gates green locally. Synthetic fixture only, no test against the owner's Home Assistant.
   `BUILD_ID` AUREON-20261116-BOTANICAL.
+- 2026-11-16 follow-up (published): owner found the robot drawing and the waste bins plain. New three.js renders
+  `assets/robot-vacuum.webp` (shape of her robot from her photos: matte graphite, champagne turret, blue ring, camera
+  window; no logo) and `assets/waste-bin-{yellow,grey,blue,brown,green}.webp`;
+  scenes kept in `scripts/art/`. Waste type → colour in `home-botanical.mjs` (`BINS`). `robotFacts(ui,row)` reads the
+  Dreame entities of the device (error, current room, cleaned area/time while cleaning, charging status when docked,
+  CleanGenius/cleaning mode/suction, the most worn consumable at ≤10 %) and shows up to 3–4 chips on the start page
+  and the robot page, without any setting. Test in `tests/home-botanical.test.mjs`.

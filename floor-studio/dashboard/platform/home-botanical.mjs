@@ -25,22 +25,27 @@ const ICON={pin:'M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11zM
  bars:'M5 20v-5M9.5 20V9M14 20v-8M18.5 20V5',plan:'M3 5h18v14H3zM10 5v8h11M10 13v6'};
 const icon=(name,cls='bh-i')=>svg`<svg class=${cls} viewBox="0 0 24 24" aria-hidden="true"><path d=${ICON[name]}></path></svg>`;
 
-// The waste bin artwork the owner approved before (2026-11-16: "coletas de lixo tem que continuar como estava antes"),
-// coloured by waste type.
-function wasteBin(colour){return svg`<svg class="bh-bin" viewBox="0 0 64 76" style=${'--waste-color:'+colour} aria-hidden="true"><defs><linearGradient id="binShade" x1="0" x2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".30"/><stop offset=".5" stop-color="#ffffff" stop-opacity=".04"/><stop offset="1" stop-color="#000000" stop-opacity=".3"/></linearGradient></defs><path d="M12 20h40l-4 44q-1 5-6 5H22q-5 0-6-5Z" fill="var(--waste-color)" stroke="#080e0b" stroke-width="2"/><path d="M12 20h40l-4 44q-1 5-6 5H22q-5 0-6-5Z" fill="url(#binShade)"/><rect x="7" y="15" width="50" height="9" rx="3" fill="var(--waste-color)" stroke="#101a12" stroke-width="2"/><path d="M25 15v-5h14v5" fill="none" stroke="var(--waste-color)" stroke-width="5"/><path d="M23 35h18M24 42h16M25 49h14" stroke="#ffffff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="68" r="4" fill="#18201b"/><circle cx="44" cy="68" r="4" fill="#18201b"/></svg>`;}
+// Rendered artwork (assets/robot-vacuum.webp, assets/waste-bin-<colour>.webp; scenes in scripts/art/).
+const BINS=[[/gelb|yellow|amarel|verpack|plast|wertstoff/i,'yellow'],[/bio|organ/i,'brown'],[/papier|paper|papel|blau|blue|azul|karton/i,'blue'],[/glas|glass|vidro/i,'green'],[/rest|residu|schwarz|black|grau|grey|gray|haus/i,'grey']];
+const wasteBin=type=>html`<img class="bh-bin" src=${assetUrl('waste-bin-'+((BINS.find(([re])=>re.test(type))||[0,'grey'])[1])+'.webp')} alt="" loading="lazy" decoding="async">`;
+// The robot vacuum portrait; a soft light pulses under it while it cleans.
+export function robotArt(cleaning,cls='bh-robot-art'){return html`<span class=${cls+(cleaning?' cleaning':'')} aria-hidden="true"><img src=${assetUrl('robot-vacuum.webp')} alt="" decoding="async"></span>`;}
 
-// A robot vacuum seen from the front-top: glossy body, laser tower, a status light that pulses while cleaning.
-export function robotArt(cleaning){return svg`<svg class=${'bh-robot-art '+(cleaning?'cleaning':'')} viewBox="0 0 120 70" aria-hidden="true">
- <defs><radialGradient id="bhRobotTop" cx=".38" cy=".25" r=".9"><stop offset="0" stop-color="#4b4d52"/><stop offset=".55" stop-color="#1b1c1f"/><stop offset="1" stop-color="#0b0b0c"/></radialGradient>
- <linearGradient id="bhRobotSide" x1="0" x2="1"><stop offset="0" stop-color="#060606"/><stop offset=".45" stop-color="#2a2b2f"/><stop offset="1" stop-color="#070707"/></linearGradient></defs>
- <ellipse cx="60" cy="62" rx="54" ry="7" fill="#000" opacity=".45"/>
- <path d="M6 36v12c0 8 24 14 54 14s54-6 54-14V36z" fill="url(#bhRobotSide)"/>
- <ellipse cx="60" cy="36" rx="54" ry="20" fill="url(#bhRobotTop)"/>
- <ellipse cx="60" cy="36" rx="54" ry="20" fill="none" stroke="#ffffff" stroke-opacity=".12"/>
- <path d="M22 44c10 5 24 7 38 7s28-2 38-7" fill="none" stroke="#fff" stroke-opacity=".07" stroke-width="2"/>
- <ellipse cx="60" cy="27" rx="15" ry="6" fill="#26272b"/><path d="M45 27v-4c0-3.3 6.7-6 15-6s15 2.7 15 6v4" fill="#18191b"/><ellipse cx="60" cy="23" rx="15" ry="6" fill="#2e3034" stroke="#fff" stroke-opacity=".1"/>
- <g class="bh-robot-leds"><circle cx="40" cy="50" r="1.4" fill="#58b8ff"/><circle cx="46" cy="51.5" r="1.4" fill="#58b8ff"/><circle cx="52" cy="52.2" r="1.4" fill="#58b8ff"/></g>
- </svg>`;}
+// What the owner wants to see about the robot without choosing anything (2026-11-16: "automaticamente"): read from
+// the Dreame entities of the same device, only the ones that exist and have a value right now.
+export function robotFacts(ui,row){const c=ui.c,t=ui.t,robot=row&&c.dreame().find(r=>r.vacuum.id===row.id);if(!robot)return [];
+ const live=r=>{const s=r&&c.state(r.id);return s&&isAvailable(s)&&String(s.state).trim()!==''?s:null;},num=s=>`${ui.format(Number(s.state),Number(s.state)>=100?0:1)} ${s.attributes?.unit_of_measurement||''}`.trim();
+ const vac=c.state(row.id),cleaning=['cleaning','returning'].includes(vac?.state),facts=[];
+ const error=live(robot.stats.error);if(error&&!/^(no_?error|none|0|ok)$/i.test(String(error.state)))facts.push({kind:'alert',text:ui.stateText(error)});
+ if(cleaning){const room=live(robot.stats.current_room);if(room)facts.push({kind:'room',text:ui.stateText(room)});
+  const area=live(robot.stats.cleaned_area);if(area&&Number.isFinite(Number(area.state)))facts.push({kind:'area',text:num(area)});
+  const time=live(robot.stats.cleaning_time);if(time&&Number.isFinite(Number(time.state)))facts.push({kind:'time',text:num(time)});}
+ else{const charging=live(robot.stats.charging_status);if(charging&&vac?.state==='docked'&&!/not|nicht|^no/i.test(String(charging.state)))facts.push({kind:'charge',text:ui.stateText(charging)});}
+ const genius=live(robot.settings.cleangenius),mode=genius&&!/off|aus|deslig/i.test(String(genius.state))?genius:live(robot.settings.cleaning_mode)||live(robot.settings.suction_level);if(mode)facts.push({kind:'mode',text:ui.stateText(mode)});
+ const worn=robot.consumables.map(r=>({r,s:live(r)})).filter(x=>x.s&&Number.isFinite(Number(x.s.state))).sort((a,b)=>Number(a.s.state)-Number(b.s.state))[0];
+ if(worn&&Number(worn.s.state)<=10){const name=ui.name(worn.r),base=ui.name(row);facts.push({kind:'alert',text:`${name.toLocaleLowerCase().startsWith(base.toLocaleLowerCase()+' ')?name.slice(base.length+1):name} ${Math.round(Number(worn.s.state))} %`});}
+ return facts.slice(0,4);}
+export const robotFactChips=(facts)=>facts.length?html`<span class="bh-facts">${facts.map(f=>html`<span class=${'bh-fact '+f.kind}>${f.text}</span>`)}</span>`:nothing;
 
 const cap=text=>text?text.charAt(0).toLocaleUpperCase()+text.slice(1):'';
 const devicesText=(t,n)=>`${n} ${n===1?t.bhDevice:t.bhDevices}`;
@@ -88,7 +93,7 @@ export function homeBotanical(ui,x){const c=ui.c,t=ui.t,p=c.preferences,st=x.st,
 
  // waste
  const wasteCard=p.widgets.waste?html`<section class="bh-card bh-waste" data-layout-key="cine:waste"><button type="button" class="bh-title" @click=${()=>ui.nav('Agenda')}>${icon('trash')}<span>${t.waste}</span>${icon('chevron','bh-chev')}</button>
-  ${x.waste.length?html`<div class="bh-bins">${x.waste.slice(0,3).map(row=>{const name=x.wasteName(row.type);return html`<div class="bh-bin-tile" title=${row.type}>${wasteBin(x.wasteColour(row.type))}<strong>${name}</strong><small class=${row.today?'soon':''}>${x.when(row)}</small></div>`;})}</div>`
+  ${x.waste.length?html`<div class="bh-bins">${x.waste.slice(0,3).map(row=>{const name=x.wasteName(row.type);return html`<div class="bh-bin-tile" title=${row.type}>${wasteBin(row.type)}<strong>${name}</strong><small class=${row.today?'soon':''}>${x.when(row)}</small></div>`;})}</div>`
   :html`<p class="bh-empty" role="status">${p.waste.some(id=>c.busy.has('calendar:'+id))?t.loading:p.waste.some(id=>c.errors['calendar:'+id])?t.unavailable:p.waste.length?t.bhWasteNone:t.bhWasteSetup}</p>`}</section>`:nothing;
 
  // No agenda card: the owner keeps the calendar in the side navigation (2026-11-16).
@@ -103,7 +108,7 @@ export function homeBotanical(ui,x){const c=ui.c,t=ui.t,p=c.preferences,st=x.st,
  const robot=d.robot,rs=robot&&st(robot.id),cleaning=['cleaning','returning'].includes(rs?.state),robotLevel=batteryOf(c,robot,st);
  const next=nextCleaning(c,robot,st),nextText=Number.isFinite(next)&&next>=c.now()?(()=>{const day=dayKey(new Date(next),zone),when=day===todayKey?t.today:day===dayKey(new Date(c.now()+86400000),zone)?t.tomorrow:new Intl.DateTimeFormat(c.language,{timeZone:zone,weekday:'short',day:'numeric',month:'short'}).format(next);return `${when} · ${clock.format(next)}`;})():'';
  const actions=robot?c.actions(robot.id):[],go=actions.find(a=>a.key===(cleaning?'pause':'start'));
- const robotCard=robot?html`<div class="bh-card bh-robot" data-layout-key="cine:robot"><button type="button" class="bh-robot-main" @click=${()=>ui.nav('Staubsauger')}>${robotArt(cleaning)}<span class="bh-robot-text"><strong>${ui.name(robot)}</strong><small>${icon('bolt')}<span>${ui.stateText(rs)}${robotLevel!=null?` · ${Math.round(robotLevel)} %`:''}</span></small></span></button>
+ const robotCard=robot?html`<div class="bh-card bh-robot" data-layout-key="cine:robot"><button type="button" class="bh-robot-main" @click=${()=>ui.nav('Staubsauger')}>${robotArt(cleaning)}<span class="bh-robot-text"><strong>${ui.name(robot)}</strong><small>${icon('bolt')}<span>${ui.stateText(rs)}${robotLevel!=null?` · ${Math.round(robotLevel)} %`:''}</span></small>${robotFactChips(robotFacts(ui,robot).slice(0,3))}</span></button>
    <div class="bh-robot-plan">${icon('calendar','bh-i bh-cal')}<span><small>${t.homeNextClean}</small><b>${nextText||'—'}</b></span>${go?html`<button type="button" class="bh-round" aria-label=${cleaning?t.bhPauseClean:t.bhStartClean} title=${cleaning?t.bhPauseClean:t.bhStartClean} ?disabled=${c.busy.has('action:'+robot.id)} @click=${()=>ui.invoke(robot,go)}>${icon(cleaning?'pause':'play')}</button>`:nothing}</div></div>`
   :html`<div class="bh-card bh-robot bh-robot-empty" data-layout-key="cine:robot">${robotArt(false)}<span class="bh-robot-text"><strong>${t.robot}</strong><small>${t.bhRobotNone}</small></span></div>`;
 

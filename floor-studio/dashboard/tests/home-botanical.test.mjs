@@ -20,3 +20,17 @@ test('registry rows come first, hidden entities stay hidden, a chosen weather en
  assert.equal(homeEntities(gone,'weather')[0].id,'weather.forecast_zuhause');
  assert.deepEqual(homeEntities(controller({}),'weather'),[]);
 });
+import {robotFacts} from '../platform/home-botanical.mjs';
+// Owner 2026-11-16: the robot shows what matters by itself, from the Dreame entities of the same device.
+test('robot facts are read from the Dreame entities that exist',()=>{
+ const states={'vacuum.x60':{state:'cleaning',attributes:{}},'sensor.x60_current_room':{state:'Sala',attributes:{}},'sensor.x60_cleaned_area':{state:'12',attributes:{unit_of_measurement:'m²'}},
+  'sensor.x60_error':{state:'no_error',attributes:{}},'select.x60_cleangenius':{state:'off',attributes:{}},'select.x60_suction_level':{state:'strong',attributes:{}},
+  'sensor.x60_side_brush_left':{state:'7',attributes:{}},'sensor.x60_filter_left':{state:'60',attributes:{}}};
+ const r=id=>({id,name:'X60 '+id.split('_').slice(1).join(' ')});
+ const robot={vacuum:{id:'vacuum.x60'},stats:{current_room:r('sensor.x60_current_room'),cleaned_area:r('sensor.x60_cleaned_area'),error:r('sensor.x60_error')},settings:{cleangenius:r('select.x60_cleangenius'),suction_level:r('select.x60_suction_level')},consumables:[r('sensor.x60_side_brush_left'),r('sensor.x60_filter_left')]};
+ const ui={t:{},c:{dreame:()=>[robot],state:id=>states[id]},name:row=>row.name,stateText:s=>s.state,format:(v,d)=>v.toFixed(d)};
+ assert.deepEqual(robotFacts(ui,{id:'vacuum.x60',name:'X60'}),[{kind:'room',text:'Sala'},{kind:'area',text:'12.0 m²'},{kind:'mode',text:'strong'},{kind:'alert',text:'side brush left 7 %'}]);
+ states['vacuum.x60'].state='docked';states['sensor.x60_error'].state='mop_pad_missing';
+ assert.deepEqual(robotFacts(ui,{id:'vacuum.x60',name:'X60'}).map(f=>f.kind),['alert','mode','alert']);
+ assert.deepEqual(robotFacts(ui,{id:'vacuum.other',name:'Other'}),[]);
+});

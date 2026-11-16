@@ -501,8 +501,9 @@ export const platformStyles=`
 @container home (max-width:660px){.home-composition{grid-template-columns:minmax(0,1fr)}.aureon-home.without-plan .home-primary{padding-top:18px}.aureon-home .home-rail{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}}
 @media(prefers-reduced-motion:reduce){.aureon-home *,.aureon-home *::before,.aureon-home *::after{animation:none!important;scroll-behavior:auto!important}}
 
-.vac-hero-art .bh-robot-art{width:min(100%,260px);height:auto;filter:drop-shadow(0 18px 22px rgba(0,0,0,.5))}
-.vac-hero-art .bh-robot-art.cleaning .bh-robot-leds{animation:vac-led 1.4s ease-in-out infinite}@keyframes vac-led{50%{opacity:.25}}
+.vac-hero-art:has(.vac-portrait){width:min(38vw,400px);max-width:100%}
+.vac-hero-art .vac-portrait{width:100%}
+.vac-hero-art .vac-portrait img{filter:drop-shadow(0 22px 26px rgba(0,0,0,.55))}
 .vac-customize-panel>.cal-chip{justify-self:start;width:auto}
 .vac-customize{justify-self:start;width:fit-content;margin:4px 0 2px;padding:7px 14px;border-radius:99px;border:1px solid var(--cine-line,var(--p-border));background:color-mix(in srgb,var(--p-text) 5%,transparent);color:inherit;font:inherit;font-size:13px;cursor:pointer}
 .vac-customize[aria-pressed="true"]{background:var(--p-accent);color:#1b1408;border-color:var(--p-accent)}
