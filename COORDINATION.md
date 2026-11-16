@@ -1459,3 +1459,4 @@ The Music browser suite passed again with that label and native transfer.
   `aureon/appliance_done_*` via `automation/config` (admin only) and toggles it on tap (else "Configurar" → blueprints),
   robot room-by-room progress from Dreame `rooms/selected_map/cleaning_sequence/active_segments/current_segment`
   (`vacuumRooms`), energy tiles today/cost (cost sensor or today × €/kWh price sensor)/month/solar/self-use.
+- Older machines on a smart plug (no own integration): appliance with `plug:true`; running ≥8 W; start/end read from `history/history_during_period` of the plug power sensor (end = <3 W for 3 min, run ≥8 min); "Terminou às …" until OK or 3 h; Alexa row matches the power blueprint's `power_entity`.

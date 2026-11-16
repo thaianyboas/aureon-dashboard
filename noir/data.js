@@ -18,6 +18,7 @@ const PROTECT = ['protegida', 'protegido', 'immer_an', 'always_on', 'no_off', 'n
 const hasLabel = (reg, labels, keys) => (reg?.labels || []).some((id) => keys.includes(labelKey(id)) || keys.includes(labelKey(labels?.[id])));
 
 const OUTDOOR = /balk|balcon|varanda|terra(s|z)|garten|garden|jardim|patio|pátio|quintal|pool|piscina|outdoor|au(ss|ß)en/i;
+export const PLUG_RUN_W = 8, PLUG_IDLE_W = 3;
 const APPLIANCE = [
   ['dish', /sp(ü|ue)lmaschine|geschirr|dish ?washer|lava-lou|lava lou|lou(ç|c)a/i],
   ['dryer', /trockner|dryer|secadora/i],
@@ -201,6 +202,13 @@ export function buildModel(hass, opts = {}) {
 
   // Washer / dryer / dishwasher: device level, from whatever sensors that device exposes.
   const seen = new Set();
+  for (const p of m.metered) {
+    const kind = (APPLIANCE.find(([, re]) => re.test(p.name)) || [])[0];
+    if (!kind || !p.device || APPLIANCE.some(([, re]) => re.test([devices[p.device]?.name_by_user, devices[p.device]?.name, devices[p.device]?.model].filter(Boolean).join(' ')))) continue;
+    seen.add(p.device);
+    const pw = m.power.filter((x) => x.device === p.device);
+    m.appliances.push({ plug: true, powerIds: pw.map((x) => x.id), entities: [p.id, ...pw.map((x) => x.id)], w: p.w, id: p.device, kind, name: p.name, area: p.area, areaName: p.areaName, pct: null, mins: null, endAt: null, status: '', program: '', done: false, running: p.w >= PLUG_RUN_W, idle: p.w < PLUG_RUN_W });
+  }
   for (const [devId, items] of Object.entries(byDevice)) {
     const dev = devices[devId] || {};
     const text = [dev.name_by_user, dev.name, dev.model].filter(Boolean).join(' ');
@@ -225,6 +233,13 @@ export function buildModel(hass, opts = {}) {
     const stText = status ? String(status.state) : '';
     const done = /finish|fertig|beendet|ende\b|end\b|done|complete|concluí|pronto/i.test(stText) || pct === 100;
     const idle = !done && (/^(off|aus|idle|standby|ready|bereit|inactive|inaktiv|none|desligad)/i.test(stText) || (!stText && pct == null && mins == null));
+    // An older machine without its own integration, measured by a smart plug (owner 2026-11-16: "máquina velha").
+    const pw = items.filter((x) => x.domain === 'sensor' && x.attrs?.device_class === 'power' && !x.unavailable);
+    if (!status && !prog && !remain && !finish && pw.length) {
+      const w = Math.round(pw.reduce((s2, x) => s2 + (num(x.state) || 0), 0));
+      m.appliances.push({ plug: true, powerIds: pw.map((x) => x.id), entities: items.map((x) => x.id), w, id: devId, kind, name: cleanName(dev.name_by_user || dev.name || kind, areaName(area)).replace(/\s+(plug|steckdose|tomada)$/i, ''), area, areaName: areaName(area), pct: null, mins: null, endAt: null, status: '', program: '', done: false, running: w >= PLUG_RUN_W, idle: w < PLUG_RUN_W });
+      continue;
+    }
     const human = (v) => { let x = String(v || '').split('.').pop().replace(/_/g, ' ').replace(/([a-z])([A-Z0-9])/g, '$1 $2').trim(); return x ? x[0].toUpperCase() + x.slice(1) : ''; };
     const program = progEnt ? human(progEnt.state) : '';
     let temp = '';

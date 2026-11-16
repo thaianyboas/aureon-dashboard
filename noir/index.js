@@ -6,7 +6,7 @@
 import { LitElement, html, svg, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
 import { styles } from './styles.js';
-import { buildModel, roomLayout, binColor, shortBin, vacuumRooms } from './data.js';
+import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, PLUG_RUN_W, PLUG_IDLE_W } from './data.js';
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
@@ -286,6 +286,7 @@ class AureonDashboard extends LitElement {
     const now = new Date();
     const ui = this._ui, prefs = this._prefs;
     const m = buildModel(this.hass, { now, labels: this._labels, aliases: prefs.aliases, hidden: prefs.hidden, forceShow: prefs.forceShow, noAreaName: t('noArea') });
+    this._plugCycles(m, now);
     this._detectFinished(m, t);
     const th = this._theme();
     const aRgb = th.ha ? this._accentRgb : hexRgb(th.accent);
@@ -640,6 +641,36 @@ class AureonDashboard extends LitElement {
       ${au ? html`<button class="switch" role="switch" aria-checked=${on ? 'true' : 'false'} aria-label=${t('alexaDone') + ' · ' + a.name} @click=${() => this._call('automation', on ? 'turn_off' : 'turn_on', { entity_id: au.id })}><span><i></i></span></button>`
         : html`<button class="btn sm" @click=${() => { history.pushState(null, '', '/config/blueprint/dashboard'); window.dispatchEvent(new CustomEvent('location-changed')); }}>${t('alexaSetup')}</button>`}</div>`;
   }
+  // Older machines measured by a plug: the cycle is read from the plug's power history (start, and the end once the
+  // power stayed low for 3 minutes). "Terminou" stays until acknowledged or for 3 hours.
+  _plugCycles(m, now) {
+    const IDLE_MS = 3 * 60000, MIN_RUN = 8 * 60000;
+    this._pc ||= {};
+    for (const a of m.appliances.filter((x) => x.plug && x.powerIds?.length)) {
+      const pid = a.powerIds[0], lc = Date.parse(this.hass.states[pid]?.last_changed) || 0, h = this._pc[a.id];
+      if (this.hass.callWS && (!h || (h.lc !== lc && Date.now() - h.at > 15000) || Date.now() - h.at > 300000) && !this._pcBusy?.[a.id]) {
+        (this._pcBusy ||= {})[a.id] = true;
+        this.hass.callWS({ type: 'history/history_during_period', start_time: new Date(now.getTime() - 8 * 3600000).toISOString(), entity_ids: [pid], minimal_response: true, no_attributes: true, significant_changes_only: false })
+          .then((res) => {
+            const pts = (res?.[pid] || []).map((x) => ({ t: 1000 * Number(x.lu ?? x.lc ?? Date.parse(x.last_changed) / 1000), v: Number(x.s ?? x.state) })).filter((x) => Number.isFinite(x.t) && Number.isFinite(x.v));
+            let run = null, below = null; const runs = [];
+            for (const p of pts) {
+              if (p.v >= PLUG_RUN_W) { below = null; if (!run) run = { start: p.t, end: null }; }
+              else if (p.v < PLUG_IDLE_W && run) { below ??= p.t; }
+              if (run && below != null && p.t - below >= IDLE_MS) { run.end = below; runs.push(run); run = null; below = null; }
+            }
+            if (run && below != null && Date.now() - below >= IDLE_MS) { run.end = below; runs.push(run); run = null; }
+            const last = run || runs.filter((r) => r.end - r.start >= MIN_RUN).pop() || null;
+            this._pc[a.id] = { at: Date.now(), lc, run: last };
+          }).catch(() => { this._pc[a.id] = { at: Date.now(), lc, run: null }; })
+          .finally(() => { this._pcBusy[a.id] = false; this.requestUpdate(); });
+      }
+      const r = this._pc[a.id]?.run;
+      if (!r) continue;
+      if (a.running && !r.end) { a.startAt = new Date(r.start); a.mins = null; }
+      else if (!a.running && r.end && now - r.end < 3 * 3600000 && (this._prefs.cycleAck || {})[a.id] !== r.end) { a.done = true; a.idle = false; a.endedAt = new Date(r.end); a.runEnd = r.end; a.status = 'plugdone'; }
+    }
+  }
   _moreInfo(id) { this.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId: id }, bubbles: true, composed: true })); }
   _labelList(m) {
     const ids = new Set(Object.keys(this._labels || {}));
@@ -749,13 +780,16 @@ class AureonDashboard extends LitElement {
       const C = 2 * Math.PI * 31, pct = a.done ? 100 : a.pct != null ? a.pct : null;
       const icon = a.kind === 'dish' ? 'dish' : 'washer';
       const dev = { ...a, isDevice: true };
-      const detail = a.done ? [a.program, t('cycleDone')].filter(Boolean).join(' · ') : [a.program || null, a.mins != null ? t('remaining', { m: Math.round(a.mins) }) : null, a.endAt ? t('endsAt', { t: a.endAt.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : null, !a.mins && !a.endAt ? a.status : null].filter(Boolean).join(' · ');
+      const hm = (d) => d.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
+      const detail = a.plug ? (a.done ? t('plugDone', { t: hm(a.endedAt) }) : [a.startAt ? t('plugSince', { m: Math.max(1, Math.round((now - a.startAt) / 60000)) }) : t('running'), a.w + ' W ' + t('nowS')].join(' · ')) : a.done ? [a.program, t('cycleDone')].filter(Boolean).join(' · ') : [a.program || null, a.mins != null ? t('remaining', { m: Math.round(a.mins) }) : null, a.endAt ? t('endsAt', { t: a.endAt.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : null, !a.mins && !a.endAt ? a.status : null].filter(Boolean).join(' · ');
       cards.push(html`<article class="act" style=${a.done ? `border-color:var(--accent);box-shadow:0 24px 70px -30px ${rgba(ctx.aRgb, 0.6)}` : ''}>
         ${this.editBar('appliances', dev, [], t)}
-        <div class="row" style="gap:16px;align-items:center"><div class="ring">${svg`<svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="31" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="5"></circle>${pct != null ? svg`<circle cx="36" cy="36" r="31" fill="none" stroke-width="5" stroke-linecap="round" stroke=${a.done ? 'var(--accent)' : '#8FB8FF'} stroke-dasharray=${(C * pct / 100).toFixed(1) + ' ' + C.toFixed(1)}></circle>` : nothing}</svg>`}
+        <div class="row" style="gap:16px;align-items:center"><div class="ring">${svg`<svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="31" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="5"></circle>${pct != null ? svg`<circle cx="36" cy="36" r="31" fill="none" stroke-width="5" stroke-linecap="round" stroke=${a.done ? 'var(--accent)' : '#8FB8FF'} stroke-dasharray=${(C * pct / 100).toFixed(1) + ' ' + C.toFixed(1)}></circle>` : a.running ? svg`<circle class="spinarc" cx="36" cy="36" r="31" fill="none" stroke-width="5" stroke-linecap="round" stroke="#8FB8FF" stroke-dasharray=${(C * 0.28).toFixed(1) + ' ' + C.toFixed(1)}></circle>` : nothing}</svg>`}
           <span style=${a.done ? 'color:var(--accent)' : 'color:#C9D8F5'}>${ic(icon)}</span></div>
           <div class="grow" style="display:flex;flex-direction:column;gap:3px"><span class="tag" style=${a.done ? 'color:var(--accent)' : 'color:var(--mut)'}>${a.done ? '● ' + t('cycleDone') : (a.areaName ? a.areaName + ' · ' : '') + (pct != null ? Math.round(pct) + '%' : t('running'))}</span>
-            <span class="ttl">${a.name}</span><span class="muted txt" style="font-size:13px">${detail}</span></div></div>
+            <span class="ttl">${a.name}</span><span class="muted txt" style="font-size:13px">${detail}</span>
+            ${a.plug ? html`<span class="byplug">${ic('plug', 'i s')}${t('byPlug')}</span>` : nothing}</div></div>
+        ${a.plug && a.done ? html`<button class="btn sm" style="align-self:flex-start" @click=${() => this._save({ cycleAck: { ...(this._prefs.cycleAck || {}), [a.id]: a.runEnd } })}>${ic('check', 'i s')}${t('okS')}</button>` : nothing}
         ${this.alexaRow(a, t)}</article>`);
     }
     if (m.waste.length) {

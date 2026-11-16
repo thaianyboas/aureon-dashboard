@@ -144,6 +144,8 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .lrow.on .lbulb{background:rgb(var(--lc));box-shadow:0 0 10px 1px rgba(var(--lc),.8)}
 .lrng{grid-column:1 / -1;margin:0 0 8px 18px;height:3px}
 @container (max-width:460px){.prow{padding-left:14px}}
+.byplug{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:var(--mut)}
+.spinarc{transform-origin:36px 36px;animation:spin 1.6s linear infinite}
 .alexa{display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 8px 6px 14px;border-radius:14px;background:var(--sunk);border:1px solid var(--line);font-size:14px;color:var(--fg2)}
 .alexa>.i{color:var(--mut)}
 .vrooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:6px}

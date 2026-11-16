@@ -50,6 +50,9 @@ window.makeHass = function makeHass(lang) {
   ent('sensor.washer_remaining_time', '22', { unit_of_measurement: 'min' }, { device_id: 'dwash' });
   ent('select.washer_active_program', 'LaundryCare.Washer.Program.Cotton', { friendly_name: 'Washer active program' }, { device_id: 'dwash' });
   ent('select.washer_temperature', 'LaundryCare.Washer.EnumType.Temperature.GC40', { friendly_name: 'Washer temperature' }, { device_id: 'dwash' });
+  dev('dold', 'Old washing machine', 'bath', 'Smart Plug');
+  ent('switch.old_washer', 'on', { friendly_name: 'Old washing machine', device_class: 'outlet' }, { device_id: 'dold' });
+  ent('sensor.old_washer_power', '450', { friendly_name: 'Old washing machine power', device_class: 'power', unit_of_measurement: 'W' }, { device_id: 'dold' });
   ent('automation.washer_alexa', 'on', { friendly_name: 'Waschmaschine fertig (Alexa)' }, {});
   ent('sensor.energy_today', '3.4', { device_class: 'energy', unit_of_measurement: 'kWh', friendly_name: 'Energy today' }, {});
   ent('sensor.energy_month', '84.2', { device_class: 'energy', unit_of_measurement: 'kWh', friendly_name: 'Energy this month' }, {});
@@ -76,7 +79,7 @@ window.makeHass = function makeHass(lang) {
       if (d === 'spotifyplus' && s === 'check_track_favorites') return { response: { result: { abc123: false } } };
       return { response: { result: {} } };
     },
-    callWS: async (msg) => { H.ws.push(msg); if (msg.type === 'automation/config' && msg.entity_id === 'automation.washer_alexa') return { config: { alias: 'Waschmaschine fertig (Alexa)', use_blueprint: { path: 'aureon/appliance_done_status.yaml', input: { status_entity: 'sensor.washer_operation' } } } }; if (msg.type === 'config/label_registry/list') return [{ label_id: 'protegida', name: 'Protegida' }, { label_id: 'no_dboard', name: 'no_dboard' }, { label_id: 'deko', name: 'Deko' }]; return {}; },
+    callWS: async (msg) => { H.ws.push(msg); if (msg.type === 'history/history_during_period') { const t0 = Date.now() / 1000; return { 'sensor.old_washer_power': [{ s: '0.4', lc: t0 - 7200 }, { s: '2100', lu: t0 - 35 * 60 }, { s: '450', lu: t0 - 20 * 60 }] }; } if (msg.type === 'automation/config' && msg.entity_id === 'automation.washer_alexa') return { config: { alias: 'Waschmaschine fertig (Alexa)', use_blueprint: { path: 'aureon/appliance_done_status.yaml', input: { status_entity: 'sensor.washer_operation' } } } }; if (msg.type === 'config/label_registry/list') return [{ label_id: 'protegida', name: 'Protegida' }, { label_id: 'no_dboard', name: 'no_dboard' }, { label_id: 'deko', name: 'Deko' }]; return {}; },
     callApi: async () => [],
     connection: { subscribeMessage: async (cb, msg) => { H.ws.push(msg); const conds = ['partlycloudy', 'cloudy', 'rainy', 'rainy', 'cloudy', 'clear-night', 'clear-night'];
       setTimeout(() => cb({ forecast: msg.forecast_type === 'daily' ? [{ datetime: new Date().toISOString(), condition: 'partlycloudy', temperature: 9, templow: 3 }] : conds.map((c, i) => ({ datetime: new Date(Date.now() + i * 3600e3).toISOString(), condition: c, temperature: 7 - Math.floor(i / 2), precipitation_probability: c === 'rainy' ? 60 : 0 })) }), 10);

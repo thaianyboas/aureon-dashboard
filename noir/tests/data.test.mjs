@@ -28,7 +28,7 @@ test('no_dboard hides, protegida locks, power is linked to the plug of the same 
   assert.ok(!m.plugs.some((p) => p.id === 'switch.hidden_thing'));
   assert.equal(m.plugs.find((p) => p.id === 'switch.p2').locked, true);
   assert.equal(m.plugs.find((p) => p.id === 'switch.p1').w, 86);
-  assert.equal(m.plugW, 86 + 112 + 9 + 5 + 60);
+  assert.equal(m.plugW, 86 + 112 + 9 + 5 + 60 + 450); // + the old washing machine plug
 });
 test('appliances: running with progress, finished state', () => {
   const m = buildModel(hass());

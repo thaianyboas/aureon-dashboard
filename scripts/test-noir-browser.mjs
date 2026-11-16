@@ -157,6 +157,7 @@ console.log('behaviour');
   const al = await shadow(page, `const a=[...root.querySelectorAll('.act')].find((x)=>/Washing machine/.test(x.textContent)); const sw=a&&a.querySelector('.alexa .switch'); if(!sw) return 'no switch'; sw.click(); return sw.getAttribute('aria-checked')`);
   await new Promise((r) => setTimeout(r, 200));
   check(al === 'true' && await page.evaluate(() => H.calls.some((c) => c[0] === 'automation' && c[1] === 'turn_off' && c[2].entity_id === 'automation.washer_alexa')), 'Alexa row finds the blueprint automation and switches it (' + al + ')');
+  check(await shadow(page, `const a=[...root.querySelectorAll('.act')].find((x)=>/Old washing machine/.test(x.textContent)); return !!a && /ligada há 3[45] min/.test(a.textContent) && /450 W/.test(a.textContent) && !!a.querySelector('.byplug')`), 'old machine on a plug: running since the power went up');
   check(await shadow(page, `return root.querySelectorAll('.vrooms .vr').length===5 && root.querySelector('.vr.now').textContent.trim()==='Kitchen' && /cômodo 2 de 5/.test(root.textContent)`), 'robot shows room-by-room progress');
   check(await shadow(page, `const e=root.querySelector('.ekv'); return !!e && /84/.test(e.textContent) && /€/.test(e.textContent)`), 'energy shows month and cost');
   check(await shadow(page, `return !!root.querySelector('.mctl button[aria-label^="Repetir"]')`), 'repeat button shows the repeat mode');
