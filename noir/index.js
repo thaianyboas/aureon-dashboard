@@ -628,7 +628,7 @@ class AureonDashboard extends LitElement {
     this._autoSig = sig;
     Promise.all(autos.map((id) => this.hass.callWS({ type: 'automation/config', entity_id: id }).then((r) => [id, r?.config || r]).catch(() => null))).then((rows) => {
       const out = [];
-      for (const row of rows) { if (!row) continue; const [id, c] = row; const bp = c?.use_blueprint; if (!bp || !/aureon\/appliance_done/.test(bp.path || '')) continue; const inp = bp.input || {}; out.push({ id, ents: [inp.status_entity, inp.power_entity, inp.power_sensor].flat().filter(Boolean), alias: String(c.alias || '') }); }
+      for (const row of rows) { if (!row) continue; const [id, c] = row; const bp = c?.use_blueprint; if (!bp || !/appliance_done_(status|power)/.test(bp.path || '')) continue; const inp = bp.input || {}; out.push({ id, ents: [inp.status_entity, inp.power_entity, inp.power_sensor].flat().filter(Boolean), alias: String(c.alias || '') }); }
       this._alexaAutos = out; this.requestUpdate();
     });
   }
