@@ -1010,27 +1010,33 @@ class AureonDashboard extends LitElement {
         ${accounts.length > 1 ? html`<span class="seg" role="group" aria-label="Spotify">${accounts.map((p) => html`<button aria-pressed=${p.entity_id === mc.entityId ? 'true' : 'false'} style="font-family:inherit;font-size:12px;letter-spacing:0" @click=${() => { mc.select(p.entity_id); this._libAsked = null; }}>${p.attributes.friendly_name || p.entity_id}</button>`)}</span>` : nothing}
         ${groupable.length > 1 ? html`<button class="btn sm" @click=${() => grouped ? this._call('media_player', 'unjoin', { entity_id: members.filter((x) => x !== lead.id) }) : this._call('media_player', 'join', { entity_id: lead.id, group_members: groupable.filter((s) => s.id !== lead.id).map((s) => s.id) })}>${grouped ? t('ungroup') : t('groupAll')}</button>` : nothing}`, t)}
       ${acct ? html`<div class="mcard">
-        <div aria-hidden="true" style=${`position:absolute;inset:0;pointer-events:none;opacity:${playing ? 1 : 0.35};background:radial-gradient(50% 120% at 8% 30%, ${rgba(aRgb, 0.14)} 0%, ${rgba(aRgb, 0)} 70%)`}></div>
+        <div aria-hidden="true" class="spot" style=${`opacity:${playing ? 1 : 0.45};background:radial-gradient(55% 85% at 14% -10%, ${rgba(aRgb, 0.22)} 0%, ${rgba(aRgb, 0)} 70%)`}></div>
+        <div class="jz">
+        <div class="deck" aria-hidden="true">
+          <div class=${'vinyl' + (playing ? ' on' : '')}><span class="label" style=${art ? `background:center/cover url("${art}")` : `background:radial-gradient(circle at 35% 30%, ${rgba(aRgb, 0.95)} 0%, ${rgba(aRgb, 0.55)} 60%, ${rgba(aRgb, 0.35)} 100%)`}></span></div>
+          <span class="sheen"></span>
+          <svg class=${'arm' + (playing ? ' on' : '')} viewBox="0 0 60 100"><circle cx="48" cy="10" r="7"></circle><circle cx="48" cy="10" r="2.5" class="pin"></circle><path d="M48 10 L44 70 L30 88"></path><rect x="22" y="84" width="14" height="9" rx="2" transform="rotate(-35 29 88)"></rect></svg>
+        </div>
         <div class="mhead">
-          <div class="art sm" aria-hidden="true">${art ? html`<img src=${art} alt="">` : html`<span class="o1 breathe" style=${`background:radial-gradient(circle, ${rgba(aRgb, 0.55)} 0%, ${rgba(aRgb, 0)} 65%)`}></span><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">${ic('note')}</span>`}</div>
-          <div class="grow" style="display:flex;flex-direction:column;gap:3px;min-width:0">
-            <span class="tag row" style="gap:8px;color:var(--accent);font-size:10px"><span class=${'eq' + (playing ? '' : ' off')}><i></i><i></i><i></i></span><span class="txt">${a.source || a.friendly_name || 'Spotify'}</span></span>
-            <span class="txt" style="font-size:clamp(17px,2vw,22px);font-weight:400;letter-spacing:-.03em;line-height:1.2">${a.media_title || t('nothingPlaying')}</span>
-            <span class="muted txt" style="font-size:12px">${[a.media_artist, a.media_album_name].filter(Boolean).join(' · ')}</span></div>
+          <div class="grow" style="display:flex;flex-direction:column;gap:4px;min-width:0">
+            <span class="jtag txt"><span class=${'eq' + (playing ? '' : ' off')}><i></i><i></i><i></i></span>${a.source || a.friendly_name || 'Spotify'}</span>
+            <span class="jtitle txt">${a.media_title || t('nothingPlaying')}</span>
+            <span class="jartist txt">${[a.media_artist, a.media_album_name].filter(Boolean).join(' · ')}</span></div>
           ${mc.advanced('save_track_favorites') && a.media_title ? html`<button class="ib sm ghost" aria-pressed=${mc.favorite ? 'true' : 'false'} aria-label=${t('likedS')} style=${mc.favorite ? 'color:#FF8FA3' : 'color:var(--mut)'} @click=${() => mc.toggleFavorite()}>${svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style=${mc.favorite ? 'fill:currentColor' : ''}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>`}</button>` : nothing}
         </div>
-        ${pos.duration ? html`<div class="row" style="position:relative;gap:10px"><span class="mono muted" style="font-size:10px;min-width:30px">${mmss(pos.value)}</span><input class="rng" style=${`margin:0;background:linear-gradient(90deg, var(--accent) ${(fr * 100).toFixed(1)}%, var(--line2) ${(fr * 100).toFixed(1)}%)`} type="range" min="0" max=${String(Math.round(pos.duration))} .value=${String(Math.round(pos.value))} ?disabled=${!mc.can('seek')} aria-label=${a.media_title || 'position'} @change=${(e) => mc.command('seek', Number(e.target.value))}><span class="mono muted" style="font-size:10px;min-width:30px;text-align:right">${mmss(pos.duration)}</span></div>` : nothing}
+        ${pos.duration ? html`<div class="row jprog" style="position:relative;gap:10px"><span class="mono muted" style="font-size:10px;min-width:30px">${mmss(pos.value)}</span><input class="rng" style=${`margin:0;background:linear-gradient(90deg, var(--accent) ${(fr * 100).toFixed(1)}%, var(--line2) ${(fr * 100).toFixed(1)}%)`} type="range" min="0" max=${String(Math.round(pos.duration))} .value=${String(Math.round(pos.value))} ?disabled=${!mc.can('seek')} aria-label=${a.media_title || 'position'} @change=${(e) => mc.command('seek', Number(e.target.value))}><span class="mono muted" style="font-size:10px;min-width:30px;text-align:right">${mmss(pos.duration)}</span></div>` : nothing}
         <div class="mctl">
           <div class="row" style="gap:6px">
             ${mc.can('shuffle') ? html`<button class="ib sm ghost" aria-pressed=${a.shuffle ? 'true' : 'false'} aria-label=${t('shuffle')} style=${a.shuffle ? 'color:var(--accent)' : 'color:var(--mut)'} @click=${() => mc.command('shuffle')}>${ic('shuffle', 'i s')}</button>` : nothing}
             ${mc.can('previous') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('prev')} ?disabled=${mc.pending.has('transport:previous')} @click=${() => this._skip('previous')}>${ic('prev', 'i s f')}</button>` : nothing}
-            <button class="play" style="width:46px;height:46px" aria-label=${playing ? t('pause') : t('play')} ?disabled=${!mc.ready} @click=${() => mc.command(playing ? 'pause' : 'play')}>${ic(playing ? 'pause' : 'play', 'i f')}</button>
+            <button class="play jplay" aria-label=${playing ? t('pause') : t('play')} ?disabled=${!mc.ready} @click=${() => mc.command(playing ? 'pause' : 'play')}>${ic(playing ? 'pause' : 'play', 'i f')}</button>
             ${mc.can('next') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('next')} ?disabled=${mc.pending.has('transport:next')} @click=${() => this._skip('next')}>${ic('next', 'i s f')}</button>` : nothing}
             ${mc.can('repeat') ? html`<button class="ib sm ghost" aria-pressed=${a.repeat && a.repeat !== 'off' ? 'true' : 'false'} aria-label=${t('repeat') + ': ' + t('repeat_' + (a.repeat || 'off'))} title=${t('repeat_' + (a.repeat || 'off'))} style=${'position:relative;' + (a.repeat && a.repeat !== 'off' ? 'color:var(--accent)' : 'color:var(--mut)')} @click=${() => mc.command('repeat')}>${ic('repeat', 'i s')}${a.repeat === 'one' ? html`<b style="position:absolute;right:6px;top:5px;font-size:9px;font-weight:600">1</b>` : nothing}</button>` : nothing}
           </div>
           ${mc.can('volume') && vol != null ? html`<span class="row mvol">${ic('vol', 'i s')}<input class="rng" type="range" min="0" max="100" .value=${String(vol)} aria-label=${t('volume')} style=${`margin:0;background:linear-gradient(90deg, var(--accent) ${vol}%, var(--line2) ${vol}%)`}
             @input=${(e) => { this._local['vol:acct'] = Number(e.target.value); this.requestUpdate(); }}
             @change=${(e) => { mc.command('volume', Number(e.target.value) / 100).finally(() => setTimeout(() => { delete this._local['vol:acct']; this.requestUpdate(); }, 1500)); }}><span class="mono muted" style="font-size:11px;min-width:22px;text-align:right">${vol}</span></span>` : nothing}
+        </div>
         </div>
         ${mc.error ? html`<span class="txt" style="position:relative;font-size:12px;color:#FF8A80">${mc.error}</span>` : nothing}
         <div class="mlib">
@@ -1046,7 +1052,7 @@ class AureonDashboard extends LitElement {
               ${!mc.pending.has('devices') && !mc.devices.length ? html`<span class="muted txt" style="font-size:13px">${t('noDevices')}</span>` : nothing}</div>`
           : html`<div class="mrow">${busy ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
               ${mc.results.slice(0, 20).map((it) => { const im = imgOf(it), starting = mc.startingUri === it.uri; return html`<button class="cover" aria-label=${t('play') + ' · ' + it.name} ?disabled=${starting} @click=${() => mc.playItem(it)}>
-                <span style=${`position:relative;display:block;width:100%;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:${im ? `center/cover url("${im}")` : `radial-gradient(70% 70% at 25% 25%, ${rgba(aRgb, 0.7)} 0%, ${rgba(aRgb, 0)} 70%), var(--raise)`}`}>${starting ? html`<span class="pulse" style="position:absolute;inset:0;background:rgba(0,0,0,.35)"></span>` : nothing}</span>
+                <span class="sleeve"><span class="disc"></span><span class="sl" style=${`position:relative;display:block;width:100%;aspect-ratio:1/1;border-radius:6px;overflow:hidden;background:${im ? `center/cover url("${im}")` : `radial-gradient(70% 70% at 25% 25%, ${rgba(aRgb, 0.7)} 0%, ${rgba(aRgb, 0)} 70%), var(--raise)`}`}>${starting ? html`<span class="pulse" style="position:absolute;inset:0;background:rgba(0,0,0,.35)"></span>` : nothing}</span></span>
                 <span class="txt" style="font-size:11px;font-weight:500;line-height:1.3">${it.name}</span></button>`; })}
               ${mc.hasNext ? html`<button class="ib" style="align-self:center" aria-label=${t('fwd')} @click=${() => mc.changePage(1)}>${ic('right', 'i s')}</button>` : nothing}
               ${!busy && !mc.results.length && !kinds.length && !mc.spotify ? html`<span class="muted txt" style="font-size:13px">${t('noSpotify')}</span>` : nothing}</div>`}
