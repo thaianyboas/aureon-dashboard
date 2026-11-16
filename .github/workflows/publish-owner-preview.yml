@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/publish-owner-preview.yml'
       - 'floor-studio/dashboard/platform/styles.mjs'
+      - 'floor-studio/dashboard/platform/home-cinema.mjs'
   workflow_dispatch:
 permissions:
   contents: write
