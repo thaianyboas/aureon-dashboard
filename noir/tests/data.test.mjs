@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildModel, roomLayout, wasteCollections, cleanName, kelvinToRgb } from '../data.js';
+import { buildModel, roomLayout, wasteCollections, cleanName, kelvinToRgb, shortBin } from '../data.js';
 
 globalThis.window = {};
 new Function(readFileSync(new URL('../../scripts/noir-fixture.js', import.meta.url), 'utf8'))();
@@ -43,9 +43,18 @@ test('local aliases and hidden list apply', () => {
 });
 test('waste: WCS date keys, sorted by days', () => {
   const m = buildModel(hass());
-  assert.deepEqual(m.waste.map((w) => w.type), ['Restmüll', 'Bio', 'Papier', 'Gelbe Tonne']);
-  assert.equal(m.waste[0].days, 0);
+  assert.deepEqual(m.waste.map((w) => w.type), ['Schwarze Restmülltonne', 'Blaue Papiertonne', 'Grüne Biotonne', 'Schwarze Restmülltonne', 'Gelbe Tonne']);
+  assert.equal(m.waste[0].days, 1);
   assert.deepEqual(wasteCollections({ entity_id: 'sensor.x', state: 'unavailable', attributes: {} }, new Date(), 'UTC'), []);
+});
+test('short bin names keep the meaning without the colour word', () => {
+  assert.equal(shortBin('Schwarze Restmülltonne'), 'Restmüll');
+  assert.equal(shortBin('Blaue Papiertonne'), 'Papier');
+  assert.equal(shortBin('Grüne Biotonne'), 'Bio');
+  assert.equal(shortBin('Gelbe Tonne'), 'Gelbe Tonne');
+  assert.equal(shortBin('Gelber Sack'), 'Gelber Sack');
+  assert.equal(shortBin('Restmüll'), 'Restmüll');
+  assert.equal(shortBin('Paper bin'), 'Paper');
 });
 test('helpers', () => {
   assert.equal(cleanName('Kitchen Ceiling', 'Kitchen'), 'Ceiling');

@@ -6,7 +6,7 @@
 import { LitElement, html, svg, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
 import { styles } from './styles.js';
-import { buildModel, roomLayout, binColor } from './data.js';
+import { buildModel, roomLayout, binColor, shortBin } from './data.js';
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
@@ -479,7 +479,7 @@ class AureonDashboard extends LitElement {
     for (const l of m.locks.filter((x) => kinds.locks !== false && !x.locked && !x.unavailable)) list.push({ key: 'K:' + l.id + ':' + l.st.last_changed, icon: 'unlock', tone: '#FF8A80', title: t('unlockedN', { n: l.name }), body: l.areaName, action: t('lockS'), act: () => this._call('lock', 'lock', { entity_id: l.id }) });
     for (const a of m.appliances.filter((x) => kinds.appliances !== false && x.done)) list.push({ key: 'A:' + a.id + ':' + a.status, icon: a.kind === 'dish' ? 'dish' : 'washer', tone: 'var(--accent)', title: t('finished', { n: a.name }), body: t('cycleDone') + (a.areaName ? ' · ' + a.areaName : ''), action: t('okS'), act: null });
     const nb = m.waste[0];
-    if (kinds.waste !== false && nb && nb.days <= 1 && !ack[nb.date + nb.type]) list.push({ key: 'W:' + nb.date + nb.type, icon: 'trash', tone: binColor(nb.type), title: nb.type, body: nb.days === 0 ? t('wasteToday') : t('wasteTomorrow'), action: t('doneS'), act: () => this._save({ wasteAck: { ...ack, [nb.date + nb.type]: true } }) });
+    if (kinds.waste !== false && nb && nb.days <= 1 && !ack[nb.date + nb.type]) list.push({ key: 'W:' + nb.date + nb.type, icon: 'trash', tone: binColor(nb.type), title: shortBin(nb.type), body: nb.days === 0 ? t('wasteToday') : t('wasteTomorrow'), action: t('doneS'), act: () => this._save({ wasteAck: { ...ack, [nb.date + nb.type]: true } }) });
     return list.filter((r) => !this._dismissed?.has(r.key));
   }
   pushes(ctx) {
@@ -719,15 +719,25 @@ class AureonDashboard extends LitElement {
             <span class="ttl">${a.name}</span><span class="muted txt" style="font-size:13px">${detail}</span></div></div></article>`);
     }
     if (m.waste.length) {
-      const ack = this._prefs.wasteAck || {}, nb = m.waste[0], key = nb.date + nb.type, urgent = nb.days <= 1 && !ack[key];
-      const list = m.waste.slice(0, 4);
-      cards.push(html`<article class="act" style=${urgent ? 'border-color:var(--accent)' : ''}>
-        <div class="row sp" style="align-items:flex-start;gap:12px"><div class="grow" style="display:flex;flex-direction:column;gap:3px">
-          <span class="tag" style=${urgent ? 'color:var(--accent)' : 'color:var(--mut)'}>${ack[key] ? '✓ ' + t('waste') : nb.days === 0 ? '● ' + t('today') : nb.days === 1 ? '● ' + t('tomorrow') : t('waste')}</span>
-          <span class="ttl">${nb.type}</span><span class="muted txt" style="font-size:13px">${nb.days === 0 ? t('wasteToday') : nb.days === 1 ? t('wasteTomorrow') : t('wasteNext', { d: new Date(nb.date + 'T12:00:00').toLocaleDateString(lang, { weekday: 'short', day: 'numeric', month: 'short' }) })}</span></div>
-          <span class="ic" style=${urgent ? 'background:var(--accent);color:var(--on-accent);width:48px;height:48px;border-radius:14px' : 'width:48px;height:48px;border-radius:14px'}>${ic('trash')}</span></div>
-        <div class="bins">${list.map((w) => html`<span class="bin"><i style=${'background:' + binColor(w.type)}></i><b>${w.type}</b><span class="mono muted" style="font-size:10px">${w.days === 0 ? t('today') : w.days === 1 ? t('tomorrow') : new Date(w.date + 'T12:00:00').toLocaleDateString(lang, { weekday: 'short', day: 'numeric' })}</span></span>`)}</div>
-        ${urgent ? html`<button class="btn pri" @click=${() => this._save({ wasteAck: { ...ack, [key]: true } })}>${ic('check', 'i s')}${t('wasteDone')}</button>` : nothing}</article>`);
+      // Owner 2026-11-16: always today and tomorrow, then the next days; short names, nothing cut.
+      const ack = this._prefs.wasteAck || {};
+      const byDay = new Map();
+      for (const w of m.waste) { if (!byDay.has(w.days)) byDay.set(w.days, { date: w.date, days: w.days, items: [] }); const d = byDay.get(w.days); if (!d.items.some((x) => x.type === w.type)) d.items.push(w); }
+      const day = (n) => byDay.get(n) || { days: n, items: [] };
+      const later = [...byDay.values()].filter((d) => d.days >= 2).sort((x, y) => x.days - y.days).slice(0, 4);
+      const wd = (date, opt) => new Date(date + 'T12:00:00').toLocaleDateString(lang, opt);
+      const tom = day(1), tomKey = tom.items.map((x) => tom.date + x.type), tomOut = tom.items.length && tomKey.every((k) => ack[k]);
+      const urgent = (day(0).items.some((x) => !ack[x.date + x.type])) || (tom.items.length && !tomOut);
+      const slot = (d, label) => html`<div class=${'wslot' + (d.items.length ? ' has' : '')}>
+          <span class="wlab">${label}</span>
+          ${d.items.length ? d.items.map((w) => html`<span class="wbin"><i style=${'background:' + binColor(w.type)}></i><b class="txt">${shortBin(w.type)}</b></span>`) : html`<span class="wnone">${t('wasteNone')}</span>`}
+          ${d.days === 1 && d.items.length ? (tomOut ? html`<span class="wok">${ic('check', 'i s')}${t('wasteOut')}</span>` : html`<button class="wbtn" @click=${() => this._save({ wasteAck: { ...ack, ...Object.fromEntries(tomKey.map((k) => [k, true])) } })}>${ic('check', 'i s')}${t('wasteDoneS')}</button>`) : nothing}
+        </div>`;
+      cards.push(html`<article class="act waste" style=${urgent ? 'border-color:color-mix(in srgb,var(--accent) 55%,transparent)' : ''}>
+        <div class="row sp" style="gap:10px"><span class="tag" style=${urgent ? 'color:var(--accent)' : 'color:var(--mut)'}>${t('waste')}</span><span style=${urgent ? 'color:var(--accent)' : 'color:var(--mut)'}>${ic('trash', 'i s')}</span></div>
+        <div class="wdays">${slot(day(0), t('today'))}${slot(tom, t('tomorrow'))}</div>
+        ${later.length ? html`<div class="wnext">${later.map((d) => html`<span class="wn"><span class="mono">${wd(d.date, { weekday: 'short', day: 'numeric' })}</span>${d.items.map((w) => html`<span class="wbin sm"><i style=${'background:' + binColor(w.type)}></i><span class="txt">${shortBin(w.type)}</span></span>`)}</span>`)}</div>` : nothing}
+      </article>`);
     }
     for (const v of m.vacuums) {
       const st = v.state, cleaning = st === 'cleaning', bat = v.attrs.battery_level ?? v.battery;

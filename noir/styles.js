@@ -121,6 +121,21 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .grid.w{grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))}
 .tile{position:relative;overflow:hidden;padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:14px;transition:border-color .35s,opacity .25s,transform .2s}
 .tile.ghosted{opacity:.45}
+.act.waste{gap:12px}
+.wdays{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wslot{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;background:var(--sunk);border:1px solid var(--line);min-width:0}
+.wslot.has{background:color-mix(in srgb,var(--accent) 7%,var(--sunk));border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}
+.wlab{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+.wslot.has .wlab{color:var(--accent)}
+.wbin{display:flex;align-items:center;gap:8px;min-width:0;font-size:15px}
+.wbin i{flex:none;width:10px;height:14px;border-radius:2px 2px 3px 3px;box-shadow:inset 0 2px 0 rgba(255,255,255,.25)}
+.wbin b{font-weight:500;overflow-wrap:normal;word-break:normal}
+.wbin.sm{font-size:12px;gap:5px;color:var(--fg2)}.wbin.sm i{width:7px;height:10px}
+.wnone{font-size:13px;color:var(--dim)}
+.wbtn{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;min-height:32px;padding:0 12px;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent);font:inherit;font-size:12px;font-weight:500}
+.wok{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent)}
+.wnext{display:flex;flex-wrap:wrap;gap:6px 14px;padding-top:10px;border-top:1px solid var(--line)}
+.wn{display:inline-flex;align-items:center;gap:8px;font-size:12px}.wn .mono{font-size:11px;color:var(--mut)}
 .tile.mini{padding:10px 12px;gap:6px;border-radius:16px}.tile.mini .tbtn{min-height:40px}.tile.mini .ic{width:36px;height:36px}
 .sgrid{grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:8px}
 .tile .orb{position:absolute;width:180px;height:180px;left:-60px;top:-80px;border-radius:50%;transition:opacity .5s;pointer-events:none}

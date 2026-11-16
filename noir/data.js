@@ -83,6 +83,16 @@ export function wasteCollections(state, now, zone) {
 }
 
 export const BIN_COLORS = [[/gelb|yellow|amarel|verpack|plast|wertstoff/i, '#E3C03C'], [/bio|organ/i, '#9A7046'], [/papier|paper|papel|blau|blue|azul|karton/i, '#3A72BD'], [/glas|glass|vidro/i, '#4F9A6B'], [/rest|residu|schwarz|black|grau|grey|gray|haus/i, '#6A6A70']];
+// Short bin name for small spaces: "Schwarze Restmülltonne" → "Restmüll", "Blaue Papiertonne" → "Papier",
+// "Grüne Biotonne" → "Bio". The colour is shown by the bin dot, so the colour word can go. Unknown names stay whole.
+const BIN_ADJ = /^(schwarze?[rn]?|blaue?[rn]?|grüne?[rn]?|gelbe?[rn]?|braune?[rn]?|graue?[rn]?|rote?[rn]?|black|blue|green|yellow|brown|grey|gray|red)\s+/i;
+export function shortBin(name) {
+  const full = String(name || '').trim();
+  let s = full.replace(BIN_ADJ, '');
+  if (/^(tonne|sack|bin|container)$/i.test(s)) return full;
+  s = s.replace(/(?<=\p{L}{3})(tonne|behälter|container)$/iu, '').replace(/\s+(tonne|bin|container)$/i, '');
+  return s || full;
+}
 export const binColor = (type) => (BIN_COLORS.find(([re]) => re.test(type)) || [0, '#6A6A70'])[1];
 
 // ─────────────────────────────────────────────────────────────────────────────

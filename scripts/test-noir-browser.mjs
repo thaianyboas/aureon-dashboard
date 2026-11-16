@@ -147,6 +147,8 @@ console.log('behaviour');
   await shadow(page, `root.querySelector('.sctl button[aria-label="Anterior"]').click()`);
   await new Promise((r) => setTimeout(r, 200));
   check((await nCalls()).filter((x) => x.startsWith('media_previous_track>media_player.spotifyplus')).length === 2, 'a second press is not swallowed');
+  check(await shadow(page, `const w=root.querySelector('.act.waste'); const s=[...w.querySelectorAll('.wslot')].map((x)=>x.textContent.replace(/\\s+/g,' ').trim()); return s.length===2 && /hoje/i.test(s[0]) && /Nenhuma/.test(s[0]) && /amanhã/i.test(s[1]) && /Restmüll/.test(s[1]) && !/Restmülltonne/.test(w.textContent)`), 'waste card: today and tomorrow slots with short names');
+  check(await shadow(page, `return root.querySelectorAll('.act.waste .wn').length >= 3`), 'waste card lists the next days');
   check(await shadow(page, `return !!root.querySelector('.mctl button[aria-label^="Repetir"]')`), 'repeat button shows the repeat mode');
   await shadow(page, `const k=root.querySelector('.knob[role="slider"]'); k.focus(); k.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowUp',bubbles:true}));`);
   await new Promise((r) => setTimeout(r, 700));
