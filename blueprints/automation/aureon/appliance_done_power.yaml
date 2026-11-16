@@ -70,7 +70,7 @@ triggers:
 actions:
   # "Executar ações" (teste manual) fala na hora; de verdade, espera a máquina ficar em repouso.
   - variables:
-      manual: "{{ trigger is not defined or trigger.platform is none }}"
+      manual: "{{ trigger is not defined or (trigger.platform | default(none)) is none }}"
   - wait_for_trigger:
       - trigger: numeric_state
         entity_id: !input power_entity
