@@ -151,6 +151,12 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .sech.closed .secchev{transform:rotate(-90deg)}
 .sec:has(> .sech.closed) > :not(.sech){display:none !important}
 .sech.closed{opacity:.85}
+.msheet{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;background:color-mix(in srgb,#09090a 88%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.2);backdrop-filter:blur(22px) saturate(1.2);animation:msin .35s cubic-bezier(.25,.8,.25,1)}
+@keyframes msin{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.mshead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 14px 10px 20px;border-bottom:1px solid var(--line)}
+.mstitle{font-family:'Playfair Display','Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;font-style:italic;font-size:24px}
+.msbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:10px 12px 16px;display:flex;flex-direction:column;gap:10px}
+.msbody .mrow{flex-wrap:wrap;overflow:visible}
 .mall{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;padding:0 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));background:color-mix(in srgb,var(--accent) 6%,transparent);color:var(--accent);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
 .mpage{display:flex;flex-direction:column;gap:14px}.mpbar{display:flex;align-items:center;gap:10px}
 .mlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:2px 16px}

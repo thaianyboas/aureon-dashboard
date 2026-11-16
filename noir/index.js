@@ -1218,33 +1218,61 @@ class AureonDashboard extends LitElement {
         ${mc.error ? html`<span class="txt" style="position:relative;font-size:12px;color:#FF8A80">${mc.error}</span>` : nothing}
         <div class="mlib">
           <div class="mchips">
-            ${kinds.map(([k, n]) => { const on = panel === 'library' && mc.libraryKind === k && mc.view === 'library' && !ui.musicSearch; return html`<button class="dc" aria-pressed=${on ? 'true' : 'false'} style=${on ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicPanel: 'library', musicSearch: false }); mc.browse(k); }}>${n}</button>`; })}
-            ${mc.advanced('get_spotify_connect_devices') ? html`<button class="dc" aria-pressed=${panel === 'devices' ? 'true' : 'false'} style=${panel === 'devices' ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicPanel: 'devices', musicSearch: false }); mc.loadDevices(false); }}>${ic('speaker', 'i s')} ${t('whereToPlay')}</button>` : nothing}
-            ${mc.advanced('search_tracks') ? html`<button class="dc" aria-pressed=${ui.musicSearch ? 'true' : 'false'} aria-label=${t('searchS')} style=${ui.musicSearch ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicSearch: !ui.musicSearch, musicPanel: 'library' }); if (!ui.musicSearch) setTimeout(() => this.renderRoot.querySelector('.msearch')?.focus(), 50); }}>${ic('search', 'i s')}</button>` : nothing}
+            ${kinds.map(([k, n]) => { const on = (full || ui.libSheet) && panel === 'library' && mc.libraryKind === k && mc.view === 'library' && !ui.musicSearch; return html`<button class="dc" aria-pressed=${on ? 'true' : 'false'} style=${on ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicPanel: 'library', musicSearch: false, libSheet: !full }); mc.browse(k); }}>${n}</button>`; })}
+            ${mc.advanced('get_spotify_connect_devices') ? html`<button class="dc" aria-pressed=${(full || ui.libSheet) && panel === 'devices' ? 'true' : 'false'} style=${(full || ui.libSheet) && panel === 'devices' ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicPanel: 'devices', musicSearch: false, libSheet: !full }); mc.loadDevices(false); }}>${ic('speaker', 'i s')} ${t('whereToPlay')}</button>` : nothing}
+            ${mc.advanced('search_tracks') ? html`<button class="dc" aria-pressed=${ui.musicSearch ? 'true' : 'false'} aria-label=${t('searchS')} style=${ui.musicSearch ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { const on = full ? !ui.musicSearch : true; this._set({ musicSearch: on, musicPanel: 'library', libSheet: !full }); if (on) setTimeout(() => this.renderRoot.querySelector('.msearch')?.focus(), 80); }}>${ic('search', 'i s')}</button>` : nothing}
           </div>
+          ${full ? html`
           ${(ui.musicSearch || full) && mc.advanced('search_tracks') ? html`<input class="msearch" type="search" .value=${ui.musicQuery || ''} placeholder=${t('searchS')} aria-label=${t('searchS')} @input=${(e) => this._set({ musicQuery: e.target.value })} @keydown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) { mc.browse('search', e.target.value); } }}
             style="min-height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit;font-size:13px">` : nothing}
           ${panel === 'devices' ? html`<div class="mrow">${mc.pending.has('devices') ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
-              ${mc.devices.map((d) => html`<button class="dc" style=${'min-height:44px;' + (d.active ? 'border-color:var(--accent);color:var(--fg)' : '')} aria-pressed=${d.active ? 'true' : 'false'} ?disabled=${mc.pending.has('transfer')} @click=${() => mc.transfer(d.id)}>${ic('speaker', 'i s')} ${d.name}${d.active ? ' · ' + t('playing') : d.ready ? '' : ' · ' + t('openSpotify')}</button>`)}
+              ${mc.devices.map((d) => html`<button class="dc" style=${'min-height:44px;' + (d.active ? 'border-color:var(--accent);color:var(--fg)' : '')} aria-pressed=${d.active ? 'true' : 'false'} ?disabled=${mc.pending.has('transfer')} @click=${() => { mc.transfer(d.id); if (!full) setTimeout(() => this._set({ libSheet: false }), 600); }}>${ic('speaker', 'i s')} ${d.name}${d.active ? ' · ' + t('playing') : d.ready ? '' : ' · ' + t('openSpotify')}</button>`)}
               ${!mc.pending.has('devices') && !mc.devices.length ? html`<span class="muted txt" style="font-size:13px">${t('noDevices')}</span>` : nothing}</div>`
           : (() => {
               // Owner 2026-11-16 ("playlists daquele jeito tá feio"): a calm list — small cover, name, who/what, play.
               const sub = (it) => [it.owner?.display_name, (it.artists || it.album?.artists || []).map((x) => x.name).join(', '), it.publisher, it.tracks?.total ? t('tracksN', { n: it.tracks.total }) : null].filter(Boolean).slice(0, 2).join(' · ');
               const nowUri = a.media_context_content_id || a.sp_context_uri || a.media_content_id || '';
-              const all = mc.results.slice(0, full ? 50 : 20), more = full, shown = full ? all : all.slice(0, 4);
+              const all = mc.results.slice(0, full ? 50 : 20), more = full, shown = all;
               return html`<div class="mlist">${busy && !all.length ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
-              ${shown.map((it) => { const im = imgOf(it), starting = mc.startingUri === it.uri, cur = it.uri && nowUri === it.uri; return html`<button class=${'mli' + (cur ? ' cur' : '')} aria-label=${t('play') + ' · ' + it.name} ?disabled=${starting} @click=${() => mc.playItem(it)}>
+              ${shown.map((it) => { const im = imgOf(it), starting = mc.startingUri === it.uri, cur = it.uri && nowUri === it.uri; return html`<button class=${'mli' + (cur ? ' cur' : '')} aria-label=${t('play') + ' · ' + it.name} ?disabled=${starting} @click=${() => { mc.playItem(it); if (!full) setTimeout(() => this._set({ libSheet: false }), 600); }}>
                 <span class="mcov" style=${`background:${im ? `center/cover url("${im}")` : `radial-gradient(70% 70% at 25% 25%, ${rgba(aRgb, 0.7)} 0%, ${rgba(aRgb, 0)} 70%), var(--raise)`}`}>${starting ? html`<span class="pulse" style="position:absolute;inset:0;background:rgba(0,0,0,.35)"></span>` : nothing}</span>
                 <span class="mtx"><b class="txt">${it.name}</b>${sub(it) ? html`<span class="txt">${sub(it)}</span>` : nothing}</span>
                 <span class="mplay" aria-hidden="true">${cur && playing ? html`<span class="eq"><i></i><i></i><i></i></span>` : ic('play', 'i s f')}</span></button>`; })}
               </div>
-              ${!full && (all.length > 4 || mc.hasNext) ? html`<button class="mall" @click=${() => this._musicPage(true)}><span>${t('seeAllMusic')}</span>${ic('right', 'i s')}</button>` : nothing}
-              ${full && (mc.pageIndex > 0 || mc.hasNext) ? html`<div class="row" style="gap:8px;justify-content:center">
+              ${!full ? html`<button class="mall" @click=${() => this._musicPage(true)}><span>${t('seeAllMusic')}</span>${ic('right', 'i s')}</button>` : nothing}
+              ${(mc.pageIndex > 0 || mc.hasNext) ? html`<div class="row" style="gap:8px;justify-content:center">
                 ${mc.pageIndex > 0 ? html`<button class="ib" aria-label=${t('back')} @click=${() => mc.changePage(-1)}>${ic('left', 'i s')}</button>` : nothing}
                 ${mc.hasNext ? html`<button class="ib" aria-label=${t('fwd')} @click=${() => mc.changePage(1)}>${ic('right', 'i s')}</button>` : nothing}</div>` : nothing}
               ${!busy && !mc.results.length && !kinds.length && !mc.spotify ? html`<span class="muted txt" style="font-size:13px">${t('noSpotify')}</span>` : nothing}`;
             })()}
+` : nothing}
         </div>
+        ${!full && ui.libSheet ? html`<div class="msheet" role="dialog" aria-label=${panel === 'devices' ? t('whereToPlay') : ui.musicSearch ? t('searchS') : (kinds.find(([k]) => k === mc.libraryKind) || [, ''])[1]} @keydown=${(e) => { if (e.key === 'Escape') this._set({ libSheet: false }); }}>
+          <div class="mshead"><span class="mstitle txt">${panel === 'devices' ? t('whereToPlay') : ui.musicSearch ? t('searchS') : (kinds.find(([k]) => k === mc.libraryKind) || [, ''])[1]}</span><button class="ib sm" aria-label=${t('close')} @click=${() => this._set({ libSheet: false })}>${ic('x', 'i s')}</button></div>
+          <div class="msbody">
+          ${(ui.musicSearch || full) && mc.advanced('search_tracks') ? html`<input class="msearch" type="search" .value=${ui.musicQuery || ''} placeholder=${t('searchS')} aria-label=${t('searchS')} @input=${(e) => this._set({ musicQuery: e.target.value })} @keydown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) { mc.browse('search', e.target.value); } }}
+            style="min-height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit;font-size:13px">` : nothing}
+          ${panel === 'devices' ? html`<div class="mrow">${mc.pending.has('devices') ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
+              ${mc.devices.map((d) => html`<button class="dc" style=${'min-height:44px;' + (d.active ? 'border-color:var(--accent);color:var(--fg)' : '')} aria-pressed=${d.active ? 'true' : 'false'} ?disabled=${mc.pending.has('transfer')} @click=${() => { mc.transfer(d.id); if (!full) setTimeout(() => this._set({ libSheet: false }), 600); }}>${ic('speaker', 'i s')} ${d.name}${d.active ? ' · ' + t('playing') : d.ready ? '' : ' · ' + t('openSpotify')}</button>`)}
+              ${!mc.pending.has('devices') && !mc.devices.length ? html`<span class="muted txt" style="font-size:13px">${t('noDevices')}</span>` : nothing}</div>`
+          : (() => {
+              // Owner 2026-11-16 ("playlists daquele jeito tá feio"): a calm list — small cover, name, who/what, play.
+              const sub = (it) => [it.owner?.display_name, (it.artists || it.album?.artists || []).map((x) => x.name).join(', '), it.publisher, it.tracks?.total ? t('tracksN', { n: it.tracks.total }) : null].filter(Boolean).slice(0, 2).join(' · ');
+              const nowUri = a.media_context_content_id || a.sp_context_uri || a.media_content_id || '';
+              const all = mc.results.slice(0, full ? 50 : 20), more = full, shown = all;
+              return html`<div class="mlist">${busy && !all.length ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
+              ${shown.map((it) => { const im = imgOf(it), starting = mc.startingUri === it.uri, cur = it.uri && nowUri === it.uri; return html`<button class=${'mli' + (cur ? ' cur' : '')} aria-label=${t('play') + ' · ' + it.name} ?disabled=${starting} @click=${() => { mc.playItem(it); if (!full) setTimeout(() => this._set({ libSheet: false }), 600); }}>
+                <span class="mcov" style=${`background:${im ? `center/cover url("${im}")` : `radial-gradient(70% 70% at 25% 25%, ${rgba(aRgb, 0.7)} 0%, ${rgba(aRgb, 0)} 70%), var(--raise)`}`}>${starting ? html`<span class="pulse" style="position:absolute;inset:0;background:rgba(0,0,0,.35)"></span>` : nothing}</span>
+                <span class="mtx"><b class="txt">${it.name}</b>${sub(it) ? html`<span class="txt">${sub(it)}</span>` : nothing}</span>
+                <span class="mplay" aria-hidden="true">${cur && playing ? html`<span class="eq"><i></i><i></i><i></i></span>` : ic('play', 'i s f')}</span></button>`; })}
+              </div>
+              ${!full ? html`<button class="mall" @click=${() => this._musicPage(true)}><span>${t('seeAllMusic')}</span>${ic('right', 'i s')}</button>` : nothing}
+              ${(mc.pageIndex > 0 || mc.hasNext) ? html`<div class="row" style="gap:8px;justify-content:center">
+                ${mc.pageIndex > 0 ? html`<button class="ib" aria-label=${t('back')} @click=${() => mc.changePage(-1)}>${ic('left', 'i s')}</button>` : nothing}
+                ${mc.hasNext ? html`<button class="ib" aria-label=${t('fwd')} @click=${() => mc.changePage(1)}>${ic('right', 'i s')}</button>` : nothing}</div>` : nothing}
+              ${!busy && !mc.results.length && !kinds.length && !mc.spotify ? html`<span class="muted txt" style="font-size:13px">${t('noSpotify')}</span>` : nothing}`;
+            })()}
+          </div></div>` : nothing}
       </div>` : nothing}
       ${list.length ? html`<span class="eyebrow" style="padding:6px 4px 0;font-size:10px">${t('speakers')}</span>
       <div class="grid sgrid">${repeat(list.slice().sort((x, y) => (x.unavailable ? 1 : 0) - (y.unavailable ? 1 : 0)), (s) => s.id, (s) => {
