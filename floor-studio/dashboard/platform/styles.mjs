@@ -593,3 +593,29 @@ export const platformStyles=`
 @container home (min-width:941px){.aureon-home.botanical.without-plan .home-primary{padding-top:clamp(72px,6vw,105px)}}
 @media(prefers-reduced-motion:reduce){.aureon-home.botanical::before,.aureon-home.botanical::after{animation:none}}
 `;
+
+/* Botanical approved composition: keep content in the viewport and restore the lower resident/robot row. */
+@container home (min-width:941px){
+ .aureon-home.botanical.without-plan{gap:clamp(12px,1.1vw,18px);padding:clamp(12px,1.25vw,20px);min-height:min(790px,calc(100dvh - 95px));align-content:space-between}
+ .aureon-home.botanical.without-plan .home-composition{grid-template-columns:minmax(0,2.52fr) minmax(265px,1fr);gap:clamp(12px,1.2vw,20px)}
+ .aureon-home.botanical.without-plan .home-primary{padding-top:clamp(36px,5.2vw,80px);gap:clamp(12px,1.15vw,18px)}
+ .aureon-home.botanical.without-plan .home-rail{gap:clamp(10px,1vw,16px)}
+ .aureon-home.botanical .cine-now{gap:10px}
+ .aureon-home.botanical .cine-tile{min-height:88px;padding:clamp(10px,1vw,16px);grid-template-columns:auto minmax(0,1fr)}
+ .aureon-home.botanical .cine-tile .cine-head{font-size:clamp(14px,1.4vw,20px);overflow-wrap:normal;word-break:normal;hyphens:auto}
+ .aureon-home.botanical .home-rooms .cine-rooms{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+ .aureon-home.botanical .home-rooms .cine-room{height:clamp(122px,10.5vw,158px)}
+ .aureon-home.botanical .home-bottom{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:stretch;gap:14px}
+ .aureon-home.botanical .home-bottom .cine-people{min-width:0}
+ .aureon-home.botanical .home-bottom .cine-people-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+ .aureon-home.botanical .home-bottom .home-robot{min-width:0;min-height:94px}
+}
+@container home (min-width:941px) and (max-width:1200px){
+ .aureon-home.botanical.without-plan .home-primary{padding-top:clamp(18px,3vw,42px)}
+ .aureon-home.botanical .home-rooms .cine-room{height:clamp(110px,10vw,138px)}
+ .aureon-home.botanical .home-bottom{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+.aureon-home.botanical .cine-room:after{background:linear-gradient(0deg,rgba(5,13,8,.82),rgba(7,17,10,.06) 72%)}
+.aureon-home.botanical .cine-room img{filter:brightness(1.12) saturate(1.06)}
+.aureon-home.botanical .cine-room-text strong{white-space:normal;overflow-wrap:anywhere}
+.aureon-home.botanical .home-bottom .cine-card{border-radius:18px}
