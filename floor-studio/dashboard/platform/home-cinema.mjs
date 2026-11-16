@@ -34,8 +34,8 @@ function wxArt(kind,small=false){const cloud='M22 46h30a10 10 0 0 0 1-20 14 14 0
  </svg>`;}
 export function syncForecast(ui){
  const c=ui.c,conn=c?.hass?.connection;
- const weather=ui.page==='home'&&c?.preferences.widgets.weather?c.list(['weather'])[0]:null;
- const id=weather?.id,state=id&&c.state(id),features=Number(state?.attributes?.supported_features||0);
+ const weather=ui.page==='home'&&c?.preferences.widgets.weather?homeEntities(c,'weather')[0]:null;
+ const id=weather?.id,state=id&&homeState(c,id),features=Number(state?.attributes?.supported_features||0);
  const type=features&2?'hourly':features&1?'daily':features&4?'twice_daily':'';
  const key=id&&type&&conn?.subscribeMessage?`${c.epoch}:${id}:${type}`:'';
  if(ui._wxKey===key)return;
@@ -56,11 +56,22 @@ function weatherHero(ui,weather,ws){const c=ui.c,t=ui.t,a=ws?.attributes||{},kin
   ${fc.length?html`<span class="cine-wx-days">${fc.slice(0,4).map(f=>html`<span class="cine-wx-day"><small>${day(f.datetime)}</small>${wxArt(wxKind(f.condition),true)}<b>${temp(f.temperature)}°</b><small>${f.templow!=null?temp(f.templow)+'°':''}</small></span>`)}</span>`:nothing}
  </button>`;}
 
-export function homeData(ui){const c=ui.c,st=id=>c.state(id);
+export // Home summary fallback: HA states can arrive before the entity registry is populated.
+// Respect explicit hidden entities, and never synthesize states or devices.
+function homeEntities(c,domain){
+ const indexed=c.list([domain]);
+ const seen=new Set(indexed.map(r=>r.id));
+ const hidden=new Set(c.preferences?.hidden||[]);
+ const states=c.hass?.states||{};
+ const extra=Object.keys(states).filter(id=>id.startsWith(domain+'.')&&!seen.has(id)&&!hidden.has(id)).map(id=>({id,domain,name:states[id]?.attributes?.friendly_name||id.split('.')[1],source:''}));
+ return indexed.concat(extra);
+}
+function homeState(c,id){return c.state(id)||c.hass?.states?.[id]||null;}
+function homeData(ui){const c=ui.c,st=id=>homeState(c,id);
  const lights=c.list(['light']).filter(r=>isAvailable(st(r.id))),lightsOn=lights.filter(r=>st(r.id)?.state==='on');
  const windows=c.list(['binary_sensor']).filter(r=>WINDOW_CLASSES.includes(st(r.id)?.attributes?.device_class)),openWindows=windows.filter(r=>st(r.id)?.state==='on');
  const shades=c.list(['cover']).filter(r=>!SHADE_SKIP.includes(st(r.id)?.attributes?.device_class)&&isAvailable(st(r.id))),openShades=shades.filter(r=>{const s=st(r.id);return s?.state==='open'||Number(s?.attributes?.current_position)>0;});
- const robot=c.list(['vacuum']).find(row=>row.source===DREAME)||c.list(['vacuum'])[0],cameras=c.list(['camera']).filter(r=>isAvailable(st(r.id))),scenes=c.list(['scene']).slice(0,4);
+ const robot=homeEntities(c,'vacuum').find(row=>row.source===DREAME||/dreame/i.test(row.id+' '+row.name))||homeEntities(c,'vacuum')[0],cameras=c.list(['camera']).filter(r=>isAvailable(st(r.id))),scenes=c.list(['scene']).slice(0,4);
  const locks=c.list(['lock']),alarm=c.list(['alarm_control_panel'])[0];
  return {lights,lightsOn,windows,openWindows,shades,openShades,robot,cameras,scenes,locks,alarm};}
 
@@ -103,11 +114,11 @@ function homeAgenda(ui,zone){
    <ul>${rows.slice(0,3).map(row=>html`<li><span>${row.e.summary||row.e.message||'—'}</span>${row.allDay?nothing:html`<time>${clock.format(row.ms)}</time>`}</li>`)}</ul></div>`):html`<small class="cine-sub" role="status">${ids.length?status:t.noData}</small>`}
  </section>`;
 }
-export function homeCinema(ui){const c=ui.c,t=ui.t,p=c.preferences,zone=c.hass?.config?.time_zone||'UTC',d=homeData(ui),st=id=>c.state(id);
+export function homeCinema(ui){const c=ui.c,t=ui.t,p=c.preferences,zone=c.hass?.config?.time_zone||'UTC',d=homeData(ui),st=id=>homeState(c,id);
  let clock='',date='',hour=12;try{clock=new Intl.DateTimeFormat(c.language,{timeZone:zone,hour:'2-digit',minute:'2-digit'}).format(c.now());date=new Intl.DateTimeFormat(c.language,{timeZone:zone,weekday:'long',day:'numeric',month:'long'}).format(c.now());hour=Number(new Intl.DateTimeFormat('en',{timeZone:zone,hour:'2-digit',hourCycle:'h23'}).format(c.now()));}catch{}
  const first=c.hass?.user?.name?.trim().split(/\s+/)[0]||'';
- const weather=p.widgets.weather?c.list(['weather'])[0]:null,ws=weather&&st(weather.id);
- const persons=c.list(['person']);
+ const weather=p.widgets.weather?homeEntities(c,'weather')[0]:null,ws=weather&&st(weather.id);
+ const persons=homeEntities(c,'person');
  const own=persons.find(row=>st(row.id)?.attributes?.user_id===c.hass?.user?.id&&c.hass?.user?.id);
  const people=p.widgets.people?persons.filter(row=>!/^isg[ _-]+display(?:[ _-]+max)?$/i.test(ui.name(row).trim())):[];
  const photo=artworkUrl((own&&st(own.id)?.attributes?.entity_picture)||c.hass?.user?.picture,c.hass);
