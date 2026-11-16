@@ -54,7 +54,7 @@ const P = {
 const ic = (n, cls = 'i') => svg`<svg class=${cls} viewBox="0 0 24 24" aria-hidden="true"><path d=${P[n]}></path></svg>`;
 const WX = { 'clear-night': 'moon', cloudy: 'cloud', exceptional: 'sun', fog: 'fog', hail: 'snow', lightning: 'storm', 'lightning-rainy': 'storm', partlycloudy: 'partly', pouring: 'rain', rainy: 'rain', snowy: 'snow', 'snowy-rainy': 'snow', sunny: 'sun', windy: 'wind', 'windy-variant': 'wind' };
 const WXC = { sun: '#F5D08A', moon: '#C9D8F5', partly: '#F5D08A', rain: '#8FB8FF', storm: '#B9A8FF', snow: '#E6F0FF', fog: '#A1A1AA', wind: '#C9D8F5', cloud: '#C9D8F5' };
-const wxIcon = (cond, when, size) => { let k = WX[cond] || 'cloud'; const h = when ? when.getHours() : 12; if (k === 'sun' && (h < 6 || h >= 18)) k = 'moon'; return svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style=${`color:${WXC[k]};${size === 'big' ? 'width:46px;height:46px;stroke-width:1.3' : 'width:20px;height:20px'}`}><path d=${P[k]}></path></svg>`; };
+const wxIcon = (cond, when, size) => { let k = WX[cond] || 'cloud'; const h = when ? when.getHours() : 12; if (k === 'sun' && (h < 6 || h >= 18)) k = 'moon'; return svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style=${`color:${WXC[k]};${size === 'big' ? 'width:46px;height:46px;stroke-width:1.3' : 'width:18px;height:18px'}`}><path d=${P[k]}></path></svg>`; };
 const hexRgb = (h) => { const m = String(h || '').trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i); if (!m) { const r = String(h || '').match(/(\d+)\D+(\d+)\D+(\d+)/); return r ? `${r[1]},${r[2]},${r[3]}` : '230,204,154'; } let x = m[1]; if (x.length === 3) x = x.split('').map((c) => c + c).join(''); const n = parseInt(x, 16); return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`; };
 const rgba = (rgb, a) => `rgba(${rgb},${a})`;
 const p2 = (n) => String(n).padStart(2, '0');
@@ -277,21 +277,9 @@ class AureonDashboard extends LitElement {
     return html`<header class="top">
       <span class="wordmark">AUREON</span>
       <div class="wrapRow" style="justify-content:flex-end">
-        <div class="themeWrap" style="position:relative">
-          <button class="btn" aria-haspopup="true" aria-expanded=${ui.themeOpen ? 'true' : 'false'} @click=${() => this._set({ themeOpen: !ui.themeOpen })}>
-            <span aria-hidden="true" style=${`width:20px;height:20px;border-radius:50%;border:2px solid var(--line2);background:${th.ha ? 'var(--primary-color)' : `conic-gradient(${th.accent} 0 50%, ${th.card} 50% 100%)`}`}></span>${t('theme')} · ${th.name}</button>
-          ${ui.themeOpen ? html`<div class="menu rise" role="menu" aria-label=${t('themeTitle')}>
-            <span class="eyebrow" style="padding:8px 10px 6px">${t('themeTitle')}</span>
-            ${THEMES.map((x) => html`<button class="mi" role="menuitemradio" aria-checked=${x.id === th.id ? 'true' : 'false'} @click=${() => { this._save({ theme: x.id }); this._set({ themeOpen: false }); }}>
-              <span class="sw" style=${x.ha ? 'background:var(--card-background-color,#222);border:1px solid var(--divider-color,#333)' : `background:${x.card};border:1px solid ${x.line2}`}><i style=${`background:${x.ha ? 'var(--primary-color,#03a9f4)' : x.accent};box-shadow:0 0 10px ${x.ha ? 'transparent' : x.accent}`}></i></span>
-              <span class="grow"><b style="display:block;font-size:14px;font-weight:500">${x.name}</b><span class="muted" style="font-size:11px">${x.desc}</span></span>
-              ${x.id === th.id ? ic('check', 'i s') : nothing}</button>`)}
-          </div>` : nothing}
-        </div>
         <button class="btn" aria-label=${t('settings')} @click=${() => this._set({ settings: 'geral', themeOpen: false })}>${ic('gear', 'i s')}<span class="hideNarrow">${t('settings')}</span></button>
         <button class=${'btn' + (ui.edit ? ' pri' : '')} aria-pressed=${ui.edit ? 'true' : 'false'} @click=${() => this._set({ edit: !ui.edit, editing: null, confirm: null })}>${ic('pencil', 'i s')}${ui.edit ? t('doneEdit') : t('edit')}</button>
         ${m.metered.length ? html`<span class="chip">${svg`<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--accent)"><path d=${P.bolt}></path></svg>`}${m.plugW} W</span>` : nothing}
-        ${w || sunTxt ? html`<span class="chip">${ic('cloud', 'i s')}${w && w.attrs.temperature != null ? Math.round(w.attrs.temperature) + '°' : ''}${w && sunTxt ? ' · ' : ''}${sunTxt}</span>` : nothing}
         ${people.length ? html`<span class="avatars" role="img" aria-label=${t('homePeople') + ': ' + people.filter((p) => p.state === 'home').map((p) => p.name).join(', ')}>
           ${people.map((p) => { const pic = p.attrs.entity_picture; return html`<span class="av" title=${p.name + ' · ' + (p.state === 'home' ? t('homePeople') : p.state === 'not_home' ? t('away') : p.state)} style=${pic ? `background-image:url("${this._url(pic)}");color:transparent` : ''}>${(p.name || '?').charAt(0)}<b class=${p.state === 'home' ? 'home' : ''}></b></span>`; })}
         </span>` : nothing}
@@ -412,14 +400,13 @@ class AureonDashboard extends LitElement {
     const hi = today?.temperature, lo = today?.templow;
     const city = this._config.city || w.name;
     return html`<div class="wx">
-      <div class="row" style="gap:16px;align-items:center">
-        <span class="wxi">${wxIcon(w.state, now, 'big')}</span>
-        <span style="font-size:clamp(44px,5vw,64px);font-weight:200;letter-spacing:-.06em;line-height:1">${deg(w.attrs.temperature)}</span>
-        <span style="display:flex;flex-direction:column;gap:3px;min-width:0"><b class="txt" style="font-size:16px;font-weight:500">${t('wx_' + w.state)}</b>
-          <span class="muted txt" style="font-size:13px">${city}${hi != null ? ' · ' + t('maxmin', { h: Math.round(hi), l: lo != null ? Math.round(lo) : '—' }) : ''}</span></span>
+      <div class="row" style="gap:12px;align-items:center">
+        ${wxIcon(w.state, now)}
+        <span style="font-size:30px;font-weight:200;letter-spacing:-.05em;line-height:1">${deg(w.attrs.temperature)}</span>
+        <span class="txt" style="font-size:13px;line-height:1.35;min-width:0"><b style="font-weight:500">${t('wx_' + w.state)}</b><span class="muted"> · ${city}${hi != null ? ' · ' + t('maxmin', { h: Math.round(hi), l: lo != null ? Math.round(lo) : '—' }) : ''}</span></span>
       </div>
-      ${hourly.length ? html`<div class="hours" role="list" aria-label=${t('forecastT')}>${hourly.map((f, i) => { const d = new Date(f.datetime); const p = Number(f.precipitation_probability);
-        return html`<span class="hr" role="listitem" style=${i === 0 ? 'background:rgba(255,255,255,.06)' : ''}><span class="mono muted" style="font-size:11px">${i === 0 ? t('now2') : d.toLocaleTimeString(lang, { hour: '2-digit' })}</span>${wxIcon(f.condition, d)}<b style="font-size:14px;font-weight:400">${deg(f.temperature)}</b>${p > 0 ? html`<span class="mono" style="font-size:10px;color:#8FB8FF">${Math.round(p)}%</span>` : html`<span style="font-size:10px">&nbsp;</span>`}</span>`; })}</div>` : nothing}
+      ${hourly.length > 1 ? html`<div class="hours" role="list" aria-label=${t('forecastT')}>${hourly.slice(1, 7).map((f) => { const d = new Date(f.datetime); const p = Number(f.precipitation_probability);
+        return html`<span class="hr" role="listitem"><span class="mono muted" style="font-size:10px">${d.toLocaleTimeString(lang, { hour: '2-digit' })}</span>${wxIcon(f.condition, d)}<b style="font-size:13px;font-weight:400">${deg(f.temperature)}</b><span class="mono" style=${'font-size:9px;color:#8FB8FF;' + (p >= 20 ? '' : 'visibility:hidden')}>${Math.round(p || 0)}%</span></span>`; })}</div>` : nothing}
     </div>`;
   }
 

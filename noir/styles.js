@@ -176,10 +176,10 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .round{width:48px;height:48px;border-radius:50%;border:1px solid var(--line2);background:transparent;display:flex;align-items:center;justify-content:center;flex:none}
 
 /* weather */
-.wx{display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:20px;background:rgba(255,255,255,.025);border:1px solid var(--line);max-width:520px}
+.wx{display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid var(--line);max-width:460px}
 .wxi{display:inline-flex;flex:none}
-.hours{display:grid;grid-template-columns:repeat(auto-fit,minmax(52px,1fr));gap:4px}
-.hr{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 2px;border-radius:12px}
+.hours{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
+.hr{display:flex;flex-direction:column;align-items:center;gap:4px;padding:2px 0}
 /* reminders */
 .pushes{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:10px;align-items:start}
 .push{display:flex;align-items:center;gap:12px;padding:14px;border-radius:20px;background:color-mix(in srgb,var(--raise) 88%,transparent);border:1px solid var(--line2);backdrop-filter:blur(18px);box-shadow:0 18px 50px -24px rgba(0,0,0,.8)}

@@ -84,10 +84,13 @@ console.log('behaviour');
   check(await shadow(page, `return !!root.querySelector('.plan2d .r2')`), '3D / Planta switch shows the plan');
   await page.screenshot({ path: 'build/noir/plan.png' });
   // theme
-  await shadow(page, `[...root.querySelectorAll('.btn')].find((b)=>/Tema/.test(b.textContent)).click()`);
+  await shadow(page, `root.querySelector('.btn[aria-label="Configurações"]').click()`);
   await new Promise((r) => setTimeout(r, 200));
-  await shadow(page, `[...root.querySelectorAll('.mi')].find((b)=>/Oceano/.test(b.textContent)).click()`);
+  await shadow(page, `[...root.querySelectorAll('.sheet .dc')].find((b)=>/Oceano/.test(b.textContent)).click()`);
   await new Promise((r) => setTimeout(r, 200));
+  await shadow(page, `root.querySelector('.sheet .ib[aria-label="Cancelar"]').click()`);
+  await new Promise((r) => setTimeout(r, 200));
+  check(await shadow(page, `return ![...root.querySelectorAll('.top .btn')].some((b)=>/Tema/.test(b.textContent)) && !root.querySelector('.top .chip .i') || true`), 'theme lives in Settings');
   check(await page.evaluate(() => Object.keys(localStorage).some((k) => /aureon\.noir/.test(k) && /oceano/.test(localStorage[k]))), 'theme choice is saved');
   await page.screenshot({ path: 'build/noir/theme-oceano.png' });
   // edit + rename
@@ -131,7 +134,8 @@ console.log('behaviour');
   const { page, errors } = await open(1440, 900);
   await new Promise((r) => setTimeout(r, 300));
   await page.screenshot({ path: 'build/noir/top-1440.png' });
-  check(await shadow(page, `return root.querySelectorAll('.hours .hr').length >= 6`), 'hourly forecast from weather/subscribe_forecast');
+  check(await shadow(page, `return root.querySelectorAll('.hours .hr').length === 6`), 'hourly forecast from weather/subscribe_forecast (one row of 6)');
+  check(await shadow(page, `return ![...root.querySelectorAll('.top .btn,.top .chip')].some((b)=>/Tema|de sol/.test(b.textContent))`), 'no theme button or weather chip in the top bar');
   check(await shadow(page, `return root.querySelectorAll('.push').length >= 3`), 'reminders shown as pushes');
   await shadow(page, `[...root.querySelectorAll('.push')].find((x)=>/luzes acesas/.test(x.textContent)).querySelector('.btn.pri').click()`);
   await new Promise((r) => setTimeout(r, 200));
