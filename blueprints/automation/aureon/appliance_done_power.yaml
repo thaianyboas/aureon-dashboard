@@ -68,20 +68,28 @@ triggers:
     for:
       minutes: 2
 actions:
+  # "Executar ações" (teste manual) fala na hora; de verdade, espera a máquina ficar em repouso.
+  - variables:
+      manual: "{{ trigger is not defined or trigger.platform is none }}"
   - wait_for_trigger:
       - trigger: numeric_state
         entity_id: !input power_entity
         below: !input idle_w
         for:
           minutes: !input idle_minutes
-    timeout:
-      hours: 8
-    continue_on_timeout: false
-  - condition: not
+    timeout: "{{ '00:00:00' if manual else '08:00:00' }}"
+    continue_on_timeout: true
+  - condition: template
+    value_template: "{{ manual or wait.trigger is not none }}"
+  - condition: or
     conditions:
-      - condition: time
-        after: !input quiet_start
-        before: !input quiet_end
+      - condition: template
+        value_template: "{{ manual }}"
+      - condition: not
+        conditions:
+          - condition: time
+            after: !input quiet_start
+            before: !input quiet_end
   - variables:
       alexa_notify: "{{ speakers | select('match', '^notify\\.') | list }}"
       alexa_media: "{{ speakers | select('match', '^media_player\\.') | list }}"
