@@ -1010,39 +1010,37 @@ class AureonDashboard extends LitElement {
         ${accounts.length > 1 ? html`<span class="seg" role="group" aria-label="Spotify">${accounts.map((p) => html`<button aria-pressed=${p.entity_id === mc.entityId ? 'true' : 'false'} style="font-family:inherit;font-size:12px;letter-spacing:0" @click=${() => { mc.select(p.entity_id); this._libAsked = null; }}>${p.attributes.friendly_name || p.entity_id}</button>`)}</span>` : nothing}
         ${groupable.length > 1 ? html`<button class="btn sm" @click=${() => grouped ? this._call('media_player', 'unjoin', { entity_id: members.filter((x) => x !== lead.id) }) : this._call('media_player', 'join', { entity_id: lead.id, group_members: groupable.filter((s) => s.id !== lead.id).map((s) => s.id) })}>${grouped ? t('ungroup') : t('groupAll')}</button>` : nothing}`, t)}
       ${acct ? html`<div class="mcard jzc">
-        <div aria-hidden="true" class=${'spot' + (playing ? ' on' : '')}></div>
-        <div class="jz">
-        <div class=${'deck' + (playing ? ' on' : '')} aria-hidden="true">
-          <span class="platter"></span>
-          <div class="vinyl"><span class="label" style=${art ? `background:center/cover url("${art}")` : `background:radial-gradient(circle at 35% 30%, ${rgba(aRgb, 0.95)} 0%, ${rgba(aRgb, 0.55)} 70%, ${rgba(aRgb, 0.4)} 100%)`}></span></div>
-          <span class="sheen"></span><span class="spindle"></span>
-          <svg class="arm" viewBox="0 0 70 200">
-            <rect class="cw" x="43" y="0" width="14" height="11" rx="3"></rect>
-            <circle class="base" cx="50" cy="22" r="13"></circle><circle class="hub" cx="50" cy="22" r="5.5"></circle>
-            <path class="rod" d="M50 22 L44 140 Q42 158 28 172"></path>
-            <rect class="head" x="17" y="168" width="16" height="10" rx="2" transform="rotate(-42 25 173)"></rect>
+        <div class=${'stg' + (playing ? ' on' : '')}>
+          <span class="sglow" aria-hidden="true"></span>
+          <div class="bigv" aria-hidden="true"><div class="vinyl"><span class="label" style=${art ? `background:center/cover url("${art}")` : `background:radial-gradient(circle at 35% 30%, ${rgba(aRgb, 0.95)} 0%, ${rgba(aRgb, 0.5)} 100%)`}></span></div><span class="sheen"></span><span class="spindle"></span></div>
+          <svg class="arm" aria-hidden="true" viewBox="0 0 120 230">
+            <rect class="cw" x="104" y="-16" width="13" height="14" rx="3"></rect>
+            <circle class="base" cx="110" cy="10" r="10"></circle><circle class="hub" cx="110" cy="10" r="4"></circle>
+            <path class="rod" d="M110 10 L42 166 Q32 186 20 194"></path>
+            <rect class="head" x="8" y="190" width="18" height="10" rx="2" transform="rotate(-40 17 195)"></rect>
           </svg>
-        </div>
-        <div class="mhead">
-          <div class="grow" style="display:flex;flex-direction:column;gap:4px;min-width:0">
+          <div class="stxt">
             <span class="jtag txt"><span class=${'eq' + (playing ? '' : ' off')}><i></i><i></i><i></i></span>${a.source || a.friendly_name || 'Spotify'}</span>
             <span class="jtitle txt">${a.media_title || t('nothingPlaying')}</span>
-            <span class="jartist txt">${[a.media_artist, a.media_album_name].filter(Boolean).join(' · ')}</span></div>
-          ${mc.advanced('save_track_favorites') && a.media_title ? html`<button class="ib sm ghost" aria-pressed=${mc.favorite ? 'true' : 'false'} aria-label=${t('likedS')} style=${mc.favorite ? 'color:#FF8FA3' : 'color:var(--mut)'} @click=${() => mc.toggleFavorite()}>${svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style=${mc.favorite ? 'fill:currentColor' : ''}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>`}</button>` : nothing}
-        </div>
-        ${pos.duration ? html`<div class="row jprog" style="position:relative;gap:10px"><span class="mono muted" style="font-size:10px;min-width:30px">${mmss(pos.value)}</span><input class="rng" style=${`margin:0;background:linear-gradient(90deg, var(--accent) ${(fr * 100).toFixed(1)}%, var(--line2) ${(fr * 100).toFixed(1)}%)`} type="range" min="0" max=${String(Math.round(pos.duration))} .value=${String(Math.round(pos.value))} ?disabled=${!mc.can('seek')} aria-label=${a.media_title || 'position'} @change=${(e) => mc.command('seek', Number(e.target.value))}><span class="mono muted" style="font-size:10px;min-width:30px;text-align:right">${mmss(pos.duration)}</span></div>` : nothing}
-        <div class="mctl">
-          <div class="row" style="gap:6px">
-            ${mc.can('shuffle') ? html`<button class="ib sm ghost" aria-pressed=${a.shuffle ? 'true' : 'false'} aria-label=${t('shuffle')} style=${a.shuffle ? 'color:var(--accent)' : 'color:var(--mut)'} @click=${() => mc.command('shuffle')}>${ic('shuffle', 'i s')}</button>` : nothing}
+            <span class="jartist txt">${[a.media_artist, a.media_album_name].filter(Boolean).join(' · ')}</span>
+            ${pos.duration ? html`<span class="mono stime">${mmss(pos.value)} / ${mmss(pos.duration)}</span>` : nothing}
+          </div>
+          <div class="sctl">
             ${mc.can('previous') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('prev')} ?disabled=${mc.pending.has('transport:previous')} @click=${() => this._skip('previous')}>${ic('prev', 'i s f')}</button>` : nothing}
             <button class="play jplay" aria-label=${playing ? t('pause') : t('play')} ?disabled=${!mc.ready} @click=${() => mc.command(playing ? 'pause' : 'play')}>${ic(playing ? 'pause' : 'play', 'i f')}</button>
             ${mc.can('next') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('next')} ?disabled=${mc.pending.has('transport:next')} @click=${() => this._skip('next')}>${ic('next', 'i s f')}</button>` : nothing}
+          </div>
+          ${pos.duration ? html`<input class="sprog" type="range" min="0" max=${String(Math.round(pos.duration))} .value=${String(Math.round(pos.value))} ?disabled=${!mc.can('seek')} aria-label=${a.media_title || 'position'} style=${`--p:${(fr * 100).toFixed(1)}%`} @change=${(e) => mc.command('seek', Number(e.target.value))}>` : nothing}
+        </div>
+        <div class="mctl">
+          <div class="row" style="gap:4px">
+            ${mc.can('shuffle') ? html`<button class="ib sm ghost" aria-pressed=${a.shuffle ? 'true' : 'false'} aria-label=${t('shuffle')} style=${a.shuffle ? 'color:var(--accent)' : 'color:var(--mut)'} @click=${() => mc.command('shuffle')}>${ic('shuffle', 'i s')}</button>` : nothing}
             ${mc.can('repeat') ? html`<button class="ib sm ghost" aria-pressed=${a.repeat && a.repeat !== 'off' ? 'true' : 'false'} aria-label=${t('repeat') + ': ' + t('repeat_' + (a.repeat || 'off'))} title=${t('repeat_' + (a.repeat || 'off'))} style=${'position:relative;' + (a.repeat && a.repeat !== 'off' ? 'color:var(--accent)' : 'color:var(--mut)')} @click=${() => mc.command('repeat')}>${ic('repeat', 'i s')}${a.repeat === 'one' ? html`<b style="position:absolute;right:6px;top:5px;font-size:9px;font-weight:600">1</b>` : nothing}</button>` : nothing}
+            ${mc.advanced('save_track_favorites') && a.media_title ? html`<button class="ib sm ghost" aria-pressed=${mc.favorite ? 'true' : 'false'} aria-label=${t('likedS')} style=${mc.favorite ? 'color:#FF8FA3' : 'color:var(--mut)'} @click=${() => mc.toggleFavorite()}>${svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style=${mc.favorite ? 'fill:currentColor' : ''}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>`}</button>` : nothing}
           </div>
           ${mc.can('volume') && vol != null ? html`<span class="row mvol">${ic('vol', 'i s')}<input class="rng" type="range" min="0" max="100" .value=${String(vol)} aria-label=${t('volume')} style=${`margin:0;background:linear-gradient(90deg, var(--accent) ${vol}%, var(--line2) ${vol}%)`}
             @input=${(e) => { this._local['vol:acct'] = Number(e.target.value); this.requestUpdate(); }}
             @change=${(e) => { mc.command('volume', Number(e.target.value) / 100).finally(() => setTimeout(() => { delete this._local['vol:acct']; this.requestUpdate(); }, 1500)); }}><span class="mono muted" style="font-size:11px;min-width:22px;text-align:right">${vol}</span></span>` : nothing}
-        </div>
         </div>
         ${mc.error ? html`<span class="txt" style="position:relative;font-size:12px;color:#FF8A80">${mc.error}</span>` : nothing}
         <div class="mlib">

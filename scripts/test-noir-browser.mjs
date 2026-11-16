@@ -136,15 +136,15 @@ console.log('behaviour');
   check(await shadow(page, `return [...root.querySelectorAll('.mlib .dc')].some((b)=>/Living room speaker/.test(b.textContent))`), 'Spotify Connect speakers listed');
   // next / previous: an Alexa speaker as Spotify source gets the skip itself; otherwise Spotify does
   const nCalls = () => page.evaluate(() => H.calls.filter((c) => c[0] === 'media_player' && /next_track|previous_track/.test(c[1])).map((c) => c[1] + '>' + c[2].entity_id));
-  await shadow(page, `root.querySelector('.mctl button[aria-label="Próxima"]').click()`);
+  await shadow(page, `root.querySelector('.sctl button[aria-label="Próxima"]').click()`);
   await new Promise((r) => setTimeout(r, 200));
   check((await nCalls()).includes('media_next_track>media_player.s1'), 'Next on an Alexa source skips on that Alexa speaker');
   await page.evaluate(() => { const id = 'media_player.spotifyplus_demo'; H.states[id] = { ...H.states[id], attributes: { ...H.states[id].attributes, source: 'Phone' } }; const d = document.getElementById('d'); d.hass = { ...H, states: { ...H.states } }; });
   await new Promise((r) => setTimeout(r, 200));
-  await shadow(page, `root.querySelector('.mctl button[aria-label="Anterior"]').click()`);
+  await shadow(page, `root.querySelector('.sctl button[aria-label="Anterior"]').click()`);
   await new Promise((r) => setTimeout(r, 200));
   check((await nCalls()).includes('media_previous_track>media_player.spotifyplus_demo'), 'Previous on another source goes through Spotify');
-  await shadow(page, `root.querySelector('.mctl button[aria-label="Anterior"]').click()`);
+  await shadow(page, `root.querySelector('.sctl button[aria-label="Anterior"]').click()`);
   await new Promise((r) => setTimeout(r, 200));
   check((await nCalls()).filter((x) => x.startsWith('media_previous_track>media_player.spotifyplus')).length === 2, 'a second press is not swallowed');
   check(await shadow(page, `return !!root.querySelector('.mctl button[aria-label^="Repetir"]')`), 'repeat button shows the repeat mode');
