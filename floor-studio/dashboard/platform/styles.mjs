@@ -626,4 +626,13 @@ export const platformStyles=`
 .aureon-home.botanical .home-waste-item small{text-align:center;font-size:clamp(9px,.75vw,12px)}
 .aureon-home.botanical .home-robot-empty{cursor:default;opacity:.8}
 .aureon-home.botanical .home-bottom .cine-people{display:flex;flex-direction:column;justify-content:center}
+
+/* Do not clip the dynamic people/vacuum footer when weather, agenda or music grow. */
+.aureon-home.botanical{overflow:visible;height:auto;min-height:0}
+.aureon-home.botanical::before,.aureon-home.botanical::after{border-radius:22px}
+.aureon-home.botanical .home-bottom{position:relative;z-index:1;min-height:90px}
+@container home (min-width:941px){
+ .aureon-home.botanical.without-plan{min-height:0;align-content:start}
+ .aureon-home.botanical.without-plan .home-primary{padding-top:clamp(20px,3.5vw,54px)}
+}
 `;
