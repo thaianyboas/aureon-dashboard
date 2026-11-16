@@ -28,6 +28,8 @@ const SCENE_GLOW = ['245,208,138', '169,155,255', '255,160,100', '143,184,255', 
 const F = { PAUSE: 1, SEEK: 2, VOL: 4, PREV: 16, NEXT: 32, SOURCE: 2048, PLAY: 16384, SHUFFLE: 32768, GROUP: 524288 };
 
 const P = {
+  repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
+  search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
   bulb: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z',
   plug: 'M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4', lock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3', unlock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 7.5-2',
   pencil: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4', eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
@@ -965,6 +967,23 @@ class AureonDashboard extends LitElement {
   }
 
   // ── AUREON Music (SpotifyPlus via the original AUREON MusicController) ──
+  // Next / previous. Echo speakers and Alexa groups (e.g. a whole-flat group) often restart the same song when Spotify
+  // is asked to skip, so when the music plays on an Alexa Media Player speaker the skip goes to that speaker.
+  _alexaFor(source) {
+    const name = String(source || '').trim().toLowerCase();
+    if (!name) return null;
+    for (const [id, e] of Object.entries(this.hass.entities || {})) {
+      if (!id.startsWith('media_player.') || e.platform !== 'alexa_media') continue;
+      const st = this.hass.states[id];
+      if (st && st.state !== 'unavailable' && String(st.attributes.friendly_name || '').trim().toLowerCase() === name) return id;
+    }
+    return null;
+  }
+  _skip(dir) {
+    const mc = this._mc, alexa = this._alexaFor(mc.state?.attributes?.source);
+    if (alexa) return this._call('media_player', dir === 'next' ? 'media_next_track' : 'media_previous_track', { entity_id: alexa });
+    return mc.command(dir);
+  }
   sMusic({ m, t, now, aRgb }) {
     const ui = this._ui, mc = this._mc;
     const acct = mc.state;
@@ -992,34 +1011,36 @@ class AureonDashboard extends LitElement {
         ${groupable.length > 1 ? html`<button class="btn sm" @click=${() => grouped ? this._call('media_player', 'unjoin', { entity_id: members.filter((x) => x !== lead.id) }) : this._call('media_player', 'join', { entity_id: lead.id, group_members: groupable.filter((s) => s.id !== lead.id).map((s) => s.id) })}>${grouped ? t('ungroup') : t('groupAll')}</button>` : nothing}`, t)}
       ${acct ? html`<div class="mcard">
         <div aria-hidden="true" style=${`position:absolute;inset:0;pointer-events:none;opacity:${playing ? 1 : 0.35};background:radial-gradient(50% 120% at 8% 30%, ${rgba(aRgb, 0.14)} 0%, ${rgba(aRgb, 0)} 70%)`}></div>
-        <div class="mtop">
+        <div class="mhead">
           <div class="art sm" aria-hidden="true">${art ? html`<img src=${art} alt="">` : html`<span class="o1 breathe" style=${`background:radial-gradient(circle, ${rgba(aRgb, 0.55)} 0%, ${rgba(aRgb, 0)} 65%)`}></span><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">${ic('note')}</span>`}</div>
-          <div class="grow" style="position:relative;display:flex;flex-direction:column;gap:10px;min-width:0">
-            <div class="row" style="align-items:flex-start;gap:8px"><div class="grow" style="display:flex;flex-direction:column;gap:4px;min-width:0">
-              <span class="tag row" style="gap:8px;color:var(--accent);flex-wrap:wrap"><span class=${'eq' + (playing ? '' : ' off')}><i></i><i></i><i></i></span>${a.source ? t('onSpeaker', { s: a.source }) : (a.friendly_name || 'Spotify')}</span>
-              <span class="txt" style="font-size:clamp(18px,2vw,24px);font-weight:400;letter-spacing:-.03em;line-height:1.15">${a.media_title || t('nothingPlaying')}</span>
-              <span class="muted txt" style="font-size:13px">${[a.media_artist, a.media_album_name].filter(Boolean).join(' · ')}</span></div>
-              ${mc.advanced('save_track_favorites') && a.media_title ? html`<button class="ib sm ghost" aria-pressed=${mc.favorite ? 'true' : 'false'} aria-label=${t('likedS')} style=${mc.favorite ? 'color:#FF8FA3' : 'color:var(--mut)'} @click=${() => mc.toggleFavorite()}>${svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style=${mc.favorite ? 'fill:currentColor' : ''}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>`}</button>` : nothing}</div>
-            ${pos.duration ? html`<div class="row" style="gap:10px"><span class="mono muted" style="font-size:10px">${mmss(pos.value)}</span><input class="rng" style=${`margin:0;background:linear-gradient(90deg, var(--accent) ${(fr * 100).toFixed(1)}%, var(--line2) ${(fr * 100).toFixed(1)}%)`} type="range" min="0" max=${String(Math.round(pos.duration))} .value=${String(Math.round(pos.value))} ?disabled=${!mc.can('seek')} aria-label=${a.media_title || 'position'} @change=${(e) => mc.command('seek', Number(e.target.value))}><span class="mono muted" style="font-size:10px">${mmss(pos.duration)}</span></div>` : nothing}
-            <div class="wrapRow" style="gap:8px">
-              ${mc.can('shuffle') ? html`<button class="ib sm ghost" aria-pressed=${a.shuffle ? 'true' : 'false'} aria-label=${t('shuffle')} style=${a.shuffle ? 'color:var(--accent)' : 'color:var(--mut)'} @click=${() => mc.command('shuffle')}>${ic('shuffle', 'i s')}</button>` : nothing}
-              ${mc.can('previous') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('prev')} @click=${() => mc.command('previous')}>${ic('prev', 'i s f')}</button>` : nothing}
-              <button class="play" style="width:48px;height:48px" aria-label=${playing ? t('pause') : t('play')} ?disabled=${!mc.ready} @click=${() => mc.command(playing ? 'pause' : 'play')}>${ic(playing ? 'pause' : 'play', 'i f')}</button>
-              ${mc.can('next') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('next')} @click=${() => mc.command('next')}>${ic('next', 'i s f')}</button>` : nothing}
-              ${mc.can('volume') && vol != null ? html`<span class="row" style="flex:1 1 140px;min-width:140px;max-width:300px;gap:8px">${ic('vol', 'i s')}<input class="rng" type="range" min="0" max="100" .value=${String(vol)} aria-label=${t('volume')} style=${`margin:0;background:linear-gradient(90deg, var(--accent) ${vol}%, var(--line2) ${vol}%)`}
-                @input=${(e) => { this._local['vol:acct'] = Number(e.target.value); this.requestUpdate(); }}
-                @change=${(e) => { mc.command('volume', Number(e.target.value) / 100).finally(() => setTimeout(() => { delete this._local['vol:acct']; this.requestUpdate(); }, 1500)); }}><span class="mono muted" style="font-size:11px;min-width:24px;text-align:right">${vol}</span></span>` : nothing}
-            </div>
-            ${mc.error ? html`<span class="txt" style="font-size:12px;color:#FF8A80">${mc.error}</span>` : nothing}
-          </div>
+          <div class="grow" style="display:flex;flex-direction:column;gap:3px;min-width:0">
+            <span class="tag row" style="gap:8px;color:var(--accent);font-size:10px"><span class=${'eq' + (playing ? '' : ' off')}><i></i><i></i><i></i></span><span class="txt">${a.source || a.friendly_name || 'Spotify'}</span></span>
+            <span class="txt" style="font-size:clamp(17px,2vw,22px);font-weight:400;letter-spacing:-.03em;line-height:1.2">${a.media_title || t('nothingPlaying')}</span>
+            <span class="muted txt" style="font-size:12px">${[a.media_artist, a.media_album_name].filter(Boolean).join(' · ')}</span></div>
+          ${mc.advanced('save_track_favorites') && a.media_title ? html`<button class="ib sm ghost" aria-pressed=${mc.favorite ? 'true' : 'false'} aria-label=${t('likedS')} style=${mc.favorite ? 'color:#FF8FA3' : 'color:var(--mut)'} @click=${() => mc.toggleFavorite()}>${svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style=${mc.favorite ? 'fill:currentColor' : ''}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>`}</button>` : nothing}
         </div>
-        <div class="mlib">
-          <div class="wrapRow" style="gap:6px;align-items:center">
-            ${kinds.map(([k, n]) => html`<button class="dc" aria-pressed=${panel === 'library' && mc.libraryKind === k && mc.view === 'library' ? 'true' : 'false'} style=${panel === 'library' && mc.libraryKind === k && mc.view === 'library' ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicPanel: 'library' }); mc.browse(k); }}>${n}</button>`)}
-            ${mc.advanced('get_spotify_connect_devices') ? html`<button class="dc" aria-pressed=${panel === 'devices' ? 'true' : 'false'} style=${panel === 'devices' ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicPanel: 'devices' }); mc.loadDevices(false); }}>${ic('speaker', 'i s')} ${t('whereToPlay')}</button>` : nothing}
-            ${mc.advanced('search_tracks') ? html`<input type="search" .value=${ui.musicQuery || ''} placeholder=${t('searchS')} aria-label=${t('searchS')} @input=${(e) => this._set({ musicQuery: e.target.value })} @keydown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) { this._set({ musicPanel: 'library' }); mc.browse('search', e.target.value); } }}
-              style="flex:1 1 160px;min-width:140px;min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit;font-size:12px">` : nothing}
+        ${pos.duration ? html`<div class="row" style="position:relative;gap:10px"><span class="mono muted" style="font-size:10px;min-width:30px">${mmss(pos.value)}</span><input class="rng" style=${`margin:0;background:linear-gradient(90deg, var(--accent) ${(fr * 100).toFixed(1)}%, var(--line2) ${(fr * 100).toFixed(1)}%)`} type="range" min="0" max=${String(Math.round(pos.duration))} .value=${String(Math.round(pos.value))} ?disabled=${!mc.can('seek')} aria-label=${a.media_title || 'position'} @change=${(e) => mc.command('seek', Number(e.target.value))}><span class="mono muted" style="font-size:10px;min-width:30px;text-align:right">${mmss(pos.duration)}</span></div>` : nothing}
+        <div class="mctl">
+          <div class="row" style="gap:6px">
+            ${mc.can('shuffle') ? html`<button class="ib sm ghost" aria-pressed=${a.shuffle ? 'true' : 'false'} aria-label=${t('shuffle')} style=${a.shuffle ? 'color:var(--accent)' : 'color:var(--mut)'} @click=${() => mc.command('shuffle')}>${ic('shuffle', 'i s')}</button>` : nothing}
+            ${mc.can('previous') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('prev')} ?disabled=${mc.pending.has('transport:previous')} @click=${() => this._skip('previous')}>${ic('prev', 'i s f')}</button>` : nothing}
+            <button class="play" style="width:46px;height:46px" aria-label=${playing ? t('pause') : t('play')} ?disabled=${!mc.ready} @click=${() => mc.command(playing ? 'pause' : 'play')}>${ic(playing ? 'pause' : 'play', 'i f')}</button>
+            ${mc.can('next') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('next')} ?disabled=${mc.pending.has('transport:next')} @click=${() => this._skip('next')}>${ic('next', 'i s f')}</button>` : nothing}
+            ${mc.can('repeat') ? html`<button class="ib sm ghost" aria-pressed=${a.repeat && a.repeat !== 'off' ? 'true' : 'false'} aria-label=${t('repeat') + ': ' + t('repeat_' + (a.repeat || 'off'))} title=${t('repeat_' + (a.repeat || 'off'))} style=${'position:relative;' + (a.repeat && a.repeat !== 'off' ? 'color:var(--accent)' : 'color:var(--mut)')} @click=${() => mc.command('repeat')}>${ic('repeat', 'i s')}${a.repeat === 'one' ? html`<b style="position:absolute;right:6px;top:5px;font-size:9px;font-weight:600">1</b>` : nothing}</button>` : nothing}
           </div>
+          ${mc.can('volume') && vol != null ? html`<span class="row mvol">${ic('vol', 'i s')}<input class="rng" type="range" min="0" max="100" .value=${String(vol)} aria-label=${t('volume')} style=${`margin:0;background:linear-gradient(90deg, var(--accent) ${vol}%, var(--line2) ${vol}%)`}
+            @input=${(e) => { this._local['vol:acct'] = Number(e.target.value); this.requestUpdate(); }}
+            @change=${(e) => { mc.command('volume', Number(e.target.value) / 100).finally(() => setTimeout(() => { delete this._local['vol:acct']; this.requestUpdate(); }, 1500)); }}><span class="mono muted" style="font-size:11px;min-width:22px;text-align:right">${vol}</span></span>` : nothing}
+        </div>
+        ${mc.error ? html`<span class="txt" style="position:relative;font-size:12px;color:#FF8A80">${mc.error}</span>` : nothing}
+        <div class="mlib">
+          <div class="mchips">
+            ${kinds.map(([k, n]) => { const on = panel === 'library' && mc.libraryKind === k && mc.view === 'library' && !ui.musicSearch; return html`<button class="dc" aria-pressed=${on ? 'true' : 'false'} style=${on ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicPanel: 'library', musicSearch: false }); mc.browse(k); }}>${n}</button>`; })}
+            ${mc.advanced('get_spotify_connect_devices') ? html`<button class="dc" aria-pressed=${panel === 'devices' ? 'true' : 'false'} style=${panel === 'devices' ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicPanel: 'devices', musicSearch: false }); mc.loadDevices(false); }}>${ic('speaker', 'i s')} ${t('whereToPlay')}</button>` : nothing}
+            ${mc.advanced('search_tracks') ? html`<button class="dc" aria-pressed=${ui.musicSearch ? 'true' : 'false'} aria-label=${t('searchS')} style=${ui.musicSearch ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => { this._set({ musicSearch: !ui.musicSearch, musicPanel: 'library' }); if (!ui.musicSearch) setTimeout(() => this.renderRoot.querySelector('.msearch')?.focus(), 50); }}>${ic('search', 'i s')}</button>` : nothing}
+          </div>
+          ${ui.musicSearch && mc.advanced('search_tracks') ? html`<input class="msearch" type="search" .value=${ui.musicQuery || ''} placeholder=${t('searchS')} aria-label=${t('searchS')} @input=${(e) => this._set({ musicQuery: e.target.value })} @keydown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) { mc.browse('search', e.target.value); } }}
+            style="min-height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit;font-size:13px">` : nothing}
           ${panel === 'devices' ? html`<div class="mrow">${mc.pending.has('devices') ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
               ${mc.devices.map((d) => html`<button class="dc" style=${'min-height:44px;' + (d.active ? 'border-color:var(--accent);color:var(--fg)' : '')} aria-pressed=${d.active ? 'true' : 'false'} ?disabled=${mc.pending.has('transfer')} @click=${() => mc.transfer(d.id)}>${ic('speaker', 'i s')} ${d.name}${d.active ? ' · ' + t('playing') : d.ready ? '' : ' · ' + t('openSpotify')}</button>`)}
               ${!mc.pending.has('devices') && !mc.devices.length ? html`<span class="muted txt" style="font-size:13px">${t('noDevices')}</span>` : nothing}</div>`
@@ -1032,15 +1053,15 @@ class AureonDashboard extends LitElement {
         </div>
       </div>` : nothing}
       ${list.length ? html`<span class="eyebrow" style="padding:6px 4px 0;font-size:10px">${t('speakers')}</span>
-      <div class="grid">${repeat(list, (s) => s.id, (s) => {
+      <div class="grid sgrid">${repeat(list.slice().sort((x, y) => (x.unavailable ? 1 : 0) - (y.unavailable ? 1 : 0)), (s) => s.id, (s) => {
         const ta = this.tileAttrs('speakers', s, ids), v = this._local['vol:' + s.id] ?? s.vol;
-        return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${s.playing ? `border-color:${rgba(aRgb, 0.3)}` : ''}>
+        return html`<div class=${'tile mini' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${s.playing ? `border-color:${rgba(aRgb, 0.3)}` : ''}>
           ${this.editBar('speakers', s, ids, t)}
           <div class="tbtn" style="cursor:default">
             <span class="ic" style=${s.playing ? 'background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)' : ''}>${ic(s.tv ? 'tv' : 'speaker')}</span>
             <span class="nm grow"><b>${s.name}</b><span>${[s.areaName, s.unavailable ? t('notAvailable') : s.playing ? (s.attrs.media_title || t('playing')) : s.state === 'paused' ? t('paused') : ''].filter(Boolean).join(' · ')}</span></span>
             ${s.features & (F.PAUSE | F.PLAY) && !s.unavailable ? html`<button class="ib sm" aria-label=${(s.playing ? t('pause') : t('play')) + ' · ' + s.name} @click=${() => this._call('media_player', 'media_play_pause', { entity_id: s.id })}>${ic(s.playing ? 'pause' : 'play', 'i s f')}</button>` : nothing}</div>
-          ${v != null && s.features & F.VOL ? html`<div class="row">${ic('vol', 'i s')}<input class="rng" type="range" min="0" max="100" .value=${String(v)} aria-label=${t('volume') + ' · ' + s.name} style=${`background:linear-gradient(90deg, ${s.playing ? 'var(--accent)' : 'var(--dim)'} ${v}%, var(--line2) ${v}%)`}
+          ${v != null && s.features & F.VOL && (s.playing || s.state === 'paused' || this._local['vol:' + s.id] != null) ? html`<div class="row">${ic('vol', 'i s')}<input class="rng" type="range" min="0" max="100" .value=${String(v)} aria-label=${t('volume') + ' · ' + s.name} style=${`background:linear-gradient(90deg, ${s.playing ? 'var(--accent)' : 'var(--dim)'} ${v}%, var(--line2) ${v}%)`}
             @input=${(e) => { this._local['vol:' + s.id] = Number(e.target.value); this.requestUpdate(); }}
             @change=${(e) => { const nv = Number(e.target.value); this._call('media_player', 'volume_set', { entity_id: s.id, volume_level: nv / 100 }).finally(() => setTimeout(() => { delete this._local['vol:' + s.id]; this.requestUpdate(); }, 1500)); }}><span class="mono muted" style="font-size:11px;min-width:26px;text-align:right">${v}</span></div>` : nothing}
         </div>`;

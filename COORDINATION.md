@@ -1436,3 +1436,15 @@ The Music browser suite passed again with that label and native transfer.
 - AUREON Music compact card (cover 112 px, library as a horizontal row). Blueprints for Alexa end-of-cycle announcements.
 - Validation: unit tests, real-Chrome synthetic suite (modes, reminders, settings, labels, cameras, layout at 4 widths),
   validate-distribution, migration contract. Owner HA test pending; blueprints not run in a real HA.
+
+## Claude batch 2026-11-16d — phone review fixes (local commits, not pushed yet; owner: publish all at the end)
+- Header: Tema button and weather/sun chip removed (theme lives in Settings). Forecast is one compact line + 6-hour strip.
+- 3D house: "N dispositivos" removed; room labels moved to a flat overlay (`.lbls`) with dark plates, placed over each
+  room's projected centre and nudged vertically so no two touch (ResizeObserver + fonts.ready re-run). Browser test checks it.
+- Music: compact card (art 76/60 px, title row, full-width progress, centred controls, volume row, single scrolling chip
+  row, search behind a magnifier chip), repeat button (shows "1" for repeat one), speaker tiles compact (volume only
+  while playing/paused, unavailable last).
+- Next/Previous: controller lanes are now per action (`transport:<action>`) and a hanging speaker answer frees the
+  lane after 8 s. When the Spotify source name equals an Alexa Media Player speaker/group, the dashboard sends
+  media_next_track/previous to that Alexa entity (Echo groups restart the same song on Spotify skip). Not verified on
+  the owner's HA yet.

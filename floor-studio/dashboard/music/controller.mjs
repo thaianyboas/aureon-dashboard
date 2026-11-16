@@ -142,8 +142,10 @@ export class MusicController {
     // Owner 2026-11-13 ("ainda nao responde instantaneamente"): a press while the previous one is still on its way
     // changes the button at once too; the last wish is sent as soon as the speaker has answered the first.
     if(toggle){this.optimistic={playing:action==='play',entity,until:Date.now()+10000};this.emit();if(this.pending.has('playpause')){this._nextToggle=action;return true;}this._nextToggle=null;}
-    const result=await this.request(toggle?'playpause':'transport',async()=>{
-      try{await this.hass.callService('media_player',spec[1],{entity_id:entity,...spec[2]});}
+    // Owner 2026-11-16 ("os botoes de proximo e voltar nao estao funcionando"): each control has its own lane and a
+    // slow speaker answer (Amazon) frees it after 8 s, so a hanging volume change never swallows Next/Previous.
+    const result=await this.request(toggle?'playpause':'transport:'+action,async()=>{
+      try{await Promise.race([this.hass.callService('media_player',spec[1],{entity_id:entity,...spec[2]}),new Promise(r=>setTimeout(r,8000))]);}
       catch(error){
         // Owner 2026-11-12: "eu aperto play ou pausa e sempre dá esse erro" – Spotify answers 404 when no speaker is
         // active. Pausing then has nothing to do; playing wakes the chosen speaker and resumes there.
