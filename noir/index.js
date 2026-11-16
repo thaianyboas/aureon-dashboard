@@ -1223,12 +1223,22 @@ class AureonDashboard extends LitElement {
           ${panel === 'devices' ? html`<div class="mrow">${mc.pending.has('devices') ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
               ${mc.devices.map((d) => html`<button class="dc" style=${'min-height:44px;' + (d.active ? 'border-color:var(--accent);color:var(--fg)' : '')} aria-pressed=${d.active ? 'true' : 'false'} ?disabled=${mc.pending.has('transfer')} @click=${() => mc.transfer(d.id)}>${ic('speaker', 'i s')} ${d.name}${d.active ? ' · ' + t('playing') : d.ready ? '' : ' · ' + t('openSpotify')}</button>`)}
               ${!mc.pending.has('devices') && !mc.devices.length ? html`<span class="muted txt" style="font-size:13px">${t('noDevices')}</span>` : nothing}</div>`
-          : html`<div class="mrow">${busy ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
-              ${mc.results.slice(0, 20).map((it) => { const im = imgOf(it), starting = mc.startingUri === it.uri; return html`<button class="cover" aria-label=${t('play') + ' · ' + it.name} ?disabled=${starting} @click=${() => mc.playItem(it)}>
-                <span class="sleeve"><span class="disc"></span><span class="sl" style=${`position:relative;display:block;width:100%;aspect-ratio:1/1;border-radius:6px;overflow:hidden;background:${im ? `center/cover url("${im}")` : `radial-gradient(70% 70% at 25% 25%, ${rgba(aRgb, 0.7)} 0%, ${rgba(aRgb, 0)} 70%), var(--raise)`}`}>${starting ? html`<span class="pulse" style="position:absolute;inset:0;background:rgba(0,0,0,.35)"></span>` : nothing}</span></span>
-                <span class="txt" style="font-size:11px;font-weight:500;line-height:1.3">${it.name}</span></button>`; })}
-              ${mc.hasNext ? html`<button class="ib" style="align-self:center" aria-label=${t('fwd')} @click=${() => mc.changePage(1)}>${ic('right', 'i s')}</button>` : nothing}
-              ${!busy && !mc.results.length && !kinds.length && !mc.spotify ? html`<span class="muted txt" style="font-size:13px">${t('noSpotify')}</span>` : nothing}</div>`}
+          : (() => {
+              // Owner 2026-11-16 ("playlists daquele jeito tá feio"): a calm list — small cover, name, who/what, play.
+              const sub = (it) => [it.owner?.display_name, (it.artists || it.album?.artists || []).map((x) => x.name).join(', '), it.publisher, it.tracks?.total ? t('tracksN', { n: it.tracks.total }) : null].filter(Boolean).slice(0, 2).join(' · ');
+              const nowUri = a.media_context_content_id || a.sp_context_uri || a.media_content_id || '';
+              const all = mc.results.slice(0, 20), more = ui.libMore, shown = more ? all : all.slice(0, 6);
+              return html`<div class="mlist">${busy && !all.length ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
+              ${shown.map((it) => { const im = imgOf(it), starting = mc.startingUri === it.uri, cur = it.uri && nowUri === it.uri; return html`<button class=${'mli' + (cur ? ' cur' : '')} aria-label=${t('play') + ' · ' + it.name} ?disabled=${starting} @click=${() => mc.playItem(it)}>
+                <span class="mcov" style=${`background:${im ? `center/cover url("${im}")` : `radial-gradient(70% 70% at 25% 25%, ${rgba(aRgb, 0.7)} 0%, ${rgba(aRgb, 0)} 70%), var(--raise)`}`}>${starting ? html`<span class="pulse" style="position:absolute;inset:0;background:rgba(0,0,0,.35)"></span>` : nothing}</span>
+                <span class="mtx"><b class="txt">${it.name}</b>${sub(it) ? html`<span class="txt">${sub(it)}</span>` : nothing}</span>
+                <span class="mplay" aria-hidden="true">${cur && playing ? html`<span class="eq"><i></i><i></i><i></i></span>` : ic('play', 'i s f')}</span></button>`; })}
+              </div>
+              ${all.length > 6 || mc.hasNext ? html`<div class="row" style="gap:8px;justify-content:center">
+                ${all.length > 6 ? html`<button class="btn sm" @click=${() => this._set({ libMore: !more })}>${more ? t('fewer') : t('more', { n: all.length - 6 })}</button>` : nothing}
+                ${more && mc.hasNext ? html`<button class="ib" aria-label=${t('fwd')} @click=${() => mc.changePage(1)}>${ic('right', 'i s')}</button>` : nothing}</div>` : nothing}
+              ${!busy && !mc.results.length && !kinds.length && !mc.spotify ? html`<span class="muted txt" style="font-size:13px">${t('noSpotify')}</span>` : nothing}`;
+            })()}
         </div>
       </div>` : nothing}
       ${list.length ? html`<span class="eyebrow" style="padding:6px 4px 0;font-size:10px">${t('speakers')}</span>
