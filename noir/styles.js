@@ -121,6 +121,24 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .grid.w{grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))}
 .tile{position:relative;overflow:hidden;padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:14px;transition:border-color .35s,opacity .25s,transform .2s}
 .tile.ghosted{opacity:.45}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:10px;align-items:start}
+.pgrp{border-radius:18px;background:var(--card);border:1px solid var(--line);overflow:hidden;transition:border-color .3s}
+.pgrp.lit{border-color:color-mix(in srgb,var(--accent) 20%,var(--line))}
+.phead{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:10px 14px;border:0;background:transparent;color:var(--fg);font:inherit;text-align:left;cursor:pointer}
+.phead:disabled{cursor:default;opacity:1}
+.pdot{width:32px;height:32px;flex:none;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--raise);color:var(--dim)}
+.pgrp.lit .pdot{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+.pname{flex:1;min-width:0;font-size:15px;font-weight:500}
+.pmeta{font-size:12px;color:var(--mut);white-space:nowrap}.pmeta b{font-weight:500;color:var(--fg)}
+.pchev{color:var(--mut);transition:transform .3s}.pgrp.open .pchev{transform:rotate(180deg)}
+.plist{border-top:1px solid var(--line)}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;min-height:52px;padding:6px 14px 6px 58px}
+.prow+.prow{border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.pnm{font-size:14px;color:var(--fg2)}.prow.on .pnm{color:var(--fg)}
+.pst{font-size:12px;color:var(--dim);white-space:nowrap}.prow.on .pst{color:var(--fg)}
+.prow.na{opacity:.55}
+.plock{display:flex;width:44px;justify-content:center;color:var(--mut)}
+@container (max-width:460px){.prow{padding-left:14px}}
 .act.wst{position:relative;overflow:hidden;gap:16px;padding:20px}
 .act.wst.urgent{border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
 .wglow{position:absolute;left:-30px;top:10px;width:210px;height:210px;pointer-events:none;opacity:.55}

@@ -873,7 +873,34 @@ class AureonDashboard extends LitElement {
     const list = this._visible('plugs', this._sorted('plugs', m.plugs)), ids = list.map((x) => x.id);
     if (!list.length) return nothing;
     const onN = list.filter((p) => p.on).length, prot = list.filter((p) => p.locked).length;
-    return html`<section class="sec">${this.secHead('plugs', t('plugs'), t('plugsHead', { a: onN, b: list.length }), prot ? html`<span class="row muted" style="font-size:12px;gap:6px">${ic('lock', 'i s')}${t('protectedHint')}</span>` : null, t)}
+    const head = this.secHead('plugs', t('plugs'), t('plugsHead', { a: onN, b: list.length }), prot ? html`<span class="row muted" style="font-size:12px;gap:6px">${ic('lock', 'i s')}${t('protectedHint')}</span>` : null, t);
+    // Owner 2026-11-16 ("no celular a lista está infinita"): outside edit mode the plugs are grouped by room in
+    // compact lists; each room folds open with a tap. Edit mode keeps the movable tiles.
+    if (!this._ui.edit) {
+      const groups = [];
+      for (const p of list) { let g = groups.find((x) => x.area === (p.area || '')); if (!g) groups.push(g = { area: p.area || '', name: p.areaName || t('noArea'), items: [] }); g.items.push(p); }
+      const order = new Map(m.areas.map((a, i) => [a.id, i]));
+      groups.sort((x, y) => (order.get(x.area) ?? 999) - (order.get(y.area) ?? 999));
+      const open = this._ui.plugOpen || {}, single = groups.length === 1 || this._ui.room !== 'all';
+      return html`<section class="sec">${head}<div class="pgrid">${groups.map((g) => {
+        const on = g.items.filter((p) => p.on), w = Math.round(on.reduce((s2, p) => s2 + (p.w || 0), 0)), isOpen = single || (open[g.area] ?? (this.clientWidth >= 900));
+        return html`<div class=${'pgrp' + (isOpen ? ' open' : '') + (on.length ? ' lit' : '')}>
+          <button class="phead" aria-expanded=${isOpen ? 'true' : 'false'} ?disabled=${single} @click=${() => this._set({ plugOpen: { ...open, [g.area]: !isOpen } })}>
+            <span class="pdot" aria-hidden="true">${ic('plug', 'i s')}</span>
+            <span class="pname txt">${g.name}</span>
+            <span class="pmeta">${w ? html`<b>${w} W</b> · ` : nothing}${on.length}/${g.items.length}</span>
+            ${single ? nothing : html`<span class="pchev" aria-hidden="true">${ic('down', 'i s')}</span>`}
+          </button>
+          ${isOpen ? html`<div class="plist">${repeat(g.items, (p) => p.id, (p) => html`<div class=${'prow' + (p.on ? ' on' : '') + (p.unavailable ? ' na' : '')}>
+              <span class="pnm txt">${p.name}</span>
+              <span class="pst">${p.unavailable ? t('notAvailable') : p.on ? (p.w != null ? p.w + ' W' : t('plugOn')) : t('plugOff')}</span>
+              ${p.locked ? html`<span class="plock" title=${t('protectedTitle')} aria-label=${t('protected')}>${ic('lock', 'i s')}</span>`
+                : html`<button class="switch" role="switch" aria-checked=${p.on ? 'true' : 'false'} ?disabled=${p.unavailable} aria-label=${p.name + ' · ' + p.areaName} @click=${() => this._call('switch', p.on ? 'turn_off' : 'turn_on', { entity_id: p.id })}><span><i></i></span></button>`}
+            </div>`)}</div>` : nothing}
+        </div>`;
+      })}</div></section>`;
+    }
+    return html`<section class="sec">${head}
       <div class="grid">${repeat(list, (p) => p.id, (p) => {
         const ta = this.tileAttrs('plugs', p, ids);
         return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${p.locked ? 'border-style:dashed;border-color:var(--line2)' : p.on ? `border-color:${rgba(this._theme().ha ? this._accentRgb : hexRgb(this._theme().accent), 0.28)}` : ''}>
