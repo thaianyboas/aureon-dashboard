@@ -1,6 +1,11 @@
 import {cleanLayouts} from './card-layout-model.mjs';
 import {equipmentKinds} from './discovery.mjs';
-export const defaults=()=>({schema:1,floorLook:'real',language:'auto',appearance:'auto',palette:'forest',accent:'',look:'cinema',home3d:false,homePlan:'',roomNames:{},density:'compact',hidden:[],labelVisibility:{include:[],exclude:[]},labelKinds:{},equipmentOverrides:{},cardLayouts:{},widgets:{music:true,weather:true,people:true,energy:true,waste:true,security:true},energy:{power:'',total:'',daily:'',weekly:'',monthly:'',yearly:'',tariff:null,currency:'EUR',auto:true},waste:[],hiddenRooms:[],roomFloor:{},roomImages:{},music:{entity:'',appearance:'auto',providers:{},spotcastTargets:[],hiddenSpeakers:[]}});
+// Robot vacuum page (owner 2026-11-16: "só quero que mostre o que eu realmente preciso"): what the page shows out of
+// everything the Dreame integration offers. Keys are AUREON's own (controls, stats) or Dreame entity keys (settings,
+// consumables). The defaults are the everyday ones.
+export const VACUUM_CONTROLS=['start','pause','dock','stop','locate'],VACUUM_STATS=['area','time','count','total'];
+export const vacuumShowDefaults=()=>({controls:['start','pause','dock'],stats:['area','time'],map:true,settings:['cleangenius','cleaning_mode','suction_level','water_volume'],consumables:'low'});
+export const defaults=()=>({schema:1,floorLook:'real',language:'auto',appearance:'auto',palette:'forest',accent:'',look:'cinema',home3d:false,homePlan:'',roomNames:{},density:'compact',hidden:[],labelVisibility:{include:[],exclude:[]},labelKinds:{},equipmentOverrides:{},cardLayouts:{},weatherEntity:'',vacuumShow:vacuumShowDefaults(),widgets:{music:true,weather:true,people:true,energy:true,waste:true,security:true},energy:{power:'',total:'',daily:'',weekly:'',monthly:'',yearly:'',tariff:null,currency:'EUR',auto:true},waste:[],hiddenRooms:[],roomFloor:{},roomImages:{},music:{entity:'',appearance:'auto',providers:{},spotcastTargets:[],hiddenSpeakers:[]}});
 // Room pictures: the owner's own files in Home Assistant (/local/…, media/image proxy) or an https address. Never embedded data.
 export function roomImageUrl(value){if(typeof value!=='string'||value.length>2048)return '';const v=value.trim();if(v==='none'||/^preset:(living|kitchen|dining|bedroom|bathroom|hallway|balcony|entrance|controlroom|pool|office|hobby)$/.test(v))return v;if(/^\/(local|media|api\/image\/serve)\/[^\s"'<>\\]+$/.test(v)&&!v.includes('..'))return v;try{const u=new URL(v);return u.protocol==='https:'&&!u.username&&!u.password?u.href:'';}catch{return '';}}
 const id=value=>typeof value==='string'&&/^[a-z_]+\.[a-z0-9_]+$/.test(value)?value:'';
@@ -20,6 +25,11 @@ export function validatePreferences(raw){
  if(raw.labelVisibility&&typeof raw.labelVisibility==='object'){out.labelVisibility={include:labelIds(raw.labelVisibility.include),exclude:labelIds(raw.labelVisibility.exclude)};}
  if(raw.labelKinds&&typeof raw.labelKinds==='object'&&!Array.isArray(raw.labelKinds))for(const kind of equipmentKinds){const ids=labelIds(raw.labelKinds[kind]);if(ids.length)out.labelKinds[kind]=ids;}
  if(raw.equipmentOverrides&&typeof raw.equipmentOverrides==='object')for(const [entity,kind] of Object.entries(raw.equipmentOverrides).slice(0,3000))if(id(entity)&&equipmentKinds.includes(kind))out.equipmentOverrides[entity]=kind;
+ if(raw.vacuumShow&&typeof raw.vacuumShow==='object'&&!Array.isArray(raw.vacuumShow)){const v=raw.vacuumShow,keys=(list,allowed)=>Array.isArray(list)?[...new Set(list.filter(x=>typeof x==='string'&&(allowed?allowed.includes(x):/^[a-z0-9_]{1,60}$/.test(x))))].slice(0,40):null;
+  const controls=keys(v.controls,VACUUM_CONTROLS),stats=keys(v.stats,VACUUM_STATS),settings=keys(v.settings);if(controls)out.vacuumShow.controls=controls;if(stats)out.vacuumShow.stats=stats;if(settings)out.vacuumShow.settings=settings;
+  if(typeof v.map==='boolean')out.vacuumShow.map=v.map;if(['low','all','none'].includes(v.consumables))out.vacuumShow.consumables=v.consumables;}
+ // The weather entity of the start page when Home Assistant has several (owner 2026-11-16); '' = the first one.
+ if(id(raw.weatherEntity).startsWith('weather.'))out.weatherEntity=raw.weatherEntity;
  if(raw.widgets)for(const key of Object.keys(out.widgets))if(typeof raw.widgets[key]==='boolean')out.widgets[key]=raw.widgets[key];
  if(raw.energy){for(const key of ['power','total','daily','weekly','monthly','yearly'])out.energy[key]=id(raw.energy[key]);const rate=Number(raw.energy.tariff);if(raw.energy.tariff!==null&&String(raw.energy.tariff??'').trim()!==''&&Number.isFinite(rate)&&rate>=0&&rate<=10000)out.energy.tariff=rate;if(/^[A-Z]{3}$/.test(raw.energy.currency||''))out.energy.currency=raw.energy.currency;if(typeof raw.energy.auto==='boolean')out.energy.auto=raw.energy.auto;}
  if(Array.isArray(raw.waste))out.waste=[...new Set(raw.waste.map(id).filter(x=>x.startsWith('sensor.')||x.startsWith('calendar.')))].slice(0,30);

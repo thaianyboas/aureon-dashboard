@@ -57,3 +57,12 @@ test('the 3D plan on the start page keeps the Cinema look; an old "classic" choi
   assert.equal(now.look,'cinema');assert.equal(now.home3d,true);
   assert.equal(validatePreferences({schema:1,home3d:'yes'}).home3d,false);
 });
+test('Botanical home and robot page preferences are validated (owner 2026-11-16)',()=>{
+ const d=defaults();
+ assert.equal(d.weatherEntity,'');assert.deepEqual(d.vacuumShow.controls,['start','pause','dock']);assert.equal(d.vacuumShow.consumables,'low');
+ const v=validatePreferences({...d,weatherEntity:'weather.forecast_home',vacuumShow:{controls:['start','explode','stop'],stats:['area','x'],map:false,settings:['suction_level','Bad Key!'],consumables:'all'}});
+ assert.equal(v.weatherEntity,'weather.forecast_home');
+ assert.deepEqual(v.vacuumShow,{controls:['start','stop'],stats:['area'],map:false,settings:['suction_level'],consumables:'all'});
+ assert.equal(validatePreferences({...d,weatherEntity:'sensor.temp'}).weatherEntity,'');
+ assert.equal(validatePreferences({...d,vacuumShow:{consumables:'some'}}).vacuumShow.consumables,'low');
+});

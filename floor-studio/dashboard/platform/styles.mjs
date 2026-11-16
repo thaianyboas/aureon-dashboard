@@ -1,3 +1,4 @@
+import {botanicalStyles} from './home-botanical-styles.mjs';
 export const platformStyles=`
 .theme-previews{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.theme-preview{min-width:0;min-height:100px;padding:8px;text-align:left}.theme-preview[aria-pressed="true"]{outline:2px solid var(--p-accent);outline-offset:2px}.theme-preview strong{display:block;font-size:12px;overflow-wrap:anywhere;margin-top:8px}.theme-swatch{display:flex;flex-direction:column;justify-content:space-around;padding:10px;border:1px solid;border-radius:8px;height:64px;letter-spacing:5px}
 :host{display:block;min-width:0;color:var(--au-text,var(--primary-text-color,#eaf3ed));font-family:Inter,system-ui,-apple-system,sans-serif;--p-gap:14px;--p-pad:20px;--p-muted:var(--au-muted,var(--secondary-text-color,#b6c5bc));--p-surface:var(--au-surface,var(--card-background-color,#183128));--p-border:var(--au-border,rgba(180,220,195,.16));--p-accent:var(--au-accent,#a9cfb8)}*{box-sizing:border-box}button,input,select,textarea{font:inherit}button,a,input,select,textarea{touch-action:manipulation}button{color:inherit;cursor:pointer;background:color-mix(in srgb,var(--p-surface) 90%,transparent);border:1px solid var(--p-border);padding:10px 15px;border-radius:12px;min-height:42px;font-size:12px}button:hover{border-color:var(--p-accent)}button:disabled{opacity:.4;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--p-accent);outline-offset:3px}.page{margin-top:22px;min-width:0}.comfortable{--p-gap:22px;--p-pad:28px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:var(--p-gap);margin:var(--p-gap) 0}.card{background:linear-gradient(140deg,color-mix(in srgb,var(--p-surface) 90%,white 4%),var(--p-surface));border:1px solid var(--p-border);border-radius:22px;padding:var(--p-pad);min-width:0;box-shadow:0 12px 30px #0000000b,inset 0 1px 0 #ffffff08}.wide{grid-column:1/-1}h2,h3,p{margin:0}h2{font-size:20px;font-weight:600;letter-spacing:-.5px;margin-bottom:16px}h3{font-size:15px;letter-spacing:-.2px;line-height:1.4}.hint{font-size:12px;line-height:1.7;color:var(--p-muted);margin:12px 0}.value{font-size:clamp(24px,3vw,38px);font-weight:650;letter-spacing:-1px;margin:16px 0 8px;overflow-wrap:anywhere}.unit{font-size:13px;color:var(--p-muted);margin-left:7px;letter-spacing:0}.row{display:flex;align-items:center;gap:12px;justify-content:space-between;min-width:0}.row .name{min-width:0;overflow-wrap:anywhere}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}.chip{font-size:11px;padding:5px 9px;border:1px solid var(--p-border);border-radius:20px;color:var(--p-muted);white-space:nowrap}.chip.active{color:var(--p-accent);border-color:var(--p-accent)}.unavailable{opacity:.6}.state{font-size:13px;line-height:1.5;color:var(--p-accent);overflow-wrap:anywhere;margin-top:7px}.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}.toolbar input{flex:1}.toolbar input,.toolbar select,select,input[type=number],input[type=text],input[type=search],textarea{padding:11px;border:1px solid var(--p-border);border-radius:12px;background:var(--p-surface);color:inherit;min-width:0;max-width:100%}.toolbar input{min-width:130px}label.field{display:grid;gap:8px;font-size:12px;margin-top:16px}label.check{display:flex;align-items:center;gap:11px;font-size:13px;margin:13px 0;overflow-wrap:anywhere}input[type=range]{width:100%;accent-color:var(--p-accent);min-height:30px}input[type=checkbox]{accent-color:var(--p-accent);width:18px;height:18px;flex-shrink:0}.avatar{width:45px;height:45px;border-radius:50%;object-fit:cover;background:var(--p-border)}.identity{display:flex;align-items:center;gap:12px;min-width:0}.home-layout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--p-gap);margin-top:var(--p-gap)}.home-layout>.grid{display:contents}.home-layout>section.card{grid-column:span 2}.home-layout .value{font-size:28px}.home-layout .card{padding:18px}.home-controls{display:grid;grid-template-columns:1.2fr 1fr;gap:var(--p-gap)}.home-details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--p-gap);margin:var(--p-gap) 0}.home-details>.card{align-self:start}.home-details>.card:last-child{align-self:stretch}.home-details .section-head{margin:0 0 12px}.home-details .grid{margin:0}.hero{display:flex;gap:25px;align-items:center;justify-content:space-between}.hero h2{font-size:clamp(23px,3vw,36px);margin-bottom:7px}.clock{font-size:clamp(25px,4vw,46px);font-weight:300;letter-spacing:-2px;font-variant-numeric:tabular-nums}.section-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:25px 0 10px}.section-head h2{margin:0}.error{color:var(--error-color,#da6e79);font-size:13px;line-height:1.6;margin:12px 0;overflow-wrap:anywhere}.success{font-size:12px;color:var(--p-accent);margin:10px 0}.empty{padding:20px;border:1px dashed var(--p-border);border-radius:16px;color:var(--p-muted);font-size:13px;line-height:1.7}.chart{width:100%;height:200px;border:1px solid var(--p-border);border-radius:16px;margin:15px 0;background:color-mix(in srgb,var(--p-surface) 96%,var(--p-accent) 4%)}.chart polyline{fill:none;stroke:var(--p-accent);stroke-width:2;vector-effect:non-scaling-stroke}.table-wrap{overflow:auto;max-width:100%}table{width:100%;font-size:12px;border-collapse:collapse}td,th{text-align:left;padding:10px;border-bottom:1px solid var(--p-border);overflow-wrap:anywhere}th{color:var(--p-muted);font-weight:500}.modal{max-width:min(850px,calc(100vw - 28px));width:650px;max-height:85dvh;overflow:auto;background:var(--p-surface);color:inherit;border:1px solid var(--p-border);border-radius:23px;padding:24px;box-shadow:0 25px 100px #0008}.modal::backdrop{background:#0008;backdrop-filter:blur(6px)}.modal input{width:100%}.modal pre,.answer{white-space:pre-wrap;font:inherit;font-size:13px;line-height:1.8;overflow-wrap:anywhere}.modal .actions{justify-content:flex-end}.modal-title{font-size:21px;line-height:1.5;margin-bottom:10px}.room-summary{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0}.camera-host{margin-top:16px;min-height:100px}.camera-host>*{display:block;max-width:100%}ha-icon{--mdc-icon-size:23px;color:var(--p-accent)}.list{display:grid;gap:9px}.item{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--p-border);font-size:13px}.event-date{font-variant-numeric:tabular-nums;color:var(--p-accent);white-space:nowrap}.muted{color:var(--p-muted)}.settings-layout{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:var(--p-gap)}.notice{margin:15px 0;font-size:12px;line-height:1.7;color:var(--p-muted)}textarea{width:100%;min-height:100px;resize:vertical}a{color:var(--p-accent);font-size:13px}.badge{background:var(--p-border);border-radius:50%;width:42px;height:42px;display:grid;place-items:center;font-size:18px;color:var(--p-accent)}[hidden]{display:none!important}@media(max-width:1000px){.home-layout{grid-template-columns:repeat(2,minmax(0,1fr))}.home-controls,.home-details{grid-template-columns:1fr 1fr}.home-details>section:last-child{grid-column:1/-1}}@media(max-width:620px){.home-layout,.home-controls,.home-details{grid-template-columns:1fr}.home-layout>section.card{grid-column:auto}.hero{align-items:flex-start;gap:10px}.clock{font-size:29px;letter-spacing:-1px}.card{padding:16px;border-radius:17px}.grid{grid-template-columns:1fr}.toolbar select{flex:1}.modal{padding:18px}.section-head{margin-top:20px}.hero h2{font-size:23px}.chip{font-size:10px}.actions button{flex:1}.event-date{white-space:normal}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -496,143 +497,21 @@ export const platformStyles=`
 .home-robot>span:last-child{margin-left:auto;color:var(--p-accent)}
 .home-extra{gap:var(--home-gap)}
 .home-extra .cine-scenes{flex:1 1 100%}
-.aureon-home.botanical{--cine-line:#d9c6925c;--cine-glass:linear-gradient(145deg,#52604454,#14251bdc 66%,#2f36289e)}
-.aureon-home.botanical .glass:not(.cine-plan){background:var(--cine-glass);border-color:var(--cine-line);box-shadow:inset 0 1px #e3c99423,0 8px 20px #030a064a}
-.aureon-home.botanical .cine-glow{opacity:.45}.aureon-home.botanical .glass{backdrop-filter:none;-webkit-backdrop-filter:none}.home-bottom .cine-person strong{white-space:normal;overflow-wrap:anywhere}
 @container home (max-width:940px){.aureon-home .cine-now{grid-template-columns:repeat(2,minmax(0,1fr))}.aureon-home.without-plan .home-primary{padding-top:clamp(14px,6vw,68px)}}
 @container home (max-width:660px){.home-composition{grid-template-columns:minmax(0,1fr)}.aureon-home.without-plan .home-primary{padding-top:18px}.aureon-home .home-rail{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}}
 @media(prefers-reduced-motion:reduce){.aureon-home *,.aureon-home *::before,.aureon-home *::after{animation:none!important;scroll-behavior:auto!important}}
 
-/* Botanical Home: proportions measured against the reference's 1672 × 941 canvas. */
-.aureon-home.botanical{
- --home-gap:clamp(10px,1vw,17px);
- --cine-line:#c9b67b65;
- --cine-glass:radial-gradient(ellipse at 8% 4%,#a99d5c43,transparent 64%),linear-gradient(140deg,#293723dd,#0b1c12ed 70%,#273320cc);
- padding:clamp(10px,1.35vw,23px);
-}
-.aureon-home.botanical .cine-glow{opacity:.18}
-.aureon-home.botanical .home-greeting{padding-inline:clamp(0px,1.2vw,22px);gap:clamp(12px,1.6vw,27px)}
-.aureon-home.botanical .home-greeting h1{font-size:clamp(25px,3vw,50px);font-weight:600;color:#fff9eb}
-.aureon-home.botanical .home-greeting h1 em{color:#efc982}
-.aureon-home.botanical .cine-avatar{box-shadow:0 0 18px #d6af5950}
-.aureon-home.botanical .glass:not(.cine-plan){
- box-shadow:inset 0 1px 1px #e6ce9840,inset 0 -2px 9px #d9c07717,0 10px 22px #0006;
-}
-.aureon-home.botanical .cine-plan{backdrop-filter:none;-webkit-backdrop-filter:none}
-.aureon-home.botanical .home-rail{max-width:none}
-.aureon-home.botanical .cine-tile{
- min-height:clamp(74px,6.1vw,102px);
- grid-template-rows:auto auto;
- column-gap:clamp(8px,1.1vw,18px);
- padding:clamp(10px,1.2vw,20px);
-}
-.aureon-home.botanical .cine-tile .cine-head{color:#fff8e8}
-.aureon-home.botanical .cine-tile .cine-art-slot,.aureon-home.botanical .cine-tile .cine-art-slot svg{width:clamp(26px,2.7vw,45px);height:clamp(26px,2.7vw,45px)}
-.aureon-home.botanical .cine-art-slot{color:#f6d695;filter:drop-shadow(0 1px 5px #c28a393e)}
-.aureon-home.botanical .cine-art-slot .hi,.home-room-icon .hi{stroke:currentColor;fill:none;stroke-width:1.45;stroke-linecap:round;stroke-linejoin:round}
-.aureon-home.botanical .cine-count{display:block;line-height:1.15;color:#fff8ea}
-.aureon-home.botanical .cine-count small{margin-inline-start:4px}
-.aureon-home.botanical .cine-tile .cine-big{line-height:1.15}
-.aureon-home.botanical .home-rooms .cine-rooms{grid-template-columns:repeat(auto-fill,minmax(min(100%,105px),1fr));gap:8px}
-.aureon-home.botanical .cine-room{height:clamp(108px,9.1vw,152px);border-color:#bca66d62}
-.aureon-home.botanical.with-plan .cine-room{height:clamp(96px,7vw,118px)}
-.aureon-home.botanical .cine-room::after{background:linear-gradient(0deg,#141b0ff7 7%,#1b261ace 36%,transparent 75%)}
-.aureon-home.botanical .cine-room-text{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:6px;inset:auto 6px 8px}
+.vac-hero-art .bh-robot-art{width:min(100%,260px);height:auto;filter:drop-shadow(0 18px 22px rgba(0,0,0,.5))}
+.vac-hero-art .bh-robot-art.cleaning .bh-robot-leds{animation:vac-led 1.4s ease-in-out infinite}@keyframes vac-led{50%{opacity:.25}}
+.vac-customize-panel>.cal-chip{justify-self:start;width:auto}
+.vac-customize{justify-self:start;width:fit-content;margin:4px 0 2px;padding:7px 14px;border-radius:99px;border:1px solid var(--cine-line,var(--p-border));background:color-mix(in srgb,var(--p-text) 5%,transparent);color:inherit;font:inherit;font-size:13px;cursor:pointer}
+.vac-customize[aria-pressed="true"]{background:var(--p-accent);color:#1b1408;border-color:var(--p-accent)}
+.vac-customize-panel{display:grid;gap:14px}
+.vac-show-group{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+.vac-show-group>b{flex:1 0 100%;font-size:13px;font-weight:600;color:var(--p-accent)}
+.vac-check{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;min-height:32px}
+.vac-check input{width:18px;height:18px;accent-color:var(--p-accent);margin:0}
+.home-bottom .cine-person strong{white-space:normal;overflow-wrap:anywhere}
 .home-room-icon{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:#c7aa6340;color:#f6d695}
 .home-room-icon .hi{width:20px;height:20px}
-.aureon-home.botanical .cine-room-text strong{font:600 clamp(11px,1vw,15px)/1.25 system-ui;overflow-wrap:normal}
-.aureon-home.botanical .cine-room-text small{font-size:clamp(9px,.8vw,12px)}
-.aureon-home.botanical .cine-wx{padding:clamp(12px,1.4vw,23px);gap:10px}
-.aureon-home.botanical .cine-wx-days{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid #c9b67b38;padding-top:8px}
-.aureon-home.botanical .cine-wx-day{min-width:0;background:none;border-radius:0;border-inline-end:1px solid #c9b67b38}
-.aureon-home.botanical .cine-wx-day:last-child{border:0}
-.aureon-home.botanical .home-waste-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,77px),1fr))}
-.aureon-home.botanical .home-waste-item strong{max-width:100%;line-height:1.18;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:normal}
-.aureon-home.botanical .home-waste-item small{white-space:normal}
-.aureon-home.botanical .home-agenda-day{padding:10px 0}
-.aureon-home.botanical .home-bottom{gap:12px}
-.aureon-home.botanical .home-robot{flex-direction:row}
-.aureon-home.botanical .home-bottom .cine-people{flex:1 1 285px}
-.aureon-home.botanical .home-bottom .home-robot{flex:1 1 330px}
-@container home (min-width:941px){
- .aureon-home.botanical .home-composition{grid-template-columns:minmax(0,2.49fr) minmax(0,1fr)}
- .aureon-home.botanical.without-plan .home-primary{padding-top:clamp(120px,8.7vw,145px)}
- .aureon-home.botanical.without-plan .home-primary{gap:clamp(14px,1.55vw,26px)}
- .aureon-home.botanical .home-rooms .cine-rooms{grid-template-columns:repeat(6,minmax(0,1fr))}
-}
-@container home (max-width:660px){
- .aureon-home.botanical .home-rooms .cine-rooms{grid-template-columns:repeat(2,minmax(0,1fr))}
- .aureon-home.botanical .cine-wx-days{gap:0}
-}
-
-.aureon-home.botanical .home-widget-link{min-height:32px;font-size:clamp(16px,1.4vw,23px);font-weight:500}
-.aureon-home.botanical .home-widget-link .hi{fill:none;stroke:currentColor;stroke-width:1.5}
-.aureon-home.botanical .home-rooms .home-widget-link{width:fit-content}
-.aureon-home.botanical .home-rail .cine-card,.aureon-home.botanical .home-bottom .cine-card{padding:10px 14px;gap:8px}
-.aureon-home.botanical .home-waste-item{min-height:85px}
-.aureon-home.botanical .home-agenda-day:last-child{padding-bottom:2px}
-@container home (min-width:941px){
- .aureon-home.botanical.without-plan .home-primary{padding-top:clamp(95px,7.8vw,130px);gap:clamp(12px,1.2vw,20px)}
- .aureon-home.botanical.with-plan .cine-plan{height:clamp(340px,calc(100dvh - 492px),500px)}
- .aureon-home.botanical .home-composition{margin-top:-8px}
-}
-
-/* Botanical fidelity: bundled artwork, legible room names, restrained warm glass. */
-.aureon-home.botanical{position:relative;isolation:isolate;background:radial-gradient(ellipse at 58% 12%,#61724742,transparent 52%),linear-gradient(130deg,#14251c,#0b1a13 75%);border-radius:22px;overflow:hidden}
-.aureon-home.botanical::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(90deg,#0c1c15a0,#0d21135c 58%,#0d1b12a8),var(--botanical-bg);background-size:cover;background-position:center;opacity:.85}
-.aureon-home.botanical::after{content:"";position:absolute;right:0;top:0;width:min(58%,750px);height:clamp(150px,22vw,330px);z-index:-1;pointer-events:none;background:var(--botanical-canopy) top right/contain no-repeat;opacity:.72}
-.aureon-home.botanical .glass:not(.cine-plan),.aureon-home.botanical .cine-tile{background:linear-gradient(145deg,#344738c9,#13241bdc 70%);border:1px solid #c9b67b55;box-shadow:inset 0 1px #f4dfab23,0 12px 26px #0003}
-.aureon-home.botanical .cine-glow{opacity:.06}
-.aureon-home.botanical .home-rooms .cine-rooms{gap:10px}
-.aureon-home.botanical .cine-room-text{display:flex;flex-wrap:nowrap;align-items:center;min-width:0;gap:5px;inset:auto 7px 8px}
-.aureon-home.botanical .cine-room-text>span:last-child{min-width:0}
-.aureon-home.botanical .cine-room-text strong{display:block;font:600 clamp(11px,.95vw,15px)/1.2 system-ui,sans-serif;overflow-wrap:anywhere;hyphens:auto}
-.aureon-home.botanical .cine-room-text small{display:block;font-size:clamp(9px,.7vw,11px);white-space:nowrap}
-.aureon-home.botanical .home-waste-item strong{overflow-wrap:anywhere;word-break:normal;hyphens:auto;font-size:11px}
-.aureon-home.botanical .home-waste-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-@container home (min-width:941px){.aureon-home.botanical.without-plan .home-primary{padding-top:clamp(72px,6vw,105px)}}
-@media(prefers-reduced-motion:reduce){.aureon-home.botanical::before,.aureon-home.botanical::after{animation:none}}
-
-/* Botanical approved composition: keep content in the viewport and restore the lower resident/robot row. */
-@container home (min-width:941px){
- .aureon-home.botanical.without-plan{gap:clamp(12px,1.1vw,18px);padding:clamp(12px,1.25vw,20px);min-height:min(790px,calc(100dvh - 95px));align-content:space-between}
- .aureon-home.botanical.without-plan .home-composition{grid-template-columns:minmax(0,2.52fr) minmax(265px,1fr);gap:clamp(12px,1.2vw,20px)}
- .aureon-home.botanical.without-plan .home-primary{padding-top:clamp(36px,5.2vw,80px);gap:clamp(12px,1.15vw,18px)}
- .aureon-home.botanical.without-plan .home-rail{gap:clamp(10px,1vw,16px)}
- .aureon-home.botanical .cine-now{gap:10px}
- .aureon-home.botanical .cine-tile{min-height:88px;padding:clamp(10px,1vw,16px);grid-template-columns:auto minmax(0,1fr)}
- .aureon-home.botanical .cine-tile .cine-head{font-size:clamp(14px,1.4vw,20px);overflow-wrap:normal;word-break:normal;hyphens:auto}
- .aureon-home.botanical .home-rooms .cine-rooms{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
- .aureon-home.botanical .home-rooms .cine-room{height:clamp(122px,10.5vw,158px)}
- .aureon-home.botanical .home-bottom{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:stretch;gap:14px}
- .aureon-home.botanical .home-bottom .cine-people{min-width:0}
- .aureon-home.botanical .home-bottom .cine-people-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
- .aureon-home.botanical .home-bottom .home-robot{min-width:0;min-height:94px}
-}
-@container home (min-width:941px) and (max-width:1200px){
- .aureon-home.botanical.without-plan .home-primary{padding-top:clamp(18px,3vw,42px)}
- .aureon-home.botanical .home-rooms .cine-room{height:clamp(110px,10vw,138px)}
- .aureon-home.botanical .home-bottom{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-}
-.aureon-home.botanical .cine-room:after{background:linear-gradient(0deg,rgba(5,13,8,.82),rgba(7,17,10,.06) 72%)}
-.aureon-home.botanical .cine-room img{filter:brightness(1.12) saturate(1.06)}
-.aureon-home.botanical .cine-room-text strong{white-space:normal;overflow-wrap:anywhere}
-.aureon-home.botanical .home-bottom .cine-card{border-radius:18px}
-
-/* Illustrated waste bins, owner-approved visual language. */
-.aureon-home.botanical .home-waste-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:106px;padding:8px 4px;background:linear-gradient(155deg,#4d5b3a55,#15241a88);border:1px solid #d9c69233;border-radius:14px}
-.aureon-home.botanical .home-waste-item .home-waste-bin{display:block;width:clamp(30px,3.6vw,52px);height:clamp(38px,4.5vw,65px);filter:drop-shadow(0 5px 4px #0008)}
-.aureon-home.botanical .home-waste-item strong{font:500 clamp(10px,.85vw,13px)/1.15 system-ui,sans-serif;text-align:center;white-space:normal}
-.aureon-home.botanical .home-waste-item small{text-align:center;font-size:clamp(9px,.75vw,12px)}
-.aureon-home.botanical .home-robot-empty{cursor:default;opacity:.8}
-.aureon-home.botanical .home-bottom .cine-people{display:flex;flex-direction:column;justify-content:center}
-
-/* Do not clip the dynamic people/vacuum footer when weather, agenda or music grow. */
-.aureon-home.botanical{overflow:visible;height:auto;min-height:0}
-.aureon-home.botanical::before,.aureon-home.botanical::after{border-radius:22px}
-.aureon-home.botanical .home-bottom{position:relative;z-index:1;min-height:90px}
-@container home (min-width:941px){
- .aureon-home.botanical.without-plan{min-height:0;align-content:start}
- .aureon-home.botanical.without-plan .home-primary{padding-top:clamp(20px,3.5vw,54px)}
-}
-`;
+`+botanicalStyles;

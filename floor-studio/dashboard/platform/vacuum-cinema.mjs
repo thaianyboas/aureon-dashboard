@@ -1,5 +1,7 @@
 import {html,svg,nothing} from '../../neonplan3d-main/frontend/node_modules/lit/index.js';
 import {isAvailable} from './actions.mjs';
+import {robotArt as robotPortrait} from './home-botanical.mjs';
+import {VACUUM_CONTROLS,VACUUM_STATS,vacuumShowDefaults} from './preferences.mjs';
 import {converter,mapRooms,segmentCall,zoneCall,spotCall,gotoCall,selectCall,serviceAvailable,MAX_REPEATS,DREAME} from '../integrations/dreame.mjs';
 // Robot vacuum page in the Cinema look. Map functions of the Xiaomi Vacuum Map Card for Dreame robots (rooms, zones,
 // spots, go to, repeats, cleaning settings) on top of the live map that the Dreame integration renders. Every command is
@@ -11,11 +13,6 @@ const pretty=v=>{v=String(v??'').replaceAll('_',' ');return v.charAt(0).toLocale
 const stateText=(c,s,option)=>{const raw=String(option??s?.state??'');try{if(c.hass?.formatEntityState){const out=option!==undefined?c.hass.formatEntityState(s,option):c.hass.formatEntityState(s);if(out&&out!==raw)return out;}}catch{}return pretty(raw);};
 function vacState(ui){return ui._vac||(ui._vac={id:'',mode:'rooms',rooms:new Set(),zones:[],points:[],goto:null,repeats:1,drag:null,img:null,notice:''});}
 function clearSel(v){v.rooms=new Set();v.zones=[];v.points=[];v.goto=null;v.drag=null;}
-function robotArt(cleaning,docked){return svg`<svg class="vac-art" viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="vacBody" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#3a3b41"/><stop offset="1" stop-color="#141417"/></radialGradient></defs>
- ${cleaning?svg`<circle cx="100" cy="100" r="92" fill="none" stroke="var(--p-accent)" stroke-opacity=".25" stroke-dasharray="3 7" class="vac-orbit"/>`:nothing}
- <circle cx="100" cy="100" r="70" fill="url(#vacBody)" stroke="var(--p-accent)" stroke-width="2"/><circle cx="100" cy="100" r="54" fill="none" stroke="rgba(255,255,255,.08)"/>
- <circle cx="100" cy="72" r="15" fill="#22232a" stroke="#cfc8bc" stroke-opacity=".7" stroke-width="1.4"/><circle cx="100" cy="72" r="5" fill=${cleaning?'var(--p-accent)':docked?'#8fd0a8':'#6d6a64'}/>
- <path d="M64 128a48 48 0 0 0 72 0" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="3" stroke-linecap="round"/></svg>`;}
 export function vacuumCinema(ui){const c=ui.c,t=ui.t,v=vacState(ui);
  const dreameIds=new Set(c.dreame().map(r=>r.vacuum.id)),vacuums=[...c.list(['vacuum'])].sort((x,y)=>dreameIds.has(y.id)-dreameIds.has(x.id));if(!vacuums.length)return html`<div class="cine cine-vacuum"><div class="cine-glow" aria-hidden="true"></div><section class="cine-card glass vac-empty"><span class="cine-head">${t.vacPage}</span><strong>${t.vacNone}</strong><small class="cine-sub">${t.vacNoneHint}</small></section></div>`;
  const row=vacuums.find(r=>r.id===v.id)||vacuums[0];if(v.id!==row.id){v.id=row.id;clearSel(v);}
@@ -54,25 +51,38 @@ export function vacuumCinema(ui){const c=ui.c,t=ui.t,v=vacState(ui);
  const hint={rooms:t.vacHintRooms,zone:t.vacHintZone,spot:t.vacHintSpot,goto:t.vacHintGoto}[v.mode];
  const selectedNames=v.mode==='rooms'?rooms.filter(r=>v.rooms.has(r.id)).map(r=>r.name):[];
  // ---- settings, consumables, stats ----
- const settings=robot?Object.entries(robot.settings).map(([k,r])=>({k,r,s:c.state(r.id)})).filter(x=>x.s&&isAvailable(x.s)&&Array.isArray(x.s.attributes?.options)&&x.s.attributes.options.length>1):[];
- const consumables=robot?robot.consumables.map(r=>({r,s:c.state(r.id)})).filter(x=>x.s&&Number.isFinite(Number(x.s.state))):[];
- const stats=[[t.vacArea,a.cleaned_area,'m²'],[t.vacTime,a.cleaning_time,'min'],[t.vacCount,a.cleaning_count,'×'],[t.vacTotalArea,a.total_cleaned_area,'m²']].filter(([,val])=>val!==undefined&&val!==null&&val!=='');
+ const show={...vacuumShowDefaults(),...(c.preferences.vacuumShow||{})},editing=!!ui._vacEdit,save=next=>ui.save('vacuumShow',{...show,...next});
+ const toggle=(list,key)=>save({[list]:show[list].includes(key)?show[list].filter(x=>x!==key):[...show[list],key]});
+ const allSettings=robot?Object.entries(robot.settings).map(([k,r])=>({k,r,s:c.state(r.id)})).filter(x=>x.s&&isAvailable(x.s)&&Array.isArray(x.s.attributes?.options)&&x.s.attributes.options.length>1):[];
+ const settings=allSettings.filter(x=>show.settings.includes(x.k));
+ const allConsumables=robot?robot.consumables.map(r=>({r,s:c.state(r.id)})).filter(x=>x.s&&Number.isFinite(Number(x.s.state))):[];
+ const consumables=show.consumables==='all'?allConsumables:show.consumables==='low'?allConsumables.filter(x=>Number(x.s.state)<=20):[];
+ const allStats=[['area',t.vacArea,a.cleaned_area,'m²'],['time',t.vacTime,a.cleaning_time,'min'],['count',t.vacCount,a.cleaning_count,'×'],['total',t.vacTotalArea,a.total_cleaned_area,'m²']].filter(([,,val])=>val!==undefined&&val!==null&&val!==''),stats=allStats.filter(([k])=>show.stats.includes(k)).map(([,...x])=>x);
  const robotName=ui.name(row),short=r=>{const n=ui.name(r);return n.toLocaleLowerCase().startsWith(robotName.toLocaleLowerCase()+' ')&&n.length>robotName.length+1?pretty(n.slice(robotName.length+1)):n;};
  const status=stateText(c,s),errorText=a.error&&!['no_error','none','0',0].includes(a.error)?String(a.error).replaceAll('_',' '):'';
  return html`<div class="cine cine-vacuum">
  <div class="cine-glow" aria-hidden="true"></div>
  <div class="cine-sec-hero vac-hero">
-  <div class="vac-hero-art">${robotArt(cleaning,docked)}${Number.isFinite(battery)?html`<span class="vac-battery" title=${t.battery}><i style=${'width:'+Math.max(4,Math.min(100,battery))+'%'}></i><b>${battery}%</b></span>`:nothing}</div>
+  <div class="vac-hero-art">${robotPortrait(cleaning)}${Number.isFinite(battery)?html`<span class="vac-battery" title=${t.battery}><i style=${'width:'+Math.max(4,Math.min(100,battery))+'%'}></i><b>${battery}%</b></span>`:nothing}</div>
   <section class="cine-sec-text" aria-label=${t.vacPage}>
    <span class="cine-eyebrow">${t.vacPage}${vacuums.length>1?nothing:html` · ${ui.name(row)}`}</span>
    ${vacuums.length>1?html`<div class="vac-pick" role="group" aria-label=${t.vacPage}>${vacuums.map(r=>html`<button type="button" class="cal-chip" aria-pressed=${String(r.id===row.id)} @click=${()=>{v.id=r.id;clearSel(v);ui.requestUpdate();}}>${ui.name(r)}</button>`)}</div>`:nothing}
+   <button type="button" class="vac-customize" aria-pressed=${String(editing)} @click=${()=>{ui._vacEdit=!editing;ui.requestUpdate();}}>${editing?t.layoutDone:t.vacCustomize}</button>
    <h1>${status}${a.status&&String(a.status)!==String(s?.state)?html`<br><em>${String(a.status).replaceAll('_',' ')}</em>`:nothing}</h1>
    ${errorText?html`<p class="vac-error" role="alert">${errorText}</p>`:nothing}
-   <div class="vac-controls">${[['start',cleaning&&s?.state!=='returning'?null:act('start')],['pause',cleaning?act('pause'):null],['dock',docked?null:act('dock')],['stop',act('stop')],['locate',act('locate')]].filter(([,x])=>x).map(([key,x])=>html`<button type="button" class=${'vac-ctl'+(key==='start'?' primary':'')} ?disabled=${busy} @click=${()=>ui.invoke(row,x)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d=${ICON[key]}></path></svg><span>${ui.controlLabel(key)}</span></button>`)}</div>
+   <div class="vac-controls">${[['start',cleaning&&s?.state!=='returning'?null:act('start')],['pause',cleaning?act('pause'):null],['dock',docked?null:act('dock')],['stop',act('stop')],['locate',act('locate')]].filter(([key,x])=>x&&show.controls.includes(key)).map(([key,x])=>html`<button type="button" class=${'vac-ctl'+(key==='start'?' primary':'')} ?disabled=${busy} @click=${()=>ui.invoke(row,x)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d=${ICON[key]}></path></svg><span>${ui.controlLabel(key)}</span></button>`)}</div>
    ${stats.length?html`<div class="cine-stats vac-stats">${stats.map(([label,val,u])=>html`<div class="glass"><span class="cine-head">${label}</span><span class="cine-big">${typeof val==='number'?ui.format(val,val>=100?0:1):val}<small> ${u}</small></span></div>`)}</div>`:nothing}
   </section>
  </div>
- ${robot?html`<section class="cine-card glass vac-map-card" aria-label=${t.vacMap}>
+ ${editing?html`<section class="cine-card glass vac-customize-panel" aria-label=${t.vacCustomize}><span class="cine-head">${t.vacShowTitle}</span><p class="cine-sub">${t.vacShowHint}</p>
+  <div class="vac-show-group"><b>${t.vacShowControls}</b>${VACUUM_CONTROLS.filter(k=>act(k)).map(k=>html`<label class="vac-check"><input type="checkbox" .checked=${show.controls.includes(k)} @change=${()=>toggle('controls',k)}><span>${t['vacCtl_'+k]||pretty(k)}</span></label>`)}</div>
+  ${allStats.length?html`<div class="vac-show-group"><b>${t.vacShowStats}</b>${allStats.map(([k,label])=>html`<label class="vac-check"><input type="checkbox" .checked=${show.stats.includes(k)} @change=${()=>toggle('stats',k)}><span>${label}</span></label>`)}</div>`:nothing}
+  ${robot?html`<div class="vac-show-group"><b>${t.vacMap}</b><label class="vac-check"><input type="checkbox" .checked=${show.map} @change=${()=>save({map:!show.map})}><span>${t.vacShowMap}</span></label></div>`:nothing}
+  ${allSettings.length?html`<div class="vac-show-group"><b>${t.vacSettings}</b>${allSettings.map(({k,r})=>html`<label class="vac-check"><input type="checkbox" .checked=${show.settings.includes(k)} @change=${()=>toggle('settings',k)}><span>${short(r)}</span></label>`)}</div>`:nothing}
+  ${allConsumables.length?html`<div class="vac-show-group"><b>${t.vacConsumables}</b>${['low','all','none'].map(k=>html`<label class="vac-check"><input type="radio" name="vac-cons" .checked=${show.consumables===k} @change=${()=>save({consumables:k})}><span>${t['vacCons_'+k]}</span></label>`)}</div>`:nothing}
+  <button type="button" class="cal-chip" @click=${()=>ui.save('vacuumShow',vacuumShowDefaults())}>${t.layoutReset}</button>
+ </section>`:nothing}
+ ${robot&&show.map?html`<section class="cine-card glass vac-map-card" aria-label=${t.vacMap}>
   <div class="cine-row-head"><span class="cine-head">${t.vacMap}</span>
    <div class="cine-segment" role="group" aria-label=${t.vacMode}>${MODES.map(m=>html`<button type="button" aria-pressed=${String(v.mode===m)} ?disabled=${m==='rooms'&&!rooms.length} @click=${()=>{v.mode=m;v.drag=null;ui.requestUpdate();}}>${t['vacMode_'+m]}</button>`)}</div></div>
   ${!hasDreame?html`<p class="cine-sub">${t.vacNoService}</p>`:nothing}

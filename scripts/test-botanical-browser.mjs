@@ -58,10 +58,10 @@ try{const executablePath=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr
   dashboard.hass={...h};dashboard._render();dashboard._loadRegistry(true);
   window.homeRoot=()=>dashboard.shadowRoot.querySelector('aureon-platform:not([style*="display: none"])')?.shadowRoot;
  });
- await page.waitForFunction(()=>homeRoot()?.querySelectorAll('.cine-room').length===6&&homeRoot().querySelector('.home-agenda').textContent.includes('Compromisso'));
+ await page.waitForFunction(()=>homeRoot()?.querySelectorAll('.bh-room').length===6&&homeRoot().querySelector('.bh-bin-tile'));
  const path='#platform-dashboard >>> aureon-platform';
- await page.waitForFunction(()=>homeRoot()?.querySelector('slot[name=mini-player]')?.assignedElements()[0]?.shadowRoot?.querySelector('.stage'));
- await page.evaluate(()=>homeRoot().querySelector('.cine-room').click());
+ await page.waitForFunction(()=>homeRoot()?.querySelector('slot[name=mini-player]')?.assignedElements()[0]?.shadowRoot?.querySelector('.bar'));
+ await page.evaluate(()=>homeRoot().querySelector('.bh-room').click());
  await page.waitForFunction(()=>homeRoot()?.querySelector('[data-platform-page="rooms"]'));
  await page.evaluate(()=>dashboard._navigate('Einstellungen'));
  await page.evaluate(()=>homeRoot().querySelector('[data-settings-tab="start"]').click());
@@ -77,12 +77,12 @@ try{const executablePath=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr
    await page.setViewport({width,height,hasTouch:true});
    await new Promise(r=>setTimeout(r,600));
    const layout=await read(()=>{const root=homeRoot(),shell=dashboard.shadowRoot;
-    const main=shell.querySelector('main'),content=root.querySelector('.aureon-home');
+    const main=shell.querySelector('main'),content=root.querySelector('.bh');
     if(!getComputedStyle(shell.querySelector('.wrap'),':before').backgroundImage.includes('botanical-canopy.webp'))throw Error('Missing Botanical artwork');
-    if(!root.querySelector('.home-robot')||!root.querySelector('[data-person]'))throw Error('Missing footer cards');
+    if(!root.querySelector('.bh-robot')||!root.querySelector('[data-person]'))throw Error('Missing footer cards');
     return {overflow:main.scrollWidth>main.clientWidth+1||content.scrollWidth>content.clientWidth+1,
      roomsInNav:!!shell.querySelector('nav [data-route="Räume"]'),devices:!!shell.querySelector('nav [data-route="Geräte"]'),
-     room:!!root.querySelector('.cine-room'),agenda:!!root.querySelector('.home-agenda'),self:!!root.querySelector('[data-person="person.alex"]')};
+     room:!!root.querySelector('.bh-room'),agenda:!root.querySelector('.bh-agenda'),self:!!root.querySelector('[data-person="person.alex"]')};
    });
    assert.deepEqual(layout,{overflow:false,roomsInNav:false,devices:true,room:true,agenda:true,self:true},JSON.stringify({width,withPlan,layout}));
    await page.screenshot({path:out+'/'+(withPlan?'with-plan':'without-plan')+'-'+width+'.png'});

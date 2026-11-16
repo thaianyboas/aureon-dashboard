@@ -1370,3 +1370,29 @@ The Music browser suite passed again with that label and native transfer.
 - Build and 856 JS/TS tests passed. The music browser suite passed 23 checks. Visual acceptance uses a synthetic Home Assistant fixture and the compiled app. The reference artwork is composited, so the foliage is reconstructed as a standalone asset and the plan appearance depends on the loaded project. Keep the existing HACS distribution until the final comparison is reviewed.
 
 - Owner approved publication of the revision as preview `0.29.0-test.5`. The Botanical browser suite completed for both layouts at 1440, 1280, 820 and 390 px. Physical iSG and owner HA remain unverified. Previous package available at `2e196a1`.
+
+### Claude batch 2026-11-16 — Botanical home as its own component (owner-authorised HACS test build)
+
+- Owner brief "FINALIZAÇÃO OBRIGATÓRIA, FIDELIDADE VISUAL" plus live wishes: no agenda on the start page (calendar is in
+  the side navigation), waste collection unchanged (same approved bin artwork), Apple-like elegance, and a robot page
+  that shows only what she needs out of the ~216 Dreame entities.
+- New `platform/home-botanical.mjs` renders the Forest Luxe · Botanical start page for both layouts (A: Floor Studio
+  plan, B: four tiles). `homeCinema` computes the shared data and hands off when the look is Botanical; other looks are
+  untouched. One stylesheet `platform/home-botanical-styles.mjs` (container queries 1180/1000/860/560); the ~135 lines
+  of stacked `.aureon-home.botanical` overrides at the end of `styles.mjs` were removed. Own class names (`bh-*`),
+  registered in `card-layout.mjs` so "Editar cartões" (now the pencil at the top right) still works.
+- Weather: `homeEntities` keeps Codex's state fallback; new preference `weatherEntity` (Settings → Início, only when
+  several weather entities exist); daily forecast subscription for today's high/low; the illustrated weather atlas.
+  Bell: read-only `persistent_notification/subscribe` count, tap fires `hass-show-notifications`.
+- Footer: one card per resident (photo, zone, battery only when a battery sensor of the person's tracker device
+  exists; iSG Display excluded as before) and the robot card (state, battery, next schedule from the vacuum or a
+  timestamp sensor of the same device, start/pause through `ui.invoke`).
+- Music: the compact player gets a `slim` property (the class already has a `bar()` method, so not `bar`): one-line
+  player with cover, source badge, progress, wave, time, transport, volume and the speaker button. Set by the shell and
+  by the platform page for the Botanical home.
+- Sidebar: Botanical rail sizes, framed active page, forest silhouette foot (inline SVG).
+- Robot page: preference `vacuumShow` (controls/stats/map/settings/consumables low|all|none) with an "Escolher o que
+  aparece" panel; robot portrait shared with the start page.
+- Tests: `tests/home-botanical.test.mjs`, preference validation, Botanical browser test updated (no agenda, `.bh-*`).
+  All gates green locally. Synthetic fixture only, no test against the owner's Home Assistant.
+  `BUILD_ID` AUREON-20261116-BOTANICAL.

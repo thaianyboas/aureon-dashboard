@@ -6,6 +6,7 @@ import {presetForArea,assetUrl} from './assets.mjs';
 import {roomArt} from './room-art.mjs';
 import {DREAME} from '../integrations/dreame.mjs';
 import {agenda,dayKey} from './calendar-cinema.mjs';
+import {homeBotanical,syncBotanical} from './home-botanical.mjs';
 // "Cinema" start page (the design approved by the owner): greeting with scenes, people, waste collection, the
 // home right now as illustrated tiles (lights, windows, curtains/blinds, robot, energy, security), cameras, music
 // and rooms. All data comes from Home Assistant; every action is a tap by the user, sensitive ones still confirm.
@@ -13,6 +14,7 @@ const WINDOW_CLASSES=['window','opening'];
 const SHADE_SKIP=['garage','gate','door','damper'];
 const WASTE_COLOURS=[[/gelb|yellow|amarel|verpack|plast/i,'#e3c03c'],[/bio|organ/i,'#8a6440'],[/papier|paper|papel|blau|blue|azul/i,'#3a72bd'],[/glas|glass|vidro/i,'#4f9d69'],[/rest|residu|schwarz|black|grau|grey|gray/i,'#5a5a5e']];
 const wasteColour=type=>(WASTE_COLOURS.find(([re])=>re.test(type))||[0,'#8f897f'])[1];
+const wasteName=type=>/gelb|yellow|amarel|verpack/i.test(type)?'Gelbe Tonne':/papier|paper|papel|blau/i.test(type)?'Papier':/rest|schwarz|black|grau/i.test(type)?'Restmüll':type;
 const SCENE_ICONS=[[/morgen|manh|morning|wake|acord/i,'M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'],[/kino|cinema|film|movie|tv/i,'M3 6h18v12H3zM8 21h8M10 9.5v5l4-2.5z'],[/essen|jantar|dinner|din/i,'M7 3v8M5 3v4a2 2 0 0 0 4 0V3M7 11v10M17 3c-1.7 0-3 2-3 5s1.3 4 3 4v9'],[/nacht|noite|night|sleep|schlaf/i,'M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z']];
 const sceneIcon=name=>(SCENE_ICONS.find(([re])=>re.test(name))||[0,'M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z'])[1];
 
@@ -35,6 +37,7 @@ function wxArt(kind,small=false){const cloud='M22 46h30a10 10 0 0 0 1-20 14 14 0
 export function syncForecast(ui){
  const c=ui.c,conn=c?.hass?.connection;
  const weather=ui.page==='home'&&c?.preferences.widgets.weather?homeEntities(c,'weather')[0]:null;
+ if(c)syncBotanical(ui,weather?.id||'');
  const id=weather?.id,state=id&&homeState(c,id),features=Number(state?.attributes?.supported_features||0);
  const type=features&2?'hourly':features&1?'daily':features&4?'twice_daily':'';
  const key=id&&type&&conn?.subscribeMessage?`${c.epoch}:${id}:${type}`:'';
@@ -56,9 +59,11 @@ function weatherHero(ui,weather,ws){const c=ui.c,t=ui.t,a=ws?.attributes||{},kin
   ${fc.length?html`<span class="cine-wx-days">${fc.slice(0,4).map(f=>html`<span class="cine-wx-day"><small>${day(f.datetime)}</small>${wxArt(wxKind(f.condition),true)}<b>${temp(f.temperature)}°</b><small>${f.templow!=null?temp(f.templow)+'°':''}</small></span>`)}</span>`:nothing}
  </button>`;}
 
-export // Home summary fallback: HA states can arrive before the entity registry is populated.
+// Home summary fallback: HA states can arrive before the entity registry is populated.
 // Respect explicit hidden entities, and never synthesize states or devices.
-function homeEntities(c,domain){
+export function homeEntities(c,domain){
+ const chosen=domain==='weather'&&c.preferences?.weatherEntity;
+ if(chosen&&c.hass?.states?.[chosen])return [{id:chosen,domain,name:c.hass.states[chosen].attributes?.friendly_name||chosen,source:'',...(c.list([domain]).find(r=>r.id===chosen)||{})}];
  const indexed=c.list([domain]);
  const seen=new Set(indexed.map(r=>r.id));
  const hidden=new Set(c.preferences?.hidden||[]);
@@ -132,6 +137,8 @@ export function homeCinema(ui){const c=ui.c,t=ui.t,p=c.preferences,zone=c.hass?.
  const nextMs=typeof nextCleaning==='string'?Date.parse(nextCleaning):NaN;
  const schedule=Number.isFinite(nextMs)&&nextMs>=c.now()?new Intl.DateTimeFormat(c.language,{timeZone:zone,dateStyle:'short',timeStyle:'short'}).format(nextMs):'';
  const locked=d.locks.length?d.locks.every(r=>st(r.id)?.state==='locked'):null,alarmState=d.alarm?st(d.alarm.id):null;
+ ui._botanicalHome=botanical;
+ if(botanical)return homeBotanical(ui,{st,d,zone,weather,ws,own,people,photo,first,clock,date,hour,waste,when,wasteColour,wasteName,pw,daily,locked,alarmState,allLightsOff:()=>allLightsOff(ui,d.lightsOn)});
  const glow=Math.min(1,.35+d.lightsOn.length/Math.max(1,d.lights.length)*.65);
  const tile=(key,on,head,art,main,sub,hint,click,label)=>html`<button type="button" class=${'cine-tile glass '+(on?'on':'')} data-layout-key=${'cine:'+key} aria-label=${label||head} @click=${click}><span class="cine-art-slot">${art}</span><span class="cine-head">${head}</span>${main}<span class="cine-sub">${sub}</span>${hint?html`<span class="cine-hint">${hint}</span>`:nothing}</button>`;
  const summaryTiles=html`<section class="cine-now" aria-label=${t.cineNow}>
@@ -163,7 +170,7 @@ export function homeCinema(ui){const c=ui.c,t=ui.t,p=c.preferences,zone=c.hass?.
    <button type="button" class="home-widget-link" @click=${()=>ui.nav('Agenda')}>${ui.homeIcon('calendar')}<strong>${t.waste}</strong><span aria-hidden="true">›</span></button>
    ${waste.length?html`<div class="home-waste-grid">${waste.slice(0,3).map(row=>html`<div class="home-waste-item">
     <svg class="home-waste-bin" viewBox="0 0 64 76" style=${'--waste-color:'+wasteColour(row.type)} aria-hidden="true"><defs><linearGradient id="binShade" x1="0" x2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".30"/><stop offset=".5" stop-color="#ffffff" stop-opacity=".04"/><stop offset="1" stop-color="#000000" stop-opacity=".3"/></linearGradient></defs><path d="M12 20h40l-4 44q-1 5-6 5H22q-5 0-6-5Z" fill="var(--waste-color)" stroke="#080e0b" stroke-width="2"/><path d="M12 20h40l-4 44q-1 5-6 5H22q-5 0-6-5Z" fill="url(#binShade)"/><rect x="7" y="15" width="50" height="9" rx="3" fill="var(--waste-color)" stroke="#101a12" stroke-width="2"/><path d="M25 15v-5h14v5" fill="none" stroke="var(--waste-color)" stroke-width="5"/><path d="M23 35h18M24 42h16M25 49h14" stroke="#ffffff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="68" r="4" fill="#18201b"/><circle cx="44" cy="68" r="4" fill="#18201b"/></svg>
-    <strong title=${row.type}>${/gelb|yellow|amarel|verpack/i.test(row.type)?'Gelbe Tonne':/papier|paper|papel|blau/i.test(row.type)?'Papier':/rest|schwarz|black|grau/i.test(row.type)?'Restmüll':row.type}</strong><small>${when(row)}</small>
+    <strong title=${row.type}>${wasteName(row.type)}</strong><small>${when(row)}</small>
    </div>`)}</div>`:html`<small class="cine-sub" role="status">${p.waste.some(id=>c.busy.has('calendar:'+id))?t.loading:p.waste.some(id=>c.errors['calendar:'+id])?t.unavailable:t.noData}</small>`}
   </section>`:nothing}
   ${homeAgenda(ui,zone)}

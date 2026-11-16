@@ -20,6 +20,8 @@ function startPanel(ui){
    <option value="">${t.homeMainPlan}</option>
    ${plans.filter(plan=>plan.id!=='main').map(plan=>html`<option value=${plan.id} ?selected=${p.homePlan===plan.id}>${plan.name||plan.id}</option>`)}
   </select></label>`:nothing}
+  ${(()=>{const list=Object.keys(c.hass?.states||{}).filter(id=>id.startsWith('weather.')&&!(p.hidden||[]).includes(id));return list.length>1?html`<label class="field">${t.weather}<select @change=${event=>ui.save('weatherEntity',event.target.value)}>
+   <option value="" ?selected=${!p.weatherEntity}>${t.bhWeatherAuto}</option>${list.map(id=>html`<option value=${id} ?selected=${p.weatherEntity===id}>${c.hass.states[id]?.attributes?.friendly_name||id}</option>`)}</select></label>`:nothing;})()}
  </section>`;
 }
 function appearancePanel(ui){const c=ui.c,t=ui.t,p=c.preferences,ha=p.appearance==='auto';
