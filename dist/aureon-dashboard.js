@@ -75,7 +75,7 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .r3 .wr{right:0;top:0;height:100%;transform-origin:right;transform:rotateY(90deg)}
 .r3 .halo{position:absolute;left:15%;top:15%;width:70%;height:70%;border-radius:50%;transform:translateZ(28px);filter:blur(16px);transition:opacity .5s}
 .lbls{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s}.stage.ready .lbls{opacity:1}
-.lbls .lbl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) translateY(var(--dy,0px));display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;text-shadow:0 1px 10px var(--bg),0 0 2px var(--bg)}
+.lbls .lbl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) translateY(var(--dy,0px));display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;padding:4px 8px;border-radius:10px;background:color-mix(in srgb,var(--bg) 55%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .lbl .n{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;white-space:normal;max-width:132px;text-align:center;line-height:1.25}
 .dots{display:inline-flex;gap:3px}.dots i{width:5px;height:5px;border-radius:50%}
 .plan2d{position:relative;width:100%;aspect-ratio:16/10;min-height:280px;margin-top:10px;border-radius:22px;background-color:var(--sunk);background-image:radial-gradient(var(--line2) 1px,transparent 1px);background-size:16px 16px;border:1px solid var(--line)}
