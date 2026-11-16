@@ -1422,3 +1422,5 @@ The Music browser suite passed again with that label and native transfer.
   `validate-distribution`, `check_public_distribution`. NOT tested on the owner's Home Assistant or the iSG yet.
 - Open: owner HA visual test; Alexa announcement of finished cycles is not sent by the dashboard (needs an HA automation);
   Floor Studio integration is untouched but no longer used by the dashboard; old `aureon-home-plan`/`aureon-platform` cards gone.
+- CI follow-up: `test:browser` runs `test-noir-browser.mjs` instead of `test-page-memory-browser.mjs` (that one tested the old
+  dist page navigation and failed after the replacement).

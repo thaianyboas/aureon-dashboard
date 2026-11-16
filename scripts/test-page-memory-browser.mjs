@@ -1,4 +1,4 @@
-// Compiled stable dashboard; synthetic hass only, no HA installation. The open page survives a rebuild of the dashboard.
+// OBSOLETE since AUREON Noir (2026-11-16): tested the old dist page navigation; kept for the rollback bundle. Compiled stable dashboard; synthetic hass only, no HA installation. The open page survives a rebuild of the dashboard.
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {existsSync,readFileSync} from 'node:fs';
