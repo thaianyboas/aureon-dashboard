@@ -1,5 +1,18 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.2.0 — 2026-11-16
+
+- Topo mais limpo: o tema fica só em Configurações; previsão do tempo compacta (uma linha + 6 horas).
+- Casa 3D: nomes dos cômodos em plaquinhas que nunca ficam uns em cima dos outros.
+- AUREON Music "Palco": vinil grande com braço de toca-discos, botão de volume giratório, repetir, próxima/anterior
+  enviados direto para a Alexa quando a música toca num Echo ou grupo Alexa.
+- Coleta de lixo com lixeiras ilustradas: a próxima coleta em destaque, "hoje" sempre visível, próximos dias embaixo,
+  nomes curtos (Restmüll, Papier, Bio).
+- Luzes e tomadas agrupadas por cômodo (fechadas no celular, abertas no computador).
+- Máquinas: programa e temperatura, linha "Alexa avisa ao terminar" (liga/desliga a automação do blueprint),
+  máquinas antigas acompanhadas pela tomada com medição.
+- Robô: cômodo atual e progresso cômodo a cômodo (Dreame). Energia: hoje, custo hoje, este mês.
+
 ## AUREON Noir 1.1.0 — 2026-11-16
 
 - **Lembretes** no topo (luzes acesas por cômodo, janela aberta com aquecimento ligado, porta destrancada, fim de ciclo,
