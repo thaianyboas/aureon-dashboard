@@ -1403,3 +1403,22 @@ The Music browser suite passed again with that label and native transfer.
   Dreame entities of the device (error, current room, cleaned area/time while cleaning, charging status when docked,
   CleanGenius/cleaning mode/suction, the most worn consumable at ≤10 %) and shows up to 3–4 chips on the start page
   and the robot page, without any setting. Test in `tests/home-botanical.test.mjs`.
+
+
+### Claude batch 2026-11-16b — AUREON Noir replaces the whole dashboard (owner decision)
+
+- Owner chose "Trocar tudo" after being told it removes the Floor Studio editor, the old pages and settings; and chose
+  rename-in-HA (admin only, explicit confirmation). Baseline dashboard `cd82f1d`.
+- New source `noir/` (Lit, bundled by esbuild): `data.js` (registries → model; labels no_dboard / protegida / steckdosen_dashboard;
+  power sensors linked by device; appliances by device; waste formats copied from integrations/waste.mjs), `i18n.js` (pt/de/en),
+  `styles.js` (theme tokens, container queries, no truncation), `index.js` (cards `aureon-dashboard`, `aureon-music-player`,
+  strategy `ll-strategy-aureon-dashboard`). AUREON Music reuses `floor-studio/dashboard/music/controller.mjs` unchanged.
+- Rename: `config/entity_registry/update` (entities) / `config/device_registry/update` (appliance devices) after a confirm
+  step, only when `hass.user.is_admin`; otherwise a local alias. Layout/theme in localStorage per HA user.
+- `dist/aureon-dashboard.js` rebuilt (BUILD AUREON-NOIR-20261116), hash updated. Previous bundle kept in
+  `rollback/v0.29.0-test.5/`. `publish-owner-preview.yml` now rebuilds/tests Noir instead of promoting the old candidate.
+- Validation: 6 unit tests, real-Chrome browser suite with a synthetic HA (1440/1280/820/390 px, no overflow or clipped text,
+  no console errors, commands only on taps, rename confirmation, theme persistence, SpotifyPlus library/play/Connect, de locale),
+  `validate-distribution`, `check_public_distribution`. NOT tested on the owner's Home Assistant or the iSG yet.
+- Open: owner HA visual test; Alexa announcement of finished cycles is not sent by the dashboard (needs an HA automation);
+  Floor Studio integration is untouched but no longer used by the dashboard; old `aureon-home-plan`/`aureon-platform` cards gone.

@@ -1,0 +1,777 @@
+// AUREON Noir — the AUREON Dashboard for Home Assistant (HACS).
+// One Lovelace card (`custom:aureon-dashboard`) plus the dashboard strategy
+// (`strategy: type: custom:aureon-dashboard`). Reads the native registries in `hass`,
+// sends a Home Assistant command only when the person taps something, renames in the
+// entity/device registry only for administrators and only after an explicit confirmation.
+import { LitElement, html, svg, nothing } from 'lit';
+import { repeat } from 'lit/directives/repeat.js';
+import { styles } from './styles.js';
+import { buildModel, roomLayout, binColor } from './data.js';
+import { translator, localeOf } from './i18n.js';
+import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
+
+export const VERSION = '1.0.0';
+export const BUILD = 'AUREON-NOIR-20261116';
+
+export const THEMES = [
+  { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
+  { id: 'ambar', name: 'Âmbar', desc: 'Vela · café', accent: '#F5B65C', bg: '#0A0806', card: '#15110D', card2: '#110E0A', sunk: '#0C0A07', raise: '#1C1712', line: '#241E17', line2: '#30281F' },
+  { id: 'oceano', name: 'Oceano', desc: 'Azul gelo · noite', accent: '#8FB8FF', bg: '#06080C', card: '#0F131A', card2: '#0B0F15', sunk: '#080B10', raise: '#151B24', line: '#1B2230', line2: '#253144' },
+  { id: 'ametista', name: 'Ametista', desc: 'Lilás · ameixa', accent: '#B9A8FF', bg: '#08070C', card: '#121019', card2: '#0E0C14', sunk: '#0A0910', raise: '#18151F', line: '#211D2C', line2: '#2D2740' },
+  { id: 'jade', name: 'Jade', desc: 'Menta · floresta', accent: '#7EE0A8', bg: '#060A08', card: '#0F1512', card2: '#0B110E', sunk: '#080D0A', raise: '#141C18', line: '#1B2721', line2: '#25362D' },
+  { id: 'rose', name: 'Rosé', desc: 'Rosa antigo · vinho', accent: '#F2A7B5', bg: '#0B0708', card: '#161012', card2: '#120C0E', sunk: '#0D090A', raise: '#1D1517', line: '#271C20', line2: '#36282C' },
+  { id: 'platina', name: 'Platina', desc: 'Preto · branco', accent: '#F2F2F3', bg: '#070707', card: '#111111', card2: '#0D0D0D', sunk: '#0A0A0A', raise: '#171717', line: '#1E1E1E', line2: '#2A2A2A' },
+  { id: 'ha', name: 'Home Assistant', desc: 'Segue o tema do HA', ha: true }
+];
+const SECTIONS = ['lights', 'climate', 'plugs', 'energy', 'covers', 'openings', 'security', 'music'];
+const SCENE_GLOW = ['245,208,138', '169,155,255', '255,160,100', '143,184,255', '126,224,168', '242,167,181'];
+const F = { PAUSE: 1, SEEK: 2, VOL: 4, PREV: 16, NEXT: 32, SOURCE: 2048, PLAY: 16384, SHUFFLE: 32768, GROUP: 524288 };
+
+const P = {
+  bulb: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z',
+  plug: 'M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4', lock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3', unlock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 7.5-2',
+  pencil: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4', eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  eyeOff: 'M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.1A10 10 0 0 1 22 12a13 13 0 0 1-2.4 3.4M6.6 6.6A13 13 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 4.4-1',
+  left: 'M15 6l-6 6 6 6', right: 'M9 6l6 6-6 6', up: 'M6 15l6-6 6 6', down: 'M6 9l6 6 6-6', check: 'M5 12l5 5 9-10', x: 'M6 6l12 12M18 6 6 18',
+  bolt: 'M13 2 4 14h7l-1 8 9-12h-7z', cloud: 'M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6 11a3.5 3.5 0 0 0 1 7z',
+  sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  grid: 'M8 21 12 3l4 18M9.2 15h5.6M10 11h4M6 7h12', home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z', batt: 'M3 7h16v10H3zM21 11v2M7 10v4M10.5 10v4',
+  flame: 'M12 2c1 3.5 5 5 5 10a5 5 0 0 1-10 0c0-2.5 1.2-3.8 2.4-5 0 2.3 1.1 3.5 2.4 3.5 0-3.5-1.2-5.5.2-8.5z',
+  win: 'M4 3h16v18H4zM12 3v18M4 12h16', door: 'M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M4 21h16M14.5 12h.01', shield: 'M12 3l8 3v6c0 4.5-3.4 8.4-8 9-4.6-.6-8-4.5-8-9V6z',
+  speaker: 'M7 3h10v18H7zM12 8h.01M12 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', tv: 'M3 5h18v12H3zM8 21h8', note: 'M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
+  play: 'M8 5v14l11-7z', pause: 'M6 5h4v14H6zM14 5h4v14h-4z', prev: 'M7 5h2v14H7zM20 5v14L10 12z', next: 'M15 5h2v14h-2zM4 5v14l10-7z',
+  shuffle: 'M4 7h3c4 0 6 10 10 10h3M17 4l3 3-3 3M4 17h3c1.5 0 2.6-1.4 3.6-3M14 9.5C15 8 16 7 17 7h3M17 14l3 3-3 3', vol: 'M4 9h4l5-4v14l-5-4H4zM16 9a4 4 0 0 1 0 6',
+  washer: 'M4 3h16v18H4zM12 17.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zM7 6.5h2', dish: 'M4 3h16v18H4zM4 8h16M8 13h8M8 16.5h8', robot: 'M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6', camOff: 'M3 3l18 18M15 10l6-3v10l-2-1M10 7h5v5M3 7h3v10h9', grip: 'M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01',
+  palette: 'M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 21 9.8C21 6 17 3 12 3zM7.5 12.5h.01M9.5 8h.01M14.5 8h.01'
+};
+const ic = (n, cls = 'i') => svg`<svg class=${cls} viewBox="0 0 24 24" aria-hidden="true"><path d=${P[n]}></path></svg>`;
+const hexRgb = (h) => { const m = String(h || '').trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i); if (!m) { const r = String(h || '').match(/(\d+)\D+(\d+)\D+(\d+)/); return r ? `${r[1]},${r[2]},${r[3]}` : '230,204,154'; } let x = m[1]; if (x.length === 3) x = x.split('').map((c) => c + c).join(''); const n = parseInt(x, 16); return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`; };
+const rgba = (rgb, a) => `rgba(${rgb},${a})`;
+const p2 = (n) => String(n).padStart(2, '0');
+
+class AureonDashboard extends LitElement {
+  static properties = { hass: { attribute: false }, _config: { state: true }, _tick: { state: true }, _ui: { state: true } };
+  static styles = styles;
+  static getStubConfig() { return {}; }
+
+  constructor() {
+    super();
+    this._config = {};
+    this._ui = { room: 'all', domain: 'all', edit: false, showHidden: false, themeOpen: false, editing: null, draft: '', confirm: null, drag: null, over: null, unlockArm: null, player: null };
+    this._toasts = [];
+    this._prefs = null;
+    this._prevAppl = null;
+    this._labels = {};
+    this._pendingTarget = {};
+    this._local = {};
+    this._accentRgb = '230,204,154';
+    this._mc = new MusicController();
+    this._mc.subscribe(() => this.requestUpdate());
+  }
+
+  setConfig(config) { this._config = { ...(config || {}) }; }
+  getCardSize() { return 14; }
+  connectedCallback() { super.connectedCallback(); this._timer = setInterval(() => { this._tick = Date.now(); this._toasts = this._toasts.filter((t) => t.exp > Date.now()); }, 1000); }
+  disconnectedCallback() { clearInterval(this._timer); super.disconnectedCallback(); }
+
+  // ── preferences (per HA user, this browser) ──────────────────────────────
+  get _key() { return 'aureon.noir.v1.' + (this.hass?.user?.id || 'local'); }
+  _loadPrefs() {
+    let p = {};
+    try { p = JSON.parse(localStorage.getItem(this._key) || '{}') || {}; } catch { p = {}; }
+    this._prefs = { theme: 'aureon', view: '3d', secOrder: SECTIONS.slice(), order: {}, aliases: {}, hidden: [], wasteAck: {}, ...p };
+    const so = (this._prefs.secOrder || []).filter((k) => SECTIONS.includes(k));
+    this._prefs.secOrder = so.concat(SECTIONS.filter((k) => !so.includes(k)));
+  }
+  _save(patch) {
+    this._prefs = { ...this._prefs, ...patch };
+    try { localStorage.setItem(this._key, JSON.stringify(this._prefs)); } catch { /* private mode */ }
+    this.requestUpdate();
+  }
+  _set(patch) { this._ui = { ...this._ui, ...patch }; }
+
+  willUpdate(changed) {
+    if (changed.has('hass') && this.hass) {
+      if (!this._prefs) this._loadPrefs();
+      this._mc.setHass(this.hass);
+      if (this._libAsked && this._libAsked !== this._mc.entityId) this._libAsked = null;
+      if (!this._labelsLoaded && this.hass.callWS) {
+        this._labelsLoaded = true;
+        this.hass.callWS({ type: 'config/label_registry/list' }).then((list) => { const o = {}; for (const l of list || []) o[l.label_id] = l.name; this._labels = o; this.requestUpdate(); }).catch(() => {});
+      }
+    }
+  }
+  updated() {
+    const th = this._theme();
+    if (th.ha) { const c = getComputedStyle(this).getPropertyValue('--primary-color'); const rgb = hexRgb(c); if (rgb !== this._accentRgb) { this._accentRgb = rgb; this.requestUpdate(); } }
+  }
+
+  _theme() { return THEMES.find((t) => t.id === this._prefs?.theme) || THEMES[0]; }
+  _toast(title, body) { this._toasts = [...this._toasts, { id: Math.random().toString(36).slice(2), title, body, exp: Date.now() + 9000 }]; this.requestUpdate(); }
+  _call(domain, service, data) { return this.hass.callService(domain, service, data).catch((e) => this._toast(domain + '.' + service, String(e?.message || e))); }
+
+  // ── ordering / visibility ────────────────────────────────────────────────
+  _sorted(dom, list) {
+    const ord = this._prefs.order[dom] || [];
+    const rank = (id) => { const i = ord.indexOf(id); return i < 0 ? 1e6 : i; };
+    return list.slice().sort((a, b) => rank(a.id) - rank(b.id) || (a.areaName || '').localeCompare(b.areaName || '') || a.name.localeCompare(b.name));
+  }
+  _visible(list) { const ui = this._ui; return list.filter((d) => (ui.room === 'all' || d.area === ui.room) && (!d.hidden || (ui.edit && ui.showHidden))); }
+  _move(dom, id, dir, ids) {
+    const i = ids.indexOf(id), j = i + dir; if (i < 0 || j < 0 || j >= ids.length) return;
+    const ord = (this._prefs.order[dom] || []).filter((x) => ids.includes(x) || true);
+    const full = ids.slice(); [full[i], full[j]] = [full[j], full[i]];
+    this._save({ order: { ...this._prefs.order, [dom]: full.concat(ord.filter((x) => !full.includes(x))) } });
+  }
+  _drop(dom, target, ids) {
+    const d = this._ui.drag; this._set({ drag: null, over: null });
+    if (!d || d.dom !== dom || d.id === target) return;
+    const full = ids.filter((x) => x !== d.id); full.splice(full.indexOf(target), 0, d.id);
+    const ord = this._prefs.order[dom] || [];
+    this._save({ order: { ...this._prefs.order, [dom]: full.concat(ord.filter((x) => !full.includes(x))) } });
+  }
+  _toggleHidden(id) { const h = new Set(this._prefs.hidden); h.has(id) ? h.delete(id) : h.add(id); this._save({ hidden: [...h] }); }
+  _moveSection(k, dir) { const so = this._prefs.secOrder.slice(), i = so.indexOf(k), j = i + dir; if (j < 0 || j >= so.length) return; [so[i], so[j]] = [so[j], so[i]]; this._save({ secOrder: so }); }
+
+  // ── renaming ─────────────────────────────────────────────────────────────
+  _saveName(item, t) {
+    const name = (this._ui.draft || '').trim();
+    if (!name || name === item.name) { this._set({ editing: null, confirm: null }); return; }
+    if (this.hass?.user?.is_admin) this._set({ confirm: item.id });
+    else { this._localName(item, name); this._toast(t('renamedLocal'), t('renamedLocalWhy')); }
+  }
+  _localName(item, name) { this._save({ aliases: { ...this._prefs.aliases, [item.id]: name } }); this._set({ editing: null, confirm: null }); }
+  async _haName(item, name, t) {
+    try {
+      if (item.isDevice) await this.hass.callWS({ type: 'config/device_registry/update', device_id: item.id, name_by_user: name });
+      else await this.hass.callWS({ type: 'config/entity_registry/update', entity_id: item.id, name });
+      const al = { ...this._prefs.aliases }; delete al[item.id]; this._save({ aliases: al });
+      this._toast(t('renamedHa'), (item.isDevice ? item.name : item.id) + ' → ' + name);
+    } catch (e) { this._toast(t('renameFail'), String(e?.message || e)); }
+    this._set({ editing: null, confirm: null });
+  }
+
+  editBar(dom, d, ids, t, abs = false) {
+    const ui = this._ui;
+    if (!ui.edit) return nothing;
+    const editing = ui.editing === d.id;
+    if (editing && ui.confirm === d.id) {
+      const name = ui.draft.trim();
+      return html`<div class="editbar ${abs ? 'abs' : ''}" role="group" aria-label=${t('rename')}>
+        <span class="q">${t('confirmHa')} <b>“${name}”</b></span>
+        <button class="btn sm" @click=${() => this._localName(d, name)}>${t('onlyHere')}</button>
+        <button class="btn sm" @click=${() => this._set({ confirm: null })}>${t('cancel')}</button>
+        <button class="btn sm pri" @click=${() => this._haName(d, name, t)}>${t('confirmBtn')}</button></div>`;
+    }
+    if (editing) {
+      return html`<div class="editbar ${abs ? 'abs' : ''}">
+        <span class="ent">${d.isDevice ? d.name : d.id}</span>
+        <input .value=${ui.draft} aria-label=${t('newName') + ' · ' + d.name} @input=${(e) => this._set({ draft: e.target.value })}
+          @keydown=${(e) => { if (e.key === 'Enter') { e.preventDefault(); this._saveName(d, t); } else if (e.key === 'Escape') this._set({ editing: null }); }}>
+        <button class="ib sm" style="background:var(--accent);color:var(--on-accent);border-color:var(--accent)" aria-label=${t('save')} @click=${() => this._saveName(d, t)}>${ic('check', 'i s')}</button>
+        <button class="ib sm ghost" aria-label=${t('cancel')} @click=${() => this._set({ editing: null })}>${ic('x', 'i s')}</button></div>`;
+    }
+    return html`<div class="editbar ${abs ? 'abs' : ''}">
+      <span class="ent">${d.isDevice ? d.name : d.id}</span>
+      <span class="dim" title="↕" style="display:inline-flex;width:24px;justify-content:center;cursor:grab">${ic('grip', 'i s')}</span>
+      <button class="ib sm" aria-label=${t('back') + ' · ' + d.name} @click=${() => this._move(dom, d.id, -1, ids)}>${ic('left', 'i s')}</button>
+      <button class="ib sm" aria-label=${t('fwd') + ' · ' + d.name} @click=${() => this._move(dom, d.id, 1, ids)}>${ic('right', 'i s')}</button>
+      <button class="ib sm" aria-label=${(d.hidden ? t('unhide') : t('hide')) + ' · ' + d.name} @click=${() => this._toggleHidden(d.id)}>${ic(d.hidden ? 'eye' : 'eyeOff', 'i s')}</button>
+      <button class="ib sm" style="color:var(--accent)" aria-label=${t('rename') + ' · ' + d.name} @click=${() => this._set({ editing: d.id, draft: d.name, confirm: null })}>${ic('pencil', 'i s')}</button></div>`;
+  }
+  dnd(dom, d, ids) {
+    const ui = this._ui;
+    if (!ui.edit || ui.editing === d.id) return {};
+    return {
+      start: (e) => { try { e.dataTransfer.setData('text/plain', d.id); e.dataTransfer.effectAllowed = 'move'; } catch { /* ok */ } this._set({ drag: { dom, id: d.id } }); },
+      over: (e) => { if (this._ui.drag?.dom !== dom) return; e.preventDefault(); if (this._ui.over !== d.id) this._set({ over: d.id }); },
+      drop: (e) => { e.preventDefault(); this._drop(dom, d.id, ids); },
+      end: () => this._set({ drag: null, over: null })
+    };
+  }
+  tileAttrs(dom, d, ids) { const h = this.dnd(dom, d, ids); return { draggable: this._ui.edit && this._ui.editing !== d.id ? 'true' : 'false', h, cls: (d.hidden ? ' ghosted' : '') + (this._ui.over === d.id && this._ui.drag?.id !== d.id ? ' dragover' : '') }; }
+
+  // ── sections header ──────────────────────────────────────────────────────
+  secHead(key, title, sub, extra, t) {
+    return html`<div class="sech"><h2 class="h2">${title} ${sub ? html`<small>${sub}</small>` : nothing}</h2>
+      <div class="wrapRow">${this._ui.edit ? html`<button class="ib sm" aria-label=${t('sectionUp') + ' · ' + title} @click=${() => this._moveSection(key, -1)}>${ic('up', 'i s')}</button><button class="ib sm" aria-label=${t('sectionDown') + ' · ' + title} @click=${() => this._moveSection(key, 1)}>${ic('down', 'i s')}</button>` : nothing}${extra || nothing}</div></div>`;
+  }
+
+  render() {
+    if (!this.hass) return html``;
+    if (!this._prefs) this._loadPrefs();
+    const lang = localeOf(this.hass), t = translator(lang);
+    const now = new Date();
+    const ui = this._ui, prefs = this._prefs;
+    const m = buildModel(this.hass, { now, labels: this._labels, aliases: prefs.aliases, hidden: prefs.hidden, noAreaName: t('noArea') });
+    this._detectFinished(m, t);
+    const th = this._theme();
+    const aRgb = th.ha ? this._accentRgb : hexRgb(th.accent);
+    const vars = th.ha
+      ? `--bg:var(--primary-background-color);--card:var(--card-background-color,var(--ha-card-background,#1c1c1c));--card2:var(--secondary-background-color,var(--card-background-color));--sunk:var(--primary-background-color);--raise:var(--secondary-background-color,var(--card-background-color));--line:var(--divider-color);--line2:var(--divider-color);--fg:var(--primary-text-color);--fg2:var(--primary-text-color);--mut:var(--secondary-text-color);--dim:var(--disabled-text-color,var(--secondary-text-color));--accent:var(--primary-color);--on-accent:var(--text-primary-color,#fff);`
+      : `--bg:${th.bg};--card:${th.card};--card2:${th.card2};--sunk:${th.sunk};--raise:${th.raise};--line:${th.line};--line2:${th.line2};--fg:#F2F2F3;--fg2:#D4D4D8;--mut:#A1A1AA;--dim:#8A8A94;--accent:${th.accent};--on-accent:#1A1408;`;
+    const L = m.lights.length ? m.lights.reduce((s, l) => s + (l.on ? l.b / 100 : 0), 0) / m.lights.length : 0;
+    const pagebg = `--pagebg:radial-gradient(70% 40% at 20% 0%, ${rgba(aRgb, (0.02 + 0.12 * L).toFixed(3))} 0%, ${rgba(aRgb, 0)} 70%), var(--bg);`;
+    const ctx = { m, t, lang, now, aRgb, L };
+    const show = {
+      lights: m.lights.length, climate: m.climate.length, plugs: m.plugs.length, energy: m.metered.length || m.solarW != null,
+      covers: m.covers.length, openings: m.openings.length, security: m.cams.length + m.locks.length + m.alarms.length, music: m.speakers.length
+    };
+    const secRender = { lights: () => this.sLights(ctx), climate: () => this.sClimate(ctx), plugs: () => this.sPlugs(ctx), energy: () => this.sEnergy(ctx), covers: () => this.sCovers(ctx), openings: () => this.sOpenings(ctx), security: () => this.sSecurity(ctx), music: () => this.sMusic(ctx) };
+    const secs = prefs.secOrder.filter((k) => show[k] && (ui.domain === 'all' || ui.domain === k));
+    return html`<div lang=${lang} class="page ${ui.edit ? 'editing' : ''}" style=${vars + pagebg} @click=${(e) => { if (ui.themeOpen && !e.composedPath().some((n) => n.classList?.contains('themeWrap'))) this._set({ themeOpen: false }); }}>
+      <div class="wrap">
+        ${this.header(ctx)}
+        ${ui.edit ? this.banner(t) : nothing}
+        ${this.hero(ctx)}
+        ${m.scenes.length ? this.scenes(ctx) : nothing}
+        ${this.live(ctx)}
+        ${this.filters(ctx, show)}
+        ${ui.room !== 'all' ? this.roomHead(ctx) : nothing}
+        ${secs.map((k) => secRender[k]())}
+        ${secs.every((k) => !secRender[k]) || !secs.length ? html`<div class="empty">${t('nothingHere')}</div>` : nothing}
+      </div>
+      <div class="toasts" aria-live="polite">${repeat(this._toasts, (x) => x.id, (x) => html`<div class="toast rise" role="status">
+        <span class="ic" style="background:var(--accent);color:var(--on-accent)">${ic('check')}</span>
+        <span class="grow"><b class="txt" style="display:block;font-size:14px;font-weight:500">${x.title}</b><span class="txt muted" style="display:block;font-size:13px;line-height:1.45">${x.body}</span></span>
+        <button class="ib sm ghost" aria-label=${t('closeToast')} @click=${() => { this._toasts = this._toasts.filter((y) => y.id !== x.id); this.requestUpdate(); }}>${ic('x', 'i s')}</button></div>`)}</div>
+    </div>`;
+  }
+
+  _detectFinished(m, t) {
+    const cur = {}; for (const a of m.appliances) cur[a.id] = a.done ? 'done' : a.running ? 'run' : 'idle';
+    if (this._prevAppl) for (const a of m.appliances) if (this._prevAppl[a.id] === 'run' && cur[a.id] === 'done') this._toasts = [...this._toasts, { id: a.id + Date.now(), title: t('finished', { n: a.name }), body: t('finishedBody', { a: a.areaName || '' }), exp: Date.now() + 15000 }];
+    this._prevAppl = cur;
+  }
+
+  // ── header ───────────────────────────────────────────────────────────────
+  header({ m, t, lang, now }) {
+    const ui = this._ui, th = this._theme();
+    const w = m.weather, sun = m.sun;
+    let sunTxt = '';
+    if (sun) {
+      const fmt = (d) => d.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
+      const rise = Date.parse(sun.attributes?.next_rising), set = Date.parse(sun.attributes?.next_setting);
+      if (sun.state === 'above_horizon' && set) { const left = Math.max(0, Math.round((set - now) / 60000)); sunTxt = t('sunLeft', { t: Math.floor(left / 60) + 'h' + p2(left % 60) }); }
+      else if (rise) sunTxt = t('sunUp', { t: fmt(new Date(rise)) });
+    }
+    const people = m.people.slice(0, 5);
+    return html`<header class="top">
+      <span class="wordmark">AUREON</span>
+      <div class="wrapRow" style="justify-content:flex-end">
+        <div class="themeWrap" style="position:relative">
+          <button class="btn" aria-haspopup="true" aria-expanded=${ui.themeOpen ? 'true' : 'false'} @click=${() => this._set({ themeOpen: !ui.themeOpen })}>
+            <span aria-hidden="true" style=${`width:20px;height:20px;border-radius:50%;border:2px solid var(--line2);background:${th.ha ? 'var(--primary-color)' : `conic-gradient(${th.accent} 0 50%, ${th.card} 50% 100%)`}`}></span>${t('theme')} · ${th.name}</button>
+          ${ui.themeOpen ? html`<div class="menu rise" role="menu" aria-label=${t('themeTitle')}>
+            <span class="eyebrow" style="padding:8px 10px 6px">${t('themeTitle')}</span>
+            ${THEMES.map((x) => html`<button class="mi" role="menuitemradio" aria-checked=${x.id === th.id ? 'true' : 'false'} @click=${() => { this._save({ theme: x.id }); this._set({ themeOpen: false }); }}>
+              <span class="sw" style=${x.ha ? 'background:var(--card-background-color,#222);border:1px solid var(--divider-color,#333)' : `background:${x.card};border:1px solid ${x.line2}`}><i style=${`background:${x.ha ? 'var(--primary-color,#03a9f4)' : x.accent};box-shadow:0 0 10px ${x.ha ? 'transparent' : x.accent}`}></i></span>
+              <span class="grow"><b style="display:block;font-size:14px;font-weight:500">${x.name}</b><span class="muted" style="font-size:11px">${x.desc}</span></span>
+              ${x.id === th.id ? ic('check', 'i s') : nothing}</button>`)}
+          </div>` : nothing}
+        </div>
+        <button class=${'btn' + (ui.edit ? ' pri' : '')} aria-pressed=${ui.edit ? 'true' : 'false'} @click=${() => this._set({ edit: !ui.edit, editing: null, confirm: null })}>${ic('pencil', 'i s')}${ui.edit ? t('doneEdit') : t('edit')}</button>
+        ${m.metered.length ? html`<span class="chip">${svg`<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--accent)"><path d=${P.bolt}></path></svg>`}${m.plugW} W</span>` : nothing}
+        ${w || sunTxt ? html`<span class="chip">${ic('cloud', 'i s')}${w && w.attrs.temperature != null ? Math.round(w.attrs.temperature) + '°' : ''}${w && sunTxt ? ' · ' : ''}${sunTxt}</span>` : nothing}
+        ${people.length ? html`<span class="avatars" role="img" aria-label=${t('homePeople') + ': ' + people.filter((p) => p.state === 'home').map((p) => p.name).join(', ')}>
+          ${people.map((p) => { const pic = p.attrs.entity_picture; return html`<span class="av" title=${p.name + ' · ' + (p.state === 'home' ? t('homePeople') : p.state === 'not_home' ? t('away') : p.state)} style=${pic ? `background-image:url("${this._url(pic)}");color:transparent` : ''}>${(p.name || '?').charAt(0)}<b class=${p.state === 'home' ? 'home' : ''}></b></span>`; })}
+        </span>` : nothing}
+      </div>
+    </header>`;
+  }
+  _url(path) { return path && this.hass.hassUrl ? this.hass.hassUrl(path) : path; }
+
+  banner(t) {
+    const ui = this._ui;
+    return html`<div class="banner rise" role="status">
+      <span class="row grow"><span class="ic" style="background:var(--accent);color:var(--on-accent)">${ic('pencil', 'i s')}</span>
+        <span class="grow"><b style="display:block;font-size:14px;font-weight:500">${t('editTitle')}</b><span class="muted txt" style="font-size:12px;line-height:1.45">${t('editHint')}</span></span></span>
+      <span class="wrapRow">
+        <button class="btn sm" @click=${() => this._set({ showHidden: !ui.showHidden })}>${ic(ui.showHidden ? 'eyeOff' : 'eye', 'i s')}${ui.showHidden ? t('hideHidden') : t('showHidden')}</button>
+        <button class="btn sm" @click=${() => this._save({ order: {}, secOrder: SECTIONS.slice(), hidden: [] })}>${t('reset')}</button>
+        <button class="btn sm pri" @click=${() => this._set({ edit: false, editing: null, confirm: null })}>${t('done')}</button></span></div>`;
+  }
+
+  // ── hero: clock + 3D house / plan ────────────────────────────────────────
+  hero(ctx) {
+    const { m, t, lang, now, aRgb, L } = ctx, ui = this._ui, prefs = this._prefs;
+    const zone = this.hass.locale?.time_zone === 'server' ? this.hass.config?.time_zone : undefined;
+    let time = '', date = '';
+    try { time = now.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', timeZone: zone }); date = now.toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long', timeZone: zone }); } catch { time = p2(now.getHours()) + ':' + p2(now.getMinutes()); }
+    const hr = now.getHours();
+    const user = (this.hass.user?.name || '').split(' ')[0];
+    const greet = (hr < 5 ? t('evening') : hr < 12 ? t('morning') : hr < 18 ? t('afternoon') : t('evening')) + (user ? ', ' + user : '') + '.';
+    const on = m.lights.filter((l) => l.on);
+    const roomsLit = new Set(on.map((l) => l.area)).size;
+    const playing = m.speakers.filter((s) => s.playing);
+    const run = m.appliances.find((a) => a.running && a.endAt);
+    const parts = [on.length ? t('lightsOn', { n: on.length, r: roomsLit }) : t('allLightsOff')];
+    if (playing.length) parts.push(playing.length >= m.speakers.filter((s) => !s.tv).length && playing.length > 1 ? t('musicAll') : t('musicIn', { n: playing.length }));
+    if (run) parts.push(t('washerEnds', { n: run.name, t: run.endAt.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }));
+    if (m.vacuums.some((v) => v.state === 'cleaning')) parts.push(t('robotIn'));
+    const openN = m.openings.filter((o) => o.open).length;
+    const heatN = m.climate.filter((c) => c.action === 'heating').length;
+    const stats = [[t('statLights'), on.length + '/' + m.lights.length, on.length], [t('statOpen'), String(openN), openN], [t('statHeat'), String(heatN), 0, heatN], [t('statPlugs'), m.plugs.filter((p) => p.on).length + '/' + m.plugs.length, 0]];
+    const maxN = Math.max(1, ...m.areas.map((a) => (m.byArea[a.id] || []).length));
+    const layout = roomLayout(m.areas, (a) => Math.max(maxN * 0.45, (m.byArea[a.id] || []).length));
+    const is3d = prefs.view !== '2d';
+    return html`<section class="hero" aria-label=${t('house3d')}>
+      <div class="glow" style=${`background:radial-gradient(circle, ${rgba(aRgb, (0.05 + 0.25 * L).toFixed(3))} 0%, ${rgba(aRgb, 0)} 65%)`}></div>
+      <div class="heroL">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span class="eyebrow">${date}</span><span class="clock">${time}</span>
+          <h1 class="greet txt">${greet}</h1><p class="story txt">${parts.join(', ')}.</p>
+        </div>
+        <div class="stats">${stats.map(([k, v, hot, heat]) => html`<div class="stat"><b style=${hot ? 'color:var(--accent)' : heat ? 'color:#FFB48A' : ''}>${v}</b><span class="eyebrow" style="font-size:10px">${k}</span></div>`)}</div>
+      </div>
+      <div class="heroR">
+        <div class="row sp" style="flex-wrap:wrap;gap:8px"><span class="eyebrow txt">${t('tapRoom')}</span>
+          <span class="seg" role="group" aria-label=${t('house3d') + ' / ' + t('plan')}>
+            <button aria-pressed=${is3d ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button>
+            <button aria-pressed=${!is3d ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></div>
+        ${is3d ? html`<div class="stage" role="group" aria-label=${t('house3d')}><div class="iso"><div class="ground" aria-hidden="true"></div>
+          ${layout.map((r) => this.room3d(r, ctx))}</div></div>`
+          : html`<div class="plan2d" role="group" aria-label=${t('plan')}>${layout.map((r) => this.room2d(r, ctx))}</div>`}
+        <span class="dim mono" style="align-self:flex-end;font-size:11px">${m.total} ${t('devices')}</span>
+      </div>
+    </section>`;
+  }
+  _roomLook(area, m) {
+    const ls = m.lights.filter((l) => l.area === area.id), on = ls.filter((l) => l.on);
+    const k = on.length ? on.reduce((s, l) => s + l.b, 0) / on.length / 100 : 0;
+    const rgb = on.length ? on.slice().sort((a, b) => b.b - a.b)[0].rgb.join(',') : '245,190,110';
+    const th = m.climate.find((c) => c.area === area.id);
+    const dots = [];
+    if (m.openings.some((o) => o.area === area.id && o.open)) dots.push('var(--accent)');
+    if (m.speakers.some((s) => s.area === area.id && s.playing)) dots.push('#A99BFF');
+    if (m.climate.some((c) => c.area === area.id && c.action === 'heating')) dots.push('#FF9A5A');
+    return { ls, on, k, rgb, lit: on.length > 0, temp: th?.cur, dots };
+  }
+  room3d(r, { m, t }) {
+    const a = r.area, L = this._roomLook(a, m), sel = this._ui.room === a.id, H = a.outdoor ? 6 : 22;
+    const cA = L.lit ? `background:${rgba(L.rgb, 0.1 + 0.22 * L.k)};border:1px solid ${rgba(L.rgb, 0.25 + 0.3 * L.k)}` : 'background:rgba(242,242,243,.035);border:1px solid var(--line2)';
+    const cB = L.lit ? `background:${rgba(L.rgb, 0.16 + 0.28 * L.k)};border:1px solid ${rgba(L.rgb, 0.3 + 0.35 * L.k)}` : 'background:rgba(242,242,243,.06);border:1px solid var(--line2)';
+    const floor = (L.lit ? `border:1px ${a.outdoor ? 'dashed' : 'solid'} ${rgba(L.rgb, 0.35 + 0.4 * L.k)};background:radial-gradient(90% 90% at 50% 50%, ${rgba(L.rgb, 0.25 + 0.5 * L.k)} 0%, ${rgba(L.rgb, 0.04)} 75%), var(--raise);box-shadow:0 0 ${Math.round(30 + 60 * L.k)}px ${rgba(L.rgb, 0.15 + 0.35 * L.k)}` : `border:1px ${a.outdoor ? 'dashed' : 'solid'} var(--line2);background:var(--card);box-shadow:none`) + (sel ? ';outline:2px solid var(--fg);outline-offset:3px;transform:translateZ(10px)' : '');
+    return html`<button class="r3" aria-pressed=${sel ? 'true' : 'false'} aria-label=${`${a.name}: ${t('ofOn', { a: L.on.length, b: L.ls.length })}`} @click=${() => this._set({ room: sel ? 'all' : a.id })}
+      style=${`left:calc(${r.x}% + 4px);top:calc(${r.y}% + 4px);width:calc(${r.w}% - 8px);height:calc(${r.h}% - 8px);${floor}`}>
+      <span class="w wt" style=${`height:${H}px;${cA}`}></span><span class="w wb" style=${`height:${H}px;${cB}`}></span>
+      <span class="w wl" style=${`width:${H}px;${cA}`}></span><span class="w wr" style=${`width:${H}px;${cB}`}></span>
+      <span class="halo" style=${`background:${rgba(L.rgb, 0.9)};opacity:${L.lit ? (0.15 + 0.55 * L.k).toFixed(2) : 0}`}></span>
+      <span class="lbl"><span class="n" style=${L.lit || sel ? 'color:var(--fg)' : 'color:var(--mut)'}>${a.name}</span>
+        <span style=${`font-size:12px;color:${L.lit ? 'var(--fg)' : 'var(--dim)'}`}>${L.temp != null ? L.temp.toFixed(1).replace('.', ',') + '° · ' : ''}${L.on.length}/${L.ls.length}</span>
+        <span class="dots">${L.dots.map((c) => html`<i style=${'background:' + c}></i>`)}</span></span></button>`;
+  }
+  room2d(r, { m, t }) {
+    const a = r.area, L = this._roomLook(a, m), sel = this._ui.room === a.id;
+    const look = (L.lit ? `border:1px ${a.outdoor ? 'dashed' : 'solid'} ${rgba(L.rgb, 0.28 + 0.4 * L.k)};background:radial-gradient(120% 100% at 50% 45%, ${rgba(L.rgb, 0.1 + 0.34 * L.k)} 0%, ${rgba(L.rgb, 0)} 72%), var(--card);box-shadow:0 0 ${Math.round(20 + 40 * L.k)}px -10px ${rgba(L.rgb, 0.25 + 0.5 * L.k)}` : `border:1px ${a.outdoor ? 'dashed' : 'solid'} var(--line2);background:var(--sunk)`) + (sel ? ';outline:2px solid var(--fg);outline-offset:2px' : '');
+    return html`<button class="r2" aria-pressed=${sel ? 'true' : 'false'} aria-label=${`${a.name}: ${t('ofOn', { a: L.on.length, b: L.ls.length })}`} @click=${() => this._set({ room: sel ? 'all' : a.id })}
+      style=${`left:calc(${r.x}% + 5px);top:calc(${r.y}% + 5px);width:calc(${r.w}% - 10px);height:calc(${r.h}% - 10px);${look}`}>
+      <span class="n"><i style=${L.lit ? `background:rgb(${L.rgb});box-shadow:0 0 12px 2px ${rgba(L.rgb, 0.7)}` : 'background:var(--line2)'}></i>${a.name}</span>
+      <span class="row" style=${`gap:6px;font-size:13px;color:${L.lit ? 'var(--fg)' : 'var(--dim)'}`}>${L.temp != null ? L.temp.toFixed(1).replace('.', ',') + '° · ' : ''}${L.on.length}/${L.ls.length}<span class="dots">${L.dots.map((c) => html`<i style=${'background:' + c}></i>`)}</span></span></button>`;
+  }
+
+  // ── scenes ───────────────────────────────────────────────────────────────
+  scenes({ m, t, now }) {
+    const list = this._visible(this._sorted('scenes', m.scenes).map((s) => ({ ...s, area: this._ui.room === 'all' ? s.area : (s.area || this._ui.room) })));
+    const ids = list.map((s) => s.id);
+    const recent = m.scenes.map((s) => Date.parse(s.state)).filter(Number.isFinite);
+    const last = recent.length ? Math.max(...recent) : 0;
+    if (!list.length) return nothing;
+    return html`<section class="sec" aria-label=${t('scenes')}><h2 class="eyebrow" style="margin:0;padding:0 4px;font-weight:400">${t('scenes')}</h2>
+      <div class="scenes">${repeat(list, (s) => s.id, (s, i) => {
+        const glow = SCENE_GLOW[i % SCENE_GLOW.length];
+        const on = Date.parse(s.state) === last && now - last < 2 * 3600e3;
+        const ta = this.tileAttrs('scenes', s, ids);
+        return html`<div class=${'tile' + ta.cls} style="padding:0;border:0;background:transparent;overflow:visible" draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end}>
+          ${this.editBar('scenes', s, ids, t)}
+          <button class="scene" aria-label=${t('scene') + ' ' + s.name} @click=${() => this._call('scene', 'turn_on', { entity_id: s.id })}
+            style=${on ? `border-color:rgba(${glow},.45);box-shadow:0 24px 70px -30px rgba(${glow},.65);transform:translateY(-2px)` : ''}>
+            <span class="orb" style=${`background:radial-gradient(circle, rgba(${glow},.55) 0%, rgba(${glow},0) 65%);opacity:${on ? 1 : 0.18}`}></span>
+            <span class="tag" style=${`position:relative;color:${on ? `rgb(${glow})` : 'var(--dim)'}`}>${on ? '● ' + t('active') : t('scene')}</span><b>${s.name}</b></button></div>`;
+      })}</div></section>`;
+  }
+
+  // ── happening now ────────────────────────────────────────────────────────
+  live(ctx) {
+    const { m, t, lang, now } = ctx;
+    const cards = [];
+    const sp = m.speakers.filter((s) => !s.tv), playing = [...m.accounts, ...m.speakers].filter((s) => s.playing);
+    if (playing.length) {
+      const p = playing[0], everywhere = sp.length > 1 && sp.every((s) => s.playing);
+      cards.push(html`<article class="act"><div class="breathe" aria-hidden="true" style="position:absolute;width:260px;height:260px;right:-90px;top:-110px;border-radius:50%;background:radial-gradient(circle, rgba(169,155,255,.35) 0%, rgba(169,155,255,0) 65%)"></div>
+        <div class="row sp" style="position:relative;align-items:flex-start;gap:12px"><div class="grow" style="display:flex;flex-direction:column;gap:4px">
+          <span class="tag row" style="gap:8px;color:#C4BBFF"><span class="eq"><i></i><i></i><i></i></span>${everywhere ? t('everywhere') : sp.filter((x) => x.playing).length > 1 ? t('inSpeakers', { n: sp.filter((x) => x.playing).length }) : p.attrs.source ? t('onSpeaker', { s: p.attrs.source }) : t('playing')}</span>
+          <span class="ttl">${p.attrs.media_title || p.name}</span><span class="muted txt" style="font-size:13px">AUREON Music${p.attrs.media_artist ? ' · ' + p.attrs.media_artist : ''}</span></div>
+          <button class="play" style="width:48px;height:48px" aria-label=${t('pause')} @click=${() => this._call('media_player', 'media_pause', { entity_id: playing.map((x) => x.id) })}>${ic('pause', 'i f')}</button></div>
+        <div class="pills" style="position:relative">${[...new Set(sp.map((s) => s.areaName).filter(Boolean))].map((r) => { const on = playing.some((s) => s.areaName === r); return html`<span class="pill" style=${on ? 'background:rgba(169,155,255,.16);color:#D9D3FF;border-color:rgba(169,155,255,.35)' : ''}>${r}</span>`; })}</div></article>`);
+    }
+    for (const a of m.appliances.filter((x) => x.running || x.done)) {
+      const C = 2 * Math.PI * 31, pct = a.done ? 100 : a.pct != null ? a.pct : null;
+      const icon = a.kind === 'dish' ? 'dish' : 'washer';
+      const dev = { ...a, isDevice: true };
+      const detail = a.done ? t('cycleDone') : [a.mins != null ? t('remaining', { m: Math.round(a.mins) }) : null, a.endAt ? t('endsAt', { t: a.endAt.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : null, !a.mins && !a.endAt ? a.status : null].filter(Boolean).join(' · ');
+      cards.push(html`<article class="act" style=${a.done ? `border-color:var(--accent);box-shadow:0 24px 70px -30px ${rgba(ctx.aRgb, 0.6)}` : ''}>
+        ${this.editBar('appliances', dev, [], t)}
+        <div class="row" style="gap:16px;align-items:center"><div class="ring">${svg`<svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="31" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="5"></circle>${pct != null ? svg`<circle cx="36" cy="36" r="31" fill="none" stroke-width="5" stroke-linecap="round" stroke=${a.done ? 'var(--accent)' : '#8FB8FF'} stroke-dasharray=${(C * pct / 100).toFixed(1) + ' ' + C.toFixed(1)}></circle>` : nothing}</svg>`}
+          <span style=${a.done ? 'color:var(--accent)' : 'color:#C9D8F5'}>${ic(icon)}</span></div>
+          <div class="grow" style="display:flex;flex-direction:column;gap:3px"><span class="tag" style=${a.done ? 'color:var(--accent)' : 'color:var(--mut)'}>${a.done ? '● ' + t('cycleDone') : (a.areaName ? a.areaName + ' · ' : '') + (pct != null ? Math.round(pct) + '%' : t('running'))}</span>
+            <span class="ttl">${a.name}</span><span class="muted txt" style="font-size:13px">${detail}</span></div></div></article>`);
+    }
+    if (m.waste.length) {
+      const ack = this._prefs.wasteAck || {}, nb = m.waste[0], key = nb.date + nb.type, urgent = nb.days <= 1 && !ack[key];
+      const list = m.waste.slice(0, 4);
+      cards.push(html`<article class="act" style=${urgent ? 'border-color:var(--accent)' : ''}>
+        <div class="row sp" style="align-items:flex-start;gap:12px"><div class="grow" style="display:flex;flex-direction:column;gap:3px">
+          <span class="tag" style=${urgent ? 'color:var(--accent)' : 'color:var(--mut)'}>${ack[key] ? '✓ ' + t('waste') : nb.days === 0 ? '● ' + t('today') : nb.days === 1 ? '● ' + t('tomorrow') : t('waste')}</span>
+          <span class="ttl">${nb.type}</span><span class="muted txt" style="font-size:13px">${nb.days === 0 ? t('wasteToday') : nb.days === 1 ? t('wasteTomorrow') : t('wasteNext', { d: new Date(nb.date + 'T12:00:00').toLocaleDateString(lang, { weekday: 'short', day: 'numeric', month: 'short' }) })}</span></div>
+          <span class="ic" style=${urgent ? 'background:var(--accent);color:var(--on-accent);width:48px;height:48px;border-radius:14px' : 'width:48px;height:48px;border-radius:14px'}>${ic('trash')}</span></div>
+        <div class="bins">${list.map((w) => html`<span class="bin"><i style=${'background:' + binColor(w.type)}></i><b>${w.type}</b><span class="mono muted" style="font-size:10px">${w.days === 0 ? t('today') : w.days === 1 ? t('tomorrow') : new Date(w.date + 'T12:00:00').toLocaleDateString(lang, { weekday: 'short', day: 'numeric' })}</span></span>`)}</div>
+        ${urgent ? html`<button class="btn pri" @click=${() => this._save({ wasteAck: { ...ack, [key]: true } })}>${ic('check', 'i s')}${t('wasteDone')}</button>` : nothing}</article>`);
+    }
+    for (const v of m.vacuums) {
+      const st = v.state, cleaning = st === 'cleaning', bat = v.attrs.battery_level ?? v.battery;
+      const label = { cleaning: t('cleaning'), docked: t('docked'), returning: t('returning'), paused: t('vPaused'), error: t('vError'), idle: t('idle') }[st] || st;
+      cards.push(html`<article class="act" style=${cleaning ? 'border-color:rgba(126,224,168,.35)' : ''}>
+        <div class="row sp" style="align-items:flex-start;gap:12px"><div class="grow" style="display:flex;flex-direction:column;gap:3px">
+          <span class="tag" style=${cleaning ? 'color:#7EE0A8' : 'color:var(--mut)'}>${cleaning ? '● ' : ''}${label}${v.areaName ? ' · ' + v.areaName : ''}</span>
+          <span class="ttl">${v.name}</span><span class="muted txt" style="font-size:13px">${[bat != null ? t('battery') + ' ' + Math.round(bat) + '%' : null, ...(v.facts || [])].filter(Boolean).join(' · ')}</span></div>
+          <span style="position:relative;width:56px;height:56px;flex:none" aria-hidden="true"><span style="position:absolute;inset:0;border-radius:50%;border:1px dashed var(--line2)"></span>
+            <span class="orbit" style=${'position:absolute;inset:0;' + (cleaning ? 'animation:orbit 5s linear infinite' : 'opacity:0')}><span style="position:absolute;left:50%;top:-6px;margin-left:-9px;width:18px;height:18px;border-radius:50%;background:var(--card);border:1.5px solid var(--accent)"></span></span>
+            <span style=${`position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:${cleaning ? 'var(--accent)' : '#7EE0A8'}`}></span></span></div>
+        <div class="wrapRow">
+          ${cleaning ? html`<button class="btn" @click=${() => this._call('vacuum', 'pause', { entity_id: v.id })}>${ic('pause', 'i s f')}${t('stop')}</button>` : html`<button class="btn pri" @click=${() => this._call('vacuum', 'start', { entity_id: v.id })}>${ic('play', 'i s f')}${t('start')}</button>`}
+          ${st !== 'docked' ? html`<button class="btn" @click=${() => this._call('vacuum', 'return_to_base', { entity_id: v.id })}>${ic('home', 'i s')}${t('dock')}</button>` : nothing}</div></article>`);
+    }
+    for (const c of m.covers.filter((x) => x.moving).slice(0, 2)) {
+      const closedPart = (100 - c.pos) / 2;
+      cards.push(html`<article class="act rise" style="border-color:rgba(201,216,245,.25)"><div style="display:flex;flex-direction:column;gap:3px">
+        <span class="tag" style="color:#C9D8F5">${c.state === 'opening' ? t('opening') : t('closing')}</span><span class="ttl">${c.name}</span><span class="muted" style="font-size:13px">${c.areaName} · ${Math.round(c.pos)}%</span></div>
+        <div aria-hidden="true" style="position:relative;height:64px;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#1B2233 0%,#121620 100%);border:1px solid #222838">
+          <span style=${`position:absolute;top:0;bottom:0;left:0;width:${closedPart}%;background:repeating-linear-gradient(90deg,#E7DCC6 0 6px,#CFC3AA 6px 9px);transition:width 1s linear`}></span>
+          <span style=${`position:absolute;top:0;bottom:0;right:0;width:${closedPart}%;background:repeating-linear-gradient(90deg,#E7DCC6 0 6px,#CFC3AA 6px 9px);transition:width 1s linear`}></span></div></article>`);
+    }
+    if (!cards.length) return nothing;
+    return html`<section class="sec" aria-label=${t('now')}><div class="row" style="padding:0 4px;gap:10px"><span class="pulse" style="width:7px;height:7px;border-radius:50%;background:#7EE0A8"></span><h2 class="eyebrow" style="margin:0;font-weight:400">${t('now')}</h2></div><div class="live">${cards}</div></section>`;
+  }
+
+  // ── filters ──────────────────────────────────────────────────────────────
+  filters({ m, t }, show) {
+    const ui = this._ui;
+    const roomsOrd = this._sorted('rooms', m.areas.map((a) => ({ ...a, name: a.name })));
+    const chips = [{ id: 'all', name: t('allHome') }, ...roomsOrd];
+    const doms = [['all', t('all')], ['lights', t('lightsShort')], ['climate', t('climateShort')], ['plugs', t('plugsShort')], ['energy', t('energyShort')], ['covers', t('coversShort')], ['openings', t('openingsShort')], ['security', t('securityShort')], ['music', t('musicShort')]].filter(([k]) => k === 'all' || show[k]);
+    const inR = (list) => list.filter((d) => ui.room === 'all' || d.area === ui.room).length;
+    const counts = { lights: inR(m.lights), climate: inR(m.climate), plugs: inR(m.plugs), energy: inR(m.metered), covers: inR(m.covers), openings: inR(m.openings), security: inR(m.cams) + inR(m.locks) + m.alarms.length, music: inR(m.speakers) };
+    return html`<div class="filters">
+      <div class="scroller" role="group" aria-label=${t('room')}>${chips.map((c) => {
+        const lit = c.id === 'all' ? m.lights.some((l) => l.on) : m.lights.some((l) => l.on && l.area === c.id);
+        const th = m.climate.find((x) => x.area === c.id);
+        const meta = c.id === 'all' ? String(m.total) : th?.cur != null ? th.cur.toFixed(1).replace('.', ',') + '°' : String((m.byArea[c.id] || []).length);
+        return html`<button class="rc" aria-pressed=${ui.room === c.id ? 'true' : 'false'} @click=${() => this._set({ room: c.id })}><i style=${lit ? 'background:var(--accent);box-shadow:0 0 8px var(--accent)' : 'background:var(--line2)'}></i>${c.name}<small>${meta}</small></button>`;
+      })}</div>
+      <div class="scroller" role="group" aria-label=${t('devices')}>${doms.map(([k, n]) => html`<button class="dc" aria-pressed=${ui.domain === k ? 'true' : 'false'} style=${ui.domain === k ? `border-color:var(--accent);background:${rgba(this._theme().ha ? this._accentRgb : hexRgb(this._theme().accent), 0.12)}` : ''} @click=${() => this._set({ domain: k })}>${n} <span class="mono" style="opacity:.7">${k === 'all' ? '' : counts[k]}</span></button>`)}</div>
+    </div>`;
+  }
+  roomHead({ m, t }) {
+    const a = m.areas.find((x) => x.id === this._ui.room); if (!a) return nothing;
+    const ls = m.lights.filter((l) => l.area === a.id), th = m.climate.find((c) => c.area === a.id), op = m.openings.filter((o) => o.area === a.id);
+    const sum = [ls.length ? t('ofOn', { a: ls.filter((l) => l.on).length, b: ls.length }) : null, th?.cur != null ? th.cur.toFixed(1).replace('.', ',') + '°' : null, op.length ? (op.some((o) => o.open) ? t('openHead', { a: op.filter((o) => o.open).length, b: op.length }) : t('allClosed')) : null].filter(Boolean).join(' · ');
+    return html`<div class="rise wrapRow sp" style="align-items:flex-end;padding:4px"><div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span class="eyebrow" style="color:var(--accent)">${t('room')}</span>
+      <h2 class="txt" style="margin:0;font-size:clamp(36px,5vw,64px);font-weight:200;letter-spacing:-.05em;line-height:.95">${a.name}</h2><span class="muted txt" style="font-size:14px">${sum}</span></div>
+      <button class="btn" @click=${() => this._set({ room: 'all' })}>${t('seeAll')}</button></div>`;
+  }
+
+  // ── lights ───────────────────────────────────────────────────────────────
+  sLights({ m, t }) {
+    const list = this._visible(this._sorted('lights', m.lights)), ids = list.map((x) => x.id);
+    if (!list.length) return nothing;
+    const onN = list.filter((l) => l.on).length;
+    return html`<section class="sec">${this.secHead('lights', t('lights'), t('ofOn', { a: onN, b: list.length }), onN ? html`<button class="btn sm" @click=${() => this._call('light', 'turn_off', { entity_id: list.filter((l) => l.on).map((l) => l.id) })}>${t('allOff')}</button>` : null, t)}
+      <div class="grid">${repeat(list, (l) => l.id, (l) => {
+        const rgb = l.rgb.join(','), k = l.on ? l.b / 100 : 0, ta = this.tileAttrs('lights', l, ids);
+        const loc = this._local[l.id];
+        const b = loc != null ? loc : l.b;
+        return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${l.on ? `border-color:${rgba(rgb, 0.18 + 0.25 * k)}` : ''}>
+          <span class="orb" style=${`background:radial-gradient(circle, ${rgba(rgb, 0.55)} 0%, ${rgba(rgb, 0)} 65%);opacity:${l.on ? (0.25 + 0.75 * k).toFixed(2) : 0}`}></span>
+          ${this.editBar('lights', l, ids, t)}
+          <button class="tbtn" aria-pressed=${l.on ? 'true' : 'false'} ?disabled=${l.unavailable} aria-label=${l.name + ' · ' + l.areaName} @click=${() => this._call('light', 'toggle', { entity_id: l.id })}>
+            <span class="ic" style=${l.on ? `background:rgb(${rgb});color:#1A1408;box-shadow:0 0 24px ${rgba(rgb, 0.1 + 0.45 * k)}` : ''}>${ic('bulb')}</span>
+            <span class="nm"><b>${l.name}</b><span>${l.areaName ? l.areaName + ' · ' : ''}${l.unavailable ? t('notAvailable') : l.on ? (l.dimmable ? b + '%' : t('on')) : t('off')}</span></span></button>
+          ${l.dimmable && !l.unavailable ? html`<input class="rng" type="range" min="1" max="100" .value=${String(b)} aria-label=${t('brightness') + ' · ' + l.name}
+            style=${`background:linear-gradient(90deg, ${l.on ? `rgb(${rgb})` : 'var(--dim)'} ${b}%, var(--line2) ${b}%)`}
+            @input=${(e) => { this._local[l.id] = Number(e.target.value); this.requestUpdate(); }}
+            @change=${(e) => { const v = Number(e.target.value); this._call('light', 'turn_on', { entity_id: l.id, brightness_pct: v }).finally(() => { setTimeout(() => { delete this._local[l.id]; this.requestUpdate(); }, 1500); }); }}>` : nothing}
+          ${l.ct && !l.unavailable ? html`<div class="cts" role="group" aria-label=${t('warm') + ' / ' + t('cool')}>${[['warm', 2700], ['neutral', 4000], ['cool', 6000]].map(([n, kv]) => { const kk = Math.max(l.minK, Math.min(l.maxK, kv)); const act = l.on && l.kelvin && Math.abs(l.kelvin - kk) < 400; return html`<button aria-pressed=${act ? 'true' : 'false'} style=${act ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => this._call('light', 'turn_on', { entity_id: l.id, color_temp_kelvin: kk })}><i style=${`background:rgb(${n === 'warm' ? '245,190,110' : n === 'neutral' ? '255,234,204' : '196,218,255'})`}></i>${t(n)}</button>`; })}</div>` : nothing}
+        </div>`;
+      })}</div></section>`;
+  }
+
+  // ── climate ──────────────────────────────────────────────────────────────
+  sClimate({ m, t }) {
+    const list = this._visible(this._sorted('climate', m.climate)), ids = list.map((x) => x.id);
+    if (!list.length) return nothing;
+    const heatN = list.filter((c) => c.action === 'heating').length;
+    return html`<section class="sec">${this.secHead('climate', t('climate'), t('thermostats', { n: list.length }) + ' · ' + (heatN ? t('heatingN', { n: heatN }) : t('allAtTarget')), null, t)}
+      <div class="grid w">${repeat(list, (c) => c.id, (c) => {
+        const target = this._pendingTarget[c.id] ?? c.target, heating = c.action === 'heating', off = c.mode === 'off', ta = this.tileAttrs('climate', c, ids);
+        const span = Math.max(1, c.max - c.min), fr = target != null ? Math.max(0, Math.min(1, (target - c.min) / span)) : 0, fc = c.cur != null ? Math.max(0, Math.min(1, (c.cur - c.min) / span)) : 0;
+        const col = off ? '120,120,130' : heating ? '255,150,90' : '143,184,255', dg = (270 * fr).toFixed(1), dc = (270 * fc).toFixed(1);
+        const setT = (v) => { const nv = Math.round(Math.max(c.min, Math.min(c.max, v)) / c.step) * c.step; this._pendingTarget[c.id] = nv; this.requestUpdate(); clearTimeout(this['_tt' + c.id]); this['_tt' + c.id] = setTimeout(() => { this._call('climate', 'set_temperature', { entity_id: c.id, temperature: nv }).finally(() => { setTimeout(() => { delete this._pendingTarget[c.id]; this.requestUpdate(); }, 2500); }); }, 700); };
+        return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${heating ? 'border-color:rgba(255,150,90,.28)' : ''}>
+          <span class="orb" style=${`left:auto;top:auto;right:-70px;bottom:-110px;width:200px;height:200px;background:radial-gradient(circle, rgba(${col},.4) 0%, rgba(${col},0) 65%);opacity:${heating ? 1 : 0.35}`}></span>
+          ${this.editBar('climate', c, ids, t)}
+          <div class="row sp" style="position:relative;align-items:flex-start"><span class="nm"><b>${c.areaName || c.name}</b><span>${c.name}${c.hum != null ? ' · ' + Math.round(c.hum) + '%' : ''}</span></span>
+            <span class="badge" style=${heating ? 'background:rgba(255,150,90,.14);color:#FFB48A;border-color:transparent' : off ? '' : 'background:rgba(143,184,255,.12);color:#B5CCFF;border-color:transparent'}>${heating ? ic('flame', 'i s f') : nothing}${off ? t('offMode') : heating ? t('heating') : t('atTarget')}</span></div>
+          <div class="row sp" style="position:relative;gap:10px">
+            <div class="dial"><div class="t" style=${`background:repeating-conic-gradient(from 225deg, transparent 0deg 3deg, var(--card) 3deg 6deg), conic-gradient(from 225deg, rgb(${col}) 0deg ${dc}deg, rgba(${col},.35) ${dc}deg ${dg}deg, var(--line2) ${dg}deg 270deg, transparent 270deg 360deg)`}></div>
+              <div class="c"><b>${c.cur != null ? c.cur.toFixed(1).replace('.', ',') + '°' : '—'}</b><span class="mono muted" style="font-size:9px;letter-spacing:.1em">${t('nowShort')}</span></div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+              <button class="ib" ?disabled=${target == null || c.unavailable} aria-label=${t('raise') + ' · ' + (c.areaName || c.name)} @click=${() => setT((target ?? c.cur ?? 20) + c.step)}>${ic('up', 'i s')}</button>
+              <span aria-live="polite" style=${`font-size:18px;letter-spacing:-.02em;${heating ? 'color:#FFB48A' : ''}`}>${target != null ? Number(target).toFixed(1).replace('.', ',') + '°' : '—'}</span>
+              <button class="ib" ?disabled=${target == null || c.unavailable} aria-label=${t('lower') + ' · ' + (c.areaName || c.name)} @click=${() => setT((target ?? c.cur ?? 20) - c.step)}>${ic('down', 'i s')}</button></div></div></div>`;
+      })}</div></section>`;
+  }
+
+  // ── plugs ────────────────────────────────────────────────────────────────
+  sPlugs({ m, t }) {
+    const list = this._visible(this._sorted('plugs', m.plugs)), ids = list.map((x) => x.id);
+    if (!list.length) return nothing;
+    const onN = list.filter((p) => p.on).length, prot = list.filter((p) => p.locked).length;
+    return html`<section class="sec">${this.secHead('plugs', t('plugs'), t('plugsHead', { a: onN, b: list.length }), prot ? html`<span class="row muted" style="font-size:12px;gap:6px">${ic('lock', 'i s')}${t('protectedHint')}</span>` : null, t)}
+      <div class="grid">${repeat(list, (p) => p.id, (p) => {
+        const ta = this.tileAttrs('plugs', p, ids);
+        return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${p.locked ? 'border-style:dashed;border-color:var(--line2)' : p.on ? `border-color:${rgba(this._theme().ha ? this._accentRgb : hexRgb(this._theme().accent), 0.28)}` : ''}>
+          ${this.editBar('plugs', p, ids, t)}
+          <div class="row sp" style="align-items:flex-start;gap:10px">
+            <span class="ic" style=${p.on ? 'background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)' : ''}>${ic('plug')}</span>
+            ${p.locked ? html`<span class="badge" title=${t('protectedTitle')}>${ic('lock', 'i s')}${t('protected')}</span>`
+              : html`<button class="switch" role="switch" aria-checked=${p.on ? 'true' : 'false'} ?disabled=${p.unavailable} aria-label=${p.name + ' · ' + p.areaName} @click=${() => this._call('switch', p.on ? 'turn_off' : 'turn_on', { entity_id: p.id })}><span><i></i></span></button>`}</div>
+          <div class="row sp" style="align-items:flex-end;gap:8px"><span class="nm"><b>${p.name}</b><span>${p.areaName}</span></span>
+            <span style=${`font-size:18px;font-weight:300;letter-spacing:-.03em;white-space:nowrap;color:${p.on ? 'var(--fg)' : 'var(--dim)'}`}>${p.unavailable ? t('notAvailable') : p.on ? (p.w != null ? p.w + ' W' : t('plugOn')) : t('plugOff')}</span></div></div>`;
+      })}</div></section>`;
+  }
+
+  // ── energy ───────────────────────────────────────────────────────────────
+  sEnergy({ m, t, aRgb }) {
+    const ui = this._ui, inRoom = (d) => ui.room === 'all' || d.area === ui.room;
+    const plugs = m.metered.filter(inRoom), total = Math.round(plugs.reduce((s, p) => s + (p.on && p.w ? p.w : 0), 0));
+    if (!plugs.length && m.solarW == null) return nothing;
+    const hasSolar = m.solarW != null, solar = m.solarW || 0, house = ui.room === 'all' ? m.plugW : total;
+    const gridNet = m.gridW != null ? m.gridW : house - solar;
+    const maxW = Math.max(1, ...plugs.map((p) => p.w || 0));
+    const flow = (on, rev, dur) => on ? `opacity:1;animation:flow ${dur}s linear infinite${rev ? ' reverse' : ''}` : 'opacity:0';
+    const areaName = ui.room === 'all' ? '' : (m.areas.find((a) => a.id === ui.room)?.name || '');
+    const byRoom = m.areas.map((a) => ({ n: a.name, w: Math.round(m.metered.filter((p) => p.area === a.id && p.on).reduce((s, p) => s + (p.w || 0), 0)) })).filter((x) => m.metered.some((p) => p.area && m.areas.find((a) => a.name === x.n)?.id === p.area));
+    return html`<section class="sec">${this.secHead('energy', t('energy'), t('plugsMetered', { n: plugs.length }), html`<span class="tag row" style="gap:6px;color:#7EE0A8"><span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#7EE0A8"></span>${t('live')}</span>`, t)}
+      <div class="wrapRow" style="align-items:stretch;gap:12px">
+        <div class="tile" style="flex:3 1 440px;padding:22px;gap:16px;border-radius:24px">
+          <div class="row sp" style="align-items:flex-start;gap:12px;flex-wrap:wrap"><span style="display:flex;flex-direction:column;gap:4px"><span class="eyebrow" style="font-size:10px">${t('nowW')}</span>
+            <span class="row" style="align-items:baseline;gap:6px"><span style="font-size:56px;font-weight:200;letter-spacing:-.06em;line-height:.9">${house}</span><span class="muted" style="font-size:16px">W</span></span>
+            <span class="muted txt" style="font-size:12px">${areaName ? t('sumPlugsRoom', { r: areaName }) : t('sumPlugs')}</span></span>
+            ${hasSolar ? nothing : html`<span class="badge" style="border-style:dashed">${svg`<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color:#F5D08A"><path d=${P.sun}></path></svg>`}${t('solarReady')}</span>`}</div>
+          <div class="flowbox" role="img" aria-label=${hasSolar ? `${t('solar')} ${solar} W · ${t('grid')} ${gridNet} W · ${t('home')} ${house} W` : `${t('grid')} → ${t('home')} ${house} W`}>
+            ${svg`<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0" aria-hidden="true">
+              <path d="M16 20 C 45 20, 50 50, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+              <path d="M16 20 C 45 20, 50 50, 80 50" fill="none" stroke="#F5D08A" stroke-width="2" stroke-dasharray="4 8" stroke-linecap="round" vector-effect="non-scaling-stroke" style=${flow(solar > 0, false, 1.1)}></path>
+              <path d="M16 80 C 45 80, 50 50, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+              <path d="M16 80 C 45 80, 50 50, 80 50" fill="none" stroke="#8FB8FF" stroke-width="2" stroke-dasharray="4 8" stroke-linecap="round" vector-effect="non-scaling-stroke" style=${flow(gridNet !== 0, gridNet < 0, 2.2)}></path>
+              <path d="M48 92 C 60 92, 66 60, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path></svg>`}
+            <div class="node" style=${`left:16%;top:20%;opacity:${hasSolar ? 1 : 0.4}`}><span class="o" style=${hasSolar ? 'background:#1E1A12;border:1px solid #4A3C22;color:#F5D08A;box-shadow:0 0 32px -6px rgba(245,208,138,.5)' : 'border:1px dashed var(--dim);color:#F5D08A'}>${ic('sun')}</span><span style="font-size:13px">${hasSolar ? solar + ' W' : t('soon')}</span><span class="tag muted" style="font-size:9px">${t('solar')}</span></div>
+            <div class="node" style="left:16%;top:80%"><span class="o" style="background:#121826;border:1px solid #2A3A5A;color:#8FB8FF">${ic('grid')}</span><span style="font-size:13px">${Math.abs(gridNet)} W</span><span class="tag muted" style="font-size:9px">${gridNet < 0 ? t('gridSelling') : t('grid')}</span></div>
+            <div class="node" style=${`left:48%;top:92%;flex-direction:row;opacity:${hasSolar && m.batterySoc != null ? 1 : 0.4}`}><span class="o" style=${'width:44px;height:44px;color:#7EE0A8;' + (hasSolar && m.batterySoc != null ? 'background:#12201A;border:1px solid #2B5A40' : 'border:1px dashed var(--dim)')}>${ic('batt', 'i s')}</span><span style="display:flex;flex-direction:column;text-align:left"><span style="font-size:13px">${hasSolar && m.batterySoc != null ? Math.round(m.batterySoc) + '%' : t('soon')}</span><span class="tag muted" style="font-size:9px">${t('batteryS')}</span></span></div>
+            <div class="node" style="left:80%;top:50%"><span class="o" style=${`width:92px;height:92px;background:var(--raise);border:1px solid var(--line2);flex-direction:column;gap:2px;box-shadow:0 0 60px -10px ${rgba(aRgb, Math.min(0.55, 0.12 + house / 3000).toFixed(2))}`}>${ic('home')}<b style="font-size:15px;font-weight:500">${house} W</b></span><span class="tag muted" style="font-size:10px">${t('home')}</span></div>
+          </div>
+          <div class="kv"><div><span class="tag muted">${t('todayE')}</span><b>${m.energyToday?.v != null ? m.energyToday.v.toFixed(1).replace('.', ',') + ' ' + m.energyToday.unit : '—'}</b></div><div style=${hasSolar ? '' : 'opacity:.45'}><span class="tag muted">${t('solarToday')}</span><b>${hasSolar ? '—' : t('soon')}</b></div></div>
+        </div>
+        <div class="tile" style="flex:2 1 300px;padding:22px;border-radius:24px">
+          <span class="row sp"><span class="eyebrow" style="font-size:10px">${t('whoNow')}</span><span class="dim" style="font-size:12px">${t('byPlugs')}</span></span>
+          ${plugs.slice().sort((a, b) => (b.on ? b.w || 0 : 0) - (a.on ? a.w || 0 : 0)).slice(0, 8).map((p) => { const w = p.on ? p.w || 0 : 0; return html`<div style="display:flex;flex-direction:column;gap:6px">
+            <span class="row sp" style="gap:8px;font-size:13px;align-items:flex-start"><span class="txt">${p.name} <span class="dim" style="font-size:11px">${p.areaName}</span></span><span style="white-space:nowrap">${w} W <span class="dim">· ${total ? Math.round(100 * w / total) : 0}%</span></span></span>
+            <span class="bar" style="height:4px"><i style=${`width:${Math.round(100 * w / maxW)}%;background:${p.locked ? '#8FB8FF' : 'var(--accent)'}`}></i></span></div>`; })}
+          ${ui.room === 'all' && byRoom.length ? html`<span class="eyebrow" style="font-size:10px;padding-top:10px;border-top:1px solid var(--line)">${t('byRoom')}</span>
+            <div class="kv" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">${byRoom.map((r) => html`<div><span class="muted txt" style="font-size:11px">${r.n}</span><b style="font-size:15px">${r.w} W</b></div>`)}</div>` : nothing}
+        </div></div></section>`;
+  }
+
+  // ── covers ───────────────────────────────────────────────────────────────
+  sCovers({ m, t }) {
+    const list = this._visible(this._sorted('covers', m.covers)), ids = list.map((x) => x.id);
+    if (!list.length) return nothing;
+    const openN = list.filter((c) => c.pos > 0).length;
+    return html`<section class="sec">${this.secHead('covers', t('covers'), t('coversHead', { a: openN, b: list.length }), html`<button class="btn sm" @click=${() => this._call('cover', 'open_cover', { entity_id: ids })}>${t('openAll')}</button><button class="btn sm" @click=${() => this._call('cover', 'close_cover', { entity_id: ids })}>${t('closeAll')}</button>`, t)}
+      <div class="grid w">${repeat(list, (c) => c.id, (c) => {
+        const ta = this.tileAttrs('covers', c, ids), loc = this._local[c.id], pos = loc != null ? loc : c.pos;
+        const st = c.moving ? (c.state === 'opening' ? t('opening') : t('closing')) : c.pos === 0 ? t('closed') : c.pos === 100 ? t('opened') : t('partial');
+        return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end}>
+          ${this.editBar('covers', c, ids, t)}
+          <div class="row" style="align-items:stretch;gap:14px"><div class="blind" aria-hidden="true"><i style=${`height:${100 - c.pos}%;background:${c.curtain ? 'repeating-linear-gradient(90deg,#E7DCC6 0 5px,#CFC3AA 5px 7px)' : 'repeating-linear-gradient(180deg,#D9D3C7 0 4px,#A8A196 4px 5px)'}`}></i></div>
+            <div class="grow" style="display:flex;flex-direction:column;gap:8px">
+              <span class="row sp" style="align-items:baseline;gap:8px"><b class="txt" style="font-size:14px;font-weight:500">${c.name}</b><span style=${`font-size:16px;font-weight:300;${c.moving ? 'color:#C9D8F5' : ''}`}>${Math.round(c.pos)}%</span></span>
+              <span class="txt" style=${`font-size:12px;color:${c.moving ? '#C9D8F5' : 'var(--mut)'}`}>${c.areaName} · ${st}</span>
+              ${c.hasPos ? html`<input class="rng" type="range" min="0" max="100" step="5" .value=${String(pos)} aria-label=${c.name} style=${`background:linear-gradient(90deg,#C9D8F5 ${pos}%, var(--line2) ${pos}%)`}
+                @input=${(e) => { this._local[c.id] = Number(e.target.value); this.requestUpdate(); }}
+                @change=${(e) => { const v = Number(e.target.value); this._call('cover', 'set_cover_position', { entity_id: c.id, position: v }).finally(() => setTimeout(() => { delete this._local[c.id]; this.requestUpdate(); }, 1500)); }}>`
+              : html`<span class="wrapRow" style="gap:6px"><button class="btn sm" @click=${() => this._call('cover', 'open_cover', { entity_id: c.id })}>${ic('up', 'i s')}</button><button class="btn sm" @click=${() => this._call('cover', 'stop_cover', { entity_id: c.id })}>■</button><button class="btn sm" @click=${() => this._call('cover', 'close_cover', { entity_id: c.id })}>${ic('down', 'i s')}</button></span>`}
+            </div></div></div>`;
+      })}</div></section>`;
+  }
+
+  // ── doors & windows ──────────────────────────────────────────────────────
+  sOpenings({ m, t, now }) {
+    const list = this._visible(this._sorted('openings', m.openings)), ids = list.map((x) => x.id);
+    if (!list.length) return nothing;
+    const openN = list.filter((o) => o.open).length;
+    const ago = (iso) => { const mins = Math.max(0, Math.round((now - Date.parse(iso)) / 60000)); return mins < 60 ? mins + ' ' + t('min') : mins < 1440 ? Math.round(mins / 60) + ' h' : Math.round(mins / 1440) + ' d'; };
+    return html`<section class="sec">${this.secHead('openings', t('openings'), openN ? t('openHead', { a: openN, b: list.length }) : t('allClosed'), null, t)}
+      <div class="grid w">${repeat(list, (o) => o.id, (o) => {
+        const ta = this.tileAttrs('openings', o, ids);
+        return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${(o.open ? 'border-color:var(--accent);' : '') + 'padding:14px 16px'}>
+          ${this.editBar('openings', o, ids, t)}
+          <div class="row" style="gap:12px"><span class="ic" style=${'width:36px;height:36px;' + (o.open ? 'background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)' : '')}>${ic(o.door ? 'door' : 'win', 'i s')}</span>
+            <span class="nm grow"><b>${o.name}</b><span>${o.areaName}</span></span>
+            <span class="pill" style=${o.open ? 'background:var(--accent);color:var(--on-accent);border-color:var(--accent)' : ''}>${o.unavailable ? t('notAvailable') : o.open ? t('open') + ' · ' + ago(o.st.last_changed) : t('shut')}</span></div></div>`;
+      })}</div></section>`;
+  }
+
+  // ── security & cameras ───────────────────────────────────────────────────
+  sSecurity({ m, t, now }) {
+    const ui = this._ui;
+    const cams = this._visible(this._sorted('cams', m.cams)), locks = this._visible(this._sorted('locks', m.locks));
+    const camIds = cams.map((x) => x.id), lockIds = locks.map((x) => x.id);
+    const alarm = m.alarms[0];
+    if (!cams.length && !locks.length && !alarm) return nothing;
+    const st = alarm?.state;
+    const stLabel = !alarm ? '' : st === 'disarmed' ? t('disarmed') : st === 'armed_home' ? t('armHome') : st === 'armed_away' ? t('armAway') : st === 'armed_night' ? t('armNight') : st === 'triggered' ? t('triggered') : st;
+    const modes = alarm ? [['disarmed', 'alarm_disarm', t('disarmed')], ['armed_home', 'alarm_arm_home', t('armHome')], ['armed_away', 'alarm_arm_away', t('armAway')], ['armed_night', 'alarm_arm_night', t('armNight')]] : [];
+    const refresh = Math.floor(now.getTime() / 10000);
+    return html`<section class="sec">${this.secHead('security', t('security'), alarm ? alarm.name + ' · ' + stLabel : '', alarm ? html`<span class="seg" role="group" aria-label=${alarm.name}>${modes.map(([s, svc, n]) => html`<button aria-pressed=${st === s ? 'true' : 'false'} ?disabled=${alarm.needsCode && s === 'disarmed' && st !== 'disarmed'} style="font-family:inherit;font-size:12px;letter-spacing:0" @click=${() => this._call('alarm_control_panel', svc, { entity_id: alarm.id })}>${n}</button>`)}</span>` : null, t)}
+      ${alarm?.needsCode && st !== 'disarmed' ? html`<span class="muted txt" style="font-size:12px;padding:0 4px">${t('codeNeeded')}</span>` : nothing}
+      <div class="grid w">
+        ${repeat(cams, (c) => c.id, (c) => { const ta = this.tileAttrs('cams', c, camIds), off = c.unavailable || c.state === 'off' || !c.attrs.entity_picture; const src = off ? '' : this._url(c.attrs.entity_picture) + (c.attrs.entity_picture.includes('?') ? '&' : '?') + 't=' + refresh;
+          return html`<div class=${'cam' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end}>
+            ${off ? html`<span style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--mut);font-size:12px">${ic('camOff')}${t('camOff')}</span>` : html`<img src=${src} alt=${c.name} loading="lazy"><span class="livep"><i class="pulse"></i>${t('live')}</span>`}
+            ${this.editBar('cams', c, camIds, t, true)}
+            <span class="foot"><span class="txt" style="display:flex;flex-direction:column;gap:1px"><b style="font-size:14px;font-weight:500">${c.name}</b><span style="font-size:11px;opacity:.75">${c.areaName}</span></span><span class="mono" style="font-size:10px;opacity:.75">${now.toLocaleTimeString(this.hass.locale?.language, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span></span></div>`; })}
+        ${repeat(locks, (l) => l.id, (l) => { const ta = this.tileAttrs('locks', l, lockIds), armed = ui.unlockArm === l.id;
+          const tap = () => { if (l.locked) { if (armed) { this._set({ unlockArm: null }); this._call('lock', 'unlock', { entity_id: l.id }); } else { this._set({ unlockArm: l.id }); setTimeout(() => { if (this._ui.unlockArm === l.id) this._set({ unlockArm: null }); }, 4000); } } else this._call('lock', 'lock', { entity_id: l.id }); };
+          return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${l.locked ? '' : 'border-color:rgba(255,107,94,.5);background:linear-gradient(rgba(255,107,94,.06),rgba(255,107,94,.06)),var(--card)'}>
+            ${this.editBar('locks', l, lockIds, t)}
+            <button class="tbtn" style="flex-direction:column;align-items:flex-start;gap:16px" aria-pressed=${l.locked ? 'true' : 'false'} ?disabled=${l.unavailable} @click=${tap}>
+              <span style=${l.locked ? 'color:#7EE0A8' : 'color:#FF8A80'}>${svg`<svg class="i" style="width:36px;height:36px;stroke-width:1.3" viewBox="0 0 24 24" aria-hidden="true"><path d=${l.locked ? P.lock : P.unlock}></path></svg>`}</span>
+              <span class="nm"><span class="tag muted">${l.name}</span><b style="font-size:24px;font-weight:300;letter-spacing:-.03em">${l.locked ? t('locked') : t('unlocked')}</b><span>${armed ? t('confirmUnlock') : l.locked ? t('tapUnlock') : t('tapLock')}</span></span></button></div>`; })}
+      </div></section>`;
+  }
+
+  // ── AUREON Music (SpotifyPlus via the original AUREON MusicController) ──
+  sMusic({ m, t, now, aRgb }) {
+    const ui = this._ui, mc = this._mc;
+    const acct = mc.state;
+    const spIds = new Set(mc.players.filter((p) => isSpotifyPlus(this.hass, p.entity_id)).map((p) => p.entity_id));
+    const all = this._sorted('speakers', m.speakers.filter((s) => !spIds.has(s.id)));
+    const list = this._visible(all), ids = list.map((x) => x.id);
+    if (!acct && !all.length) return nothing;
+    const a = acct?.attributes || {}, playing = mc.isPlaying, pos = position(acct, now.getTime());
+    const art = artworkUrl(a.entity_picture_local || a.entity_picture || a.sp_nowplaying_image_url, this.hass);
+    const mmss = (x) => Math.floor(x / 60) + ':' + p2(Math.floor(x % 60));
+    const fr = pos.duration ? pos.value / pos.duration : 0;
+    const vol = this._local['vol:acct'] ?? (a.volume_level != null ? Math.round(a.volume_level * 100) : null);
+    const speakersOn = all.filter((s) => s.playing && !s.tv);
+    const status = speakersOn.length > 1 && speakersOn.length === all.filter((s) => !s.tv).length ? t('everywhere') : speakersOn.length > 1 ? t('inSpeakers', { n: speakersOn.length }) : playing ? t('playing') : t('paused');
+    const groupable = all.filter((s) => !s.tv && (s.features & F.GROUP));
+    const lead = groupable.find((s) => s.playing) || groupable[0], members = lead?.attrs.group_members || [], grouped = members.length > 1;
+    // Library: the account's own Spotify data, read only after the Music section is on screen.
+    if (mc.spotify && !this._libAsked && mc.advanced('get_playlist_favorites')) { this._libAsked = mc.entityId; mc.browse('playlists'); }
+    const kinds = [['playlists', 'Playlists', 'get_playlist_favorites'], ['recent', t('recentS'), 'get_player_recent_tracks'], ['albums', t('albumsS'), 'get_album_favorites'], ['favorites', t('likedS'), 'get_track_favorites'], ['podcasts', 'Podcasts', 'get_show_favorites']].filter(([, , s]) => mc.advanced(s));
+    const panel = ui.musicPanel || 'library', busy = mc.pending.has('browse');
+    const imgOf = (it) => artworkUrl((it.images || it.icons || it.album?.images)?.[0]?.url || it.image_url, this.hass);
+    const accounts = mc.players.filter((p) => spIds.has(p.entity_id));
+    return html`<section class="sec">${this.secHead('music', html`<span style="letter-spacing:.28em;font-size:15px;font-weight:500;color:var(--accent)">AUREON</span> ${t('music')}`, status, html`
+        ${accounts.length > 1 ? html`<span class="seg" role="group" aria-label="Spotify">${accounts.map((p) => html`<button aria-pressed=${p.entity_id === mc.entityId ? 'true' : 'false'} style="font-family:inherit;font-size:12px;letter-spacing:0" @click=${() => { mc.select(p.entity_id); this._libAsked = null; }}>${p.attributes.friendly_name || p.entity_id}</button>`)}</span>` : nothing}
+        ${groupable.length > 1 ? html`<button class="btn sm" @click=${() => grouped ? this._call('media_player', 'unjoin', { entity_id: members.filter((x) => x !== lead.id) }) : this._call('media_player', 'join', { entity_id: lead.id, group_members: groupable.filter((s) => s.id !== lead.id).map((s) => s.id) })}>${grouped ? t('ungroup') : t('groupAll')}</button>` : nothing}`, t)}
+      ${acct ? html`<div class="wrapRow" style="align-items:stretch;gap:12px">
+        <div class="player" style="flex:3 1 460px;min-width:0">
+          <div aria-hidden="true" style=${`position:absolute;inset:0;pointer-events:none;opacity:${playing ? 1 : 0.35};background:radial-gradient(60% 90% at 15% 50%, ${rgba(aRgb, 0.14)} 0%, ${rgba(aRgb, 0)} 70%), radial-gradient(50% 80% at 90% 100%, rgba(169,155,255,.10) 0%, rgba(169,155,255,0) 70%)`}></div>
+          <div class="art" aria-hidden="true">${art ? html`<img src=${art} alt="">` : html`<span class="o1 breathe" style=${`background:radial-gradient(circle, ${rgba(aRgb, 0.55)} 0%, ${rgba(aRgb, 0)} 65%)`}></span><span class="o2 breathe" style="background:radial-gradient(circle, rgba(169,155,255,.5) 0%, rgba(169,155,255,0) 65%)"></span><span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">${ic('note')}</span>`}</div>
+          <div class="grow" style="position:relative;flex:1 1 260px;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span class="tag row" style="gap:8px;color:var(--accent);flex-wrap:wrap"><span class=${'eq' + (playing ? '' : ' off')}><i></i><i></i><i></i></span>${a.source ? t('onSpeaker', { s: a.source }) : (a.friendly_name || 'Spotify')}</span>
+              <span class="row" style="align-items:flex-start;gap:10px"><span class="trk grow">${a.media_title || t('nothingPlaying')}</span>
+                ${mc.advanced('save_track_favorites') && a.media_title ? html`<button class="ib ghost" aria-pressed=${mc.favorite ? 'true' : 'false'} aria-label=${t('likedS')} style=${mc.favorite ? 'color:#FF8FA3' : 'color:var(--mut)'} @click=${() => mc.toggleFavorite()}>${svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style=${mc.favorite ? 'fill:currentColor' : ''}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>`}</button>` : nothing}</span>
+              <span class="muted txt" style="font-size:14px">${[a.media_artist, a.media_album_name].filter(Boolean).join(' · ')}</span></div>
+            ${pos.duration ? html`<div><input class="rng" type="range" min="0" max=${String(Math.round(pos.duration))} .value=${String(Math.round(pos.value))} ?disabled=${!mc.can('seek')} aria-label=${a.media_title || 'position'} style=${`background:linear-gradient(90deg, var(--accent) ${(fr * 100).toFixed(1)}%, var(--line2) ${(fr * 100).toFixed(1)}%)`} @change=${(e) => mc.command('seek', Number(e.target.value))}>
+              <span class="row sp mono muted" style="font-size:11px"><span>${mmss(pos.value)}</span><span>${mmss(pos.duration)}</span></span></div>` : nothing}
+            <div class="wrapRow">
+              ${mc.can('shuffle') ? html`<button class="ib ghost" aria-pressed=${a.shuffle ? 'true' : 'false'} aria-label=${t('shuffle')} style=${a.shuffle ? 'color:var(--accent)' : 'color:var(--mut)'} @click=${() => mc.command('shuffle')}>${ic('shuffle')}</button>` : nothing}
+              ${mc.can('previous') ? html`<button class="round" aria-label=${t('prev')} @click=${() => mc.command('previous')}>${ic('prev', 'i f')}</button>` : nothing}
+              <button class="play" aria-label=${playing ? t('pause') : t('play')} ?disabled=${!mc.ready} @click=${() => mc.command(playing ? 'pause' : 'play')}>${ic(playing ? 'pause' : 'play', 'i f')}</button>
+              ${mc.can('next') ? html`<button class="round" aria-label=${t('next')} @click=${() => mc.command('next')}>${ic('next', 'i f')}</button>` : nothing}
+              ${mc.can('volume') && vol != null ? html`<span class="row" style="flex:1 1 150px;min-width:150px">${ic('vol', 'i s')}<input class="rng" type="range" min="0" max="100" .value=${String(vol)} aria-label=${t('volume')} style=${`background:linear-gradient(90deg, var(--accent) ${vol}%, var(--line2) ${vol}%)`}
+                @input=${(e) => { this._local['vol:acct'] = Number(e.target.value); this.requestUpdate(); }}
+                @change=${(e) => { mc.command('volume', Number(e.target.value) / 100).finally(() => setTimeout(() => { delete this._local['vol:acct']; this.requestUpdate(); }, 1500)); }}><span class="mono muted" style="font-size:11px;min-width:26px;text-align:right">${vol}</span></span>` : nothing}
+            </div>
+            ${mc.error ? html`<span class="txt" style="font-size:12px;color:#FF8A80">${mc.error}</span>` : nothing}
+          </div></div>
+        <div class="tile" style="flex:2 1 300px;padding:18px;border-radius:28px;gap:12px">
+          <div class="seg" role="tablist" style="flex-wrap:wrap">
+            <button role="tab" aria-pressed=${panel === 'library' ? 'true' : 'false'} style="font-family:inherit;font-size:12px;letter-spacing:0" @click=${() => this._set({ musicPanel: 'library' })}>${t('library')}</button>
+            ${mc.advanced('get_spotify_connect_devices') ? html`<button role="tab" aria-pressed=${panel === 'devices' ? 'true' : 'false'} style="font-family:inherit;font-size:12px;letter-spacing:0" @click=${() => { this._set({ musicPanel: 'devices' }); mc.loadDevices(false); }}>${t('whereToPlay')}</button>` : nothing}</div>
+          ${panel === 'devices' ? html`<div style="display:flex;flex-direction:column;gap:4px">${mc.pending.has('devices') ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
+              ${mc.devices.map((d) => html`<button class="mi" role="menuitemradio" aria-checked=${d.active ? 'true' : 'false'} ?disabled=${mc.pending.has('transfer')} @click=${() => mc.transfer(d.id)}>
+                <span class="ic" style=${'width:36px;height:36px;' + (d.active ? 'background:var(--accent);color:var(--on-accent)' : '')}>${ic('speaker', 'i s')}</span>
+                <span class="grow txt"><b style="display:block;font-size:13px;font-weight:500">${d.name}</b><span class="muted" style="font-size:11px">${d.active ? t('playing') : d.ready ? t('ready') : t('openSpotify')}</span></span></button>`)}
+              ${!mc.pending.has('devices') && !mc.devices.length ? html`<span class="muted txt" style="font-size:13px">${t('noDevices')}</span>` : nothing}</div>`
+          : html`${kinds.length ? html`<div class="scroller" role="group" aria-label=${t('library')}>${kinds.map(([k, n]) => html`<button class="dc" aria-pressed=${mc.libraryKind === k && mc.view === 'library' ? 'true' : 'false'} style=${mc.libraryKind === k && mc.view === 'library' ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => mc.browse(k)}>${n}</button>`)}</div>` : nothing}
+            ${mc.advanced('search_tracks') ? html`<input type="search" .value=${ui.musicQuery || ''} placeholder=${t('searchS')} aria-label=${t('searchS')} @input=${(e) => this._set({ musicQuery: e.target.value })} @keydown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) mc.browse('search', e.target.value); }}
+              style="min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit;font-size:13px">` : nothing}
+            ${busy ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px">${mc.results.slice(0, 12).map((it) => { const im = imgOf(it), starting = mc.startingUri === it.uri; return html`<button style="display:flex;flex-direction:column;gap:8px;padding:6px;border-radius:14px;border:1px solid var(--line);background:var(--sunk);text-align:left" aria-label=${t('play') + ' · ' + it.name} ?disabled=${starting} @click=${() => mc.playItem(it)}>
+                <span style=${`position:relative;display:block;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:${im ? `center/cover url("${im}")` : `radial-gradient(70% 70% at 25% 25%, ${rgba(aRgb, 0.7)} 0%, ${rgba(aRgb, 0)} 70%), var(--raise)`}`}>${starting ? html`<span class="pulse" style="position:absolute;inset:0;background:rgba(0,0,0,.35)"></span>` : nothing}</span>
+                <span class="txt" style="font-size:12px;font-weight:500;line-height:1.3">${it.name}</span></button>`; })}</div>
+            ${!busy && !mc.results.length && !kinds.length && !mc.spotify ? html`<span class="muted txt" style="font-size:13px">${t('noSpotify')}</span>` : nothing}
+            ${mc.hasNext || mc.pageIndex ? html`<div class="row" style="justify-content:flex-end;gap:6px"><button class="ib sm" ?disabled=${!mc.pageIndex} aria-label=${t('back')} @click=${() => mc.changePage(-1)}>${ic('left', 'i s')}</button><button class="ib sm" ?disabled=${!mc.hasNext} aria-label=${t('fwd')} @click=${() => mc.changePage(1)}>${ic('right', 'i s')}</button></div>` : nothing}`}
+        </div></div>` : nothing}
+      ${list.length ? html`<span class="eyebrow" style="padding:6px 4px 0;font-size:10px">${t('speakers')}</span>
+      <div class="grid">${repeat(list, (s) => s.id, (s) => {
+        const ta = this.tileAttrs('speakers', s, ids), v = this._local['vol:' + s.id] ?? s.vol;
+        return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${s.playing ? `border-color:${rgba(aRgb, 0.3)}` : ''}>
+          ${this.editBar('speakers', s, ids, t)}
+          <div class="tbtn" style="cursor:default">
+            <span class="ic" style=${s.playing ? 'background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)' : ''}>${ic(s.tv ? 'tv' : 'speaker')}</span>
+            <span class="nm grow"><b>${s.name}</b><span>${[s.areaName, s.unavailable ? t('notAvailable') : s.playing ? (s.attrs.media_title || t('playing')) : s.state === 'paused' ? t('paused') : ''].filter(Boolean).join(' · ')}</span></span>
+            ${s.features & (F.PAUSE | F.PLAY) && !s.unavailable ? html`<button class="ib sm" aria-label=${(s.playing ? t('pause') : t('play')) + ' · ' + s.name} @click=${() => this._call('media_player', 'media_play_pause', { entity_id: s.id })}>${ic(s.playing ? 'pause' : 'play', 'i s f')}</button>` : nothing}</div>
+          ${v != null && s.features & F.VOL ? html`<div class="row">${ic('vol', 'i s')}<input class="rng" type="range" min="0" max="100" .value=${String(v)} aria-label=${t('volume') + ' · ' + s.name} style=${`background:linear-gradient(90deg, ${s.playing ? 'var(--accent)' : 'var(--dim)'} ${v}%, var(--line2) ${v}%)`}
+            @input=${(e) => { this._local['vol:' + s.id] = Number(e.target.value); this.requestUpdate(); }}
+            @change=${(e) => { const nv = Number(e.target.value); this._call('media_player', 'volume_set', { entity_id: s.id, volume_level: nv / 100 }).finally(() => setTimeout(() => { delete this._local['vol:' + s.id]; this.requestUpdate(); }, 1500)); }}><span class="mono muted" style="font-size:11px;min-width:26px;text-align:right">${v}</span></div>` : nothing}
+        </div>`;
+      })}</div>` : nothing}</section>`;
+  }
+}
+
+class AureonMusicCard extends AureonDashboard {
+  render() {
+    if (!this.hass) return html``;
+    if (!this._prefs) this._loadPrefs();
+    const lang = localeOf(this.hass), t = translator(lang), now = new Date();
+    const m = buildModel(this.hass, { now, labels: this._labels, aliases: this._prefs.aliases, hidden: this._prefs.hidden, noAreaName: t('noArea') });
+    const th = this._theme(), aRgb = th.ha ? this._accentRgb : hexRgb(th.accent);
+    const vars = th.ha ? '--bg:var(--primary-background-color);--card:var(--card-background-color);--card2:var(--secondary-background-color);--sunk:var(--primary-background-color);--raise:var(--secondary-background-color);--line:var(--divider-color);--line2:var(--divider-color);--fg:var(--primary-text-color);--fg2:var(--primary-text-color);--mut:var(--secondary-text-color);--dim:var(--secondary-text-color);--accent:var(--primary-color);--on-accent:#fff;'
+      : `--bg:${th.bg};--card:${th.card};--card2:${th.card2};--sunk:${th.sunk};--raise:${th.raise};--line:${th.line};--line2:${th.line2};--fg:#F2F2F3;--fg2:#D4D4D8;--mut:#A1A1AA;--dim:#8A8A94;--accent:${th.accent};--on-accent:#1A1408;`;
+    return html`<div style=${vars + 'padding:12px;background:var(--bg);border-radius:24px'}>${this.sMusic({ m, t, now, aRgb })}</div>`;
+  }
+}
+
+class AureonDashboardStrategy extends HTMLElement {
+  static async generate() {
+    return { title: 'AUREON', views: [{ title: 'AUREON', path: 'home', icon: 'mdi:home-assistant', type: 'panel', cards: [{ type: 'custom:aureon-dashboard' }] }] };
+  }
+}
+
+if (!customElements.get('aureon-dashboard')) customElements.define('aureon-dashboard', AureonDashboard);
+if (!customElements.get('aureon-music-player')) customElements.define('aureon-music-player', AureonMusicCard);
+if (!customElements.get('ll-strategy-aureon-dashboard')) customElements.define('ll-strategy-aureon-dashboard', AureonDashboardStrategy);
+window.customCards = window.customCards || [];
+if (!window.customCards.some((c) => c.type === 'aureon-dashboard')) window.customCards.push({ type: 'aureon-dashboard', name: 'AUREON Dashboard', description: 'AUREON Noir — the whole home on one page', preview: false });
+if (!window.customCards.some((c) => c.type === 'aureon-music-player')) window.customCards.push({ type: 'aureon-music-player', name: 'AUREON Music', description: 'AUREON Music player and speakers', preview: false });
+window.AUREON_BUILD_INFO = Object.freeze({ version: VERSION, build: BUILD, file: 'aureon-dashboard.js' });
+console.info(`%c AUREON %c ${VERSION} · ${BUILD} `, 'background:#E6CC9A;color:#1A1408;font-weight:600;border-radius:4px 0 0 4px;padding:2px 6px', 'background:#111114;color:#E6CC9A;border-radius:0 4px 4px 0;padding:2px 6px');

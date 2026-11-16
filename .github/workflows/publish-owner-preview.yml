@@ -1,11 +1,13 @@
-name: Publish AUREON owner preview to HACS master
+name: Publish AUREON dashboard to HACS master
+# AUREON Noir (noir/) is the HACS dashboard since 2026-11-16. This job rebuilds dist/ from noir/,
+# runs the unit and real-browser checks and commits the bundle only when it changed.
 on:
   push:
     branches: [master]
     paths:
       - '.github/workflows/publish-owner-preview.yml'
-      - 'floor-studio/dashboard/platform/styles.mjs'
-      - 'floor-studio/dashboard/platform/home-cinema.mjs'
+      - 'noir/**'
+      - 'floor-studio/dashboard/music/controller.mjs'
   workflow_dispatch:
 permissions:
   contents: write
@@ -21,41 +23,18 @@ jobs:
           persist-credentials: true
       - uses: actions/setup-node@v4
         with:
-          node-version: '24.22.1'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
+          node-version: '22'
       - run: npm ci
-      - run: npm ci --prefix floor-studio/neonplan3d-main/frontend
-      - run: npm run validate
-      - run: python -m unittest discover -s floor-studio/tests -p 'test_*.py'
-      - run: npm test
-      - run: npm run build
-      - run: npm run test:browser
-        env:
-          CHROME_BIN: /usr/bin/google-chrome
-      - run: node scripts/check-neonplan-migration-contract.mjs
-      - run: node scripts/package-hacs-integration-candidate.mjs
-      - run: node scripts/verify-hacs-integration-candidate.mjs
-      - run: pip install -r requirements_test.txt
-        working-directory: floor-studio/neonplan3d-main
-      - run: pytest -q
-        working-directory: floor-studio/neonplan3d-main
-      - name: Promote dashboard preview (not a stable release)
+      - run: npm run build:noir
+      - run: node --test noir/tests/*.test.mjs
+      - run: CHROME_BIN="$(command -v google-chrome || command -v chromium)" node scripts/test-noir-browser.mjs
+      - run: node scripts/validate-distribution.mjs
+      - name: Commit the rebuilt bundle when it changed
         run: |
-          cp build/dashboard/aureon-dashboard.js dist/aureon-dashboard.js
-          rm -rf dist/aureon-assets
-          cp -a build/dashboard/aureon-assets dist/aureon-assets
-          sha256sum dist/aureon-dashboard.js | awk '{print $1}' > scripts/stable-dashboard.sha256
-          npm run validate
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/aureon-dashboard.js dist/aureon-assets scripts/stable-dashboard.sha256
+          git add dist/aureon-dashboard.js scripts/stable-dashboard.sha256
           if ! git diff --cached --quiet; then
-            git commit -m "preview(hacs): publish owner-requested Botanical dashboard test build"
+            git commit -m "build(hacs): rebuild AUREON Noir bundle"
             git push origin HEAD:master
           fi
-      - name: Mark owner preview limitations
-        run: |
-          echo 'Owner-requested HACS test preview published to master, NOT stable release.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Home Assistant runtime integration, user permissions and visual fidelity still require owner testing.' >> "$GITHUB_STEP_SUMMARY"

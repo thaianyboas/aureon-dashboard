@@ -1,5 +1,46 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.0.0 — 2026-11-16 (painel inteiro substituído a pedido da dona)
+
+O painel do HACS agora é o **AUREON Noir**: uma página só com a casa inteira, lida direto dos registros do Home Assistant
+(áreas, dispositivos, entidades e etiquetas). Nenhum entity_id é adivinhado; nenhum comando é enviado sem um toque.
+
+**O que tem**
+- Relógio, saudação e resumo da casa; casa em **3D** ou **Planta** (cada área do HA vira um cômodo; tocar filtra o painel).
+- **Cenas** (scene.*), **Acontecendo agora**: música, máquina de lavar/secar/lava-louças (progresso e fim de ciclo com aviso),
+  coleta de lixo (os mesmos formatos de sensor do AUREON anterior), robô aspirador (vacuum.*) e cortinas em movimento.
+- Seções: Luzes (brilho e cor), Clima (termostatos), Tomadas e interruptores (consumo em W), Energia (soma das tomadas com
+  medição; solar e bateria já preparados — aparecem sozinhos quando existir um sensor de potência solar), Cortinas e
+  persianas, Portas e janelas, Segurança (alarme, fechaduras, câmeras) e **AUREON Music**.
+- **AUREON Music** usa o SpotifyPlus de verdade (o mesmo controlador do AUREON anterior): biblioteca (playlists, recentes,
+  álbuns, curtidas, podcasts), busca, curtir a música, **Onde tocar** (Spotify Connect) e as caixas por cômodo.
+- **Editar painel**: arrastar ou mover cartões, ocultar, reordenar seções, renomear. Renomear muda o nome no Home Assistant
+  (registro de entidades/dispositivos) **só para administradores e só depois de confirmar**; para outros usuários o nome
+  muda só neste navegador.
+- **Temas**: Aureon, Âmbar, Oceano, Ametista, Jade, Rosé, Platina e "Home Assistant" (segue o tema do HA).
+- Idioma automático pelo Home Assistant (português, alemão ou inglês). Nenhum texto é cortado em telas pequenas.
+
+**Etiquetas (Configurações → Áreas, etiquetas e zonas → Etiquetas)**
+- `no_dboard` — a entidade nunca aparece no painel.
+- `protegida` (ou `immer_an`, `always_on`) — tomada que **nunca** pode ser desligada pelo painel (mostra um cadeado).
+- `steckdosen_dashboard` — um interruptor que é tomada.
+
+**Como atualizar**
+1. HACS → AUREON Dashboard → ⋮ → **Atualizar** (ou Baixar novamente).
+2. Recarregue o navegador sem cache (no celular/iSG: feche e abra o app).
+3. O painel continua no mesmo lugar: cartão `custom:aureon-dashboard` ou estratégia `custom:aureon-dashboard`.
+   O cartão `custom:aureon-music-player` mostra só o AUREON Music.
+
+**Voltar para a versão anterior**: a versão 0.29.0-test.5 está em `rollback/v0.29.0-test.5/aureon-dashboard.js`
+(e a v0.28.0 em `rollback/v0.28.0/`). O editor 3D Floor Studio e as páginas antigas não fazem parte do AUREON Noir.
+
+**Desenvolvimento**: código em `noir/`; `npm ci && npm run build:noir` gera `dist/aureon-dashboard.js` e o hash;
+`node --test noir/tests/*.test.mjs` e `node scripts/test-noir-browser.mjs` (Chrome real + casa sintética, sem dados pessoais).
+
+---
+
+## Histórico anterior
+
 **Prévia HACS 0.29.0-test.5.** Selecione Forest Luxe · Botanical em Configurações → Aparência. Alterne em Configurações → Página Início → Exibir planta 3D. A versão anterior pode ser recuperada pelo commit `2e196a1`, e a versão estável continua em `rollback/v0.28.0/`.
 
 **Owner test build 0.29.0-test.3 (2026-11-03).** At the owner's request the HACS distribution in `dist/` now carries the current AUREON platform build for testing in her own Home Assistant. The compact settings and visual theme gallery have owner approval; this remains an owner test build. It needs the matching NeonPlan3D AUREON integration from `thaianyboas/aureon-integration` (same `neonplan3d` domain; replaces the official integration, keeps its storage). The previous stable v0.28.0 file is kept in `rollback/v0.28.0/`. See [OWNER_TEST_2026-11-01.md](OWNER_TEST_2026-11-01.md).

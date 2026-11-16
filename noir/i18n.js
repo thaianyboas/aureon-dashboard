@@ -1,0 +1,111 @@
+// AUREON Noir — interface texts. Language follows Home Assistant (hass.locale.language).
+const pt = {
+  wasteDone: 'Já coloquei na rua',
+  recentS: 'Recentes', albumsS: 'Álbuns', likedS: 'Curtidas', library: 'Biblioteca', whereToPlay: 'Onde tocar', loadingS: 'Carregando…', ready: 'Pronta', openSpotify: 'Abra o Spotify nela uma vez', noDevices: 'Nenhuma caixa do Spotify Connect encontrada.', searchS: 'Buscar no Spotify', noSpotify: 'Conecte o SpotifyPlus para ver playlists e biblioteca.', onSpeaker: 'Tocando em {s}',
+  morning: 'Bom dia', afternoon: 'Boa tarde', evening: 'Boa noite', theme: 'Tema', themeTitle: 'Tema do painel',
+  edit: 'Editar painel', doneEdit: 'Concluir edição', editTitle: 'Modo edição', reset: 'Restaurar padrão', done: 'Concluir',
+  editHint: 'Arraste os cartões ou use ‹ › para mudar a posição · o lápis renomeia · o olho oculta · as setas ao lado do título reordenam as seções.',
+  showHidden: 'Mostrar ocultos', hideHidden: 'Esconder ocultos', hide: 'Ocultar', unhide: 'Mostrar', back: 'Mover para trás', fwd: 'Mover para frente', rename: 'Renomear',
+  newName: 'Novo nome', save: 'Salvar', cancel: 'Cancelar', confirmHa: 'Mudar o nome no Home Assistant? Vale para todos os painéis e apps.', confirmBtn: 'Mudar no HA', onlyHere: 'Só neste painel',
+  renamedHa: 'Nome alterado no Home Assistant', renamedLocal: 'Nome alterado neste painel', renamedLocalWhy: 'Só administradores mudam nomes no Home Assistant.', renameFail: 'O Home Assistant recusou a mudança de nome',
+  sectionUp: 'Subir seção', sectionDown: 'Descer seção',
+  house3d: 'Casa em 3D', plan: 'Planta', tapRoom: 'Toque num cômodo para ver os dispositivos', devices: 'dispositivos', allHome: 'Casa toda', noArea: 'Sem cômodo',
+  room: 'Cômodo', seeAll: 'Ver a casa toda', all: 'Tudo', scenes: 'Cenas', scene: 'Cena', active: 'Ativa', now: 'Acontecendo agora',
+  lights: 'Luzes', climate: 'Clima', plugs: 'Tomadas e interruptores', energy: 'Energia', covers: 'Cortinas e persianas', openings: 'Portas e janelas', security: 'Segurança', music: 'Music',
+  lightsShort: 'Luzes', climateShort: 'Clima', plugsShort: 'Tomadas', energyShort: 'Energia', coversShort: 'Cortinas', openingsShort: 'Portas e janelas', securityShort: 'Segurança', musicShort: 'AUREON Music',
+  on: 'acesa', off: 'apagada', ofOn: '{a} de {b} acesas', allOff: 'Apagar todas', warm: 'Quente', neutral: 'Neutra', cool: 'Fria', brightness: 'Brilho',
+  heating: 'Aquecendo', atTarget: 'No alvo', offMode: 'Desligado', nowShort: 'AGORA', raise: 'Aumentar', lower: 'Diminuir', thermostats: '{n} termostatos', heatingN: '{n} aquecendo', allAtTarget: 'todos no alvo',
+  plugOn: 'ligada', plugOff: 'desligada', protected: 'Protegida', protectedHint: 'protegidas nunca desligam aqui', protectedTitle: 'Protegida: não pode ser desligada pelo painel', plugsHead: '{a} de {b} ligadas',
+  openAll: 'Abrir todas', closeAll: 'Fechar todas', opening: 'abrindo…', closing: 'fechando…', closed: 'fechada', opened: 'aberta', partial: 'parcial', coversHead: '{a} de {b} abertas',
+  open: 'Aberta', shut: 'Fechada', openHead: '{a} de {b} abertas', allClosed: 'tudo fechado', since: 'há {t}',
+  locked: 'Trancada', unlocked: 'Destrancada', tapUnlock: 'Toque para destrancar', confirmUnlock: 'Toque de novo para destrancar', tapLock: 'Toque para trancar', live: 'AO VIVO', camOff: 'Câmera desligada',
+  disarmed: 'Desarmado', armHome: 'Em casa', armAway: 'Ausente', armNight: 'Noite', triggered: 'DISPARADO', codeNeeded: 'Para desarmar, use o teclado do alarme (pede código).',
+  playing: 'Tocando', paused: 'Pausado', everywhere: 'Tocando no apartamento todo', inSpeakers: 'Tocando em {n} caixas', inSpeaker: 'Tocando em 1 caixa', nothingPlaying: 'Nada tocando',
+  play: 'Tocar', pause: 'Pausar', prev: 'Anterior', next: 'Próxima', shuffle: 'Aleatório', volume: 'Volume', masterVol: 'Volume geral', sources: 'Fontes', speakers: 'Caixas de som por cômodo',
+  groupAll: 'Tocar no apartamento todo', ungroup: 'Separar caixas', choosePlayer: 'Tocar daqui', tv: 'TV',
+  washer: 'Máquina de lavar', dryer: 'Secadora', dish: 'Lava-louças', remaining: 'faltam {m} min', endsAt: 'termina às {t}', cycleDone: 'Ciclo concluído', finished: '{n} terminou', finishedBody: 'Pronto · {a}', running: 'Em andamento',
+  vacuum: 'Robô', cleaning: 'Aspirando', docked: 'Na base', returning: 'Voltando à base', vPaused: 'Pausado', vError: 'Erro', idle: 'Parado', start: 'Aspirar', stop: 'Pausar', dock: 'Base', battery: 'Bateria',
+  waste: 'Coleta de lixo', today: 'hoje', tomorrow: 'amanhã', wasteToday: 'Coleta hoje · colocar na rua', wasteTomorrow: 'Colocar na rua hoje à noite', wasteNext: 'Próxima coleta: {d}',
+  nowW: 'Consumo agora', sumPlugs: 'Soma das tomadas com medição', sumPlugsRoom: 'Soma das tomadas de {r}', solar: 'Solar', grid: 'Rede', gridSelling: 'Rede · vendendo', home: 'Casa', batteryS: 'Bateria',
+  soon: 'em breve', solarReady: 'Solar · preparado', whoNow: 'Quem consome agora', byPlugs: 'pelas tomadas', byRoom: 'Por cômodo', todayE: 'Hoje', solarToday: 'Solar hoje', plugsMetered: '{n} tomadas medindo',
+  lightsOn: '{n} luzes acesas em {r} cômodos', allLightsOff: 'Todas as luzes apagadas', musicAll: 'música no apartamento todo', musicIn: 'música em {n} caixas', washerEnds: 'a {n} termina às {t}', robotIn: 'o robô está aspirando',
+  statLights: 'Luzes', statOpen: 'Abertas', statHeat: 'Aquecendo', statPlugs: 'Tomadas', homePeople: 'Em casa', away: 'Fora', closeToast: 'Fechar aviso', notAvailable: 'indisponível',
+  sunUp: 'sol às {t}', sunLeft: '{t} de sol', night: 'noite', nothingHere: 'Nenhum dispositivo deste tipo neste cômodo.', loading: 'Carregando a casa…', min: 'min'
+};
+const de = {
+  wasteDone: 'Ist draußen',
+  recentS: 'Zuletzt', albumsS: 'Alben', likedS: 'Lieblingssongs', library: 'Mediathek', whereToPlay: 'Wo abspielen', loadingS: 'Lädt…', ready: 'Bereit', openSpotify: 'Einmal Spotify darauf öffnen', noDevices: 'Keine Spotify-Connect-Lautsprecher gefunden.', searchS: 'In Spotify suchen', noSpotify: 'SpotifyPlus verbinden, um Playlists und Mediathek zu sehen.', onSpeaker: 'Läuft auf {s}',
+  morning: 'Guten Morgen', afternoon: 'Guten Tag', evening: 'Guten Abend', theme: 'Design', themeTitle: 'Dashboard-Design',
+  edit: 'Dashboard bearbeiten', doneEdit: 'Bearbeiten beenden', editTitle: 'Bearbeiten', reset: 'Standard wiederherstellen', done: 'Fertig',
+  editHint: 'Karten ziehen oder mit ‹ › verschieben · Stift benennt um · Auge blendet aus · Pfeile am Titel ordnen die Bereiche.',
+  showHidden: 'Ausgeblendete zeigen', hideHidden: 'Ausgeblendete verbergen', hide: 'Ausblenden', unhide: 'Einblenden', back: 'Nach vorne', fwd: 'Nach hinten', rename: 'Umbenennen',
+  newName: 'Neuer Name', save: 'Speichern', cancel: 'Abbrechen', confirmHa: 'Namen in Home Assistant ändern? Gilt für alle Dashboards und Apps.', confirmBtn: 'In HA ändern', onlyHere: 'Nur hier',
+  renamedHa: 'Name in Home Assistant geändert', renamedLocal: 'Name in diesem Dashboard geändert', renamedLocalWhy: 'Nur Administratoren können Namen in Home Assistant ändern.', renameFail: 'Home Assistant hat die Umbenennung abgelehnt',
+  sectionUp: 'Bereich nach oben', sectionDown: 'Bereich nach unten',
+  house3d: 'Haus in 3D', plan: 'Grundriss', tapRoom: 'Raum antippen, um die Geräte zu sehen', devices: 'Geräte', allHome: 'Ganzes Zuhause', noArea: 'Ohne Raum',
+  room: 'Raum', seeAll: 'Ganzes Zuhause zeigen', all: 'Alle', scenes: 'Szenen', scene: 'Szene', active: 'Aktiv', now: 'Gerade los',
+  lights: 'Licht', climate: 'Klima', plugs: 'Steckdosen und Schalter', energy: 'Energie', covers: 'Vorhänge und Rollos', openings: 'Türen und Fenster', security: 'Sicherheit', music: 'Music',
+  lightsShort: 'Licht', climateShort: 'Klima', plugsShort: 'Steckdosen', energyShort: 'Energie', coversShort: 'Rollos', openingsShort: 'Türen und Fenster', securityShort: 'Sicherheit', musicShort: 'AUREON Music',
+  on: 'an', off: 'aus', ofOn: '{a} von {b} an', allOff: 'Alle aus', warm: 'Warm', neutral: 'Neutral', cool: 'Kalt', brightness: 'Helligkeit',
+  heating: 'Heizt', atTarget: 'Erreicht', offMode: 'Aus', nowShort: 'JETZT', raise: 'Wärmer', lower: 'Kälter', thermostats: '{n} Thermostate', heatingN: '{n} heizen', allAtTarget: 'alle erreicht',
+  plugOn: 'an', plugOff: 'aus', protected: 'Geschützt', protectedHint: 'geschützte werden hier nie ausgeschaltet', protectedTitle: 'Geschützt: kann im Dashboard nicht ausgeschaltet werden', plugsHead: '{a} von {b} an',
+  openAll: 'Alle öffnen', closeAll: 'Alle schließen', opening: 'öffnet…', closing: 'schließt…', closed: 'geschlossen', opened: 'offen', partial: 'teilweise', coversHead: '{a} von {b} offen',
+  open: 'Offen', shut: 'Zu', openHead: '{a} von {b} offen', allClosed: 'alles zu', since: 'seit {t}',
+  locked: 'Verriegelt', unlocked: 'Entriegelt', tapUnlock: 'Antippen zum Entriegeln', confirmUnlock: 'Nochmals tippen zum Entriegeln', tapLock: 'Antippen zum Verriegeln', live: 'LIVE', camOff: 'Kamera aus',
+  disarmed: 'Unscharf', armHome: 'Zuhause', armAway: 'Abwesend', armNight: 'Nacht', triggered: 'ALARM', codeNeeded: 'Zum Entschärfen das Bedienteil der Alarmanlage nutzen (Code).',
+  playing: 'Spielt', paused: 'Pausiert', everywhere: 'Läuft in der ganzen Wohnung', inSpeakers: 'Läuft auf {n} Lautsprechern', inSpeaker: 'Läuft auf 1 Lautsprecher', nothingPlaying: 'Keine Wiedergabe',
+  play: 'Abspielen', pause: 'Pause', prev: 'Zurück', next: 'Weiter', shuffle: 'Zufall', volume: 'Lautstärke', masterVol: 'Gesamtlautstärke', sources: 'Quellen', speakers: 'Lautsprecher nach Raum',
+  groupAll: 'In der ganzen Wohnung', ungroup: 'Gruppe auflösen', choosePlayer: 'Hier steuern', tv: 'TV',
+  washer: 'Waschmaschine', dryer: 'Trockner', dish: 'Geschirrspüler', remaining: 'noch {m} Min.', endsAt: 'fertig um {t}', cycleDone: 'Programm fertig', finished: '{n} ist fertig', finishedBody: 'Fertig · {a}', running: 'Läuft',
+  vacuum: 'Saugroboter', cleaning: 'Saugt', docked: 'An der Station', returning: 'Fährt zur Station', vPaused: 'Pausiert', vError: 'Fehler', idle: 'Bereit', start: 'Saugen', stop: 'Pause', dock: 'Station', battery: 'Akku',
+  waste: 'Müllabfuhr', today: 'heute', tomorrow: 'morgen', wasteToday: 'Abholung heute · rausstellen', wasteTomorrow: 'Heute Abend rausstellen', wasteNext: 'Nächste Abholung: {d}',
+  nowW: 'Verbrauch jetzt', sumPlugs: 'Summe der messenden Steckdosen', sumPlugsRoom: 'Summe der Steckdosen in {r}', solar: 'Solar', grid: 'Netz', gridSelling: 'Netz · Einspeisung', home: 'Zuhause', batteryS: 'Speicher',
+  soon: 'bald', solarReady: 'Solar · vorbereitet', whoNow: 'Wer gerade verbraucht', byPlugs: 'über Steckdosen', byRoom: 'Nach Raum', todayE: 'Heute', solarToday: 'Solar heute', plugsMetered: '{n} Steckdosen messen',
+  lightsOn: '{n} Lichter an in {r} Räumen', allLightsOff: 'Alle Lichter aus', musicAll: 'Musik in der ganzen Wohnung', musicIn: 'Musik auf {n} Lautsprechern', washerEnds: '{n} fertig um {t}', robotIn: 'der Roboter saugt',
+  statLights: 'Licht', statOpen: 'Offen', statHeat: 'Heizen', statPlugs: 'Steckdosen', homePeople: 'Zuhause', away: 'Unterwegs', closeToast: 'Hinweis schließen', notAvailable: 'nicht verfügbar',
+  sunUp: 'Sonne um {t}', sunLeft: 'noch {t} Sonne', night: 'Nacht', nothingHere: 'Keine Geräte dieser Art in diesem Raum.', loading: 'Zuhause wird geladen…', min: 'Min.'
+};
+const en = {
+  wasteDone: 'It is out',
+  recentS: 'Recent', albumsS: 'Albums', likedS: 'Liked', library: 'Library', whereToPlay: 'Where to play', loadingS: 'Loading…', ready: 'Ready', openSpotify: 'Open Spotify on it once', noDevices: 'No Spotify Connect speakers found.', searchS: 'Search Spotify', noSpotify: 'Connect SpotifyPlus to see playlists and library.', onSpeaker: 'Playing on {s}',
+  morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening', theme: 'Theme', themeTitle: 'Dashboard theme',
+  edit: 'Edit dashboard', doneEdit: 'Finish editing', editTitle: 'Edit mode', reset: 'Restore default', done: 'Done',
+  editHint: 'Drag cards or use ‹ › to move · pencil renames · eye hides · arrows next to a title reorder sections.',
+  showHidden: 'Show hidden', hideHidden: 'Hide hidden', hide: 'Hide', unhide: 'Show', back: 'Move back', fwd: 'Move forward', rename: 'Rename',
+  newName: 'New name', save: 'Save', cancel: 'Cancel', confirmHa: 'Change the name in Home Assistant? It applies to every dashboard and app.', confirmBtn: 'Change in HA', onlyHere: 'Only here',
+  renamedHa: 'Name changed in Home Assistant', renamedLocal: 'Name changed on this dashboard', renamedLocalWhy: 'Only administrators can rename in Home Assistant.', renameFail: 'Home Assistant refused the rename',
+  sectionUp: 'Move section up', sectionDown: 'Move section down',
+  house3d: '3D house', plan: 'Plan', tapRoom: 'Tap a room to see its devices', devices: 'devices', allHome: 'Whole home', noArea: 'No room',
+  room: 'Room', seeAll: 'See the whole home', all: 'All', scenes: 'Scenes', scene: 'Scene', active: 'Active', now: 'Happening now',
+  lights: 'Lights', climate: 'Climate', plugs: 'Plugs and switches', energy: 'Energy', covers: 'Curtains and blinds', openings: 'Doors and windows', security: 'Security', music: 'Music',
+  lightsShort: 'Lights', climateShort: 'Climate', plugsShort: 'Plugs', energyShort: 'Energy', coversShort: 'Blinds', openingsShort: 'Doors and windows', securityShort: 'Security', musicShort: 'AUREON Music',
+  on: 'on', off: 'off', ofOn: '{a} of {b} on', allOff: 'Turn all off', warm: 'Warm', neutral: 'Neutral', cool: 'Cool', brightness: 'Brightness',
+  heating: 'Heating', atTarget: 'At target', offMode: 'Off', nowShort: 'NOW', raise: 'Warmer', lower: 'Cooler', thermostats: '{n} thermostats', heatingN: '{n} heating', allAtTarget: 'all at target',
+  plugOn: 'on', plugOff: 'off', protected: 'Protected', protectedHint: 'protected ones never switch off here', protectedTitle: 'Protected: cannot be switched off from the dashboard', plugsHead: '{a} of {b} on',
+  openAll: 'Open all', closeAll: 'Close all', opening: 'opening…', closing: 'closing…', closed: 'closed', opened: 'open', partial: 'partial', coversHead: '{a} of {b} open',
+  open: 'Open', shut: 'Closed', openHead: '{a} of {b} open', allClosed: 'all closed', since: '{t} ago',
+  locked: 'Locked', unlocked: 'Unlocked', tapUnlock: 'Tap to unlock', confirmUnlock: 'Tap again to unlock', tapLock: 'Tap to lock', live: 'LIVE', camOff: 'Camera off',
+  disarmed: 'Disarmed', armHome: 'Home', armAway: 'Away', armNight: 'Night', triggered: 'TRIGGERED', codeNeeded: 'Use the alarm keypad to disarm (code required).',
+  playing: 'Playing', paused: 'Paused', everywhere: 'Playing in the whole home', inSpeakers: 'Playing on {n} speakers', inSpeaker: 'Playing on 1 speaker', nothingPlaying: 'Nothing playing',
+  play: 'Play', pause: 'Pause', prev: 'Previous', next: 'Next', shuffle: 'Shuffle', volume: 'Volume', masterVol: 'Master volume', sources: 'Sources', speakers: 'Speakers by room',
+  groupAll: 'Play everywhere', ungroup: 'Ungroup', choosePlayer: 'Control here', tv: 'TV',
+  washer: 'Washing machine', dryer: 'Dryer', dish: 'Dishwasher', remaining: '{m} min left', endsAt: 'ends at {t}', cycleDone: 'Cycle finished', finished: '{n} finished', finishedBody: 'Done · {a}', running: 'Running',
+  vacuum: 'Robot', cleaning: 'Cleaning', docked: 'Docked', returning: 'Returning', vPaused: 'Paused', vError: 'Error', idle: 'Idle', start: 'Clean', stop: 'Pause', dock: 'Dock', battery: 'Battery',
+  waste: 'Waste collection', today: 'today', tomorrow: 'tomorrow', wasteToday: 'Collection today · put it out', wasteTomorrow: 'Put it out tonight', wasteNext: 'Next collection: {d}',
+  nowW: 'Using now', sumPlugs: 'Sum of all metered plugs', sumPlugsRoom: 'Sum of plugs in {r}', solar: 'Solar', grid: 'Grid', gridSelling: 'Grid · exporting', home: 'Home', batteryS: 'Battery',
+  soon: 'soon', solarReady: 'Solar · ready', whoNow: 'Using power now', byPlugs: 'from plugs', byRoom: 'By room', todayE: 'Today', solarToday: 'Solar today', plugsMetered: '{n} metered plugs',
+  lightsOn: '{n} lights on in {r} rooms', allLightsOff: 'All lights off', musicAll: 'music in the whole home', musicIn: 'music on {n} speakers', washerEnds: 'the {n} ends at {t}', robotIn: 'the robot is cleaning',
+  statLights: 'Lights', statOpen: 'Open', statHeat: 'Heating', statPlugs: 'Plugs', homePeople: 'Home', away: 'Away', closeToast: 'Close notice', notAvailable: 'unavailable',
+  sunUp: 'sun at {t}', sunLeft: '{t} of sun', night: 'night', nothingHere: 'No devices of this kind in this room.', loading: 'Loading your home…', min: 'min'
+};
+const DICTS = { pt, de, en };
+export function translator(lang) {
+  const code = String(lang || 'en').toLowerCase().split('-')[0];
+  const d = DICTS[code] || en;
+  return (key, vars) => {
+    let s = d[key] ?? en[key] ?? key;
+    if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll('{' + k + '}', v);
+    return s;
+  };
+}
+export const localeOf = (hass) => hass?.locale?.language || hass?.language || 'en';
