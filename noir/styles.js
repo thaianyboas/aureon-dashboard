@@ -146,6 +146,11 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 @container (max-width:460px){.prow{padding-left:14px}}
 .byplug{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:var(--mut)}
 .spinarc{transform-origin:36px 36px;animation:spin 1.6s linear infinite}
+.sectog{display:inline-flex;align-items:center;gap:10px;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:44px}
+.secchev{display:inline-flex;width:28px;height:28px;flex:none;border-radius:50%;align-items:center;justify-content:center;border:1px solid var(--line2);color:var(--mut);transition:transform .3s}
+.sech.closed .secchev{transform:rotate(-90deg)}
+.sec:has(> .sech.closed) > :not(.sech){display:none !important}
+.sech.closed{opacity:.85}
 .mall{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;padding:0 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));background:color-mix(in srgb,var(--accent) 6%,transparent);color:var(--accent);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
 .mpage{display:flex;flex-direction:column;gap:14px}.mpbar{display:flex;align-items:center;gap:10px}
 .mlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:2px 16px}

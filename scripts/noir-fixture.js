@@ -53,6 +53,8 @@ window.makeHass = function makeHass(lang) {
   dev('dold', 'Old washing machine', 'bath', 'Smart Plug');
   ent('switch.old_washer', 'on', { friendly_name: 'Old washing machine', device_class: 'outlet' }, { device_id: 'dold' });
   ent('sensor.old_washer_power', '450', { friendly_name: 'Old washing machine power', device_class: 'power', unit_of_measurement: 'W' }, { device_id: 'dold' });
+  ent('switch.robot_self_clean', 'on', { friendly_name: 'Robot Self-Clean' }, { device_id: 'dvac', platform: 'dreame_vacuum' });
+  ent('switch.echo_dnd', 'on', { friendly_name: 'Alexa - Kitchen' }, { area_id: 'kitchen', platform: 'alexa_devices' });
   ent('automation.washer_alexa', 'on', { friendly_name: 'Waschmaschine fertig (Alexa)' }, {});
   ent('sensor.energy_today', '3.4', { device_class: 'energy', unit_of_measurement: 'kWh', friendly_name: 'Energy today' }, {});
   ent('sensor.energy_month', '84.2', { device_class: 'energy', unit_of_measurement: 'kWh', friendly_name: 'Energy this month' }, {});

@@ -1461,3 +1461,4 @@ The Music browser suite passed again with that label and native transfer.
   (`vacuumRooms`), energy tiles today/cost (cost sensor or today × €/kWh price sensor)/month/solar/self-use.
 - Older machines on a smart plug (no own integration): appliance with `plug:true`; running ≥8 W; start/end read from `history/history_during_period` of the plug power sensor (end = <3 W for 3 min, run ≥8 min); "Terminou às …" until OK or 3 h; Alexa row matches the power blueprint's `power_entity`.
 - Blueprints: speakers accept Alexa Devices (core, notify.*_announce → notify.send_message) or Alexa Media Player (media_player → notify.alexa_media announce). Owner's Echos did not show with the alexa_media-only filter.
+- Sections fold from their title (prefs.secClosed, CSS :has hides the body); robot setting switches and Alexa DND switches (alexa_devices/alexa_media/dreame_vacuum…, or any switch on a vacuum device) are no longer listed as plugs unless labelled as outlet.

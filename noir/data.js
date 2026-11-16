@@ -165,6 +165,8 @@ export function buildModel(hass, opts = {}) {
       const rgb = a.rgb_color || (a.color_temp_kelvin ? kelvinToRgb(a.color_temp_kelvin) : [245, 190, 110]);
       const modes = a.supported_color_modes || [];
       m.lights.push({ ...item, on, b: Math.max(0, Math.min(100, b)), rgb, dimmable: modes.some((x) => x !== 'onoff'), ct: modes.includes('color_temp'), kelvin: a.color_temp_kelvin || null, minK: a.min_color_temp_kelvin || 2200, maxK: a.max_color_temp_kelvin || 6500 });
+    } else if (domain === 'switch' && /^(alexa_devices|alexa_media|dreame_vacuum|xiaomi_miio|roborock|ecovacs)$/.test(reg.platform || '') && !hasLabel(reg, labels, OUTLET)) {
+      // Owner 2026-11-16: Alexa "do not disturb" and robot settings (Auto Drying, Self-Clean…) are not plugs.
     } else if (domain === 'switch') {
       const outlet = dc === 'outlet' || hasLabel(reg, labels, OUTLET) || /steckdose|plug|outlet|tomada|socket|smart ?plug/i.test(base + ' ' + (dev?.model || '') + ' ' + (dev?.name || ''));
       m.plugs.push({ ...item, on: st.state === 'on', outlet, locked: hasLabel(reg, labels, PROTECT) });
@@ -189,6 +191,9 @@ export function buildModel(hass, opts = {}) {
     }
   }
 
+  // Settings switches of a robot vacuum are not plugs either.
+  const vacDevs = new Set(m.vacuums.map((v) => v.device).filter(Boolean));
+  m.plugs = m.plugs.filter((p) => !(p.device && vacDevs.has(p.device)) || hasLabel(p.reg, labels, OUTLET));
   // Power per device, linked to the plug of the same device.
   const powerByDevice = {};
   for (const p of m.power) if (p.device && p.w != null) powerByDevice[p.device] = (powerByDevice[p.device] || 0) + p.w;

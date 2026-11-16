@@ -275,8 +275,10 @@ class AureonDashboard extends LitElement {
 
   // ── sections header ──────────────────────────────────────────────────────
   secHead(key, title, sub, extra, t) {
-    return html`<div class="sech"><h2 class="h2">${title} ${sub ? html`<small>${sub}</small>` : nothing}</h2>
-      <div class="wrapRow">${this._ui.edit ? html`<button class="ib sm" aria-label=${t('sectionUp') + ' · ' + title} @click=${() => this._moveSection(key, -1)}>${ic('up', 'i s')}</button><button class="ib sm" aria-label=${t('sectionDown') + ' · ' + title} @click=${() => this._moveSection(key, 1)}>${ic('down', 'i s')}</button>` : nothing}${extra || nothing}</div></div>`;
+    // Owner 2026-11-16: every section folds with a tap on its title; the choice is remembered.
+    const closed = !this._ui.musicPage && !this._ui.edit && !!(this._prefs.secClosed || {})[key];
+    return html`<div class=${'sech' + (closed ? ' closed' : '')}><h2 class="h2"><button class="sectog" aria-expanded=${closed ? 'false' : 'true'} @click=${() => this._save({ secClosed: { ...(this._prefs.secClosed || {}), [key]: !closed } })}><span class="txt">${title} ${sub ? html`<small>${sub}</small>` : nothing}</span><span class="secchev" aria-hidden="true">${ic('down', 'i s')}</span></button></h2>
+      <div class="wrapRow" style=${closed ? 'display:none' : ''}>${this._ui.edit ? html`<button class="ib sm" aria-label=${t('sectionUp') + ' · ' + title} @click=${() => this._moveSection(key, -1)}>${ic('up', 'i s')}</button><button class="ib sm" aria-label=${t('sectionDown') + ' · ' + title} @click=${() => this._moveSection(key, 1)}>${ic('down', 'i s')}</button>` : nothing}${extra || nothing}</div></div>`;
   }
 
   render() {
