@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.2.2 — 2026-11-16
+
+- "Acontecendo agora" sem o cartão de música (o AUREON Music logo abaixo já mostra e controla).
+
 ## AUREON Noir 1.2.1 — 2026-11-16
 
 - Biblioteca do AUREON Music em lista elegante; o início mostra 4 itens e "Ver tudo no AUREON Music" abre a página completa.

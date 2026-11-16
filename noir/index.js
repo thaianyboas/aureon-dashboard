@@ -10,8 +10,8 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, PLUG_RUN_W, PL
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.2.1';
-export const BUILD = 'AUREON-NOIR-20261116c';
+export const VERSION = '1.2.2';
+export const BUILD = 'AUREON-NOIR-20261116d';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -779,16 +779,7 @@ class AureonDashboard extends LitElement {
   live(ctx) {
     const { m, t, lang, now } = ctx;
     const cards = [];
-    const sp = m.speakers.filter((s) => !s.tv), playing = [...m.accounts, ...m.speakers].filter((s) => s.playing);
-    if (playing.length) {
-      const p = playing[0], everywhere = sp.length > 1 && sp.every((s) => s.playing);
-      cards.push(html`<article class="act"><div class="breathe" aria-hidden="true" style="position:absolute;width:260px;height:260px;right:-90px;top:-110px;border-radius:50%;background:radial-gradient(circle, rgba(169,155,255,.35) 0%, rgba(169,155,255,0) 65%)"></div>
-        <div class="row sp" style="position:relative;align-items:flex-start;gap:12px"><div class="grow" style="display:flex;flex-direction:column;gap:4px">
-          <span class="tag row" style="gap:8px;color:#C4BBFF"><span class="eq"><i></i><i></i><i></i></span>${everywhere ? t('everywhere') : sp.filter((x) => x.playing).length > 1 ? t('inSpeakers', { n: sp.filter((x) => x.playing).length }) : p.attrs.source ? t('onSpeaker', { s: p.attrs.source }) : t('playing')}</span>
-          <span class="ttl">${p.attrs.media_title || p.name}</span><span class="muted txt" style="font-size:13px">AUREON Music${p.attrs.media_artist ? ' · ' + p.attrs.media_artist : ''}</span></div>
-          <button class="play" style="width:48px;height:48px" aria-label=${t('pause')} @click=${() => this._call('media_player', 'media_pause', { entity_id: playing.map((x) => x.id) })}>${ic('pause', 'i f')}</button></div>
-        <div class="pills" style="position:relative">${[...new Set(sp.map((s) => s.areaName).filter(Boolean))].map((r) => { const on = playing.some((s) => s.areaName === r); return html`<span class="pill" style=${on ? 'background:rgba(169,155,255,.16);color:#D9D3FF;border-color:rgba(169,155,255,.35)' : ''}>${r}</span>`; })}</div></article>`);
-    }
+    // Owner 2026-11-16: no music card here — AUREON Music below already plays and shows it.
     for (const a of m.appliances.filter((x) => x.running || x.done)) {
       const C = 2 * Math.PI * 31, pct = a.done ? 100 : a.pct != null ? a.pct : null;
       const icon = a.kind === 'dish' ? 'dish' : 'washer';
