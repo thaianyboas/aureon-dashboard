@@ -62,9 +62,6 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .clock{font-size:clamp(64px,8vw,120px);font-weight:200;letter-spacing:-.07em;line-height:.85}
 .greet{margin:8px 0 0;font-size:clamp(22px,2vw,28px);font-weight:400;letter-spacing:-.025em}
 .story{margin:0;max-width:460px;font-size:15px;line-height:1.6;color:var(--mut)}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px}
-.stat{display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:16px;background:rgba(255,255,255,.025);border:1px solid var(--line)}
-.stat b{font-size:26px;font-weight:300;letter-spacing:-.04em;line-height:1}
 .heroR{position:relative;flex:2 1 460px;min-width:0;display:flex;flex-direction:column;gap:6px}
 .seg{display:inline-flex;gap:2px;padding:3px;border-radius:11px;background:var(--sunk);border:1px solid var(--line)}
 .seg button{min-height:32px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--mut);font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em}
@@ -79,8 +76,9 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .r3 .wl{left:0;top:0;height:100%;transform-origin:left;transform:rotateY(-90deg)}
 .r3 .wr{right:0;top:0;height:100%;transform-origin:right;transform:rotateY(90deg)}
 .r3 .halo{position:absolute;left:15%;top:15%;width:70%;height:70%;border-radius:50%;transform:translateZ(28px);filter:blur(16px);transition:opacity .5s}
-.r3 .lbl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) translateZ(56px) rotateZ(38deg) rotateX(-56deg);display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;pointer-events:none}
-.lbl .n{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.lbls{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s}.stage.ready .lbls{opacity:1}
+.lbls .lbl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) translateY(var(--dy,0px));display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;padding:4px 8px;border-radius:10px;background:color-mix(in srgb,var(--bg) 55%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.lbl .n{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;white-space:normal;max-width:132px;text-align:center;line-height:1.25}
 .dots{display:inline-flex;gap:3px}.dots i{width:5px;height:5px;border-radius:50%}
 .plan2d{position:relative;width:100%;aspect-ratio:16/10;min-height:280px;margin-top:10px;border-radius:22px;background-color:var(--sunk);background-image:radial-gradient(var(--line2) 1px,transparent 1px);background-size:16px 16px;border:1px solid var(--line)}
 .r2{position:absolute;border-radius:16px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;text-align:left;transition:background .35s,box-shadow .35s,border-color .35s;overflow:hidden}
@@ -213,5 +211,5 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .toast{display:flex;align-items:flex-start;gap:14px;padding:16px;border-radius:20px;background:var(--raise);border:1px solid var(--line2);box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}
 .empty{padding:40px;border-radius:24px;border:1px dashed var(--line2);text-align:center;color:var(--mut);font-size:14px}
 @container (max-width:700px){.stage{height:300px}.hero{border-radius:24px}.clock{font-size:64px}}
-@container (max-width:460px){.r2{padding:8px;border-radius:12px}.r2 .n{font-size:9px;letter-spacing:.03em;gap:5px}.stage{height:250px}.iso{width:94%}.lbl .n{font-size:9px}.btn,.chip{padding:0 12px}}
+@container (max-width:460px){.r2{padding:8px;border-radius:12px}.r2 .n{font-size:9px;letter-spacing:.03em;gap:5px}.stage{height:250px}.iso{width:94%}.lbl .n{font-size:9px;letter-spacing:.08em;max-width:96px}.btn,.chip{padding:0 12px}}
 `;

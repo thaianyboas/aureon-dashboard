@@ -82,7 +82,7 @@ class AureonDashboard extends LitElement {
   setConfig(config) { this._config = { ...(config || {}) }; }
   getCardSize() { return 14; }
   connectedCallback() { super.connectedCallback(); this._timer = setInterval(() => { this._tick = Date.now(); this._toasts = this._toasts.filter((t) => t.exp > Date.now()); }, 1000); }
-  disconnectedCallback() { clearInterval(this._timer); (this._unsubs || []).forEach((u) => { try { u(); } catch { /* ok */ } }); this._unsubs = []; this._fcFor = null; super.disconnectedCallback(); }
+  disconnectedCallback() { clearInterval(this._timer); this._lblRO?.disconnect(); this._lblRO = null; this._lblObs = null; (this._unsubs || []).forEach((u) => { try { u(); } catch { /* ok */ } }); this._unsubs = []; this._fcFor = null; super.disconnectedCallback(); }
 
   // ── preferences (per HA user, this browser) ──────────────────────────────
   get _key() { return 'aureon.noir.v1.' + (this.hass?.user?.id || 'local'); }
@@ -114,10 +114,58 @@ class AureonDashboard extends LitElement {
     }
   }
   updated() {
+    this._declutter();
     const th = this._theme();
     if (th.ha) { const c = getComputedStyle(this).getPropertyValue('--primary-color'); const rgb = hexRgb(c); if (rgb !== this._accentRgb) { this._accentRgb = rgb; this.requestUpdate(); } }
   }
 
+  // Keep the 3D room labels from sitting on top of each other (phones, many rooms).
+  _declutter() {
+    cancelAnimationFrame(this._lblRaf);
+    this._lblRaf = requestAnimationFrame(() => this._declutterNow());
+  }
+  _declutterNow(force) {
+    const stage = this.renderRoot?.querySelector('.stage');
+    const iso = stage?.querySelector('.iso');
+    if (!iso) { this._lblSig = null; return; }
+    if (!this._lblRO && window.ResizeObserver) { this._lblRO = new ResizeObserver(() => this._declutterNow(true)); }
+    if (this._lblRO && this._lblObs !== stage) { this._lblRO.disconnect(); this._lblRO.observe(stage); this._lblObs = stage; }
+    if (!this._fontsHooked && document.fonts?.ready) { this._fontsHooked = true; document.fonts.ready.then(() => this._declutterNow(true)); }
+    const lbls = [...stage.querySelectorAll('.lbls .lbl')];
+    const S = stage.getBoundingClientRect();
+    const sig = Math.round(S.width) + 'x' + Math.round(S.height) + '|' + lbls.map((l) => l.textContent.replace(/\s+/g, ' ')).join('|') + '|' + this._ui.room;
+    if (!force && sig === this._lblSig) return;
+    // 1) put each label over the centre of its room (projected, raised a little above the floor)
+    const items = [];
+    for (const l of lbls) {
+      const halo = iso.querySelector(`.r3[data-room="${CSS.escape(l.dataset.room)}"] .halo`);
+      const h = halo?.getBoundingClientRect();
+      if (!h || !h.width) { this._lblSig = null; return; }
+      l.style.left = (h.left + h.width / 2 - S.left).toFixed(1) + 'px';
+      l.style.top = (h.top + h.height / 2 - S.top).toFixed(1) + 'px';
+      l.style.setProperty('--dy', '0px');
+      items.push(l);
+    }
+    this._lblSig = sig;
+    // 2) nudge labels vertically (smallest move) until none touch each other
+    const GAP = 4, placed = [];
+    const rs = items.map((l) => {
+      const r = l.getBoundingClientRect();
+      const dx = Math.max(S.left + 2 - r.left, Math.min(0, S.right - 2 - r.right));
+      if (dx) l.style.left = (parseFloat(l.style.left) + dx).toFixed(1) + 'px';
+      return { l, r: { left: r.left + dx, right: r.right + dx, top: r.top, bottom: r.bottom } };
+    }).sort((p, q) => (p.r.top + p.r.bottom) - (q.r.top + q.r.bottom));
+    const hits = (r, dy) => placed.some((p) => r.left < p.right + GAP && p.left < r.right + GAP && r.top + dy < p.bottom + GAP && p.top < r.bottom + dy + GAP);
+    for (const { l, r } of rs) {
+      const cands = [0];
+      for (const p of placed) cands.push(p.bottom + GAP - r.top, p.top - GAP - r.bottom);
+      let dy = cands.filter((d) => !hits(r, d)).sort((x, y) => Math.abs(x) - Math.abs(y))[0];
+      if (dy == null) dy = Math.max(...placed.map((p) => p.bottom)) + GAP - r.top;
+      l.style.setProperty('--dy', dy.toFixed(1) + 'px');
+      placed.push({ left: r.left, right: r.right, top: r.top + dy, bottom: r.bottom + dy });
+    }
+    stage.classList.add('ready');
+  }
   _theme() { return THEMES.find((t) => t.id === this._prefs?.theme) || THEMES[0]; }
   _toast(title, body) { this._toasts = [...this._toasts, { id: Math.random().toString(36).slice(2), title, body, exp: Date.now() + 9000 }]; this.requestUpdate(); }
   _call(domain, service, data) { return this.hass.callService(domain, service, data).catch((e) => this._toast(domain + '.' + service, String(e?.message || e))); }
@@ -316,9 +364,6 @@ class AureonDashboard extends LitElement {
     if (playing.length) parts.push(playing.length >= m.speakers.filter((s) => !s.tv).length && playing.length > 1 ? t('musicAll') : t('musicIn', { n: playing.length }));
     if (run) parts.push(t('washerEnds', { n: run.name, t: run.endAt.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }));
     if (m.vacuums.some((v) => v.state === 'cleaning')) parts.push(t('robotIn'));
-    const openN = m.openings.filter((o) => o.open).length;
-    const heatN = m.climate.filter((c) => c.action === 'heating').length;
-    const stats = [[t('statLights'), on.length + '/' + m.lights.length, on.length], [t('statOpen'), String(openN), openN], [t('statHeat'), String(heatN), 0, heatN], [t('statPlugs'), m.plugs.filter((p) => p.on).length + '/' + m.plugs.length, 0]];
     const maxN = Math.max(1, ...m.areas.map((a) => (m.byArea[a.id] || []).length));
     const layout = roomLayout(m.areas, (a) => Math.max(maxN * 0.45, (m.byArea[a.id] || []).length));
     const is3d = prefs.view !== '2d';
@@ -330,7 +375,6 @@ class AureonDashboard extends LitElement {
           <h1 class="greet txt">${greet}</h1>
           ${m.weather ? this.weatherBlock(ctx) : html`<p class="story txt">${parts.join(', ')}.</p>`}
         </div>
-        <div class="stats">${stats.map(([k, v, hot, heat]) => html`<div class="stat"><b style=${hot ? 'color:var(--accent)' : heat ? 'color:#FFB48A' : ''}>${v}</b><span class="eyebrow" style="font-size:10px">${k}</span></div>`)}</div>
       </div>
       <div class="heroR">
         <div class="row sp" style="flex-wrap:wrap;gap:8px"><span class="eyebrow txt">${t('tapRoom')}</span>
@@ -338,9 +382,9 @@ class AureonDashboard extends LitElement {
             <button aria-pressed=${is3d ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button>
             <button aria-pressed=${!is3d ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></div>
         ${is3d ? html`<div class="stage" role="group" aria-label=${t('house3d')}><div class="iso"><div class="ground" aria-hidden="true"></div>
-          ${layout.map((r) => this.room3d(r, ctx))}</div></div>`
+          ${layout.map((r) => this.room3d(r, ctx))}</div>
+          <div class="lbls" aria-hidden="true">${layout.map((r) => this.label3d(r, ctx))}</div></div>`
           : html`<div class="plan2d" role="group" aria-label=${t('plan')}>${layout.map((r) => this.room2d(r, ctx))}</div>`}
-        <span class="dim mono" style="align-self:flex-end;font-size:11px">${m.total} ${t('devices')}</span>
       </div>
     </section>`;
   }
@@ -360,14 +404,18 @@ class AureonDashboard extends LitElement {
     const cA = L.lit ? `background:${rgba(L.rgb, 0.1 + 0.22 * L.k)};border:1px solid ${rgba(L.rgb, 0.25 + 0.3 * L.k)}` : 'background:rgba(242,242,243,.035);border:1px solid var(--line2)';
     const cB = L.lit ? `background:${rgba(L.rgb, 0.16 + 0.28 * L.k)};border:1px solid ${rgba(L.rgb, 0.3 + 0.35 * L.k)}` : 'background:rgba(242,242,243,.06);border:1px solid var(--line2)';
     const floor = (L.lit ? `border:1px ${a.outdoor ? 'dashed' : 'solid'} ${rgba(L.rgb, 0.35 + 0.4 * L.k)};background:radial-gradient(90% 90% at 50% 50%, ${rgba(L.rgb, 0.25 + 0.5 * L.k)} 0%, ${rgba(L.rgb, 0.04)} 75%), var(--raise);box-shadow:0 0 ${Math.round(30 + 60 * L.k)}px ${rgba(L.rgb, 0.15 + 0.35 * L.k)}` : `border:1px ${a.outdoor ? 'dashed' : 'solid'} var(--line2);background:var(--card);box-shadow:none`) + (sel ? ';outline:2px solid var(--fg);outline-offset:3px;transform:translateZ(10px)' : '');
-    return html`<button class="r3" aria-pressed=${sel ? 'true' : 'false'} aria-label=${`${a.name}: ${t('ofOn', { a: L.on.length, b: L.ls.length })}`} @click=${() => this._set({ room: sel ? 'all' : a.id })}
+    return html`<button class="r3" data-room=${a.id} aria-pressed=${sel ? 'true' : 'false'} aria-label=${`${a.name}: ${t('ofOn', { a: L.on.length, b: L.ls.length })}`} @click=${() => this._set({ room: sel ? 'all' : a.id })}
       style=${`left:calc(${r.x}% + 4px);top:calc(${r.y}% + 4px);width:calc(${r.w}% - 8px);height:calc(${r.h}% - 8px);${floor}`}>
       <span class="w wt" style=${`height:${H}px;${cA}`}></span><span class="w wb" style=${`height:${H}px;${cB}`}></span>
       <span class="w wl" style=${`width:${H}px;${cA}`}></span><span class="w wr" style=${`width:${H}px;${cB}`}></span>
       <span class="halo" style=${`background:${rgba(L.rgb, 0.9)};opacity:${L.lit ? (0.15 + 0.55 * L.k).toFixed(2) : 0}`}></span>
-      <span class="lbl"><span class="n" style=${L.lit || sel ? 'color:var(--fg)' : 'color:var(--mut)'}>${a.name}</span>
-        <span style=${`font-size:12px;color:${L.lit ? 'var(--fg)' : 'var(--dim)'}`}>${L.temp != null ? L.temp.toFixed(1).replace('.', ',') + '° · ' : ''}${L.on.length}/${L.ls.length}</span>
-        <span class="dots">${L.dots.map((c) => html`<i style=${'background:' + c}></i>`)}</span></span></button>`;
+</button>`;
+  }
+  label3d(r, { m }) {
+    const a = r.area, L = this._roomLook(a, m), sel = this._ui.room === a.id;
+    return html`<span class="lbl" data-room=${a.id}><span class="n" style=${L.lit || sel ? 'color:var(--fg)' : 'color:var(--mut)'}>${a.name}</span>
+      <span style=${`font-size:12px;color:${L.lit ? 'var(--fg)' : 'var(--mut)'}`}>${L.temp != null ? L.temp.toFixed(1).replace('.', ',') + '° · ' : ''}${L.on.length}/${L.ls.length}</span>
+      <span class="dots">${L.dots.map((c) => html`<i style=${'background:' + c}></i>`)}</span></span>`;
   }
   room2d(r, { m, t }) {
     const a = r.area, L = this._roomLook(a, m), sel = this._ui.room === a.id;

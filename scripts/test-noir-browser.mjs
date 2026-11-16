@@ -55,6 +55,15 @@ for (const [w, h] of [[1440, 900], [1280, 800], [820, 1180], [390, 844]]) {
   const { page, errors } = await open(w, h);
   const sections = await shadow(page, `return [...root.querySelectorAll('.h2')].map((x)=>x.textContent.trim().split(/\\s+/).slice(0,2).join(' '))`);
   check(sections.length >= 7, 'sections rendered: ' + sections.join(' | '));
+  const LBL = `const r=[...root.querySelectorAll('.lbls .lbl > span')].filter((e)=>e.textContent.trim()).map((e)=>[e.textContent.trim(),e.getBoundingClientRect()]); const o=[];
+    for (let i=0;i<r.length;i++) for (let j=i+1;j<r.length;j++){const A=r[i][1],B=r[j][1]; if(A.left<B.right-1&&B.left<A.right-1&&A.top<B.bottom-1&&B.top<A.bottom-1) o.push(r[i][0]+' x '+r[j][0]);} return o;`;
+  for (const lang of ['pt', 'de']) {
+    const p2 = lang === 'pt' ? page : (await open(w, h, 'de')).page;
+    const ov = await shadow(p2, LBL);
+    check(!ov.length, `3D room labels do not overlap (${lang})` + (ov.length ? ': ' + ov.join('; ') : ''));
+    if (p2 !== page) { if (w === 390) await p2.screenshot({ path: 'build/noir/map-390-de.png', clip: await p2.evaluate(() => { const r = document.getElementById('d').shadowRoot.querySelector('.heroR').getBoundingClientRect(); return { x: 0, y: r.top + scrollY, width: innerWidth, height: r.height }; }) }); await p2.close(); }
+  }
+  check(await shadow(page, `return !/\\d+ dispositivos/.test(root.querySelector('.heroR').textContent)`), 'no device count under the house');
   const bad = await shadow(page, OVERFLOW);
   check(!bad.length, 'no overflow / clipped text' + (bad.length ? ': ' + bad.join('; ') : ''));
   await page.screenshot({ path: `build/noir/home-${w}.png`, fullPage: true });
