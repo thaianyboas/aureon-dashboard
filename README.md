@@ -1,5 +1,10 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.2.3 — 2026-11-16
+
+- AUREON Music: Playlists, Recentes, Álbuns, Curtidas, Podcasts, Onde tocar e busca abrem numa janela por cima do player.
+- Volume novo: botões − e +, linha dourada para arrastar e o número.
+
 ## AUREON Noir 1.2.2 — 2026-11-16
 
 - "Acontecendo agora" sem o cartão de música (o AUREON Music logo abaixo já mostra e controla).
