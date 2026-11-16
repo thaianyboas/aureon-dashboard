@@ -148,7 +148,7 @@ class AureonDashboard extends LitElement {
     }
     this._lblSig = sig;
     // 2) nudge labels vertically (smallest move) until none touch each other
-    const GAP = 4, placed = [];
+    const GAP = 6, placed = [];
     const rs = items.map((l) => {
       const r = l.getBoundingClientRect();
       const dx = Math.max(S.left + 2 - r.left, Math.min(0, S.right - 2 - r.right));
@@ -414,7 +414,7 @@ class AureonDashboard extends LitElement {
   label3d(r, { m }) {
     const a = r.area, L = this._roomLook(a, m), sel = this._ui.room === a.id;
     return html`<span class="lbl" data-room=${a.id}><span class="n" style=${L.lit || sel ? 'color:var(--fg)' : 'color:var(--mut)'}>${a.name}</span>
-      <span style=${`font-size:12px;color:${L.lit ? 'var(--fg)' : 'var(--mut)'}`}>${L.temp != null ? L.temp.toFixed(1).replace('.', ',') + '° · ' : ''}${L.on.length}/${L.ls.length}</span>
+      <span style=${`font-size:13px;color:${L.lit ? 'var(--fg)' : 'var(--mut)'}`}>${L.temp != null ? L.temp.toFixed(1).replace('.', ',') + '° · ' : ''}${L.on.length}/${L.ls.length}</span>
       <span class="dots">${L.dots.map((c) => html`<i style=${'background:' + c}></i>`)}</span></span>`;
   }
   room2d(r, { m, t }) {
