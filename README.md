@@ -1,5 +1,12 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.2.1 — 2026-11-16
+
+- Biblioteca do AUREON Music em lista elegante; o início mostra 4 itens e "Ver tudo no AUREON Music" abre a página completa.
+- Seções abrem e fecham pelo título (o painel lembra).
+- Configurações do robô e "Não perturbe" das Alexas não aparecem mais como tomadas.
+- Blueprints da Alexa funcionam com a integração Alexa Devices (nativa) e com a Alexa Media Player.
+
 ## AUREON Noir 1.2.0 — 2026-11-16
 
 - Topo mais limpo: o tema fica só em Configurações; previsão do tempo compacta (uma linha + 6 horas).
