@@ -6,7 +6,7 @@
 import { LitElement, html, svg, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
 import { styles } from './styles.js';
-import { buildModel, roomLayout, binColor, shortBin } from './data.js';
+import { buildModel, roomLayout, binColor, shortBin, vacuumRooms } from './data.js';
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
@@ -618,6 +618,28 @@ class AureonDashboard extends LitElement {
     }
     return true;
   }
+  // "Alexa avisa ao terminar" (owner 2026-11-16): finds the automation made from the AUREON blueprint for this machine
+  // (admins only, via automation/config) and switches it on/off on tap. Without one, a tap opens the blueprints page.
+  _loadAlexaAutos() {
+    const autos = Object.keys(this.hass.states).filter((id) => id.startsWith('automation.'));
+    const sig = autos.join('|');
+    if (this._autoSig === sig || !this.hass.user?.is_admin || !this.hass.callWS) return;
+    this._autoSig = sig;
+    Promise.all(autos.map((id) => this.hass.callWS({ type: 'automation/config', entity_id: id }).then((r) => [id, r?.config || r]).catch(() => null))).then((rows) => {
+      const out = [];
+      for (const row of rows) { if (!row) continue; const [id, c] = row; const bp = c?.use_blueprint; if (!bp || !/aureon\/appliance_done/.test(bp.path || '')) continue; const inp = bp.input || {}; out.push({ id, ents: [inp.status_entity, inp.power_entity, inp.power_sensor].flat().filter(Boolean), alias: String(c.alias || '') }); }
+      this._alexaAutos = out; this.requestUpdate();
+    });
+  }
+  alexaRow(a, t) {
+    if (!this.hass.user?.is_admin) return nothing;
+    this._loadAlexaAutos();
+    const au = (this._alexaAutos || []).find((x) => x.ents.some((e) => a.entities?.includes(e)) || (a.name && x.alias.toLowerCase().includes(a.name.toLowerCase())));
+    const st = au && this.hass.states[au.id], on = st?.state === 'on';
+    return html`<div class="alexa">${ic('speaker', 'i s')}<span class="grow txt">${t('alexaDone')}</span>
+      ${au ? html`<button class="switch" role="switch" aria-checked=${on ? 'true' : 'false'} aria-label=${t('alexaDone') + ' · ' + a.name} @click=${() => this._call('automation', on ? 'turn_off' : 'turn_on', { entity_id: au.id })}><span><i></i></span></button>`
+        : html`<button class="btn sm" @click=${() => { history.pushState(null, '', '/config/blueprint/dashboard'); window.dispatchEvent(new CustomEvent('location-changed')); }}>${t('alexaSetup')}</button>`}</div>`;
+  }
   _moreInfo(id) { this.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId: id }, bubbles: true, composed: true })); }
   _labelList(m) {
     const ids = new Set(Object.keys(this._labels || {}));
@@ -727,13 +749,14 @@ class AureonDashboard extends LitElement {
       const C = 2 * Math.PI * 31, pct = a.done ? 100 : a.pct != null ? a.pct : null;
       const icon = a.kind === 'dish' ? 'dish' : 'washer';
       const dev = { ...a, isDevice: true };
-      const detail = a.done ? t('cycleDone') : [a.mins != null ? t('remaining', { m: Math.round(a.mins) }) : null, a.endAt ? t('endsAt', { t: a.endAt.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : null, !a.mins && !a.endAt ? a.status : null].filter(Boolean).join(' · ');
+      const detail = a.done ? [a.program, t('cycleDone')].filter(Boolean).join(' · ') : [a.program || null, a.mins != null ? t('remaining', { m: Math.round(a.mins) }) : null, a.endAt ? t('endsAt', { t: a.endAt.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : null, !a.mins && !a.endAt ? a.status : null].filter(Boolean).join(' · ');
       cards.push(html`<article class="act" style=${a.done ? `border-color:var(--accent);box-shadow:0 24px 70px -30px ${rgba(ctx.aRgb, 0.6)}` : ''}>
         ${this.editBar('appliances', dev, [], t)}
         <div class="row" style="gap:16px;align-items:center"><div class="ring">${svg`<svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="31" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="5"></circle>${pct != null ? svg`<circle cx="36" cy="36" r="31" fill="none" stroke-width="5" stroke-linecap="round" stroke=${a.done ? 'var(--accent)' : '#8FB8FF'} stroke-dasharray=${(C * pct / 100).toFixed(1) + ' ' + C.toFixed(1)}></circle>` : nothing}</svg>`}
           <span style=${a.done ? 'color:var(--accent)' : 'color:#C9D8F5'}>${ic(icon)}</span></div>
           <div class="grow" style="display:flex;flex-direction:column;gap:3px"><span class="tag" style=${a.done ? 'color:var(--accent)' : 'color:var(--mut)'}>${a.done ? '● ' + t('cycleDone') : (a.areaName ? a.areaName + ' · ' : '') + (pct != null ? Math.round(pct) + '%' : t('running'))}</span>
-            <span class="ttl">${a.name}</span><span class="muted txt" style="font-size:13px">${detail}</span></div></div></article>`);
+            <span class="ttl">${a.name}</span><span class="muted txt" style="font-size:13px">${detail}</span></div></div>
+        ${this.alexaRow(a, t)}</article>`);
     }
     if (m.waste.length) {
       // Owner 2026-11-16: the next pickup as a big, refined bin; today is always stated; the next days on a shelf.
@@ -764,14 +787,17 @@ class AureonDashboard extends LitElement {
     }
     for (const v of m.vacuums) {
       const st = v.state, cleaning = st === 'cleaning', bat = v.attrs.battery_level ?? v.battery;
+      const vr = vacuumRooms(v.attrs), active = ['cleaning', 'paused', 'returning'].includes(st);
+      const curRoom = vr && vr.cur >= 0 ? vr.list[vr.cur] : null;
       const label = { cleaning: t('cleaning'), docked: t('docked'), returning: t('returning'), paused: t('vPaused'), error: t('vError'), idle: t('idle') }[st] || st;
       cards.push(html`<article class="act" style=${cleaning ? 'border-color:rgba(126,224,168,.35)' : ''}>
         <div class="row sp" style="align-items:flex-start;gap:12px"><div class="grow" style="display:flex;flex-direction:column;gap:3px">
-          <span class="tag" style=${cleaning ? 'color:#7EE0A8' : 'color:var(--mut)'}>${cleaning ? '● ' : ''}${label}${v.areaName ? ' · ' + v.areaName : ''}</span>
-          <span class="ttl">${v.name}</span><span class="muted txt" style="font-size:13px">${[bat != null ? t('battery') + ' ' + Math.round(bat) + '%' : null, ...(v.facts || [])].filter(Boolean).join(' · ')}</span></div>
+          <span class="tag" style=${cleaning ? 'color:#7EE0A8' : 'color:var(--mut)'}>${cleaning ? '● ' : ''}${label}${curRoom && active ? ' · ' + curRoom : v.areaName ? ' · ' + v.areaName : ''}</span>
+          <span class="ttl">${v.name}</span><span class="muted txt" style="font-size:13px">${vr && active ? [vr.whole ? t('wholeHome') : null, vr.cur >= 0 ? t('roomOf', { a: vr.cur + 1, b: vr.list.length }) : null, bat != null ? t('battery') + ' ' + Math.round(bat) + '%' : null].filter(Boolean).join(' · ') : [bat != null ? t('battery') + ' ' + Math.round(bat) + '%' : null, ...(v.facts || [])].filter(Boolean).join(' · ')}</span></div>
           <span style="position:relative;width:56px;height:56px;flex:none" aria-hidden="true"><span style="position:absolute;inset:0;border-radius:50%;border:1px dashed var(--line2)"></span>
             <span class="orbit" style=${'position:absolute;inset:0;' + (cleaning ? 'animation:orbit 5s linear infinite' : 'opacity:0')}><span style="position:absolute;left:50%;top:-6px;margin-left:-9px;width:18px;height:18px;border-radius:50%;background:var(--card);border:1.5px solid var(--accent)"></span></span>
             <span style=${`position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:${cleaning ? 'var(--accent)' : '#7EE0A8'}`}></span></span></div>
+        ${vr && active ? html`<div class="vrooms" role="list" aria-label=${t('roomOf', { a: vr.cur + 1, b: vr.list.length })}>${vr.list.map((r, i) => html`<span role="listitem" class=${'vr' + (i < vr.cur ? ' done' : i === vr.cur ? ' now' : '')}><i></i><span class="txt">${r}</span></span>`)}</div>` : nothing}
         <div class="wrapRow">
           ${cleaning ? html`<button class="btn" @click=${() => this._call('vacuum', 'pause', { entity_id: v.id })}>${ic('pause', 'i s f')}${t('stop')}</button>` : html`<button class="btn pri" @click=${() => this._call('vacuum', 'start', { entity_id: v.id })}>${ic('play', 'i s f')}${t('start')}</button>`}
           ${st !== 'docked' ? html`<button class="btn" @click=${() => this._call('vacuum', 'return_to_base', { entity_id: v.id })}>${ic('home', 'i s')}${t('dock')}</button>` : nothing}
@@ -937,7 +963,7 @@ class AureonDashboard extends LitElement {
   }
 
   // ── energy ───────────────────────────────────────────────────────────────
-  sEnergy({ m, t, aRgb }) {
+  sEnergy({ m, t, aRgb, lang }) {
     const ui = this._ui, inRoom = (d) => ui.room === 'all' || d.area === ui.room;
     const plugs = m.metered.filter(inRoom), total = Math.round(plugs.reduce((s, p) => s + (p.on && p.w ? p.w : 0), 0));
     if (!plugs.length && m.solarW == null) return nothing;
@@ -966,7 +992,17 @@ class AureonDashboard extends LitElement {
             <div class="node" style=${`left:48%;top:92%;flex-direction:row;opacity:${hasSolar && m.batterySoc != null ? 1 : 0.4}`}><span class="o" style=${'width:44px;height:44px;color:#7EE0A8;' + (hasSolar && m.batterySoc != null ? 'background:#12201A;border:1px solid #2B5A40' : 'border:1px dashed var(--dim)')}>${ic('batt', 'i s')}</span><span style="display:flex;flex-direction:column;text-align:left"><span style="font-size:13px">${hasSolar && m.batterySoc != null ? Math.round(m.batterySoc) + '%' : t('soon')}</span><span class="tag muted" style="font-size:9px">${t('batteryS')}</span></span></div>
             <div class="node" style="left:80%;top:50%"><span class="o" style=${`width:92px;height:92px;background:var(--raise);border:1px solid var(--line2);flex-direction:column;gap:2px;box-shadow:0 0 60px -10px ${rgba(aRgb, Math.min(0.55, 0.12 + house / 3000).toFixed(2))}`}>${ic('home')}<b style="font-size:15px;font-weight:500">${house} W</b></span><span class="tag muted" style="font-size:10px">${t('home')}</span></div>
           </div>
-          <div class="kv"><div><span class="tag muted">${t('todayE')}</span><b>${m.energyToday?.v != null ? m.energyToday.v.toFixed(1).replace('.', ',') + ' ' + m.energyToday.unit : '—'}</b></div><div style=${hasSolar ? '' : 'opacity:.45'}><span class="tag muted">${t('solarToday')}</span><b>${hasSolar ? '—' : t('soon')}</b></div></div>
+          ${(() => {
+            const nf = (v, d = 1) => v == null ? '—' : Number(v).toLocaleString(lang, { minimumFractionDigits: d, maximumFractionDigits: d });
+            const today = m.energyToday?.v, cost = m.costToday?.v ?? (today != null && m.price?.v != null ? today * m.price.v : null), cur = m.costToday?.unit || m.price?.unit || '€';
+            return html`<div class="ekv">
+              <div><span class="tag muted">${t('todayE')}</span><b>${nf(today)} <small>${m.energyToday?.unit || 'kWh'}</small></b></div>
+              <div><span class="tag muted">${t('costToday')}</span><b>${nf(cost, 2)} <small>${cur}</small></b></div>
+              <div><span class="tag muted">${t('thisMonth')}</span><b>${nf(m.energyMonth?.v, 0)} <small>${m.energyMonth?.unit || 'kWh'}</small></b></div>
+              <div class=${hasSolar ? '' : 'soon'}><span class="tag muted">${t('solarToday')}</span><b>${hasSolar ? '—' : t('soon')}</b></div>
+              <div class=${hasSolar ? '' : 'soon'}><span class="tag muted">${t('selfUse')}</span><b>${hasSolar ? '—' : t('soon')}</b></div>
+            </div>`;
+          })()}
         </div>
         <div class="tile" style="flex:2 1 300px;padding:22px;border-radius:24px">
           <span class="row sp"><span class="eyebrow" style="font-size:10px">${t('whoNow')}</span><span class="dim" style="font-size:12px">${t('byPlugs')}</span></span>

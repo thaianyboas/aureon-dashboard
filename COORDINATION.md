@@ -1454,3 +1454,8 @@ The Music browser suite passed again with that label and native transfer.
   short names via `shortBin()` (unit-tested).
 - Lights and plugs: outside edit mode grouped by room (`roomGroups()`), folded on phones (<900 px element width),
   open on wide screens or when a room is filtered; edit mode keeps the movable tiles. Light name opens HA more-info.
+- Mockup parity (owner 2026-11-16 "coisas nas imagens que não estão no dashboard"): appliance program + temperature
+  (Home Connect select/sensor, humanized), "Alexa avisa ao terminar" row that finds the automation created from
+  `aureon/appliance_done_*` via `automation/config` (admin only) and toggles it on tap (else "Configurar" → blueprints),
+  robot room-by-room progress from Dreame `rooms/selected_map/cleaning_sequence/active_segments/current_segment`
+  (`vacuumRooms`), energy tiles today/cost (cost sensor or today × €/kWh price sensor)/month/solar/self-use.

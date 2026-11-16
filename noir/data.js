@@ -82,6 +82,24 @@ export function wasteCollections(state, now, zone) {
   return rows;
 }
 
+// Dreame (Tasshack) and similar: rooms of the selected map, the planned order and the room being cleaned now.
+export function vacuumRooms(attrs) {
+  const a = attrs || {};
+  let rooms = a.rooms;
+  if (rooms && !Array.isArray(rooms) && typeof rooms === 'object') rooms = rooms[a.selected_map] || Object.values(rooms)[0];
+  if (!Array.isArray(rooms)) return null;
+  rooms = rooms.filter((r) => r && r.id != null && r.name);
+  if (rooms.length < 2) return null;
+  const byId = new Map(rooms.map((r) => [String(r.id), r]));
+  let ids = Array.isArray(a.active_segments) && a.active_segments.length ? a.active_segments.map(String) : null;
+  const seq = Array.isArray(a.cleaning_sequence) && a.cleaning_sequence.length ? a.cleaning_sequence.map(String) : rooms.slice().sort((x, y) => (x.order ?? 99) - (y.order ?? 99)).map((r) => String(r.id));
+  ids = ids ? seq.filter((id) => ids.includes(id)).concat(ids.filter((id) => !seq.includes(id))) : seq;
+  const list = ids.map((id) => byId.get(id)).filter(Boolean);
+  if (list.length < 1) return null;
+  const cur = a.current_segment != null ? list.findIndex((r) => String(r.id) === String(a.current_segment)) : -1;
+  return { list: list.map((r) => r.name), cur, whole: !(Array.isArray(a.active_segments) && a.active_segments.length) };
+}
+
 export const BIN_COLORS = [[/gelb|yellow|amarel|verpack|plast|wertstoff/i, '#E3C03C'], [/bio|organ/i, '#9A7046'], [/papier|paper|papel|blau|blue|azul|karton/i, '#3A72BD'], [/glas|glass|vidro/i, '#4F9A6B'], [/rest|residu|schwarz|black|grau|grey|gray|haus/i, '#6A6A70']];
 // Short bin name for small spaces: "Schwarze Restmülltonne" → "Restmüll", "Blaue Papiertonne" → "Papier",
 // "Grüne Biotonne" → "Bio". The colour is shown by the bin dot, so the colour word can go. Unknown names stay whole.
@@ -109,7 +127,7 @@ export function buildModel(hass, opts = {}) {
   const areaName = (id) => areaReg[id]?.name || '';
 
   const byDevice = {};
-  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], energyToday: null, solarW: null, gridW: null, batterySoc: null, all: [] };
+  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
 
   for (const [eid, st] of Object.entries(states)) {
     const reg = regs[eid] || {};
@@ -133,6 +151,9 @@ export function buildModel(hass, opts = {}) {
     if (domain === 'scene') { m.scenes.push(item); continue; }
     if (domain === 'sensor' && dc === 'power') { m.power.push({ ...item, w: num(st.state) }); continue; }
     if (domain === 'sensor' && dc === 'energy' && /today|heute|daily|hoje|tag/i.test(eid + ' ' + base) && m.energyToday == null) m.energyToday = { v: num(st.state), unit: a.unit_of_measurement || 'kWh' };
+    if (domain === 'sensor' && dc === 'energy' && /month|monat|monthly|mês|mes\b|mensal/i.test(eid + ' ' + base) && m.energyMonth == null) m.energyMonth = { v: num(st.state), unit: a.unit_of_measurement || 'kWh' };
+    if (domain === 'sensor' && (dc === 'monetary' || /^(€|eur|\$|usd|r\$|brl)$/i.test(a.unit_of_measurement || '')) && /cost|kosten|custo/i.test(eid + ' ' + base) && /today|heute|hoje|daily|tag/i.test(eid + ' ' + base) && m.costToday == null) m.costToday = { v: num(st.state), unit: a.unit_of_measurement || '€' };
+    if (domain === 'sensor' && /\/\s*kwh$/i.test(a.unit_of_measurement || '') && m.price == null) m.price = { v: num(st.state), unit: String(a.unit_of_measurement).split('/')[0].trim() };
     if (domain === 'sensor' && /%/.test(a.unit_of_measurement || '') && dc === 'battery' && SOLAR.test(dev?.name || '') ) m.batterySoc = num(st.state);
     if ((domain === 'sensor' || domain === 'calendar') && WASTE.test(eid + ' ' + base)) m.waste.push(...wasteCollections(st, now, zone));
     if (technical) continue;
@@ -191,7 +212,9 @@ export function buildModel(hass, opts = {}) {
     const prog = pick(/progress|fortschritt|progresso/);
     const remain = pick(/remaining|verbleib|restzeit|rest_zeit|tempo_restante|time_left/);
     const finish = pick(/finish|ende|end_time|fertig|programm_ende|termina/);
-    const status = pick(/operation|betrieb|status|state|programm|program|phase|estado/);
+    const status = pick(/operation|betrieb|status|state|phase|estado/) || pick(/programm|program/);
+    const progEnt = sensors.find((x) => /program|programa/i.test(x.id + ' ' + x.baseName) && !/progress|fortschritt|ende|end|finish|remaining|time|zeit/i.test(x.id) && x !== status && !x.unavailable && !/^(unknown|none|off|aus|)$/i.test(String(x.state)));
+    const tempEnt = sensors.find((x) => /temperat/i.test(x.id + ' ' + x.baseName) && !x.unavailable);
     const area = items[0]?.area || dev.area_id || null;
     let pct = prog ? num(prog.state) : null;
     let mins = null, endAt = null;
@@ -202,7 +225,11 @@ export function buildModel(hass, opts = {}) {
     const stText = status ? String(status.state) : '';
     const done = /finish|fertig|beendet|ende\b|end\b|done|complete|concluí|pronto/i.test(stText) || pct === 100;
     const idle = !done && (/^(off|aus|idle|standby|ready|bereit|inactive|inaktiv|none|desligad)/i.test(stText) || (!stText && pct == null && mins == null));
-    m.appliances.push({ id: devId, kind, name: cleanName(dev.name_by_user || dev.name || kind, areaName(area)), area, areaName: areaName(area), pct, mins, endAt, status: stText, statusLabel: status ? (status.attrs?.options ? stText : stText) : '', done, running: !done && !idle, idle });
+    const human = (v) => { let x = String(v || '').split('.').pop().replace(/_/g, ' ').replace(/([a-z])([A-Z0-9])/g, '$1 $2').trim(); return x ? x[0].toUpperCase() + x.slice(1) : ''; };
+    const program = progEnt ? human(progEnt.state) : '';
+    let temp = '';
+    if (tempEnt) { const tv = String(tempEnt.state).match(/(\d{2,3})\s*$/) || String(tempEnt.state).match(/GC(\d+)/i); if (tv) temp = tv[1] + '°'; else if (/cold|kalt|fria/i.test(tempEnt.state)) temp = '❄'; }
+    m.appliances.push({ entities: items.map((x) => x.id), program: [program, temp].filter(Boolean).join(' '), id: devId, kind, name: cleanName(dev.name_by_user || dev.name || kind, areaName(area)), area, areaName: areaName(area), pct, mins, endAt, status: stText, statusLabel: status ? (status.attrs?.options ? stText : stText) : '', done, running: !done && !idle, idle });
   }
 
   // The robot's map is a camera of the robot's own device (Dreame & co.): it belongs to the robot, not to Security.

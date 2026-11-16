@@ -37,7 +37,7 @@ window.makeHass = function makeHass(lang) {
     .forEach(([id, n, a, s]) => ent('media_player.' + id, s, { friendly_name: n, volume_level: 0.3, supported_features: 524288 | 16384 | 1 | 4, device_class: id === 's4' ? 'tv' : 'speaker', group_members: [] }, { area_id: a, platform: 'alexa_media' }));
   // vacuum
   dev('dvac', 'Robot', 'hall', 'X60');
-  ent('vacuum.robot', 'cleaning', { friendly_name: 'Robot' }, { device_id: 'dvac' });
+  ent('vacuum.robot', 'cleaning', { friendly_name: 'Robot', selected_map: 1, rooms: { 1: [{ id: 1, name: 'Living room', order: 1 }, { id: 2, name: 'Kitchen', order: 2 }, { id: 3, name: 'Hallway', order: 3 }, { id: 4, name: 'Bedroom', order: 4 }, { id: 5, name: 'Bathroom', order: 5 }] }, current_segment: 2, cleaning_sequence: [1, 2, 3, 4, 5], active_segments: [] }, { device_id: 'dvac' });
   ent('sensor.robot_battery', '81', { device_class: 'battery', unit_of_measurement: '%' }, { device_id: 'dvac', entity_category: 'diagnostic' });
   ent('sensor.robot_current_room', 'Kitchen', {}, { device_id: 'dvac' });
   ent('camera.robot_map', 'idle', { friendly_name: 'Current Map', entity_picture: '/api/camera_proxy/camera.robot_map?token=x' }, { device_id: 'dvac', area_id: 'living' });
@@ -48,6 +48,12 @@ window.makeHass = function makeHass(lang) {
   ent('sensor.washer_operation', 'run', { friendly_name: 'Washer status' }, { device_id: 'dwash' });
   ent('sensor.washer_progress', '64', { unit_of_measurement: '%' }, { device_id: 'dwash' });
   ent('sensor.washer_remaining_time', '22', { unit_of_measurement: 'min' }, { device_id: 'dwash' });
+  ent('select.washer_active_program', 'LaundryCare.Washer.Program.Cotton', { friendly_name: 'Washer active program' }, { device_id: 'dwash' });
+  ent('select.washer_temperature', 'LaundryCare.Washer.EnumType.Temperature.GC40', { friendly_name: 'Washer temperature' }, { device_id: 'dwash' });
+  ent('automation.washer_alexa', 'on', { friendly_name: 'Waschmaschine fertig (Alexa)' }, {});
+  ent('sensor.energy_today', '3.4', { device_class: 'energy', unit_of_measurement: 'kWh', friendly_name: 'Energy today' }, {});
+  ent('sensor.energy_month', '84.2', { device_class: 'energy', unit_of_measurement: 'kWh', friendly_name: 'Energy this month' }, {});
+  ent('sensor.electricity_price', '0.32', { unit_of_measurement: '€/kWh', friendly_name: 'Electricity price' }, {});
   dev('ddish', 'Dishwasher', 'kitchen', 'DW');
   ent('sensor.dishwasher_status', 'finished', { friendly_name: 'Dishwasher status' }, { device_id: 'ddish' });
   // others
@@ -70,7 +76,7 @@ window.makeHass = function makeHass(lang) {
       if (d === 'spotifyplus' && s === 'check_track_favorites') return { response: { result: { abc123: false } } };
       return { response: { result: {} } };
     },
-    callWS: async (msg) => { H.ws.push(msg); if (msg.type === 'config/label_registry/list') return [{ label_id: 'protegida', name: 'Protegida' }, { label_id: 'no_dboard', name: 'no_dboard' }, { label_id: 'deko', name: 'Deko' }]; return {}; },
+    callWS: async (msg) => { H.ws.push(msg); if (msg.type === 'automation/config' && msg.entity_id === 'automation.washer_alexa') return { config: { alias: 'Waschmaschine fertig (Alexa)', use_blueprint: { path: 'aureon/appliance_done_status.yaml', input: { status_entity: 'sensor.washer_operation' } } } }; if (msg.type === 'config/label_registry/list') return [{ label_id: 'protegida', name: 'Protegida' }, { label_id: 'no_dboard', name: 'no_dboard' }, { label_id: 'deko', name: 'Deko' }]; return {}; },
     callApi: async () => [],
     connection: { subscribeMessage: async (cb, msg) => { H.ws.push(msg); const conds = ['partlycloudy', 'cloudy', 'rainy', 'rainy', 'cloudy', 'clear-night', 'clear-night'];
       setTimeout(() => cb({ forecast: msg.forecast_type === 'daily' ? [{ datetime: new Date().toISOString(), condition: 'partlycloudy', temperature: 9, templow: 3 }] : conds.map((c, i) => ({ datetime: new Date(Date.now() + i * 3600e3).toISOString(), condition: c, temperature: 7 - Math.floor(i / 2), precipitation_probability: c === 'rainy' ? 60 : 0 })) }), 10);

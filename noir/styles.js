@@ -144,6 +144,17 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .lrow.on .lbulb{background:rgb(var(--lc));box-shadow:0 0 10px 1px rgba(var(--lc),.8)}
 .lrng{grid-column:1 / -1;margin:0 0 8px 18px;height:3px}
 @container (max-width:460px){.prow{padding-left:14px}}
+.alexa{display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 8px 6px 14px;border-radius:14px;background:var(--sunk);border:1px solid var(--line);font-size:14px;color:var(--fg2)}
+.alexa>.i{color:var(--mut)}
+.vrooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:6px}
+.vr{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim);min-width:0}
+.vr i{height:4px;border-radius:2px;background:var(--line2)}
+.vr.done{color:var(--mut)}.vr.done i{background:color-mix(in srgb,#7EE0A8 45%,var(--line2))}
+.vr.now{color:var(--fg)}.vr.now i{background:#7EE0A8;box-shadow:0 0 10px #7EE0A8}
+.ekv{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.ekv>div{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;background:var(--sunk);border:1px solid var(--line)}
+.ekv b{font-size:22px;font-weight:300;letter-spacing:-.03em}.ekv small{font-size:12px;color:var(--mut);font-weight:400}
+.ekv .soon{opacity:.45}
 .act.wst{position:relative;overflow:hidden;gap:16px;padding:20px}
 .act.wst.urgent{border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
 .wglow{position:absolute;left:-30px;top:10px;width:210px;height:210px;pointer-events:none;opacity:.55}
