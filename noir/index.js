@@ -29,6 +29,7 @@ const F = { PAUSE: 1, SEEK: 2, VOL: 4, PREV: 16, NEXT: 32, SOURCE: 2048, PLAY: 1
 
 const P = {
   repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
+  minus: 'M5 12h14', plus: 'M12 5v14M5 12h14',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
   bulb: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z',
   plug: 'M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4', lock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3', unlock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 7.5-2',
@@ -1142,6 +1143,18 @@ class AureonDashboard extends LitElement {
   }
   // Rotary volume knob (owner 2026-11-16: "o botão do volume tem como ter um outro?"). Turn it with a finger or the
   // mouse (circular drag), or arrow keys; the speaker only gets the value when the hand lets go.
+  // Volume (owner 2026-11-16 picked "between A and E"): − button, slim golden line you can drag, + button, number.
+  volLine(vol, t) {
+    const set = (v) => { this._local['vol:acct'] = Math.max(0, Math.min(100, Math.round(v))); this.requestUpdate(); };
+    const send = (delay = 0) => { clearTimeout(this._knobT); this._knobT = setTimeout(() => { const v = this._local['vol:acct']; if (v == null) return; this._mc.command('volume', v / 100).finally(() => setTimeout(() => { delete this._local['vol:acct']; this.requestUpdate(); }, 1500)); }, delay); };
+    const step = (d) => { set((this._local['vol:acct'] ?? vol) + d); send(450); };
+    return html`<div class="vline">
+      <button class="vpm" aria-label=${t('volume') + ' −'} @click=${() => step(-5)}>${ic('minus', 'i s')}</button>
+      <input class="vrange" type="range" min="0" max="100" .value=${String(vol)} aria-label=${t('volume')} style=${`--v:${vol}%`}
+        @input=${(e) => set(Number(e.target.value))} @change=${() => send(0)}>
+      <button class="vpm" aria-label=${t('volume') + ' +'} @click=${() => step(5)}>${ic('plus', 'i s')}</button>
+      <span class="mono vnum">${vol}</span></div>`;
+  }
   knob(vol, t) {
     const A0 = -135, SW = 270, ang = A0 + SW * vol / 100;
     const pt = (deg, r) => { const rad = (deg - 90) * Math.PI / 180; return [32 + r * Math.cos(rad), 32 + r * Math.sin(rad)]; };
@@ -1213,7 +1226,7 @@ class AureonDashboard extends LitElement {
             ${mc.can('repeat') ? html`<button class="ib sm ghost" aria-pressed=${a.repeat && a.repeat !== 'off' ? 'true' : 'false'} aria-label=${t('repeat') + ': ' + t('repeat_' + (a.repeat || 'off'))} title=${t('repeat_' + (a.repeat || 'off'))} style=${'position:relative;' + (a.repeat && a.repeat !== 'off' ? 'color:var(--accent)' : 'color:var(--mut)')} @click=${() => mc.command('repeat')}>${ic('repeat', 'i s')}${a.repeat === 'one' ? html`<b style="position:absolute;right:6px;top:5px;font-size:9px;font-weight:600">1</b>` : nothing}</button>` : nothing}
             ${mc.advanced('save_track_favorites') && a.media_title ? html`<button class="ib sm ghost" aria-pressed=${mc.favorite ? 'true' : 'false'} aria-label=${t('likedS')} style=${mc.favorite ? 'color:#FF8FA3' : 'color:var(--mut)'} @click=${() => mc.toggleFavorite()}>${svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style=${mc.favorite ? 'fill:currentColor' : ''}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>`}</button>` : nothing}
           </div>
-          ${mc.can('volume') && vol != null ? this.knob(vol, t) : nothing}
+          ${mc.can('volume') && vol != null ? this.volLine(vol, t) : nothing}
         </div>
         ${mc.error ? html`<span class="txt" style="position:relative;font-size:12px;color:#FF8A80">${mc.error}</span>` : nothing}
         <div class="mlib">

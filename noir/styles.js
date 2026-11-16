@@ -157,6 +157,18 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .mstitle{font-family:'Playfair Display','Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;font-style:italic;font-size:24px}
 .msbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:10px 12px 16px;display:flex;flex-direction:column;gap:10px}
 .msbody .mrow{flex-wrap:wrap;overflow:visible}
+.vline{display:flex;align-items:center;gap:10px;flex:1 1 220px;max-width:360px;margin-left:auto}
+.vpm{width:40px;height:40px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--line2);background:var(--raise);color:var(--accent);cursor:pointer;transition:background .2s,transform .1s}
+.vpm:active{transform:scale(.92);background:color-mix(in srgb,var(--accent) 18%,var(--raise))}
+.vrange{flex:1;min-width:60px;height:28px;margin:0;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}
+.vrange::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 55%,#000),var(--accent)) 0 0/var(--v) 100% no-repeat,var(--line2)}
+.vrange::-moz-range-track{height:3px;border-radius:2px;background:var(--line2)}
+.vrange::-moz-range-progress{height:3px;border-radius:2px;background:var(--accent)}
+.vrange::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-7.5px;border-radius:50%;background:color-mix(in srgb,var(--accent) 35%,#fff);box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 16%,transparent),0 2px 8px rgba(0,0,0,.8)}
+.vrange::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:color-mix(in srgb,var(--accent) 35%,#fff)}
+.vrange:focus-visible{outline:none}.vrange:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px var(--accent)}
+.vnum{width:26px;text-align:right;font-size:13px;color:var(--fg2)}
+@container (max-width:460px){.vline{flex-basis:100%;max-width:none;margin-left:0}}
 .mall{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;padding:0 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));background:color-mix(in srgb,var(--accent) 6%,transparent);color:var(--accent);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
 .mpage{display:flex;flex-direction:column;gap:14px}.mpbar{display:flex;align-items:center;gap:10px}
 .mlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:2px 16px}
