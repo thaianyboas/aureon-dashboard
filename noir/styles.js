@@ -209,12 +209,20 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .stg.on .sglow{opacity:1}
 .bigv{position:absolute;width:600px;height:600px;right:-260px;top:50%;margin-top:-300px;pointer-events:none}
 .bigv .vinyl{position:absolute;inset:0;border-radius:50%;
-  background:repeating-radial-gradient(circle,rgba(255,255,255,.028) 0 .6px,transparent .6px 2.2px),
-  radial-gradient(circle,#0b0b0c 0 31.5%,#1c1c1f 32% 33.5%,#0b0b0c 34% 48%,#1a1a1d 48.5% 49.5%,#0b0b0c 50% 64%,#1a1a1d 64.5% 65.5%,#0b0b0c 66% 81%,#19191c 81.5% 82.3%,#0b0b0c 83% 97.3%,#2c2c30 97.7% 100%);
-  box-shadow:-40px 0 90px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.05);animation:spin 2.2s linear infinite;animation-play-state:paused}
+  background:
+    radial-gradient(circle,transparent 0 31%,rgba(255,255,255,.05) 31.4%,transparent 32.2% 35.4%,rgba(255,255,255,.035) 35.8%,transparent 36.4%),
+    radial-gradient(circle,transparent 0 52%,rgba(0,0,0,.55) 52.4% 53.2%,transparent 53.6% 70%,rgba(0,0,0,.55) 70.4% 71.1%,transparent 71.5% 85.5%,rgba(0,0,0,.5) 85.9% 86.5%,transparent 86.9%),
+    repeating-radial-gradient(circle,#0e0e10 0 .55px,#151518 .55px 1.1px,#101012 1.1px 1.7px),
+    #111113;
+  box-shadow:-40px 10px 90px rgba(0,0,0,.92),0 0 0 1px rgba(255,255,255,.07),inset 0 0 0 2px #050506,inset 0 0 0 3px rgba(255,255,255,.07),inset 0 0 40px rgba(0,0,0,.7);
+  animation:spin 2.2s linear infinite;animation-play-state:paused}
 .stg.on .bigv .vinyl{animation-play-state:running}
-.bigv .label{position:absolute;inset:33%;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.8),inset 0 0 0 1px rgba(255,255,255,.12)}
-.bigv .sheen{position:absolute;inset:0;border-radius:50%;mix-blend-mode:screen;background:conic-gradient(from 200deg,transparent 0 5%,rgba(255,255,255,.13) 10%,transparent 16% 55%,rgba(255,255,255,.08) 60%,transparent 66%);-webkit-mask:radial-gradient(circle,transparent 0 33%,#000 34%);mask:radial-gradient(circle,transparent 0 33%,#000 34%)}
+.bigv .label{position:absolute;inset:33.5%;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.85),0 0 0 5px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.18),inset 0 0 18px rgba(0,0,0,.45)}
+.bigv .label::after{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 50%,transparent 0 30%,rgba(0,0,0,.18) 31%,transparent 33%),linear-gradient(135deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 40%)}
+.bigv .sheen{position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
+  background:
+    conic-gradient(from 0deg,rgba(255,255,255,0) 0deg 25deg,rgba(255,240,215,.10) 45deg,rgba(255,240,215,.22) 58deg,rgba(255,240,215,.10) 72deg,rgba(255,255,255,0) 95deg 205deg,rgba(255,240,215,.12) 222deg,rgba(255,244,225,.30) 238deg,rgba(255,240,215,.12) 254deg,rgba(255,255,255,0) 275deg 290deg,rgba(200,215,255,.07) 304deg,rgba(255,255,255,0) 318deg 360deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 33.5%,#000 34.5% 98.8%,transparent 99.3%);mask:radial-gradient(circle,transparent 0 33.5%,#000 34.5% 98.8%,transparent 99.3%)}
 .bigv .spindle{position:absolute;left:calc(50% - 5px);top:calc(50% - 5px);width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f4f4f5,#8a8a90 60%,#3a3a3e);box-shadow:0 1px 2px rgba(0,0,0,.8)}
 .stg .arm{position:absolute;width:calc(120px * var(--k));height:calc(230px * var(--k));right:calc(20px - 10px * var(--k));top:calc(20px - 10px * var(--k));overflow:visible;pointer-events:none;transform-origin:91.67% 4.35%;transform:rotate(-24deg);transition:transform 1.3s cubic-bezier(.35,.75,.25,1);filter:drop-shadow(-6px 14px 10px rgba(0,0,0,.75))}
 .stg.on .arm{transform:rotate(0deg)}
@@ -223,6 +231,15 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .arm .rod{fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round}.arm .head{fill:var(--accent)}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.bigv .vinyl{animation:none}.stg .arm{transition:none}}
+.kwrap{display:inline-flex;align-items:center;gap:10px;margin-left:auto}
+.kval{font-size:12px;color:var(--mut);min-width:22px;text-align:right}
+.knob{position:relative;width:56px;height:56px;flex:none;border-radius:50%;cursor:grab;touch-action:none;outline:none}
+.knob:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+.knob svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.knob .ktrack{fill:none;stroke:var(--line2);stroke-width:2;stroke-linecap:round}
+.knob .kval2{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--accent) 70%,transparent))}
+.kcap{position:absolute;inset:9px;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(0,0,0,0) 0 55%,rgba(0,0,0,.25) 100%),conic-gradient(from 0deg,#2a2a2e,#46464c,#1e1e22,#3c3c42,#232327,#46464c,#2a2a2e);box-shadow:0 6px 14px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(0,0,0,.6)}
+.kcap i{position:absolute;left:50%;top:5px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
 .stxt{position:relative;display:flex;flex-direction:column;gap:10px;max-width:min(560px,58%);text-shadow:0 2px 18px rgba(0,0,0,.85)}
 .stime{font-size:11px;color:var(--mut);letter-spacing:.08em}
 .sctl{position:relative;display:flex;align-items:center;gap:14px}
@@ -249,7 +266,7 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .mlib{position:relative;display:flex;flex-direction:column;gap:10px;padding-top:10px;border-top:1px solid var(--line)}
 .mrow{display:flex;gap:10px;overflow-x:auto;scrollbar-width:thin;padding-bottom:4px}
 .cover{flex:none;width:104px;display:flex;flex-direction:column;gap:6px;padding:0;border:0;background:transparent;text-align:left;color:var(--fg)}
-@container (max-width:460px){.stg{--k:1;min-height:320px;padding:22px 20px 30px}.bigv{width:360px;height:360px;right:-170px;margin-top:-180px}.stg .arm{right:calc(16px - 10px * var(--k))}.stxt{max-width:62%}.jtitle{font-size:30px}.sctl{gap:12px}.mctl{justify-content:space-between}.mvol{flex:1 1 150px;max-width:none}.cover{width:86px}.sgrid{gap:6px}}
+@container (max-width:460px){.stg{--k:1;min-height:320px;padding:22px 20px 30px}.bigv{width:360px;height:360px;right:-170px;margin-top:-180px}.stg .arm{right:calc(16px - 10px * var(--k))}.stxt{max-width:62%}.jtitle{font-size:30px}.sctl{gap:12px}.mctl{justify-content:space-between}.cover{width:86px}.sgrid{gap:6px}}
 /* toasts */
 .toasts{position:fixed;right:20px;bottom:20px;z-index:80;display:flex;flex-direction:column;gap:10px;width:min(380px,calc(100% - 40px))}
 .toast{display:flex;align-items:flex-start;gap:14px;padding:16px;border-radius:20px;background:var(--raise);border:1px solid var(--line2);box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}

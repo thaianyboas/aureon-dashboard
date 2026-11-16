@@ -984,6 +984,25 @@ class AureonDashboard extends LitElement {
     if (alexa) return this._call('media_player', dir === 'next' ? 'media_next_track' : 'media_previous_track', { entity_id: alexa });
     return mc.command(dir);
   }
+  // Rotary volume knob (owner 2026-11-16: "o botão do volume tem como ter um outro?"). Turn it with a finger or the
+  // mouse (circular drag), or arrow keys; the speaker only gets the value when the hand lets go.
+  knob(vol, t) {
+    const A0 = -135, SW = 270, ang = A0 + SW * vol / 100;
+    const pt = (deg, r) => { const rad = (deg - 90) * Math.PI / 180; return [32 + r * Math.cos(rad), 32 + r * Math.sin(rad)]; };
+    const arc = (d0, d1, r) => { const [x0, y0] = pt(d0, r), [x1, y1] = pt(d1, r); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${d1 - d0 > 180 ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+    const set = (v) => { this._local['vol:acct'] = Math.max(0, Math.min(100, Math.round(v))); this.requestUpdate(); };
+    const send = () => { const v = this._local['vol:acct']; if (v == null) return; this._mc.command('volume', v / 100).finally(() => setTimeout(() => { delete this._local['vol:acct']; this.requestUpdate(); }, 1500)); };
+    const fromPointer = (e, el) => { const r = el.getBoundingClientRect(); let d = Math.atan2(e.clientX - (r.left + r.width / 2), -(e.clientY - (r.top + r.height / 2))) * 180 / Math.PI; d = Math.max(A0, Math.min(A0 + SW, d)); return (d - A0) / SW * 100; };
+    const down = (e) => { const el = e.currentTarget; el.setPointerCapture?.(e.pointerId); el._drag = true; set(fromPointer(e, el)); e.preventDefault(); };
+    const move = (e) => { const el = e.currentTarget; if (el._drag) set(fromPointer(e, el)); };
+    const up = (e) => { const el = e.currentTarget; if (!el._drag) return; el._drag = false; send(); };
+    const key = (e) => { const d = { ArrowUp: 5, ArrowRight: 5, ArrowDown: -5, ArrowLeft: -5, PageUp: 10, PageDown: -10 }[e.key]; if (d == null) return; e.preventDefault(); set((this._local['vol:acct'] ?? vol) + d); clearTimeout(this._knobT); this._knobT = setTimeout(send, 450); };
+    return html`<span class="kwrap"><span class="mono kval">${vol}</span>
+      <span class="knob" role="slider" tabindex="0" aria-label=${t('volume')} aria-valuemin="0" aria-valuemax="100" aria-valuenow=${String(vol)}
+        @pointerdown=${down} @pointermove=${move} @pointerup=${up} @pointercancel=${up} @keydown=${key}>
+        <svg viewBox="0 0 64 64" aria-hidden="true"><path class="ktrack" d=${arc(A0, A0 + SW, 29)}></path>${vol > 0 ? svg`<path class="kval2" d=${arc(A0, Math.max(A0 + 0.5, ang), 29)}></path>` : nothing}</svg>
+        <span class="kcap" style=${`transform:rotate(${ang}deg)`}><i></i></span></span></span>`;
+  }
   sMusic({ m, t, now, aRgb }) {
     const ui = this._ui, mc = this._mc;
     const acct = mc.state;
@@ -1038,9 +1057,7 @@ class AureonDashboard extends LitElement {
             ${mc.can('repeat') ? html`<button class="ib sm ghost" aria-pressed=${a.repeat && a.repeat !== 'off' ? 'true' : 'false'} aria-label=${t('repeat') + ': ' + t('repeat_' + (a.repeat || 'off'))} title=${t('repeat_' + (a.repeat || 'off'))} style=${'position:relative;' + (a.repeat && a.repeat !== 'off' ? 'color:var(--accent)' : 'color:var(--mut)')} @click=${() => mc.command('repeat')}>${ic('repeat', 'i s')}${a.repeat === 'one' ? html`<b style="position:absolute;right:6px;top:5px;font-size:9px;font-weight:600">1</b>` : nothing}</button>` : nothing}
             ${mc.advanced('save_track_favorites') && a.media_title ? html`<button class="ib sm ghost" aria-pressed=${mc.favorite ? 'true' : 'false'} aria-label=${t('likedS')} style=${mc.favorite ? 'color:#FF8FA3' : 'color:var(--mut)'} @click=${() => mc.toggleFavorite()}>${svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style=${mc.favorite ? 'fill:currentColor' : ''}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>`}</button>` : nothing}
           </div>
-          ${mc.can('volume') && vol != null ? html`<span class="row mvol">${ic('vol', 'i s')}<input class="rng" type="range" min="0" max="100" .value=${String(vol)} aria-label=${t('volume')} style=${`margin:0;background:linear-gradient(90deg, var(--accent) ${vol}%, var(--line2) ${vol}%)`}
-            @input=${(e) => { this._local['vol:acct'] = Number(e.target.value); this.requestUpdate(); }}
-            @change=${(e) => { mc.command('volume', Number(e.target.value) / 100).finally(() => setTimeout(() => { delete this._local['vol:acct']; this.requestUpdate(); }, 1500)); }}><span class="mono muted" style="font-size:11px;min-width:22px;text-align:right">${vol}</span></span>` : nothing}
+          ${mc.can('volume') && vol != null ? this.knob(vol, t) : nothing}
         </div>
         ${mc.error ? html`<span class="txt" style="position:relative;font-size:12px;color:#FF8A80">${mc.error}</span>` : nothing}
         <div class="mlib">
