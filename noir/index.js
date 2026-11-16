@@ -1010,12 +1010,18 @@ class AureonDashboard extends LitElement {
         ${accounts.length > 1 ? html`<span class="seg" role="group" aria-label="Spotify">${accounts.map((p) => html`<button aria-pressed=${p.entity_id === mc.entityId ? 'true' : 'false'} style="font-family:inherit;font-size:12px;letter-spacing:0" @click=${() => { mc.select(p.entity_id); this._libAsked = null; }}>${p.attributes.friendly_name || p.entity_id}</button>`)}</span>` : nothing}
         ${groupable.length > 1 ? html`<button class="btn sm" @click=${() => grouped ? this._call('media_player', 'unjoin', { entity_id: members.filter((x) => x !== lead.id) }) : this._call('media_player', 'join', { entity_id: lead.id, group_members: groupable.filter((s) => s.id !== lead.id).map((s) => s.id) })}>${grouped ? t('ungroup') : t('groupAll')}</button>` : nothing}`, t)}
       ${acct ? html`<div class="mcard jzc">
-        <div aria-hidden="true" class="amb" style=${art ? `background-image:url("${art}")` : `background:radial-gradient(60% 90% at 20% 10%, ${rgba(aRgb, 0.5)} 0%, ${rgba(aRgb, 0)} 70%)`}></div>
-        <div aria-hidden="true" class="ambv"></div>
+        <div aria-hidden="true" class=${'spot' + (playing ? ' on' : '')}></div>
         <div class="jz">
         <div class=${'deck' + (playing ? ' on' : '')} aria-hidden="true">
-          <div class="vwrap"><div class="vinyl"><span class="label" style=${art ? `background:center/cover url("${art}")` : `background:radial-gradient(circle at 35% 30%, ${rgba(aRgb, 0.95)} 0%, ${rgba(aRgb, 0.5)} 100%)`}></span></div><span class="sheen"></span></div>
-          <div class="jacket" style=${art ? `background:center/cover url("${art}")` : `background:linear-gradient(135deg, ${rgba(aRgb, 0.9)} 0%, ${rgba(aRgb, 0.25)} 100%)`}>${art ? nothing : html`<span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:rgba(0,0,0,.55)">${ic('note')}</span>`}</div>
+          <span class="platter"></span>
+          <div class="vinyl"><span class="label" style=${art ? `background:center/cover url("${art}")` : `background:radial-gradient(circle at 35% 30%, ${rgba(aRgb, 0.95)} 0%, ${rgba(aRgb, 0.55)} 70%, ${rgba(aRgb, 0.4)} 100%)`}></span></div>
+          <span class="sheen"></span><span class="spindle"></span>
+          <svg class="arm" viewBox="0 0 70 200">
+            <rect class="cw" x="43" y="0" width="14" height="11" rx="3"></rect>
+            <circle class="base" cx="50" cy="22" r="13"></circle><circle class="hub" cx="50" cy="22" r="5.5"></circle>
+            <path class="rod" d="M50 22 L44 140 Q42 158 28 172"></path>
+            <rect class="head" x="17" y="168" width="16" height="10" rx="2" transform="rotate(-42 25 173)"></rect>
+          </svg>
         </div>
         <div class="mhead">
           <div class="grow" style="display:flex;flex-direction:column;gap:4px;min-width:0">
