@@ -4,6 +4,7 @@ on:
     branches: [master]
     paths:
       - '.github/workflows/publish-owner-preview.yml'
+      - 'floor-studio/dashboard/platform/styles.mjs'
   workflow_dispatch:
 permissions:
   contents: write
