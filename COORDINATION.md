@@ -1448,3 +1448,9 @@ The Music browser suite passed again with that label and native transfer.
   lane after 8 s. When the Spotify source name equals an Alexa Media Player speaker/group, the dashboard sends
   media_next_track/previous to that Alexa entity (Echo groups restart the same song on Spotify skip). Not verified on
   the owner's HA yet.
+- Music redesign "Palco" (owner picked concept A): big vinyl off the right edge, brass tonearm (`.stg .arm`, drops
+  when playing), realistic grooves/light streaks, rotary volume knob (`knob()`, pointer/arrow keys, sends on release).
+- Waste card: refined SVG wheelie bins (`binSvg`), next pickup in front, "Hoje …" always stated, shelf of next days,
+  short names via `shortBin()` (unit-tested).
+- Lights and plugs: outside edit mode grouped by room (`roomGroups()`), folded on phones (<900 px element width),
+  open on wide screens or when a room is filtered; edit mode keeps the movable tiles. Light name opens HA more-info.

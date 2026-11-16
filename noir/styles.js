@@ -138,6 +138,11 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .pst{font-size:12px;color:var(--dim);white-space:nowrap}.prow.on .pst{color:var(--fg)}
 .prow.na{opacity:.55}
 .plock{display:flex;width:44px;justify-content:center;color:var(--mut)}
+.lrow{grid-template-columns:minmax(0,1fr) auto auto;row-gap:2px}
+.lname{display:flex;align-items:center;gap:10px;min-width:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.lbulb{flex:none;width:8px;height:8px;border-radius:50%;background:var(--line2)}
+.lrow.on .lbulb{background:rgb(var(--lc));box-shadow:0 0 10px 1px rgba(var(--lc),.8)}
+.lrng{grid-column:1 / -1;margin:0 0 8px 18px;height:3px}
 @container (max-width:460px){.prow{padding-left:14px}}
 .act.wst{position:relative;overflow:hidden;gap:16px;padding:20px}
 .act.wst.urgent{border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
