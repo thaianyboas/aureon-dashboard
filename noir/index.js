@@ -10,8 +10,8 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, PLUG_RUN_W, PL
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.2.3';
-export const BUILD = 'AUREON-NOIR-20261116e';
+export const VERSION = '1.2.4';
+export const BUILD = 'AUREON-NOIR-20261117';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -29,6 +29,7 @@ const F = { PAUSE: 1, SEEK: 2, VOL: 4, PREV: 16, NEXT: 32, SOURCE: 2048, PLAY: 1
 
 const P = {
   repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
+  power: 'M12 3v9M6.3 7.3a8 8 0 1 0 11.4 0',
   minus: 'M5 12h14', plus: 'M12 5v14M5 12h14',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
   bulb: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z',
@@ -585,11 +586,12 @@ class AureonDashboard extends LitElement {
         ${d.id === 'home' && restoreList.length ? html`<div class="chk"><span class="ic" style="width:36px;height:36px">${ic('plug', 'i s')}</span><span class="grow txt"><b>${t('restorePlugs')}</b><span class="muted" style="display:block;font-size:12px">${restoreList.map((id) => m.plugs.find((p) => p.id === id)?.name).join(' · ')}</span></span>${sw(c.restore, () => setCfg({ restore: !c.restore }), t('restorePlugs'))}</div>` : nothing}
         ${d.id !== 'home' && free.length ? html`<span class="eyebrow" style="font-size:10px;padding-top:6px">${t('plugsOffSel')}</span>
           ${Object.entries(byRoom).map(([room, ps]) => html`<span class="dim" style="font-size:11px;padding:4px 2px 0">${room}</span>${ps.map((p) => html`<div class="chk"><span class="ic" style=${'width:36px;height:36px;' + (sel.has(p.id) ? 'color:var(--accent)' : '')}>${ic('plug', 'i s')}</span><span class="grow txt"><b>${p.name}</b><span class="muted" style="display:block;font-size:12px">${p.on ? (p.w != null ? p.w + ' W' : t('plugOn')) : t('plugOff')}</span></span>
-            ${sw(sel.has(p.id), () => { sel.has(p.id) ? sel.delete(p.id) : sel.add(p.id); setCfg({ plugs: [...sel] }); }, p.name)}</div>`)}`)}
-          ${m.plugs.some((p) => p.locked) ? html`<span class="row muted" style="font-size:12px;gap:6px">${ic('lock', 'i s')}${t('protectedHint')}</span>` : nothing}` : nothing}
+            <button class=${'offchk' + (sel.has(p.id) ? ' on' : '')} role="checkbox" aria-checked=${sel.has(p.id) ? 'true' : 'false'} aria-label=${t('plugsOffSel') + ' · ' + p.name} @click=${() => { sel.has(p.id) ? sel.delete(p.id) : sel.add(p.id); setCfg({ plugs: [...sel] }); }}>${sel.has(p.id) ? html`${ic('power', 'i s')}<span>${t('plugOff')}</span>` : nothing}</button></div>`)}`)}
+          <span class="row muted" style="font-size:12px;gap:6px">${ic('lock', 'i s')}${t('essentialHint')}</span>` : nothing}
+        ${d.id !== 'home' ? (() => { const off = m.plugs.filter((p) => sel.has(p.id) && !p.locked); return html`<div class=${'willoff' + (off.length ? ' some' : '')}>${off.length ? t('willOff', { n: off.length, list: off.map((p) => p.name).join(', ') }) : t('willOffNone')}</div>`; })() : nothing}
         <div class="row" style="justify-content:flex-end;gap:8px;padding-top:6px;flex-wrap:wrap">
           <button class="btn" @click=${() => this._set({ modeSheet: null })}>${t('cancel')}</button>
-          <button class="btn pri" ?disabled=${alarm?.needsCode && !(this._ui.modeCode || '').trim()} @click=${() => this._applyMode(m, d, t)}>${t('activate', { m: d.name })}</button></div>
+          ${(() => { const n = d.id !== 'home' ? m.plugs.filter((p) => sel.has(p.id) && !p.locked).length : 0; return html`<button class="btn pri" ?disabled=${alarm?.needsCode && !(this._ui.modeCode || '').trim()} @click=${() => this._applyMode(m, d, t)}>${n ? t('activateOff', { m: d.name, n }) : t('activate', { m: d.name })}</button>`; })()}</div>
       </div></div>`;
   }
   async _applyMode(m, d, t) {
@@ -984,7 +986,7 @@ class AureonDashboard extends LitElement {
       rowFn: (p) => html`<div class=${'prow' + (p.on ? ' on' : '') + (p.unavailable ? ' na' : '')}>
           <span class="pnm txt">${p.name}</span>
           <span class="pst">${p.unavailable ? t('notAvailable') : p.on ? (p.w != null ? p.w + ' W' : t('plugOn')) : t('plugOff')}</span>
-          ${p.locked ? html`<span class="plock" title=${t('protectedTitle')} aria-label=${t('protected')}>${ic('lock', 'i s')}</span>`
+          ${p.locked && p.on ? html`<span class="plock" title=${t('protectedTitle')} aria-label=${t('protected')}>${ic('lock', 'i s')}</span>`
             : html`<button class="switch" role="switch" aria-checked=${p.on ? 'true' : 'false'} ?disabled=${p.unavailable} aria-label=${p.name + ' · ' + p.areaName} @click=${() => this._call('switch', p.on ? 'turn_off' : 'turn_on', { entity_id: p.id })}><span><i></i></span></button>`}
         </div>` })}</section>`;
     return html`<section class="sec">${head}
@@ -994,7 +996,7 @@ class AureonDashboard extends LitElement {
           ${this.editBar('plugs', p, ids, t)}
           <div class="row sp" style="align-items:flex-start;gap:10px">
             <span class="ic" style=${p.on ? 'background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)' : ''}>${ic('plug')}</span>
-            ${p.locked ? html`<span class="badge" title=${t('protectedTitle')}>${ic('lock', 'i s')}${t('protected')}</span>`
+            ${p.locked && p.on ? html`<span class="badge" title=${t('protectedTitle')}>${ic('lock', 'i s')}${t('protected')}</span>`
               : html`<button class="switch" role="switch" aria-checked=${p.on ? 'true' : 'false'} ?disabled=${p.unavailable} aria-label=${p.name + ' · ' + p.areaName} @click=${() => this._call('switch', p.on ? 'turn_off' : 'turn_on', { entity_id: p.id })}><span><i></i></span></button>`}</div>
           <div class="row sp" style="align-items:flex-end;gap:8px"><span class="nm"><b>${p.name}</b><span>${p.areaName}</span></span>
             <span style=${`font-size:18px;font-weight:300;letter-spacing:-.03em;white-space:nowrap;color:${p.on ? 'var(--fg)' : 'var(--dim)'}`}>${p.unavailable ? t('notAvailable') : p.on ? (p.w != null ? p.w + ' W' : t('plugOn')) : t('plugOff')}</span></div></div>`;

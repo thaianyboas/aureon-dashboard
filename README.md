@@ -1,5 +1,13 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.2.4 — 2026-11-17 (segurança dos modos)
+
+- Geladeira/freezer, internet (router, FritzBox, Wi-Fi), Home Assistant/servidor/ISG, aquecimento e aquário ficam
+  protegidos automaticamente, mesmo sem etiqueta: nunca desligam pelo painel nem pelos modos.
+- Na janela de Fora/Férias, cada tomada tem um botão "desligar" claro; o painel mostra "Vai desligar (n): …" e o botão diz
+  quantas tomadas vai desligar antes de ativar.
+- Uma tomada protegida que estiver desligada pode ser religada pelo painel.
+
 ## AUREON Noir 1.2.3 — 2026-11-16
 
 - AUREON Music: Playlists, Recentes, Álbuns, Curtidas, Podcasts, Onde tocar e busca abrem numa janela por cima do player.

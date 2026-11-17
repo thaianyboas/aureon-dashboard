@@ -18,6 +18,8 @@ const PROTECT = ['protegida', 'protegido', 'immer_an', 'always_on', 'no_off', 'n
 const hasLabel = (reg, labels, keys) => (reg?.labels || []).some((id) => keys.includes(labelKey(id)) || keys.includes(labelKey(labels?.[id])));
 
 const OUTDOOR = /balk|balcon|varanda|terra(s|z)|garten|garden|jardim|patio|pátio|quintal|pool|piscina|outdoor|au(ss|ß)en/i;
+// Fridge/freezer, network, Home Assistant/server, heating, aquarium: never switched off by the dashboard.
+export const ESSENTIAL = /k(ü|ue)hl|gefrier|fridge|freezer|geladeira|congelador|refrigerador|router|fritz|modem|wlan|wi-?fi|mesh|home ?assistant|\bisg\b|server|\bnas\b|heizung|w(ä|ae)rmepumpe|caldeira|aquar|alarm/i;
 export const PLUG_RUN_W = 8, PLUG_IDLE_W = 3;
 const APPLIANCE = [
   ['dish', /sp(ü|ue)lmaschine|geschirr|dish ?washer|lava-lou|lava lou|lou(ç|c)a/i],
@@ -169,7 +171,9 @@ export function buildModel(hass, opts = {}) {
       // Owner 2026-11-16: Alexa "do not disturb" and robot settings (Auto Drying, Self-Clean…) are not plugs.
     } else if (domain === 'switch') {
       const outlet = dc === 'outlet' || hasLabel(reg, labels, OUTLET) || /steckdose|plug|outlet|tomada|socket|smart ?plug/i.test(base + ' ' + (dev?.model || '') + ' ' + (dev?.name || ''));
-      m.plugs.push({ ...item, on: st.state === 'on', outlet, locked: hasLabel(reg, labels, PROTECT) });
+      // Owner 2026-11-17 (Fora/Férias left the fridge off): essentials are protected even without a label.
+      const essential = ESSENTIAL.test([item.name, st.attributes.friendly_name, devices[reg.device_id]?.name_by_user, devices[reg.device_id]?.name].filter(Boolean).join(' '));
+      m.plugs.push({ ...item, on: st.state === 'on', outlet, essential, locked: hasLabel(reg, labels, PROTECT) || essential });
     } else if (domain === 'climate') {
       m.climate.push({ ...item, cur: num(a.current_temperature), target: num(a.temperature), action: a.hvac_action || null, mode: st.state, min: num(a.min_temp) ?? 5, max: num(a.max_temp) ?? 30, step: num(a.target_temp_step) || 0.5, hum: num(a.current_humidity) });
     } else if (domain === 'cover') {

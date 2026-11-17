@@ -169,6 +169,10 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .vrange:focus-visible{outline:none}.vrange:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px var(--accent)}
 .vnum{width:26px;text-align:right;font-size:13px;color:var(--fg2)}
 @container (max-width:460px){.vline{flex-basis:100%;max-width:none;margin-left:0}}
+.offchk{min-width:44px;height:32px;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;border-radius:999px;border:1.5px solid var(--line2);background:transparent;color:var(--mut);font:inherit;font-size:12px;cursor:pointer}
+.offchk.on{border-color:#FF8A80;background:rgba(255,138,128,.14);color:#FFB1AA}
+.willoff{padding:12px 14px;border-radius:12px;background:var(--sunk);border:1px solid var(--line);font-size:13px;color:var(--mut);line-height:1.45}
+.willoff.some{border-color:rgba(255,138,128,.45);color:#FFD3CF;background:rgba(255,138,128,.08)}
 .mall{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;padding:0 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));background:color-mix(in srgb,var(--accent) 6%,transparent);color:var(--accent);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
 .mpage{display:flex;flex-direction:column;gap:14px}.mpbar{display:flex;align-items:center;gap:10px}
 .mlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:2px 16px}
