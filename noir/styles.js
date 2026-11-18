@@ -502,4 +502,8 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .bpct{font-family:'Geist Mono',ui-monospace,monospace;font-size:13px;color:var(--mut)}
 .brow.red .bpct{color:#FF8F8F}.brow.yellow .bpct{color:#F2C14E}
 .bglyph{flex:none}
+/* House mode: beside 3D / Planta on wide screens, beside the clock when the hero stacks (owner 2026-11-18). */
+.hmL{display:none}
+@container (max-width:860px){.hmL{display:block;position:absolute;top:26px;right:0;z-index:6}.hmR{display:none}}
+@container (max-width:460px){.hmL .alp{min-height:44px;padding:0 8px 0 10px;gap:7px}.hmL .alp small{font-size:8px}.hmL .alp b{font-size:12px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 `;

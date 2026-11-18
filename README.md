@@ -1,5 +1,10 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.5.2 — 2026-11-18
+
+- Celular e tablet: Modo da casa ao lado do relógio.
+- Fotos das pessoas saíram do topo (já aparecem junto da saudação).
+
 ## AUREON Noir 1.5.1 — 2026-11-18
 
 - Baterias: botão no topo na cor da pior bateria (vermelho até 10%, amarelo até 25%, verde acima) com quantas trocar; ao tocar, lista de todas as baterias da casa, a mais vazia primeiro. Celulares e robô aspirador ficam de fora.

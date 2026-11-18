@@ -10,8 +10,8 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, ap
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.5.1';
-export const BUILD = 'AUREON-NOIR-20261118m';
+export const VERSION = '1.5.2';
+export const BUILD = 'AUREON-NOIR-20261118n';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -394,7 +394,6 @@ class AureonDashboard extends LitElement {
       if (sun.state === 'above_horizon' && set) { const left = Math.max(0, Math.round((set - now) / 60000)); sunTxt = t('sunLeft', { t: Math.floor(left / 60) + 'h' + p2(left % 60) }); }
       else if (rise) sunTxt = t('sunUp', { t: fmt(new Date(rise)) });
     }
-    const people = m.people.slice(0, 5);
     return html`<header class="top">
       <span class="wordmark">AUREON</span>
       <div class="wrapRow" style="justify-content:flex-end">
@@ -402,9 +401,6 @@ class AureonDashboard extends LitElement {
         <button class=${'btn' + (ui.edit ? ' pri' : '')} aria-pressed=${ui.edit ? 'true' : 'false'} @click=${() => this._set({ edit: !ui.edit, editing: null, confirm: null })}>${ic('pencil', 'i s')}${ui.edit ? t('doneEdit') : t('edit')}</button>
         ${m.batteries.length ? this.battChip({ m, t }) : nothing}
         ${m.metered.length ? html`<span class="chip">${svg`<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--accent)"><path d=${P.bolt}></path></svg>`}${m.plugW} W</span>` : nothing}
-        ${people.length ? html`<span class="avatars" role="img" aria-label=${t('homePeople') + ': ' + people.filter((p) => p.state === 'home').map((p) => p.name).join(', ')}>
-          ${people.map((p) => { const pic = p.attrs.entity_picture; return html`<span class="av" title=${p.name + ' · ' + (p.state === 'home' ? t('homePeople') : p.state === 'not_home' ? t('away') : p.state)} style=${pic ? `background-image:url("${this._url(pic)}");color:transparent` : ''}>${(p.name || '?').charAt(0)}<b class=${p.state === 'home' ? 'home' : ''}></b></span>`; })}
-        </span>` : nothing}
       </div>
     </header>`;
   }
@@ -485,6 +481,7 @@ class AureonDashboard extends LitElement {
     return html`<section class="hero" aria-label=${t('house3d')}>
       <div class="glow" style=${`background:radial-gradient(circle, ${rgba(aRgb, (0.05 + 0.25 * L).toFixed(3))} 0%, ${rgba(aRgb, 0)} 65%)`}></div>
       <div class="heroL">
+        <div class="hmL">${this.houseMenu(ctx, 'L')}</div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <span class="eyebrow">${date}</span><span class="clock">${time}</span>
           <h1 class="greet txt">${greet}</h1>
@@ -496,7 +493,7 @@ class AureonDashboard extends LitElement {
       </div>
       <div class="heroR">
         <div class="row sp" style="flex-wrap:wrap;gap:8px"><span class="eyebrow txt">${t('tapRoom')}</span>
-          <span class="row" style="gap:8px;flex-wrap:wrap">${this.houseMenu(ctx)}
+          <span class="row" style="gap:8px;flex-wrap:wrap"><span class="hmR">${this.houseMenu(ctx)}</span>
           <span class="seg" role="group" aria-label=${t('house3d') + ' / ' + t('plan')}>
             <button aria-pressed=${is3d ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button>
             <button aria-pressed=${!is3d ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></span></div>
@@ -852,12 +849,12 @@ class AureonDashboard extends LitElement {
   // Owner 2026-11-18 ("esse alarme é o nosso modo casa, não precisa repetir em baixo"): one elegant pill beside
   // 3D / Planta shows the active house mode (and the alarm state when there is one). It opens a small menu with the
   // modes; picking one opens the same confirmation sheet as before — nothing is switched until "Ativar" is tapped.
-  houseMenu(ctx) {
-    const { m, t } = ctx, defs = this._modeDefs(t), active = this._activeMode(m), cur = defs.find((d) => d.id === active), a = m.alarms[0], open = this._ui.alarmOpen;
+  houseMenu(ctx, slot = 'R') {
+    const { m, t } = ctx, defs = this._modeDefs(t), active = this._activeMode(m), cur = defs.find((d) => d.id === active), a = m.alarms[0], open = this._ui.alarmOpen === slot;
     const st = a?.state, alert = st === 'triggered', armed = /^armed/.test(st || '') || (!a && active !== 'home');
     const sub = alert ? t('triggered') : /arming|pending/.test(st || '') ? t('alarmArming') : null;
     return html`<span class="alw">
-      <button class=${'alp' + (armed ? ' on' : '') + (alert ? ' alert' : '')} aria-haspopup="menu" aria-expanded=${open ? 'true' : 'false'} aria-label=${t('modeTitle') + ' · ' + cur.name} @click=${(e) => { e.stopPropagation(); this._set({ alarmOpen: !open }); }}>
+      <button class=${'alp' + (armed ? ' on' : '') + (alert ? ' alert' : '')} aria-haspopup="menu" aria-expanded=${open ? 'true' : 'false'} aria-label=${t('modeTitle') + ' · ' + cur.name} @click=${(e) => { e.stopPropagation(); this._set({ alarmOpen: open ? false : slot }); }}>
         ${ic(a ? 'shield' : cur.icon, 'i s')}<span class="txt"><small>${t('modeTitle')}</small><b>${cur.name}${sub ? ' · ' + sub : ''}</b></span>${ic('down', 'i s alc')}</button>
       ${open ? html`<div class="alm rise" role="menu" @click=${(e) => e.stopPropagation()}>
         <span class="eyebrow" style="font-size:10px;padding:4px 8px 2px">${t('modeTitle')}${a ? ' · ' + a.name : ''}</span>

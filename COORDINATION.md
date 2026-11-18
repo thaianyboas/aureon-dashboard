@@ -1501,3 +1501,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18m (AUREON Noir 1.5.1)
 - `m.batteries` (sensor % + binary_sensor battery, hidden/diagnostic included, mobile_app and vacuum devices excluded, one per device), `batteryTone` (BATT_EMPTY 10, BATT_LOW 25). Header `battChip` + `battSheet`. Browser test PASS. No HA test run by Claude.
+
+## Claude batch — 2026-11-18n (AUREON Noir 1.5.2)
+- `houseMenu(ctx, slot)` rendered in `.hmL` (hero left, shown ≤860px container) and `.hmR` (beside 3D/Planta); `ui.alarmOpen` holds the slot. Header avatars removed. Browser test PASS. No HA test run by Claude.
