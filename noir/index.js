@@ -14,8 +14,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.5.9';
-export const BUILD = 'AUREON-NOIR-20261118v';
+export const VERSION = '1.6.0';
+export const BUILD = 'AUREON-NOIR-20261118w';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -40,6 +40,7 @@ const P = {
   bulb: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z',
   plug: 'M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4', lock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3', unlock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 7.5-2',
   pencil: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4', eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  undo: 'M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
   eyeOff: 'M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.1A10 10 0 0 1 22 12a13 13 0 0 1-2.4 3.4M6.6 6.6A13 13 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 4.4-1',
   left: 'M15 6l-6 6 6 6', right: 'M9 6l6 6-6 6', up: 'M6 15l6-6 6 6', down: 'M6 9l6 6 6-6', check: 'M5 12l5 5 9-10', x: 'M6 6l12 12M18 6 6 18',
   bolt: 'M13 2 4 14h7l-1 8 9-12h-7z', cloud: 'M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6 11a3.5 3.5 0 0 0 1 7z',
@@ -319,11 +320,53 @@ class AureonDashboard extends LitElement {
   tileAttrs(dom, d, ids) { const h = this.dnd(dom, d, ids); return { draggable: this._ui.edit && this._ui.editing !== d.id ? 'true' : 'false', h, cls: (d.hidden ? ' ghosted' : '') + (this._ui.over === d.id && this._ui.drag?.id !== d.id ? ' dragover' : '') }; }
 
   // ── sections header ──────────────────────────────────────────────────────
+  // ── Edit everything (owner 2026-11-18, "editar todos e qualquer coisa … mover, adicionar, remover, trocar nome") ──
+  // Page blocks can be moved, hidden and (where they have a title) renamed; hero parts can be hidden; the greeting can
+  // be rewritten. Everything lives in prefs.layout, so it syncs to every device; "Restaurar" brings the default back.
+  _layout() { return this._prefs.layout || {}; }
+  _saveLayout(patch) { this._save({ layout: { ...this._layout(), ...patch } }); }
+  _blockOrder() {
+    const def = ['pushes', 'hero', 'scenes', 'live', 'music', 'devices'], o = (this._layout().order || []).filter((k) => def.includes(k));
+    return [...o, ...def.filter((k) => !o.includes(k))];
+  }
+  _title(key, def) { return (this._layout().names || {})[key] || def; }
+  _moveBlock(k, d) { const o = this._blockOrder(), i = o.indexOf(k), j = i + d; if (j < 0 || j >= o.length) return; [o[i], o[j]] = [o[j], o[i]]; this._saveLayout({ order: o }); }
+  renameField(key, def, t) {
+    const ui = this._ui;
+    if (ui.renaming !== key) return html`<button class="ib sm" aria-label=${t('rename') + ' · ' + this._title(key, def)} title=${t('rename')} @click=${() => this._set({ renaming: key, rdraft: this._title(key, def) })}>${ic('pencil', 'i s')}</button>`;
+    const done = (v) => { const names = { ...(this._layout().names || {}) }; const x = (v ?? '').trim(); if (!x || x === def) delete names[key]; else names[key] = x; this._saveLayout({ names }); this._set({ renaming: null }); };
+    return html`<span class="rnbox"><input .value=${ui.rdraft || ''} aria-label=${t('rename')} @input=${(e) => this._set({ rdraft: e.target.value })} @keydown=${(e) => { if (e.key === 'Enter') done(e.target.value); if (e.key === 'Escape') this._set({ renaming: null }); }}>
+      <button class="ib sm" style="color:var(--accent)" aria-label=${t('save')} @click=${() => done(ui.rdraft)}>${ic('check', 'i s')}</button>
+      <button class="ib sm ghost" aria-label=${t('stDefault')} title=${t('stDefault')} @click=${() => done('')}>${ic('x', 'i s')}</button></span>`;
+  }
+  blk(k, ctx, render) {
+    const { t } = ctx, ui = this._ui, L = this._layout(), hidden = !!(L.hidden || {})[k];
+    if (!ui.edit) return hidden || !render ? nothing : render();
+    const o = this._blockOrder(), i = o.indexOf(k);
+    const names = { pushes: t('reminders'), hero: t('blkHero'), scenes: t('scenes'), live: t('now'), music: 'AUREON Music', devices: t('blkDevices') };
+    const renamable = { scenes: t('scenes'), live: t('now') };
+    return html`<div class=${'blk' + (hidden ? ' off' : '')}>
+      <div class="blkbar" role="group" aria-label=${names[k]}>
+        <span class="eyebrow grow txt">${renamable[k] ? this._title(k, renamable[k]) : names[k]}${hidden ? ' · ' + t('blkHidden') : ''}</span>
+        ${renamable[k] && !hidden ? this.renameField(k, renamable[k], t) : nothing}
+        <button class="ib sm" ?disabled=${i === 0} aria-label=${t('sectionUp') + ' · ' + names[k]} @click=${() => this._moveBlock(k, -1)}>${ic('up', 'i s')}</button>
+        <button class="ib sm" ?disabled=${i === o.length - 1} aria-label=${t('sectionDown') + ' · ' + names[k]} @click=${() => this._moveBlock(k, 1)}>${ic('down', 'i s')}</button>
+        <button class="ib sm" aria-pressed=${hidden ? 'true' : 'false'} aria-label=${(hidden ? t('blkShow') : t('blkHide')) + ' · ' + names[k]} title=${hidden ? t('blkShow') : t('blkHide')} @click=${() => this._saveLayout({ hidden: { ...(L.hidden || {}), [k]: !hidden } })}>${ic(hidden ? 'eyeOff' : 'eye', 'i s')}</button>
+      </div>
+      ${hidden || !render ? nothing : render()}</div>`;
+  }
+  // A hero part (date, clock, greeting, people, weather, house mode, map): hidden outside edit mode, dimmed with an eye in it.
+  hp(key, content, t, extra) {
+    const hid = !!(this._layout().heroHidden || {})[key];
+    if (!this._ui.edit) return hid ? nothing : content;
+    return html`<div class=${'hp' + (hid ? ' off' : '')}><span class="hpbar">${extra || nothing}<button class="ib sm" aria-pressed=${hid ? 'true' : 'false'} aria-label=${(hid ? t('blkShow') : t('blkHide')) + ' · ' + t('hp_' + key)} title=${t('hp_' + key)} @click=${() => this._saveLayout({ heroHidden: { ...(this._layout().heroHidden || {}), [key]: !hid } })}>${ic(hid ? 'eyeOff' : 'eye', 'i s')}</button></span>${content}</div>`;
+  }
   secHead(key, title, sub, extra, t) {
     // Owner 2026-11-16: every section folds with a tap on its title; the choice is remembered.
+    const defTitle = title; title = this._title('sec_' + key, title);
     const closed = !this._ui.musicPage && !this._ui.edit && !!(this._prefs.secClosed || {})[key];
     return html`<div class=${'sech' + (closed ? ' closed' : '')}><h2 class="h2"><button class="sectog" aria-expanded=${closed ? 'false' : 'true'} @click=${() => this._save({ secClosed: { ...(this._prefs.secClosed || {}), [key]: !closed } })}><span class="txt">${title} ${sub ? html`<small>${sub}</small>` : nothing}</span><span class="secchev" aria-hidden="true">${ic('down', 'i s')}</span></button></h2>
-      <div class="wrapRow" style=${closed ? 'display:none' : ''}>${this._ui.edit ? html`<button class="ib sm" aria-label=${t('sectionUp') + ' · ' + title} @click=${() => this._moveSection(key, -1)}>${ic('up', 'i s')}</button><button class="ib sm" aria-label=${t('sectionDown') + ' · ' + title} @click=${() => this._moveSection(key, 1)}>${ic('down', 'i s')}</button>` : nothing}${extra || nothing}</div></div>`;
+      <div class="wrapRow" style=${closed ? 'display:none' : ''}>${this._ui.edit && typeof defTitle === 'string' ? this.renameField('sec_' + key, defTitle, t) : nothing}${this._ui.edit ? html`<button class="ib sm" aria-label=${t('sectionUp') + ' · ' + title} @click=${() => this._moveSection(key, -1)}>${ic('up', 'i s')}</button><button class="ib sm" aria-label=${t('sectionDown') + ' · ' + title} @click=${() => this._moveSection(key, 1)}>${ic('down', 'i s')}</button>` : nothing}${extra || nothing}</div></div>`;
   }
 
   render() {
@@ -361,16 +404,18 @@ class AureonDashboard extends LitElement {
           ${this.sMusic(ctx, true)}</div>` : html`
         ${this.header(ctx)}
         ${ui.edit ? this.banner(t) : nothing}
-        ${this.pushes(ctx)}
-        ${this.hero(ctx)}
         ${ui.modeSheet ? this.modeSheet(ctx, this._modeDefs(t).find((d) => d.id === ui.modeSheet)) : nothing}
-        ${m.scenes.length ? this.scenes(ctx) : nothing}
-        ${this.live(ctx)}
-        ${musicTop ? secRender.music() : nothing}
-        ${this.filters(ctx, show)}
-        ${ui.room !== 'all' ? this.roomHead(ctx) : nothing}
-        ${secs.filter((k) => k !== 'music').map((k) => secRender[k]())}
-        ${!secs.filter((k) => k !== 'music').length ? html`<div class="empty">${t('nothingHere')}</div>` : nothing}`}
+        ${this._blockOrder().map((k) => this.blk(k, ctx, {
+          pushes: () => this.pushes(ctx),
+          hero: () => this.hero(ctx),
+          scenes: () => (m.scenes.length ? this.scenes(ctx) : nothing),
+          live: () => this.live(ctx),
+          music: () => (musicTop ? secRender.music() : nothing),
+          devices: () => html`${this.filters(ctx, show)}
+            ${ui.room !== 'all' ? this.roomHead(ctx) : nothing}
+            ${secs.filter((k2) => k2 !== 'music').map((k2) => secRender[k2]())}
+            ${!secs.filter((k2) => k2 !== 'music').length ? html`<div class="empty">${t('nothingHere')}</div>` : nothing}`
+        }[k]))}`}
       </div>
       ${ui.settings ? this.settings(ctx) : nothing}
       ${ui.battOpen ? this.battSheet(ctx) : nothing}
@@ -458,7 +503,7 @@ class AureonDashboard extends LitElement {
         <span class="grow"><b style="display:block;font-size:14px;font-weight:500">${t('editTitle')}</b><span class="muted txt" style="font-size:12px;line-height:1.45">${t('editHint')}</span></span></span>
       <span class="wrapRow">
         <button class="btn sm" @click=${() => this._set({ showHidden: !ui.showHidden })}>${ic(ui.showHidden ? 'eyeOff' : 'eye', 'i s')}${ui.showHidden ? t('hideHidden') : t('showHidden')}</button>
-        <button class="btn sm" @click=${() => this._save({ order: {}, secOrder: SECTIONS.slice(), hidden: [] })}>${t('reset')}</button>
+        <button class="btn sm" @click=${() => { if (confirm(t('layoutResetQ'))) this._save({ order: {}, secOrder: SECTIONS.slice(), hidden: [], layout: {} }); }}>${ic('undo', 'i s')}${t('reset')}</button>
         <button class="btn sm pri" @click=${() => this._set({ edit: false, editing: null, confirm: null })}>${t('done')}</button></span></div>`;
   }
 
@@ -470,7 +515,8 @@ class AureonDashboard extends LitElement {
     try { time = now.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', timeZone: zone }); date = now.toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long', timeZone: zone }); } catch { time = p2(now.getHours()) + ':' + p2(now.getMinutes()); }
     const hr = now.getHours();
     const user = (this.hass.user?.name || '').split(' ')[0];
-    const greet = (hr < 5 ? t('evening') : hr < 12 ? t('morning') : hr < 18 ? t('afternoon') : t('evening')) + (user ? ', ' + user : '') + '.';
+    const autoGreet = (hr < 5 ? t('evening') : hr < 12 ? t('morning') : hr < 18 ? t('afternoon') : t('evening')) + (user ? ', ' + user : '') + '.';
+    const custom = (this._layout().names || {}).greet, greet = custom ? custom.replace(/\{(nome|name)\}/gi, user) : autoGreet;
     const on = m.lights.filter((l) => l.on);
     const roomsLit = new Set(on.map((l) => l.area)).size;
     const playing = m.speakers.filter((s) => s.playing);
@@ -485,26 +531,26 @@ class AureonDashboard extends LitElement {
     return html`<section class="hero" aria-label=${t('house3d')}>
       <div class="glow" style=${`background:radial-gradient(circle, ${rgba(aRgb, (0.05 + 0.25 * L).toFixed(3))} 0%, ${rgba(aRgb, 0)} 65%)`}></div>
       <div class="heroL">
-        <div class="hmL">${this.houseMenu(ctx, 'L')}</div>
+        <div class="hmL">${this.hp('house', this.houseMenu(ctx, 'L'), t)}</div>
         <div style="display:flex;flex-direction:column;gap:12px">
-          <span class="eyebrow">${date}</span><span class="clock">${time}</span>
-          <h1 class="greet txt">${greet}</h1>
-          ${m.people.length ? html`<div class="ppl" role="list" aria-label=${t('homePeople')}>${m.people.slice(0, 6).map((p) => { const pic = p.attrs.entity_picture, home = p.state === 'home';
+          ${this.hp('date', html`<span class="eyebrow">${date}</span>`, t)}${this.hp('clock', html`<span class="clock">${time}</span>`, t)}
+          ${this.hp('greet', ui.renaming === 'greet' ? html`<span class="row" style="gap:8px;flex-wrap:wrap">${this.renameField('greet', '', t)}<span class="dim" style="font-size:11px">${t('greetHint')}</span></span>` : html`<h1 class="greet txt">${greet}</h1>`, t, ui.edit && ui.renaming !== 'greet' ? html`<button class="ib sm" aria-label=${t('rename') + ' · ' + t('hp_greet')} @click=${() => this._set({ renaming: 'greet', rdraft: custom || autoGreet.replace(user, '{nome}') })}>${ic('pencil', 'i s')}</button>` : nothing)}
+          ${m.people.length ? this.hp('people', html`<div class="ppl" role="list" aria-label=${t('homePeople')}>${m.people.slice(0, 6).map((p) => { const pic = p.attrs.entity_picture, home = p.state === 'home';
             const where = home ? t('homeS') : p.etaMin != null && p.etaMin <= 60 ? t('onTheWay', { m: p.etaMin }) : p.state === 'not_home' ? t('awayS') : p.state === 'unknown' || p.state === 'unavailable' ? '—' : p.state;
-            return html`<button class=${'pp' + (home ? ' home' : p.etaMin != null ? ' coming' : '')} role="listitem" aria-label=${p.name + ' · ' + where + ' · ' + t('showMap')} @click=${() => this._moreInfo(p.id)}><span class="ppav" style=${pic ? `background-image:url("${this._url(pic)}");color:transparent` : ''}>${(p.name || '?').charAt(0)}</span><span class="txt"><b>${p.name}</b><small>${where}</small></span>${!home && p.attrs.latitude != null ? html`<span class="ppmap" aria-hidden="true">${ic('mapI', 'i s')}</span>` : nothing}</button>`; })}</div>` : nothing}
-          ${m.weather ? this.weatherBlock(ctx) : html`<p class="story txt">${parts.join(', ')}.</p>`}
+            return html`<button class=${'pp' + (home ? ' home' : p.etaMin != null ? ' coming' : '')} role="listitem" aria-label=${p.name + ' · ' + where + ' · ' + t('showMap')} @click=${() => this._moreInfo(p.id)}><span class="ppav" style=${pic ? `background-image:url("${this._url(pic)}");color:transparent` : ''}>${(p.name || '?').charAt(0)}</span><span class="txt"><b>${p.name}</b><small>${where}</small></span>${!home && p.attrs.latitude != null ? html`<span class="ppmap" aria-hidden="true">${ic('mapI', 'i s')}</span>` : nothing}</button>`; })}</div>`, t) : nothing}
+          ${this.hp('weather', m.weather ? this.weatherBlock(ctx) : html`<p class="story txt">${parts.join(', ')}.</p>`, t)}
         </div>
       </div>
       <div class="heroR">
         <div class="row" style="flex-wrap:wrap;gap:8px;justify-content:flex-end">
-          <span class="row" style="gap:8px;flex-wrap:wrap"><span class="hmR">${this.houseMenu(ctx)}</span>
+          <span class="row" style="gap:8px;flex-wrap:wrap"><span class="hmR">${this.hp('house', this.houseMenu(ctx), t)}</span>
           <span class="seg" role="group" aria-label=${t('house3d') + ' / ' + t('plan')}>
             <button aria-pressed=${is3d ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button>
             <button aria-pressed=${!is3d ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></span></div>
-        ${is3d ? html`<div class="stage" role="group" aria-label=${t('house3d')}><div class="iso"><div class="ground" aria-hidden="true"></div>
+        ${this.hp('map', is3d ? html`<div class="stage" role="group" aria-label=${t('house3d')}><div class="iso"><div class="ground" aria-hidden="true"></div>
           ${layout.map((r) => this.room3d(r, ctx))}</div>
           <div class="lbls" aria-hidden="true">${layout.map((r) => this.label3d(r, ctx))}</div></div>`
-          : html`<div class=${'plan2d ps-' + (prefs.planStyle || 'b')} role="group" aria-label=${t('plan')}>${layout.map((r) => this.room2d(r, ctx))}</div>`}
+          : html`<div class=${'plan2d ps-' + (prefs.planStyle || 'b')} role="group" aria-label=${t('plan')}>${layout.map((r) => this.room2d(r, ctx))}</div>`, t)}
       </div>
     </section>`;
   }
@@ -1041,7 +1087,7 @@ class AureonDashboard extends LitElement {
     const recent = m.scenes.map((s) => Date.parse(s.state)).filter(Number.isFinite);
     const last = recent.length ? Math.max(...recent) : 0;
     if (!list.length) return nothing;
-    return html`<section class="sec" aria-label=${t('scenes')}><h2 class="eyebrow" style="margin:0;padding:0 4px;font-weight:400">${t('scenes')}</h2>
+    return html`<section class="sec" aria-label=${t('scenes')}><h2 class="eyebrow" style="margin:0;padding:0 4px;font-weight:400">${this._title('scenes', t('scenes'))}</h2>
       <div class="scenes">${repeat(list, (s) => s.id, (s, i) => {
         const glow = SCENE_GLOW[i % SCENE_GLOW.length];
         const on = Date.parse(s.state) === last && now - last < 2 * 3600e3;
@@ -1152,7 +1198,7 @@ class AureonDashboard extends LitElement {
           <span style=${`position:absolute;top:0;bottom:0;right:0;width:${closedPart}%;background:repeating-linear-gradient(90deg,#E7DCC6 0 6px,#CFC3AA 6px 9px);transition:width 1s linear`}></span></div></article>`);
     }
     if (!cards.length) return nothing;
-    return html`<section class="sec" aria-label=${t('now')}><div class="row" style="padding:0 4px;gap:10px"><span class="pulse" style="width:7px;height:7px;border-radius:50%;background:#7EE0A8"></span><h2 class="eyebrow" style="margin:0;font-weight:400">${t('now')}</h2></div><div class="live">${cards}</div></section>`;
+    return html`<section class="sec" aria-label=${t('now')}><div class="row" style="padding:0 4px;gap:10px"><span class="pulse" style="width:7px;height:7px;border-radius:50%;background:#7EE0A8"></span><h2 class="eyebrow" style="margin:0;font-weight:400">${this._title('live', t('now'))}</h2></div><div class="live">${cards}</div></section>`;
   }
 
   // ── filters ──────────────────────────────────────────────────────────────

@@ -1,5 +1,11 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.6.0 — 2026-11-18
+
+- Editar painel (etapa 1): todos os blocos da página (Lembretes, Início, Cenas, Acontecendo agora, AUREON Music, Aparelhos e seções) podem ser movidos e escondidos; "Acontecendo agora", "Cenas" e cada seção podem ser renomeados.
+- Início: data, relógio, saudação, pessoas, tempo, modo da casa e mapa podem ser escondidos; saudação própria com {nome}.
+- "Restaurar padrão" volta tudo; salvo no Home Assistant para todos os aparelhos.
+
 ## AUREON Noir 1.5.9 — 2026-11-18
 
 - Configurações: todo título abre e fecha (fica salvo em todos os aparelhos).

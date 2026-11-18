@@ -1532,3 +1532,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18v (AUREON Noir 1.5.9)
 - Settings fold groups `grp()` (`.sgrp/.stgh/.stgb`, `prefs.stFold`, NOT `.stg` — that is the music stage). energyDiag moved to Settings → Geral (folded). tapRoom hint removed. Browser test PASS.
+
+## Claude batch — 2026-11-18w (AUREON Noir 1.6.0) — edit everything, stage 1
+- `prefs.layout` {order, hidden, names, heroHidden}; `blk()` page blocks (pushes, hero, scenes, live, music, devices), `hp()` hero parts, `renameField()` for live/scenes/sec_<key>/greet ({nome}). Single "Restaurar padrão" resets order/secOrder/hidden/layout. Next: stage 2 = custom HA/HACS cards.

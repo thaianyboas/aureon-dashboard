@@ -175,7 +175,25 @@ console.log('behaviour');
   await new Promise((r) => setTimeout(r, 200));
   const firstAfter = await shadow(page, `const g=[...root.querySelectorAll('.grid')].find((x)=>(root.querySelector('.filters').compareDocumentPosition(x)&4) && x.querySelectorAll('.tile').length>1); return g.querySelectorAll('.tile .nm b')[0]?.textContent`);
   check(firstBefore !== firstAfter, `moving a card changes its position (${firstBefore} → ${firstAfter})`);
+  // Owner 2026-11-18: edit everything — blocks move/hide/rename, hero parts hide, own greeting.
+  check(await shadow(page, `return root.querySelectorAll('.blk .blkbar').length >= 5 && root.querySelectorAll('.hero .hp .hpbar').length >= 6`), 'edit mode: every page block and hero part has edit controls');
+  await page.evaluate(() => window.scrollTo(0, 0)); await new Promise((r) => setTimeout(r, 200));
+  await page.screenshot({ path: 'build/noir/edit-all.png' });
+  await shadow(page, `[...root.querySelectorAll('.blk')].find((b)=>/Acontecendo agora/.test(b.querySelector('.blkbar').textContent)).querySelector('button[aria-label^="Subir"]').click()`); await new Promise((r) => setTimeout(r, 150));
+  check(await shadow(page, `const b=[...root.querySelectorAll('.blk .blkbar .eyebrow')].map((x)=>x.textContent); return b.findIndex((x)=>/Acontecendo/.test(x)) < b.findIndex((x)=>/Cenas/.test(x))`), 'a block moves up');
+  await shadow(page, `[...root.querySelectorAll('.blk')].find((b)=>/Acontecendo agora/.test(b.querySelector('.blkbar').textContent)).querySelector('button[aria-label^="Renomear"]').click()`); await new Promise((r) => setTimeout(r, 150));
+  await shadow(page, `const i=root.querySelector('.blkbar .rnbox input');i.value='Agora em casa';i.dispatchEvent(new Event('input',{bubbles:true,composed:true}));i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,composed:true}))`); await new Promise((r) => setTimeout(r, 200));
+  await shadow(page, `root.querySelector('.hero .hp button[aria-label="Esconder · Tempo"]').click()`); await new Promise((r) => setTimeout(r, 150));
+  await shadow(page, `root.querySelector('.hero button[aria-label="Renomear · Saudação"]').click()`); await new Promise((r) => setTimeout(r, 150));
+  await shadow(page, `const i=root.querySelector('.hero .rnbox input');i.value='Oi {nome}, tudo certo?';i.dispatchEvent(new Event('input',{bubbles:true,composed:true}));i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,composed:true}))`); await new Promise((r) => setTimeout(r, 200));
+  await shadow(page, `[...root.querySelectorAll('.blk')].find((b)=>/Cenas/.test(b.querySelector('.blkbar').textContent)).querySelector('button[aria-label^="Esconder"]').click()`); await new Promise((r) => setTimeout(r, 150));
   await shadow(page, `[...root.querySelectorAll('.btn')].find((b)=>/Concluir edição/.test(b.textContent)).click()`);
+  await new Promise((r) => setTimeout(r, 200));
+  check(await shadow(page, `const tx=root.textContent; return /Agora em casa/.test(tx) && /Oi Alex, tudo certo\\?/.test(root.querySelector('.greet').textContent) && !root.querySelector('.hero .wx, .hero .hours') && !root.querySelector('.blk') && ![...root.querySelectorAll('h2')].some((h)=>/^Cenas$/.test(h.textContent.trim()))`), 'after editing: new title, own greeting, weather and scenes hidden');
+  check(await page.evaluate(() => { const L = document.getElementById('d')._prefs.layout || {}; return L.hidden?.scenes === true && L.heroHidden?.weather === true && L.names?.live === 'Agora em casa'; }), 'layout edits are saved in prefs (synced)');
+  await page.screenshot({ path: 'build/noir/edit-after.png' });
+  await page.evaluate(() => { document.getElementById('d')._save({ layout: {} }); }); await new Promise((r) => setTimeout(r, 200));
+
   // music library from SpotifyPlus
   await new Promise((r) => setTimeout(r, 500));
   check(await page.evaluate(() => H.calls.some((c) => c[0] === 'spotifyplus' && c[1] === 'get_playlist_favorites')), 'AUREON Music reads SpotifyPlus playlists');
@@ -307,6 +325,10 @@ console.log('behaviour');
   await ph.page.screenshot({ path: 'build/noir/music-390.png', clip: await ph.page.evaluate(() => { const r = document.getElementById('d').shadowRoot.querySelector('.mcard.cmp').getBoundingClientRect(); return { x: 0, y: r.top + scrollY - 60, width: 390, height: r.height + 70 }; }) });
   await ph.page.evaluate(() => window.scrollTo(0, 0));
   await ph.page.screenshot({ path: 'build/noir/hero-390.png', clip: await ph.page.evaluate(() => { const r = document.getElementById('d').shadowRoot.querySelector('.hero').getBoundingClientRect(); return { x: 0, y: r.top + scrollY, width: 390, height: 360 }; }) });
+  await shadow(ph.page, `[...root.querySelectorAll('.btn')].find((b)=>/Editar painel/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 300));
+  check(await ph.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'phone edit mode: nothing overflows sideways');
+  await ph.page.screenshot({ path: 'build/noir/edit-390.png' });
+  await shadow(ph.page, `[...root.querySelectorAll('.btn')].find((b)=>/Concluir edição/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 200));
   check(await shadow(ph.page, `return root.querySelectorAll('.pgrp').length >= 2 && !root.querySelector('.pgrp .prow')`), 'plugs folded by room on the phone');
   await shadow(ph.page, `root.querySelector('.pgrp .phead').click()`);
   await new Promise((r) => setTimeout(r, 150));

@@ -532,4 +532,15 @@ select.numin{text-align:left}
 .sgrp.closed .stgh .i{transform:rotate(-90deg)}
 .stgh:hover .eyebrow,.stgh:hover .i{color:var(--fg)}
 .stgb{display:flex;flex-direction:column;gap:10px}
+/* Edit everything (owner 2026-11-18). */
+.blk{display:flex;flex-direction:column;gap:10px;padding:10px;border-radius:24px;border:1px dashed color-mix(in srgb,var(--accent) 40%,transparent)}
+.blk.off{opacity:.55}
+.blkbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:2px 4px}
+.blkbar .eyebrow{font-size:10px;color:var(--accent)}
+.hp{position:relative;border-radius:14px;outline:1px dashed color-mix(in srgb,var(--accent) 35%,transparent);outline-offset:4px}
+.hp.off>:not(.hpbar){opacity:.25}
+.hpbar{position:absolute;top:-8px;right:-8px;z-index:7;display:flex;gap:4px}
+.hpbar .ib{background:var(--raise);border:1px solid var(--line2)}
+.rnbox{display:inline-flex;align-items:center;gap:4px}
+.rnbox input{min-height:36px;min-width:0;width:min(260px,52vw);border-radius:10px;border:1px solid var(--accent);background:var(--sunk);color:var(--fg);font:inherit;padding:0 10px}
 `;
