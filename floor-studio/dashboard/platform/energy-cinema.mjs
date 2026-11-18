@@ -9,7 +9,7 @@ export function energyCinema(ui,classic){const c=ui.c,t=ui.t,e=c.energy(),pw=ui.
  const auto=e.auto?e.consumers:null,kwh=v=>`${ui.format(v,v>=10?0:v>=1?1:2)} kWh`;
  const consumers=auto?[...auto].sort((a,b)=>(b.today??-1)-(a.today??-1)||(b.watts??-1)-(a.watts??-1)).slice(0,8).map(x=>({auto:x,w:x.today??0,label:[x.today!==null?kwh(x.today):'',x.watts!==null?fmtW(x.watts):''].filter(Boolean).join(' · ')||'—'})):[...sensors].sort((a,b)=>b.w-a.w).slice(0,5),cmax=Math.max(auto?.001:1,...consumers.map(x=>x.w));
  const rooms=auto?[...auto.reduce((m,x)=>{if(x.areaId&&x.today!==null)m.set(x.areaName||x.areaId,(m.get(x.areaName||x.areaId)||0)+x.today);return m;},new Map())].sort((a,b)=>b[1]-a[1]).slice(0,6):[...sensors.reduce((m,x)=>{if(x.r.areaId)m.set(x.r.areaName||x.r.areaId,(m.get(x.r.areaName||x.r.areaId)||0)+x.w);return m;},new Map())].sort((a,b)=>b[1]-a[1]).slice(0,6),rmax=Math.max(auto?.001:1,...rooms.map(x=>x[1])),roomValue=v=>auto?kwh(v):fmtW(v);
- const watts=Number.isFinite(e.power.value)?e.power.value:null,peak=Math.max(1000,watts||0)*1.25,share=watts===null?0:Math.min(1,watts/peak);
+ const watts=e.power.value!==null&&Number.isFinite(e.power.value)?e.power.value:null,peak=Math.max(1000,watts||0)*1.25,share=watts===null?0:Math.min(1,watts/peak);
  const mood=watts===null?'':watts<300?t.cineCalm:watts<1500?t.cineModerate:t.cineHigh;
  const bars=series.slice(-period),bmax=Math.max(.001,...bars.map(x=>x.value));
  const dayLabel=time=>{try{return new Intl.DateTimeFormat(c.language,period<=7?{weekday:'short'}:{day:'numeric'}).format(new Date(time));}catch{return '';}};
