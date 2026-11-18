@@ -814,7 +814,7 @@ class AureonDashboard extends LitElement {
       const shelf = days.filter((d) => d !== hero).flatMap((d) => d.items.map((w) => ({ ...w }))).slice(0, 4);
       cards.push(html`<article class=${'act wst' + (urgent ? ' urgent' : '')}>
         <span class="wglow" aria-hidden="true" style=${'background:radial-gradient(closest-side,' + binColor(hero.items[0].type) + '55,transparent)'}></span>
-        <span class="tag wtag">${t('waste')} · ${when}${hero.days > 1 ? '' : ' · ' + wd(hero.date, { weekday: 'short', day: 'numeric' })}</span>
+        <div class="wwrap"><span class="tag wtag">${t('waste')} · ${when}${hero.days > 1 ? '' : ' · ' + wd(hero.date, { weekday: 'short', day: 'numeric' })}</span>
         <div class="whero">
           <span class="wbins" aria-hidden="true">${hero.items.slice(0, 2).map((w, i) => binSvg(binColor(w.type), urgent, 'h' + i, i ? 'back' : ''))}</span>
           <div class="wtxt">
@@ -824,11 +824,13 @@ class AureonDashboard extends LitElement {
           </div>
         </div>
         ${shelf.length ? html`<div class="wshelf">${shelf.map((w, i) => html`<span class="wsi">${binSvg(binColor(w.type), false, 's' + i, 'sm')}<b class="txt">${shortBin(w.type)}</b><span class="mono">${w.days === 0 ? t('today') : w.days === 1 ? t('tomorrow') : wd(w.date, { weekday: 'short', day: 'numeric' })}</span></span>`)}</div>` : nothing}
-      </article>`);
+      </div></article>`);
     }
     for (const v of m.vacuums) {
       const st = v.state, cleaning = st === 'cleaning', bat = v.attrs.battery_level ?? v.battery;
       const vr = vacuumRooms(v.attrs), active = ['cleaning', 'paused', 'returning'].includes(st);
+      // Owner 2026-11-18 ("pegando muito espaço"): the map only shows while cleaning or when asked for.
+      const showMap = (this._ui.robMap || {})[v.id] ?? active;
       const curRoom = vr && vr.cur >= 0 ? vr.list[vr.cur] : null;
       const label = { cleaning: t('cleaning'), docked: t('docked'), returning: t('returning'), paused: t('vPaused'), error: t('vError'), idle: t('idle') }[st] || st;
       cards.push(html`<article class="act" style=${cleaning ? 'border-color:rgba(126,224,168,.35)' : ''}>
@@ -842,8 +844,8 @@ class AureonDashboard extends LitElement {
         <div class="wrapRow">
           ${cleaning ? html`<button class="btn" @click=${() => this._call('vacuum', 'pause', { entity_id: v.id })}>${ic('pause', 'i s f')}${t('stop')}</button>` : html`<button class="btn pri" @click=${() => this._call('vacuum', 'start', { entity_id: v.id })}>${ic('play', 'i s f')}${t('start')}</button>`}
           ${st !== 'docked' ? html`<button class="btn" @click=${() => this._call('vacuum', 'return_to_base', { entity_id: v.id })}>${ic('home', 'i s')}${t('dock')}</button>` : nothing}
-          ${v.map ? html`<button class="btn" @click=${() => this._moreInfo(v.map.id)}>${ic('mapI', 'i s')}${t('robotMap')}</button>` : nothing}</div>
-        ${v.map && v.map.attrs.entity_picture ? html`<button class="robmap" aria-label=${t('robotMap')} @click=${() => this._moreInfo(v.map.id)}><img src=${this._url(v.map.attrs.entity_picture) + (v.map.attrs.entity_picture.includes('?') ? '&' : '?') + 't=' + Math.floor(now.getTime() / 15000)} alt="" loading="lazy"></button>` : nothing}</article>`);
+          ${v.map ? html`<button class="btn" aria-pressed=${showMap ? 'true' : 'false'} @click=${() => this._set({ robMap: { ...(this._ui.robMap || {}), [v.id]: !showMap } })}>${ic('mapI', 'i s')}${t('robotMap')}</button>` : nothing}</div>
+        ${showMap && v.map && v.map.attrs.entity_picture ? html`<button class="robmap" aria-label=${t('robotMap')} @click=${() => this._moreInfo(v.map.id)}><img src=${this._url(v.map.attrs.entity_picture) + (v.map.attrs.entity_picture.includes('?') ? '&' : '?') + 't=' + Math.floor(now.getTime() / 15000)} alt="" loading="lazy"></button>` : nothing}</article>`);
     }
     for (const c of m.covers.filter((x) => x.moving).slice(0, 2)) {
       const closedPart = (100 - c.pos) / 2;

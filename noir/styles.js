@@ -92,7 +92,8 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .scene b{position:relative;font-size:17px;font-weight:500;letter-spacing:-.02em;overflow-wrap:break-word}
 
 /* live */
-.live{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:12px}
+.live{columns:3 300px;column-gap:12px}
+.live>.act{break-inside:avoid;margin:0 0 12px;width:100%}
 .act{position:relative;overflow:hidden;min-height:170px;padding:20px;border-radius:24px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;justify-content:space-between;gap:14px;transition:border-color .4s,box-shadow .4s}
 .act .ttl{font-size:18px;font-weight:500;letter-spacing:-.02em;overflow-wrap:break-word}
 .tag{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
@@ -196,7 +197,9 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .ekv>div{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;background:var(--sunk);border:1px solid var(--line)}
 .ekv b{font-size:22px;font-weight:300;letter-spacing:-.03em}.ekv small{font-size:12px;color:var(--mut);font-weight:400}
 .ekv .soon{opacity:.45}
-.act.wst{position:relative;overflow:hidden;gap:16px;padding:20px}
+.act.wst{position:relative;overflow:hidden;gap:16px;padding:20px;container-type:inline-size}
+.wwrap{position:relative;display:flex;flex-direction:column;gap:16px}
+@container (min-width:600px){.wwrap{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"tag tag" "hero shelf";column-gap:28px;row-gap:12px;align-items:center}.wwrap .wtag{grid-area:tag}.wwrap .whero{grid-area:hero}.wwrap .wshelf{grid-area:shelf;border-top:0;border-left:1px solid var(--line);padding:0 0 0 24px}}
 .act.wst.urgent{border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
 .wglow{position:absolute;left:-30px;top:10px;width:210px;height:210px;pointer-events:none;opacity:.55}
 .wtag{position:relative;color:var(--accent)}.act.wst:not(.urgent) .wtag{color:var(--mut)}
@@ -292,7 +295,7 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .pushbar{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:6px 14px 6px 8px;border-radius:16px;border:1px solid var(--line);background:var(--card);text-align:left}
 .camhit{position:absolute;inset:0;z-index:2;border:0;background:transparent;cursor:zoom-in}
 .cam .foot,.cam .livep{pointer-events:none;z-index:1}
-.robmap{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border-radius:14px;overflow:hidden;border:1px solid var(--line2);background:var(--sunk);cursor:zoom-in}
+.robmap{position:relative;display:block;width:100%;aspect-ratio:16/9;max-height:240px;padding:0;border-radius:14px;overflow:hidden;border:1px solid var(--line2);background:var(--sunk);cursor:zoom-in}
 .robmap img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 @container (max-width:640px){.hideNarrow{display:none}}
 /* compact music */
