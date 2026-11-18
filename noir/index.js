@@ -14,8 +14,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.5.3';
-export const BUILD = 'AUREON-NOIR-20261118o';
+export const VERSION = '1.5.4';
+export const BUILD = 'AUREON-NOIR-20261118q';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -347,7 +347,7 @@ class AureonDashboard extends LitElement {
     const pagebg = `--pagebg:radial-gradient(70% 40% at 20% 0%, ${rgba(aRgb, (0.02 + 0.12 * L).toFixed(3))} 0%, ${rgba(aRgb, 0)} 70%), var(--bg);`;
     const ctx = { m, t, lang, now, aRgb, L };
     const show = {
-      lights: m.lights.length, climate: m.climate.length, plugs: m.plugs.length, energy: m.metered.length || m.loosePower.length || m.solarW != null || m.energyToday != null,
+      lights: m.lights.length, climate: m.climate.length, plugs: m.plugs.length, energy: m.metered.length || m.loosePower.length || m.energyMeters.length || m.solarW != null || m.energyToday != null,
       covers: m.covers.length, openings: m.openings.length, security: m.cams.length + m.locks.length + m.alarms.length, tv: m.tvs.length, music: m.speakers.length || m.accounts.length
     };
     const secRender = { lights: () => this.sLights(ctx), climate: () => this.sClimate(ctx), plugs: () => this.sPlugs(ctx), energy: () => this.sEnergy(ctx), covers: () => this.sCovers(ctx), openings: () => this.sOpenings(ctx), security: () => this.sSecurity(ctx), tv: () => this.sTV(ctx), music: () => this.sMusic(ctx) };
@@ -928,6 +928,11 @@ class AureonDashboard extends LitElement {
         <div class="wrapRow">${THEMES.map((x) => html`<button class="dc" aria-pressed=${prefs.theme === x.id ? 'true' : 'false'} style=${prefs.theme === x.id ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => this._save({ theme: x.id })}><span style=${`display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:${x.ha ? 'var(--primary-color,#03a9f4)' : x.accent}`}></span>${x.name}</button>`)}</div>
         <div class="chk"><span class="grow txt"><b>${t('stDefaultView')}</b></span><span class="seg"><button aria-pressed=${prefs.view !== '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button><button aria-pressed=${prefs.view === '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></div>
         ${weathers.length > 1 ? html`<div class="chk"><span class="grow txt"><b>${t('forecastT')}</b></span><select style="min-height:40px;border-radius:10px;background:var(--sunk);color:var(--fg);border:1px solid var(--line2);padding:0 10px;font:inherit" @change=${(e) => { this._save({ weather: e.target.value }); this._fcFor = null; this.requestUpdate(); }}>${weathers.map((w) => html`<option value=${w} ?selected=${(prefs.weather || weathers[0]) === w}>${this.hass.states[w].attributes.friendly_name || w}</option>`)}</select></div>` : nothing}
+        <span class="eyebrow" style="font-size:10px;padding-top:6px">${t('energy')}</span>
+        <div class="chk"><span class="grow txt"><b>${t('stPrice')}</b><small>${t('stPriceHint')}</small></span>
+          <span class="row" style="gap:6px"><input class="numin" type="number" inputmode="decimal" min="0" step="0.01" aria-label=${t('stPrice')} .value=${prefs.energyPrice != null ? String(prefs.energyPrice) : ''} placeholder="0.35"
+            @change=${(e) => { const v = parseFloat(String(e.target.value).replace(',', '.')); this._save({ energyPrice: Number.isFinite(v) && v >= 0 ? v : null }); }}>
+          <select class="numin" style="width:auto" aria-label=${t('currency')} @change=${(e) => this._save({ energyCur: e.target.value })}>${['€', 'R$', '$', 'CHF', '£'].map((c) => html`<option ?selected=${(prefs.energyCur || '€') === c}>${c}</option>`)}</select><span class="dim">/kWh</span></span></div>
         <span class="eyebrow" style="font-size:10px;padding-top:6px">${t('reminders')}</span>
         <div class="chk"><span class="grow txt"><b>${t('stPushMin')}</b></span>${sw(!!prefs.pushMin, () => this._save({ pushMin: !prefs.pushMin }), t('stPushMin'))}</div>
         ${Object.entries(rk).map(([k, n]) => html`<div class="chk"><span class="grow txt"><b>${n}</b></span>${sw(reminderOn(kinds, k), () => this._save({ reminderKinds: { ...kinds, [k]: !reminderOn(kinds, k) } }), n)}</div>`)}`;
@@ -1301,10 +1306,24 @@ class AureonDashboard extends LitElement {
   }
 
   // ── energy ───────────────────────────────────────────────────────────────
+  // Owner 2026-11-18: today's and this month's kWh come from Home Assistant's long-term statistics of every
+  // meter (the same numbers the HA Energy page uses), refreshed every 5 minutes. Read-only.
+  _energyStats(m) {
+    const ids = m.energyMeters.map((e) => e.id), sig = ids.join(',') + '|' + new Date().toDateString();
+    if (!ids.length || !this.hass?.callWS || (this._eSig === sig && Date.now() - (this._eAt || 0) < 300000)) return this._eStats || null;
+    this._eSig = sig; this._eAt = Date.now();
+    const one = (id, period) => this.hass.callWS({ type: 'recorder/statistic_during_period', statistic_id: id, calendar: { period }, types: ['change'], units: { energy: 'kWh' } }).then((r) => (typeof r?.change === 'number' ? r.change : null)).catch(() => null);
+    Promise.all(ids.map(async (id) => [id, await one(id, 'day'), await one(id, 'month')])).then((rows) => {
+      const day = {}, month = {};
+      for (const [id, d, mo] of rows) { if (d != null) day[id] = Math.max(0, d); if (mo != null) month[id] = Math.max(0, mo); }
+      this._eStats = { day, month, ok: rows.some(([, d, mo]) => d != null || mo != null) }; this.requestUpdate();
+    });
+    return this._eStats || null;
+  }
   sEnergy({ m, t, aRgb, lang }) {
     const ui = this._ui, inRoom = (d) => ui.room === 'all' || d.area === ui.room;
     const plugs = [...m.metered, ...m.loosePower].filter(inRoom), total = Math.round(plugs.reduce((s, p) => s + (p.on && p.w ? p.w : 0), 0));
-    if (!plugs.length && m.solarW == null && m.energyToday == null) return nothing;
+    if (!plugs.length && !m.energyMeters.length && m.solarW == null && m.energyToday == null) return nothing;
     const hasSolar = m.solarW != null, solar = m.solarW || 0, house = total;
     const gridNet = m.gridW != null ? m.gridW : house - solar;
     const maxW = Math.max(1, ...plugs.map((p) => p.w || 0));
@@ -1333,20 +1352,26 @@ class AureonDashboard extends LitElement {
           </div>
           ${(() => {
             const nf = (v, d = 1) => v == null ? '—' : Number(v).toLocaleString(lang, { minimumFractionDigits: d, maximumFractionDigits: d });
-            const today = m.energyToday?.v, cost = m.costToday?.v ?? (today != null && m.price?.v != null ? today * m.price.v : null), cur = m.costToday?.unit || m.price?.unit || '€';
+            const es = this._energyStats(m), meters = m.energyMeters.filter((e) => ui.room === 'all' || e.area === ui.room);
+            const sum = (k) => (es?.ok ? meters.reduce((a, e) => a + (es[k][e.id] || 0), 0) : null);
+            const today = sum('day') ?? (ui.room === 'all' ? m.energyToday?.v : null), month = sum('month') ?? (ui.room === 'all' ? m.energyMonth?.v : null);
+            const price = this._prefs.energyPrice ?? m.price?.v ?? null, cur = this._prefs.energyCur || m.price?.unit || m.costToday?.unit || '€';
+            const cost = price != null && today != null ? today * price : (ui.room === 'all' ? m.costToday?.v : null), mcost = price != null && month != null ? month * price : null;
+            const setPrice = html`<button class="linkbtn" @click=${() => this._set({ settings: 'geral' })}>${t('setPrice')}</button>`;
             return html`<div class="ekv">
-              <div><span class="tag muted">${t('todayE')}</span><b>${nf(today)} <small>${m.energyToday?.unit || 'kWh'}</small></b></div>
-              <div><span class="tag muted">${t('costToday')}</span><b>${nf(cost, 2)} <small>${cur}</small></b></div>
-              <div><span class="tag muted">${t('thisMonth')}</span><b>${nf(m.energyMonth?.v, 0)} <small>${m.energyMonth?.unit || 'kWh'}</small></b></div>
-              <div class=${hasSolar ? '' : 'soon'}><span class="tag muted">${t('solarToday')}</span><b>${hasSolar ? '—' : t('soon')}</b></div>
-              <div class=${hasSolar ? '' : 'soon'}><span class="tag muted">${t('selfUse')}</span><b>${hasSolar ? '—' : t('soon')}</b></div>
-            </div>`;
+              <div><span class="tag muted">${t('todayE')}</span><b>${nf(today)} <small>kWh</small></b></div>
+              <div><span class="tag muted">${t('costToday')}</span>${cost == null && price == null ? setPrice : html`<b>${nf(cost, 2)} <small>${cur}</small></b>`}</div>
+              <div><span class="tag muted">${t('thisMonth')}</span><b>${nf(month, month != null && month < 10 ? 1 : 0)} <small>kWh</small></b></div>
+              <div><span class="tag muted">${t('costMonth')}</span>${price == null ? setPrice : html`<b>${nf(mcost, 2)} <small>${cur}</small></b>`}</div>
+              ${hasSolar ? html`<div><span class="tag muted">${t('solarToday')}</span><b>—</b></div>` : nothing}
+            </div>
+            ${m.energyMeters.length ? html`<span class="dim txt" style="font-size:11px">${t(m.energyByLabel ? 'meterHintLabel' : 'meterHintAll', { n: m.energyMeters.length })}${price != null ? ' · ' + nf(price, 2) + ' ' + cur + '/kWh' : ''}</span>` : nothing}`;
           })()}
         </div>
         <div class="tile" style="flex:2 1 300px;padding:22px;border-radius:24px">
           <span class="row sp"><span class="eyebrow" style="font-size:10px">${t('whoNow')}</span><span class="dim" style="font-size:12px">${t('byPlugs')}</span></span>
           ${plugs.slice().sort((a, b) => (b.on ? b.w || 0 : 0) - (a.on ? a.w || 0 : 0)).slice(0, 8).map((p) => { const w = p.on ? p.w || 0 : 0; return html`<div style="display:flex;flex-direction:column;gap:6px">
-            <span class="row sp" style="gap:8px;font-size:13px;align-items:flex-start"><span class="txt">${p.name} <span class="dim" style="font-size:11px">${p.areaName}</span></span><span style="white-space:nowrap">${w} W <span class="dim">· ${total ? Math.round(100 * w / total) : 0}%</span></span></span>
+            <span class="row sp" style="gap:8px;font-size:13px;align-items:flex-start"><span class="txt">${p.name} <span class="dim" style="font-size:11px">${p.areaName}${(() => { const e = this._eStats?.ok && m.energyMeters.find((x) => x.device && x.device === p.device); const v = e ? this._eStats.day[e.id] : null; return v != null ? ' · ' + v.toLocaleString(lang, { maximumFractionDigits: 2 }) + ' kWh ' + t('todayShort') : ''; })()}</span></span><span style="white-space:nowrap">${w} W <span class="dim">· ${total ? Math.round(100 * w / total) : 0}%</span></span></span>
             <span class="bar" style="height:4px"><i style=${`width:${Math.round(100 * w / maxW)}%;background:${p.locked ? '#8FB8FF' : 'var(--accent)'}`}></i></span></div>`; })}
           ${ui.room === 'all' && byRoom.length ? html`<span class="eyebrow" style="font-size:10px;padding-top:10px;border-top:1px solid var(--line)">${t('byRoom')}</span>
             <div class="kv" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">${byRoom.map((r) => html`<div><span class="muted txt" style="font-size:11px">${r.n}</span><b style="font-size:15px">${r.w} W</b></div>`)}</div>` : nothing}

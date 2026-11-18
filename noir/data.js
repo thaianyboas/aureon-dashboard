@@ -54,6 +54,8 @@ const APPLIANCE = [
 ];
 export const applianceKind = (text) => (APPLIANCE.find(([, re]) => re.test(String(text || ''))) || [null])[0];
 const WASTE = /abfall|m(ü|ue|u)ll|waste|tonne|garbage|trash|recycl|restm|bio|papier|gelb|wertstoff|coleta|lixo/i;
+const CONSUMPTION = /verbrauch|consumption|consumo/i;
+const PERIODIC = /today|heute|daily|t[äa]glich|hoje|week|woche|month|monat|m[êe]s|year|jahr|ano|yesterday|gestern/i;
 const SOLAR = /solar|photovolt|\bpv\b|_pv_|wechselrichter|inverter/i;
 const GRID = /grid|netz|bezug|einspeis|import|export/i;
 
@@ -161,7 +163,7 @@ export function buildModel(hass, opts = {}) {
   const areaName = (id) => areaReg[id]?.name || '';
 
   const byDevice = {};
-  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], tvs: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], proximity: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], batteries: [], energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
+  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], tvs: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], proximity: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], batteries: [], energyAll: [], energyMeters: [], energyByLabel: false, energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
 
   for (const [eid, st] of Object.entries(states)) {
     const reg0 = regs[eid] || {};
@@ -179,6 +181,13 @@ export function buildModel(hass, opts = {}) {
       const dev0 = reg.device_id ? devices[reg.device_id] : null, area0 = reg.area_id || dev0?.area_id || null;
       const level = domain === 'sensor' ? num(st.state) : null, low = domain === 'binary_sensor' ? st.state === 'on' : null;
       if (domain === 'binary_sensor' || (level != null && /%/.test(pu || '%'))) m.batteries.push({ id: eid, device: reg.device_id || null, area: area0, areaName: areaName(area0), name: dev0 ? cleanName(dev0.name_by_user || dev0.name || eid, areaName(area0)) : cleanName(st.attributes?.friendly_name || eid, areaName(area0)).replace(/\s*(battery|batterie|bateria)\s*$/i, ''), level, low });
+    }
+    // Owner 2026-11-18 ("o energia tem que calcular sozinho … label verbrauch"): every energy counter (kWh, total)
+    // is a candidate meter; the dashboard sums their statistics itself, the owner only sets the price.
+    const sc = st.attributes?.state_class;
+    if (domain === 'sensor' && (st.attributes?.device_class === 'energy' || /^[kM]?Wh$/.test(pu || '')) && (sc === 'total_increasing' || sc === 'total') && !hasLabel(reg, labels, HIDE)) {
+      const dev1 = reg.device_id ? devices[reg.device_id] : null, area1 = reg.area_id || dev1?.area_id || null, fn = st.attributes?.friendly_name || eid;
+      m.energyAll.push({ id: eid, device: reg.device_id || null, area: area1, areaName: areaName(area1), name: dev1 ? cleanName(dev1.name_by_user || dev1.name || fn, areaName(area1)) : cleanName(fn, areaName(area1)), text: eid + ' ' + fn + ' ' + (dev1?.name || ''), consumption: (reg.allLabels || []).some((id) => CONSUMPTION.test(id + ' ' + (labels?.[id] || ''))) });
     }
     if ((reg.hidden || reg.hidden_by) && !forceShow.has(eid) && !isPower) {
       if (domain === 'media_player') m.hiddenMedia.push({ id: eid, name: st.attributes?.friendly_name || eid });
@@ -286,6 +295,12 @@ export function buildModel(hass, opts = {}) {
     g.w += p.w;
   }
   m.loosePower = Object.values(loose).map((g) => ({ ...g, w: Math.round(g.w) }));
+  // Energy meters: with a "Verbrauch" label only those count; otherwise every device counter except solar, grid and
+  // periodic copies (utility meters "heute/Monat" would count the same energy twice). One counter per device.
+  m.energyByLabel = m.energyAll.some((e) => e.consumption);
+  { const pool = m.energyAll.filter((e) => (m.energyByLabel ? e.consumption : !SOLAR.test(e.text) && !GRID.test(e.text) && !/produc|erzeug|r[üu]ckspeis|returned/i.test(e.text)) && !PERIODIC.test(e.text)), per = {};
+    for (const e of pool) { const k = e.device || e.id, cur = per[k]; if (!cur || (/total|gesamt/i.test(e.text) && !/total|gesamt/i.test(cur.text))) per[k] = e; }
+    m.energyMeters = Object.values(per); }
 
   // Washer / dryer / dishwasher: device level, from whatever sensors that device exposes.
   const seen = new Set();

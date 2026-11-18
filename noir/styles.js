@@ -506,4 +506,8 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .hmL{display:none}
 @container (max-width:860px){.hmL{display:block;position:absolute;top:26px;right:0;z-index:6}.hmR{display:none}}
 @container (max-width:460px){.hmL .alp{min-height:44px;padding:0 8px 0 10px;gap:7px}.hmL .alp small{font-size:8px}.hmL .alp b{font-size:12px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+.numin{min-height:40px;width:96px;border-radius:10px;background:var(--sunk);color:var(--fg);border:1px solid var(--line2);padding:0 10px;font:inherit;text-align:right}
+select.numin{text-align:left}
+.chk small{display:block;font-size:11px;color:var(--mut);font-weight:400;margin-top:2px;line-height:1.4}
+.linkbtn{border:0;background:transparent;padding:0;color:var(--accent);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;text-align:left}
 `;

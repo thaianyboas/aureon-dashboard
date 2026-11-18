@@ -105,3 +105,16 @@ test('energy: power sensors without a plug (hidden or kW) still count', () => {
   const r = m.loosePower.find((x) => x.device === 'dmeter');
   assert.ok(r); assert.equal(r.w, 450);
 });
+
+test('energy meters: Verbrauch label wins, periodic copies and grid are left out', () => {
+  const h = hass();
+  for (const k of Object.keys(h.states)) if (/energy|_total$/.test(k) && h.states[k].attributes?.device_class === 'energy') { delete h.states[k]; delete h.entities[k]; }
+  h.devices.e1 = { id: 'e1', name: 'WM', area_id: 'kitchen' }; h.devices.e2 = { id: 'e2', name: 'Haus Netz', area_id: 'kitchen' };
+  const add = (id, dev, labels, fn) => { h.states[id] = { entity_id: id, state: '5', attributes: { device_class: 'energy', unit_of_measurement: 'kWh', state_class: 'total_increasing', friendly_name: fn || id } }; h.entities[id] = { entity_id: id, device_id: dev, labels }; };
+  add('sensor.wm_total', 'e1', []); add('sensor.wm_today', 'e1', [], 'WM heute'); add('sensor.netz_bezug', 'e2', []);
+  let m = buildModel(h);
+  assert.deepEqual(m.energyMeters.map((e) => e.id), ['sensor.wm_total']);
+  h.entities['sensor.netz_bezug'].labels = ['verbrauch'];
+  m = buildModel(h, { labels: { verbrauch: 'Verbrauch' } });
+  assert.equal(m.energyByLabel, true); assert.deepEqual(m.energyMeters.map((e) => e.id), ['sensor.netz_bezug']);
+});

@@ -1511,3 +1511,6 @@ The Music browser suite passed again with that label and native transfer.
 ## Claude batch — 2026-11-18p (blueprint fix, no dashboard change)
 - `person_arriving.yaml`: template trigger needs `trigger_variables` (owner log: "'distance_sensor' is undefined"). Dashboard JS unchanged (1.5.3).
 - Owner HACS could not install ccb66ad: HACS `get_hacs_json` (raw.githubusercontent …/<sha>/hacs.json) returned None from her Termux host while the same URL works from her phone browser and from CI. New commit gives a new ref.
+
+## Claude batch — 2026-11-18q (AUREON Noir 1.5.4)
+- `m.energyAll/energyMeters/energyByLabel` (label /verbrauch|consumption|consumo/ restricts the pool; PERIODIC/SOLAR/GRID excluded; one per device). `_energyStats` reads `recorder/statistic_during_period` (calendar day/month, change, kWh) every 5 min. `prefs.energyPrice/energyCur`. Browser test PASS, unit 11/11. No HA test run by Claude.

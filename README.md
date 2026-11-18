@@ -1,5 +1,11 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.5.4 — 2026-11-18
+
+- Energia calcula sozinha: soma os medidores de energia (kWh) da casa pelas estatísticas do Home Assistant — hoje e este mês. Com a etiqueta "Verbrauch" só esses aparelhos contam; sem ela, todos os medidores (sem solar, rede e cópias "heute/Monat").
+- Preço da energia em Configurações → Geral → Energia (€/kWh); custo de hoje e do mês calculados.
+- "Quem consome agora" mostra também os kWh de hoje de cada aparelho.
+
 ## AUREON Noir 1.5.3 — 2026-11-18
 
 - Blueprint "Avisa quando alguém está chegando": corrigido o erro "'distance_sensor' is undefined" (o gatilho agora usa trigger_variables). Reimporte o blueprint no HA.
