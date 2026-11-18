@@ -1,5 +1,13 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.4.0 — 2026-11-18
+
+- Etiquetas 100% do Home Assistant: nome, cor, ícone e descrição; a função vem da descrição
+  (ex.: `systemgeraete_dashboard` protege roteador/aquecimento); etiquetas no dispositivo valem para as entidades;
+  atualiza sozinho quando uma etiqueta muda. Nova aba Etiquetas: Normal / Só estes / Esconder.
+- Pessoas: onde cada um está (zona, em casa, "a caminho · ~5 min" com a integração Proximidade) e aviso
+  "Fulano chega em casa em ~5 min". Novo blueprint `person_arriving.yaml` para notificar no celular.
+
 ## AUREON Noir 1.3.0 — 2026-11-18
 
 - "Acontecendo agora": todos os cartões do mesmo tamanho; lixo compacto com "Hoje", "Amanhã" e datas (20.11);
