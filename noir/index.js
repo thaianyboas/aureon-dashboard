@@ -10,8 +10,8 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, PL
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.4.0';
-export const BUILD = 'AUREON-NOIR-20261118b';
+export const VERSION = '1.4.1';
+export const BUILD = 'AUREON-NOIR-20261118c';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -432,7 +432,7 @@ class AureonDashboard extends LitElement {
           <h1 class="greet txt">${greet}</h1>
           ${m.people.length ? html`<div class="ppl" role="list" aria-label=${t('homePeople')}>${m.people.slice(0, 6).map((p) => { const pic = p.attrs.entity_picture, home = p.state === 'home';
             const where = home ? t('homeS') : p.etaMin != null && p.etaMin <= 60 ? t('onTheWay', { m: p.etaMin }) : p.state === 'not_home' ? t('awayS') : p.state === 'unknown' || p.state === 'unavailable' ? '—' : p.state;
-            return html`<span class=${'pp' + (home ? ' home' : p.etaMin != null ? ' coming' : '')} role="listitem"><span class="ppav" style=${pic ? `background-image:url("${this._url(pic)}");color:transparent` : ''}>${(p.name || '?').charAt(0)}</span><span class="txt"><b>${p.name}</b><small>${where}</small></span></span>`; })}</div>` : nothing}
+            return html`<button class=${'pp' + (home ? ' home' : p.etaMin != null ? ' coming' : '')} role="listitem" aria-label=${p.name + ' · ' + where + ' · ' + t('showMap')} @click=${() => this._moreInfo(p.id)}><span class="ppav" style=${pic ? `background-image:url("${this._url(pic)}");color:transparent` : ''}>${(p.name || '?').charAt(0)}</span><span class="txt"><b>${p.name}</b><small>${where}</small></span>${!home && p.attrs.latitude != null ? html`<span class="ppmap" aria-hidden="true">${ic('mapI', 'i s')}</span>` : nothing}</button>`; })}</div>` : nothing}
           ${m.weather ? this.weatherBlock(ctx) : html`<p class="story txt">${parts.join(', ')}.</p>`}
         </div>
       </div>

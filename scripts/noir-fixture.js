@@ -63,7 +63,7 @@ window.makeHass = function makeHass(lang) {
   ent('sensor.dishwasher_status', 'finished', { friendly_name: 'Dishwasher status' }, { device_id: 'ddish' });
   // others
   ent('scene.morning', iso(60 * 20), { friendly_name: 'Morning' }, {}); ent('scene.cinema', iso(30), { friendly_name: 'Cinema' }, {}); ent('scene.dinner', iso(60 * 30), { friendly_name: 'Dinner' }, {}); ent('scene.night', iso(60 * 40), { friendly_name: 'Good night' }, {});
-  ent('person.a', 'home', { friendly_name: 'Alex' }, {}); ent('person.b', 'Work', { friendly_name: 'Sam' }, {});
+  ent('person.a', 'home', { friendly_name: 'Alex' }, {}); ent('person.b', 'Work', { friendly_name: 'Sam', latitude: 1.23, longitude: 4.56 }, {});
   ent('sensor.home_sam_distance', '2.4', { friendly_name: 'Home Sam Distance', device_class: 'distance', unit_of_measurement: 'km' }, { platform: 'proximity' });
   ent('sensor.home_sam_direction_of_travel', 'towards', { friendly_name: 'Home Sam Direction of travel', device_class: 'enum' }, { platform: 'proximity' });
   ent('weather.home', 'partlycloudy', { friendly_name: 'Sample City', temperature: 7, temperature_unit: '°C' }, {});

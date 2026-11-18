@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.4.1 — 2026-11-18
+
+- Tocar na foto de uma pessoa abre o mapa do Home Assistant com onde ela está.
+
 ## AUREON Noir 1.4.0 — 2026-11-18
 
 - Etiquetas 100% do Home Assistant: nome, cor, ícone e descrição; a função vem da descrição

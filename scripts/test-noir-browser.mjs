@@ -251,6 +251,8 @@ console.log('behaviour');
   await new Promise((r) => setTimeout(r, 1300));
   check(await shadow(page, `return [...root.querySelectorAll('.push')].some((x)=>/Sam chega em casa em ~[4-7] min/.test(x.textContent))`), 'arrival push: "Sam chega em casa em ~5 min"');
   let ev = 0; await page.exposeFunction('__mi', () => { ev++; }); await page.evaluate(() => window.addEventListener('hass-more-info', () => window.__mi()));
+  await shadow(page, `[...root.querySelectorAll('.ppl .pp')].find((b)=>/Sam/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 200));
+  check(ev === 1, 'tapping a person opens their map (hass-more-info)'); ev = 0;
   await shadow(page, `[...root.querySelectorAll('.act .btn')].find((b)=>/Mapa/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 200));
   check(ev === 1 && await shadow(page, `return !root.querySelector('.robmap')`), 'robot "Mapa" opens the map in Home Assistant (no inline map)');
   ev = 0;
