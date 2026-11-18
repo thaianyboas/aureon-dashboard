@@ -29,16 +29,16 @@ const rows=[
 test('the Label "Verbraucht" (and Verbraucher) marks consumers; a labelled device brings its meters along',()=>{
  assert.deepEqual(consumerLabelIds(labels),['verbraucht','lab_2']);
  const list=autoConsumers(rows,states,consumerLabelIds(labels));
- assert.deepEqual(list.map(x=>[x.key,x.name,x.energyId,x.powerId]),[
+ assert.deepEqual(list.filter(x=>x.key!=='d3').map(x=>[x.key,x.name,x.energyId,x.powerId]),[
   ['d1','Waschmaschine','sensor.washer_energy','sensor.washer_power'],
   ['d2','TV','','sensor.tv_power'],
   ['sensor.fridge_energy','Fridge','sensor.fridge_energy','']]);
- assert.deepEqual(autoConsumers(rows,states,[]),[]);
+ assert.equal(autoConsumers(rows,states,[]).length,4); // unlabelled lamp is also discovered
 });
 
 test('kWh per day come from energy meters, or from hourly mean power when a device has no meter',()=>{
  const tz='Europe/Berlin',now=Date.parse('2026-11-10T10:30:00Z');
- const consumers=autoConsumers(rows,states,consumerLabelIds(labels));
+ const consumers=autoConsumers(rows.filter(r=>r.deviceId!=='d3'),states,consumerLabelIds(labels));
  const day=d=>Date.parse(d)/1000; // HA may send seconds
  const stats={energy:{
   'sensor.washer_energy':[{start:day('2026-10-30T23:00:00Z'),change:5},{start:day('2026-11-08T23:00:00Z'),change:1.5},{start:day('2026-11-09T23:00:00Z'),change:0.8}],
@@ -68,7 +68,7 @@ test('controller: automatic energy reads statistics only, prices kWh and can be 
  assert.equal(c.energyAuto,true);
  assert.equal(await c.loadEnergy(14),true);
  assert.ok(calls.every(x=>x.type==='recorder/statistics_during_period'));
- assert.deepEqual(calls.map(x=>[x.period,x.statistic_ids]),[['day',['sensor.washer_energy','sensor.fridge_energy']],['hour',['sensor.tv_power']]]);
+ assert.deepEqual(calls.map(x=>[x.period,x.statistic_ids]),[['day',['sensor.washer_energy','sensor.fridge_energy']],['hour',['sensor.tv_power','sensor.lamp_power']]]);
  const e=c.energy();
  assert.equal(e.auto,true);assert.equal(e.daily.value,4);assert.ok(Math.abs(e.daily.cost-1.3)<1e-9);assert.equal(e.power.value,900);
  assert.equal(c.series.length,1);
