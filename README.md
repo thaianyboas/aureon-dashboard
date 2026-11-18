@@ -1,5 +1,13 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.3.0 — 2026-11-18
+
+- "Acontecendo agora": todos os cartões do mesmo tamanho; lixo compacto com "Hoje", "Amanhã" e datas (20.11);
+  o mapa do robô abre na janela do Home Assistant.
+- Botão redondo "voltar ao topo" no canto de baixo à direita.
+- Televisão é uma seção própria (ligar/desligar, volume, sem som), não mais caixa de som.
+- Configurações → Dispositivos: grupo Televisão e "Onde tocar · saídas de som" para escolher quais aparelhos aparecem.
+
 ## AUREON Noir 1.2.4 — 2026-11-17 (segurança dos modos)
 
 - Geladeira/freezer, internet (router, FritzBox, Wi-Fi), Home Assistant/servidor/ISG, aquecimento e aquário ficam
