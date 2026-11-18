@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.5.6 — 2026-11-18
+
+- Energia: aparelhos estimados pelo contador de kWh não são mais chamados de "medidos"; o número no botão Energia conta todos os aparelhos com valor.
+
 ## AUREON Noir 1.5.5 — 2026-11-18
 
 - Energia — consumo em tempo real reescrito para qualquer marca (Meross, Tapo, Shelly, Tuya, IKEA, Zigbee2MQTT, Matter…): um sensor de potência por aparelho (W/kW/mW), também sensores ocultos, sensores sem dispositivo (pelo nome da entidade) e potência como atributo da tomada.

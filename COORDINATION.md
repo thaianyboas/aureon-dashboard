@@ -1520,3 +1520,6 @@ The Music browser suite passed again with that label and native transfer.
 - index.js: sEnergy rewritten (no 0 W without data, no fake solar/battery, `_powerEstimates` from 30-min kWh history, `energyDiag`).
 - Tests: new noir/tests/energy.test.mjs (multi-brand cases), browser checks for estimate/sort/diagnosis. No HA test run by Claude.
 - Merged on top of the other agent's energy commits c2751b3…9b14edd: kept their rules (labels optional → energyByLabel=false, no invented grid, missing ≠ 0 W, CI path triggers); their sEnergy edits superseded by the 1.5.5 rewrite that implements the same rules.
+
+## Claude batch — 2026-11-18s (AUREON Noir 1.5.6)
+- Owner HA confirmed: all 6 live rows estimated → her plugs expose kWh but no W to the dashboard. Wording measured vs estimated (`estFrom`), energy chip count. Tests PASS.

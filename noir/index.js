@@ -14,8 +14,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.5.5';
-export const BUILD = 'AUREON-NOIR-20261118r';
+export const VERSION = '1.5.6';
+export const BUILD = 'AUREON-NOIR-20261118s';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -1154,7 +1154,7 @@ class AureonDashboard extends LitElement {
     const chips = [{ id: 'all', name: t('allHome') }, ...roomsOrd];
     const doms = [['all', t('all')], ['lights', t('lightsShort')], ['climate', t('climateShort')], ['plugs', t('plugsShort')], ['energy', t('energyShort')], ['covers', t('coversShort')], ['openings', t('openingsShort')], ['security', t('securityShort')], ['tv', t('tvs')], ['music', t('musicShort')]].filter(([k]) => k === 'all' || show[k]);
     const inR = (list) => list.filter((d) => ui.room === 'all' || d.area === ui.room).length;
-    const counts = { lights: inR(m.lights), climate: inR(m.climate), plugs: inR(m.plugs), energy: inR(m.metered) + inR(m.loosePower) + (m.energyMeters.length && !m.metered.length && !m.loosePower.length ? 1 : 0), covers: inR(m.covers), openings: inR(m.openings), security: inR(m.cams) + inR(m.locks) + m.alarms.length, tv: inR(m.tvs), music: inR(m.speakers) };
+    const counts = { lights: inR(m.lights), climate: inR(m.climate), plugs: inR(m.plugs), energy: Math.max(inR(m.metered) + inR(m.loosePower), m.energyMeters.filter((e) => ui.room === 'all' || e.area === ui.room).length), covers: inR(m.covers), openings: inR(m.openings), security: inR(m.cams) + inR(m.locks) + m.alarms.length, tv: inR(m.tvs), music: inR(m.speakers) };
     return html`<div class="filters">
       <div class="scroller" role="group" aria-label=${t('room')}>${chips.map((c) => {
         const lit = c.id === 'all' ? m.lights.some((l) => l.on) : m.lights.some((l) => l.on && l.area === c.id);
@@ -1363,7 +1363,7 @@ class AureonDashboard extends LitElement {
     const areaName = ui.room === 'all' ? '' : (m.areas.find((a) => a.id === ui.room)?.name || '');
     const byRoom = ui.room === 'all' ? m.areas.map((a) => ({ n: a.name, w: rows.filter((p) => p.area === a.id).reduce((s, p) => s + p.w, 0), any: rows.some((p) => p.area === a.id) })).filter((x) => x.any) : [];
     const kwhToday = (dev) => { const e = this._eStats?.ok && m.energyMeters.find((x) => x.device && x.device === dev); const v = e ? this._eStats.day[e.id] : null; return v != null ? ' · ' + v.toLocaleString(lang, { maximumFractionDigits: 2 }) + ' kWh ' + t('todayShort') : ''; };
-    const sub = known ? [t('monitoredOf', { n: known }), eW ? t('inclEst', { w: eW }) : '', areaName ? areaName : t('notWholeHouse')].filter(Boolean).join(' · ') : t('noLivePower');
+    const sub = known ? [measured.length ? t('monitoredOf', { n: measured.length }) : '', estimated.length ? t('estFrom', { n: estimated.length }) : '', areaName ? areaName : t('notWholeHouse')].filter(Boolean).join(' · ') : t('noLivePower');
     // History (statistics) and costs.
     const es = this._energyStats(m), meters = m.energyMeters.filter(inRoom);
     const sum = (k) => (es?.ok ? meters.reduce((a2, e) => a2 + (es[k][e.id] || 0), 0) : null);
