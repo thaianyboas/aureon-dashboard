@@ -41,7 +41,7 @@ export class PlatformController{
   return this.request('action:'+id,async()=>{await this.hass.callService(call.domain,call.service,call.data);return true;});}
  // Automatic energy: devices with the Label "Verbraucht" (see energy-auto.mjs). Owner can switch it off in Settings.
  consumers(){const rows=this._allRows,labels=this.labels,hidden=this.preferences.hidden,k=this._consKey;if(!k||k[0]!==rows||k[1]!==labels||k[2]!==hidden){this._consKey=[rows,labels,hidden];const h=new Set(hidden);this._consumers=autoConsumers(rows.filter(r=>!h.has(r.id)),this.hass?.states,consumerLabelIds(labels));}return this._consumers;}
- get energyAuto(){return this.preferences.energy.auto!==false&&this.consumers().length>0;}
+ get energyAuto(){return this.preferences.energy.auto!==false&&this.consumers().length>0&&!['total','daily','weekly','monthly','yearly'].some(k=>this.preferences.energy[k]);}
  autoEnergy(){if(!this.energyAuto)return null;if(this.hass?.callWS&&!this.busy.has('energy')&&this.now()-this._autoTried>900000){this._autoTried=this.now();Promise.resolve().then(()=>this.loadEnergy(30));}
   return autoTotals(this.consumers(),this._autoStats,{timeZone:this.hass?.config?.time_zone||'UTC',now:this.now(),states:this.hass?.states||{}});}
  // Preferences follow the Home Assistant user to every device (tablet, phone, iSG): a copy is kept in that user's own
