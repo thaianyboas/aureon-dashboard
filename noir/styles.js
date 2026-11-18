@@ -484,4 +484,22 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .alm button[aria-checked="true"] b{color:var(--accent)}
 .alm .alset{min-height:40px;margin-top:4px;border-top:1px solid var(--line);border-radius:0 0 12px 12px;font-size:12px;color:var(--mut)}
 .alcode{min-height:40px;margin:2px 2px 6px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit}
+.bchip{cursor:pointer;gap:8px;font:inherit;color:var(--fg)}
+.bchip.red{border-color:rgba(255,107,107,.45);color:#FF8F8F;box-shadow:0 0 16px -6px rgba(255,107,107,.6)}
+.bchip.yellow{border-color:rgba(242,193,78,.4);color:#F2C14E}
+.bchip.green{color:var(--mut)}
+.bsheet{width:min(560px,100%)}
+.bsum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bs{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.bs b{font-size:28px;font-weight:200;letter-spacing:-.04em;line-height:1}.bs small{font-size:11px;color:var(--mut)}
+.bs.red b{color:#FF6B6B}.bs.yellow b{color:#F2C14E}.bs.green b{color:#6FD49A}
+.bgh{font-size:10px;padding:8px 4px 0}.bgh.red{color:#FF8F8F}.bgh.yellow{color:#F2C14E}.bgh.green{color:#6FD49A}
+.blist{display:flex;flex-direction:column;gap:6px}
+.brow{display:flex;align-items:center;gap:14px;min-height:56px;padding:8px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;text-align:left;cursor:pointer}
+.brow b{display:block;font-size:14px;font-weight:500}.brow small{display:block;font-size:12px;color:var(--mut)}
+.brow.red{border-color:rgba(255,107,107,.35);background:linear-gradient(90deg,rgba(255,107,107,.08),transparent 60%),var(--card)}
+.brow.yellow{border-color:rgba(242,193,78,.3);background:linear-gradient(90deg,rgba(242,193,78,.07),transparent 60%),var(--card)}
+.bpct{font-family:'Geist Mono',ui-monospace,monospace;font-size:13px;color:var(--mut)}
+.brow.red .bpct{color:#FF8F8F}.brow.yellow .bpct{color:#F2C14E}
+.bglyph{flex:none}
 `;

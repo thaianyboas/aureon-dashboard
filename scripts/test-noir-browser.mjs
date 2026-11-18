@@ -110,6 +110,13 @@ console.log('behaviour');
   await new Promise((r) => setTimeout(r, 300));
   check(await shadow(page, `return !!root.querySelector('.plan2d .r2')`), '3D / Planta switch shows the plan');
   await page.screenshot({ path: 'build/noir/plan.png' });
+  check(await shadow(page, `const c=root.querySelector('.top .bchip'); return !!c && c.classList.contains('red') && /2/.test(c.textContent)`), 'battery chip is red and counts 2 to replace');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: 'build/noir/batt-chip.png', clip: await page.evaluate(() => { const r = document.getElementById('d').shadowRoot.querySelector('.top').getBoundingClientRect(); return { x: r.right - 620, y: r.top, width: 620, height: r.height + 10 }; }) });
+  await shadow(page, `root.querySelector('.top .bchip').click()`); await new Promise((r) => setTimeout(r, 250));
+  check(await shadow(page, `const n=[...root.querySelectorAll('.brow b')].map((b)=>b.textContent); return n.length===4 && /Fensterkontakt/.test(n[0]) && root.querySelector('.brow').classList.contains('red') && !n.some((x)=>/Phone|X10|Robot/i.test(x))`), 'battery sheet: emptiest first, phones and robot left out');
+  await page.screenshot({ path: 'build/noir/batt-sheet.png' });
+  await shadow(page, `root.querySelector('.bsheet .stclose').click()`); await new Promise((r) => setTimeout(r, 150));
   for (const ps of ['a', 'b', 'c']) {
     await page.evaluate((v) => { const d = document.getElementById('d'); d._save({ planStyle: v }); }, ps); await new Promise((r) => setTimeout(r, 250));
     await page.evaluate(() => document.getElementById('d').shadowRoot.querySelector('.plan2d').scrollIntoView({ block: 'center' }));

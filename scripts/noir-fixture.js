@@ -38,6 +38,11 @@ window.makeHass = function makeHass(lang) {
   // vacuum
   dev('dvac', 'Robot', 'hall', 'X60');
   ent('vacuum.robot', 'cleaning', { friendly_name: 'Robot', selected_map: 1, rooms: { 1: [{ id: 1, name: 'Living room', order: 1 }, { id: 2, name: 'Kitchen', order: 2 }, { id: 3, name: 'Hallway', order: 3 }, { id: 4, name: 'Bedroom', order: 4 }, { id: 5, name: 'Bathroom', order: 5 }] }, current_segment: 2, cleaning_sequence: [1, 2, 3, 4, 5], active_segments: [] }, { device_id: 'dvac' });
+  dev('dwin', 'Fensterkontakt Bad', 'bath', 'Contact'); ent('sensor.window_bath_battery', '7', { device_class: 'battery', unit_of_measurement: '%', friendly_name: 'Fensterkontakt Bad Batterie' }, { device_id: 'dwin', entity_category: 'diagnostic' });
+  dev('dtrv', 'Heizkörperthermostat', 'bedroom', 'TRV'); ent('sensor.trv_battery', '18', { device_class: 'battery', unit_of_measurement: '%' }, { device_id: 'dtrv', entity_category: 'diagnostic' });
+  dev('dmot', 'Bewegungsmelder Flur', 'hall', 'Motion'); ent('sensor.motion_hall_battery', '64', { device_class: 'battery', unit_of_measurement: '%' }, { device_id: 'dmot', entity_category: 'diagnostic', hidden_by: 'integration' });
+  dev('dsmoke', 'Rauchmelder', 'kitchen', 'Smoke'); ent('binary_sensor.smoke_battery_low', 'off', { device_class: 'battery' }, { device_id: 'dsmoke' });
+  dev('dphone', 'Sam Phone', null, 'Phone'); ent('sensor.sam_phone_battery', '30', { device_class: 'battery', unit_of_measurement: '%' }, { device_id: 'dphone', platform: 'mobile_app' });
   ent('sensor.robot_battery', '81', { device_class: 'battery', unit_of_measurement: '%' }, { device_id: 'dvac', entity_category: 'diagnostic' });
   ent('sensor.robot_current_room', 'Kitchen', {}, { device_id: 'dvac' });
   ent('camera.robot_map', 'idle', { friendly_name: 'Current Map', entity_picture: '/api/camera_proxy/camera.robot_map?token=x' }, { device_id: 'dvac', area_id: 'living' });

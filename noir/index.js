@@ -10,8 +10,8 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, ap
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.5.0';
-export const BUILD = 'AUREON-NOIR-20261118l';
+export const VERSION = '1.5.1';
+export const BUILD = 'AUREON-NOIR-20261118m';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -369,6 +369,7 @@ class AureonDashboard extends LitElement {
         ${!secs.filter((k) => k !== 'music').length ? html`<div class="empty">${t('nothingHere')}</div>` : nothing}`}
       </div>
       ${ui.settings ? this.settings(ctx) : nothing}
+      ${ui.battOpen ? this.battSheet(ctx) : nothing}
       <div class="toasts" aria-live="polite">${repeat(this._toasts, (x) => x.id, (x) => html`<div class="toast rise" role="status">
         <span class="ic" style="background:var(--accent);color:var(--on-accent)">${ic('check')}</span>
         <span class="grow"><b class="txt" style="display:block;font-size:14px;font-weight:500">${x.title}</b><span class="txt muted" style="display:block;font-size:13px;line-height:1.45">${x.body}</span></span>
@@ -399,6 +400,7 @@ class AureonDashboard extends LitElement {
       <div class="wrapRow" style="justify-content:flex-end">
         <button class="btn" aria-label=${t('settings')} @click=${() => this._set({ settings: 'home', themeOpen: false })}>${ic('gear', 'i s')}<span class="hideNarrow">${t('settings')}</span></button>
         <button class=${'btn' + (ui.edit ? ' pri' : '')} aria-pressed=${ui.edit ? 'true' : 'false'} @click=${() => this._set({ edit: !ui.edit, editing: null, confirm: null })}>${ic('pencil', 'i s')}${ui.edit ? t('doneEdit') : t('edit')}</button>
+        ${m.batteries.length ? this.battChip({ m, t }) : nothing}
         ${m.metered.length ? html`<span class="chip">${svg`<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--accent)"><path d=${P.bolt}></path></svg>`}${m.plugW} W</span>` : nothing}
         ${people.length ? html`<span class="avatars" role="img" aria-label=${t('homePeople') + ': ' + people.filter((p) => p.state === 'home').map((p) => p.name).join(', ')}>
           ${people.map((p) => { const pic = p.attrs.entity_picture; return html`<span class="av" title=${p.name + ' · ' + (p.state === 'home' ? t('homePeople') : p.state === 'not_home' ? t('away') : p.state)} style=${pic ? `background-image:url("${this._url(pic)}");color:transparent` : ''}>${(p.name || '?').charAt(0)}<b class=${p.state === 'home' ? 'home' : ''}></b></span>`; })}
@@ -628,6 +630,33 @@ class AureonDashboard extends LitElement {
     </section>`;
   }
 
+  // ── batteries (owner 2026-11-18) ─────────────────────────────────────────
+  // A battery glyph that shows the level: red practically empty, yellow critical, green charged.
+  battGlyph(b, big) {
+    const col = { red: '#FF6B6B', yellow: '#F2C14E', green: '#6FD49A' }[b.tone], f = b.level != null ? Math.max(0.08, b.level / 100) : (b.low ? 0.1 : 1);
+    const w = big ? 34 : 22, h = big ? 16 : 11;
+    return svg`<svg class="bglyph" width=${w} height=${h} viewBox="0 0 34 16" aria-hidden="true"><rect x="1" y="1" width="28" height="14" rx="3.5" fill="none" stroke=${col} stroke-opacity=".55" stroke-width="1.5"></rect><rect x="30.5" y="5" width="2.5" height="6" rx="1" fill=${col} fill-opacity=".55"></rect><rect x="3.5" y="3.5" width=${(23 * f).toFixed(1)} height="9" rx="2" fill=${col}></rect></svg>`;
+  }
+  battChip({ m, t }) {
+    const need = m.batteries.filter((b) => b.tone !== 'green'), worst = m.batteries[0];
+    const tone = worst.tone, label = need.length ? t('battNeed', { n: need.length }) : t('battAllOk');
+    return html`<button class=${'chip bchip ' + tone} aria-label=${t('batteries') + ' · ' + label} @click=${() => this._set({ battOpen: true })}>${this.battGlyph(worst)}<span class="hideNarrow">${need.length ? need.length : t('battOkShort')}</span></button>`;
+  }
+  battSheet({ m, t }) {
+    const groups = [['red', t('battEmpty'), t('battEmptyHint')], ['yellow', t('battLow'), t('battLowHint')], ['green', t('battOk'), '']];
+    return html`<div class="overlay" @click=${(e) => { if (e.target === e.currentTarget) this._set({ battOpen: false }); }}>
+      <div class="sheet rise bsheet" role="dialog" aria-modal="true" aria-label=${t('batteries')}>
+        <div class="row sp" style="gap:10px"><span style="font-size:24px;font-weight:300;letter-spacing:-.03em">${t('batteries')}</span>
+          <button class="ib sm stclose" aria-label=${t('closeS')} @click=${() => this._set({ battOpen: false })}>${ic('x', 'i s')}</button></div>
+        <div class="bsum">${groups.map(([k, n]) => { const c = m.batteries.filter((b) => b.tone === k).length; return html`<span class=${'bs ' + k}><b>${c}</b><small>${n}</small></span>`; })}</div>
+        ${groups.map(([k, n, hint]) => { const list = m.batteries.filter((b) => b.tone === k); if (!list.length) return nothing; return html`
+          <span class=${'eyebrow bgh ' + k}>${n}${hint ? html` · <span style="text-transform:none;letter-spacing:0">${hint}</span>` : nothing}</span>
+          <div class="blist">${list.map((b) => html`<button class=${'brow ' + b.tone} @click=${() => this._moreInfo(b.id)}>
+            ${this.battGlyph(b, true)}<span class="grow txt"><b>${b.name}</b><small>${b.areaName || t('noArea')}</small></span>
+            <span class="bpct">${b.level != null ? b.level + '%' : b.low ? t('battLowWord') : 'OK'}</span></button>`)}</div>`; })}
+        <span class="dim txt" style="font-size:11px;text-align:center">${t('battFoot')}</span>
+      </div></div>`;
+  }
   // ── house modes ──────────────────────────────────────────────────────────
   _modeDefs(t) {
     return [

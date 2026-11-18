@@ -1498,3 +1498,6 @@ The Music browser suite passed again with that label and native transfer.
 ## Claude batch — 2026-11-18l (AUREON Noir 1.5.0)
 - Plan view redesigned (owner chose concept B "vidro"): `room2d` uses CSS vars --rgb/--k/--g; styles `.ps-a/.ps-b/.ps-c` kept, default `ps-b` (`prefs.planStyle`). Browser test PASS. No HA test run by Claude.
 - Also in 1.5.0: compact hero; music rendered above `.filters` (`musicTop`); `m.loosePower` (power sensors without a plug, hidden/kW included) feeds Energy; `sections` icon; `.alm` check icon selector fixed. Unit tests 10/10.
+
+## Claude batch — 2026-11-18m (AUREON Noir 1.5.1)
+- `m.batteries` (sensor % + binary_sensor battery, hidden/diagnostic included, mobile_app and vacuum devices excluded, one per device), `batteryTone` (BATT_EMPTY 10, BATT_LOW 25). Header `battChip` + `battSheet`. Browser test PASS. No HA test run by Claude.

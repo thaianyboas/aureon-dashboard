@@ -40,6 +40,13 @@ const OUTDOOR = /balk|balcon|varanda|terra(s|z)|garten|garden|jardim|patio|páti
 // Fridge/freezer, network, Home Assistant/server, heating, aquarium: never switched off by the dashboard.
 export const ESSENTIAL = /k(ü|ue)hl|gefrier|fridge|freezer|geladeira|congelador|refrigerador|router|fritz|modem|wlan|wi-?fi|mesh|home ?assistant|\bisg\b|server|\bnas\b|heizung|w(ä|ae)rmepumpe|caldeira|aquar|alarm/i;
 export const PLUG_RUN_W = 8, PLUG_IDLE_W = 3;
+// Battery tones (owner 2026-11-18): red = practically empty, yellow = critical, green = charged.
+export const BATT_EMPTY = 10, BATT_LOW = 25;
+const BT_ORDER = { red: 0, yellow: 1, green: 2 };
+export function batteryTone(b) {
+  if (b.level != null) return b.level <= BATT_EMPTY ? 'red' : b.level <= BATT_LOW ? 'yellow' : 'green';
+  return b.low ? 'red' : 'green';
+}
 const APPLIANCE = [
   ['dish', /sp(ü|ue)lmaschine|geschirr|dish ?washer|lava-lou|lava lou|lou(ç|c)a/i],
   ['dryer', /trockner|dryer|secadora/i],
@@ -154,7 +161,7 @@ export function buildModel(hass, opts = {}) {
   const areaName = (id) => areaReg[id]?.name || '';
 
   const byDevice = {};
-  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], tvs: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], proximity: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
+  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], tvs: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], proximity: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], batteries: [], energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
 
   for (const [eid, st] of Object.entries(states)) {
     const reg0 = regs[eid] || {};
@@ -165,6 +172,14 @@ export function buildModel(hass, opts = {}) {
     // by default (many plugs ship them hidden) and the ones measured in kW.
     const pu = st.attributes?.unit_of_measurement;
     const isPower = domain === 'sensor' && (st.attributes?.device_class === 'power' || pu === 'W' || pu === 'kW');
+    // Owner 2026-11-18: battery check — every battery the home reports (also hidden/diagnostic ones), phones excluded
+    // because they charge every day.
+    const bdc = st.attributes?.device_class;
+    if (bdc === 'battery' && (domain === 'sensor' || domain === 'binary_sensor') && reg.platform !== 'mobile_app' && !hasLabel({ ...reg, allLabels: reg.allLabels }, labels, HIDE) && !BAD.includes(st.state)) {
+      const dev0 = reg.device_id ? devices[reg.device_id] : null, area0 = reg.area_id || dev0?.area_id || null;
+      const level = domain === 'sensor' ? num(st.state) : null, low = domain === 'binary_sensor' ? st.state === 'on' : null;
+      if (domain === 'binary_sensor' || (level != null && /%/.test(pu || '%'))) m.batteries.push({ id: eid, device: reg.device_id || null, area: area0, areaName: areaName(area0), name: dev0 ? cleanName(dev0.name_by_user || dev0.name || eid, areaName(area0)) : cleanName(st.attributes?.friendly_name || eid, areaName(area0)).replace(/\s*(battery|batterie|bateria)\s*$/i, ''), level, low });
+    }
     if ((reg.hidden || reg.hidden_by) && !forceShow.has(eid) && !isPower) {
       if (domain === 'media_player') m.hiddenMedia.push({ id: eid, name: st.attributes?.friendly_name || eid });
       continue;
@@ -242,6 +257,9 @@ export function buildModel(hass, opts = {}) {
     }
     if (dir) p.dir = dir.state;
   }
+  { const byDev = {}; for (const b of m.batteries) { const k = b.device || b.id, cur = byDev[k]; if (!cur || (cur.level == null && b.level != null)) byDev[k] = { ...b, low: b.low ?? cur?.low ?? null }; }
+    const vacD = new Set(m.vacuums.map((v) => v.device).filter(Boolean)); // robots charge themselves
+    m.batteries = Object.values(byDev).filter((b) => !(b.device && vacD.has(b.device))).map((b) => ({ ...b, tone: batteryTone(b) })).sort((a, b) => BT_ORDER[a.tone] - BT_ORDER[b.tone] || (a.level ?? 101) - (b.level ?? 101)); }
   // Owner 2026-11-18: a TV is a device of its own, not a speaker.
   m.tvs = m.speakers.filter((x) => x.tv);
   m.speakers = m.speakers.filter((x) => !x.tv);

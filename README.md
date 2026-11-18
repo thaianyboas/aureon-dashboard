@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.5.1 — 2026-11-18
+
+- Baterias: botão no topo na cor da pior bateria (vermelho até 10%, amarelo até 25%, verde acima) com quantas trocar; ao tocar, lista de todas as baterias da casa, a mais vazia primeiro. Celulares e robô aspirador ficam de fora.
+
 ## AUREON Noir 1.5.0 — 2026-11-18
 
 - Planta nova em vidro: cada cômodo com temperatura grande, luzes acesas na cor da lâmpada e brilho vindo de baixo; cômodo escolhido em dourado.
