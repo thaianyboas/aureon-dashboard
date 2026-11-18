@@ -227,7 +227,7 @@ console.log('behaviour');
   check(await shadow(page, `const a=[...root.querySelectorAll('.act')].find((x)=>/Old washing machine/.test(x.textContent)); return !!a && /ligada há 3[45] min/.test(a.textContent) && /450 W/.test(a.textContent) && !!a.querySelector('.byplug')`), 'old machine on a plug: running since the power went up');
   check(await shadow(page, `return root.querySelectorAll('.vrooms .vr').length===5 && root.querySelector('.vr.now').textContent.trim()==='Kitchen' && /cômodo 2 de 5/.test(root.textContent)`), 'robot shows room-by-room progress');
   await page.evaluate(() => { document.getElementById('d')._save({ energyPrice: 0.4 }); }); await new Promise((r) => setTimeout(r, 300));
-  check(await shadow(page, `const e=root.querySelector('.ekv'); const tx=e?.textContent||''; return /2,4\\s*kWh/.test(tx) && /0,96\\s*€/.test(tx) && /53\\s*kWh/.test(tx) && /21,20\\s*€/.test(tx) && /etiqueta Verbrauch/.test(e.parentNode.textContent)`), 'energy adds up the Verbrauch meters itself and prices them (2,4 kWh · 0,96 € · 53 kWh · 21,20 €)');
+  check(await shadow(page, `const e=root.querySelector('.ekv'); const tx=e?.textContent||''; return /2,4\\s*kWh/.test(tx) && /0,96\\s*€/.test(tx) && /53\\s*kWh/.test(tx) && /21,20\\s*€/.test(tx) && !/etiqueta Verbrauch/.test(e.parentNode.textContent)`), 'energy discovers meters without labels and prices them (2,4 kWh · 0,96 € · 53 kWh · 21,20 €)');
   const eNode = await page.evaluateHandle(() => document.getElementById('d').shadowRoot.querySelector('.ekv').closest('.sec'));
   await eNode.screenshot({ path: 'build/noir/energy.png' });
   check(await shadow(page, `return !!root.querySelector('.mctl button[aria-label^="Repetir"]')`), 'repeat button shows the repeat mode');
