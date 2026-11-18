@@ -1507,3 +1507,7 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18o (AUREON Noir 1.5.3)
 - Phone compact player: `align-items:stretch`, `.mchips` wrap. Reminder kinds `lights`/`waste` default off (`RK_OFF`, `reminderOn`). Browser test PASS. No HA test run by Claude.
+
+## Claude batch — 2026-11-18p (blueprint fix, no dashboard change)
+- `person_arriving.yaml`: template trigger needs `trigger_variables` (owner log: "'distance_sensor' is undefined"). Dashboard JS unchanged (1.5.3).
+- Owner HACS could not install ccb66ad: HACS `get_hacs_json` (raw.githubusercontent …/<sha>/hacs.json) returned None from her Termux host while the same URL works from her phone browser and from CI. New commit gives a new ref.

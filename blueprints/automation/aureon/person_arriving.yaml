@@ -63,6 +63,13 @@ blueprint:
 mode: single
 max_exceeded: silent
 
+# A template trigger can only see trigger_variables (fixed 2026-11-18: "'distance_sensor' is undefined").
+trigger_variables:
+  person: !input person
+  distance_sensor: !input distance_sensor
+  direction_sensor: !input direction_sensor
+  near_km: !input near_km
+
 variables:
   person: !input person
   distance_sensor: !input distance_sensor
