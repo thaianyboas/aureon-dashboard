@@ -1324,8 +1324,8 @@ class AureonDashboard extends LitElement {
     const ui = this._ui, inRoom = (d) => ui.room === 'all' || d.area === ui.room;
     const plugs = [...m.metered, ...m.loosePower].filter(inRoom), total = Math.round(plugs.reduce((s, p) => s + (p.on && p.w ? p.w : 0), 0));
     if (!plugs.length && !m.energyMeters.length && m.solarW == null && m.energyToday == null) return nothing;
-    const hasSolar = m.solarW != null, solar = m.solarW || 0, house = total;
-    const gridNet = m.gridW != null ? m.gridW : house - solar;
+    const hasSolar = m.solarW != null, solar = m.solarW || 0, house = plugs.length ? total : null;
+    const gridNet = m.gridW != null ? m.gridW : null;
     const maxW = Math.max(1, ...plugs.map((p) => p.w || 0));
     const flow = (on, rev, dur) => on ? `opacity:1;animation:flow ${dur}s linear infinite${rev ? ' reverse' : ''}` : 'opacity:0';
     const areaName = ui.room === 'all' ? '' : (m.areas.find((a) => a.id === ui.room)?.name || '');
@@ -1335,7 +1335,7 @@ class AureonDashboard extends LitElement {
       <div class="wrapRow" style="align-items:stretch;gap:12px">
         <div class="tile" style="flex:3 1 440px;padding:22px;gap:16px;border-radius:24px">
           <div class="row sp" style="align-items:flex-start;gap:12px;flex-wrap:wrap"><span style="display:flex;flex-direction:column;gap:4px"><span class="eyebrow" style="font-size:10px">${t('nowW')}</span>
-            <span class="row" style="align-items:baseline;gap:6px"><span style="font-size:56px;font-weight:200;letter-spacing:-.06em;line-height:.9">${house}</span><span class="muted" style="font-size:16px">W</span></span>
+            <span class="row" style="align-items:baseline;gap:6px"><span style="font-size:56px;font-weight:200;letter-spacing:-.06em;line-height:.9">${house ?? '—'}</span><span class="muted" style="font-size:16px">${house == null ? '' : 'W'}</span></span>
             <span class="muted txt" style="font-size:12px">${areaName ? t('sumPlugsRoom', { r: areaName }) : t('sumPlugs')}</span></span>
             ${hasSolar ? nothing : html`<span class="badge" style="border-style:dashed">${svg`<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color:#F5D08A"><path d=${P.sun}></path></svg>`}${t('solarReady')}</span>`}</div>
           <div class="flowbox" role="img" aria-label=${hasSolar ? `${t('solar')} ${solar} W · ${t('grid')} ${gridNet} W · ${t('home')} ${house} W` : `${t('grid')} → ${t('home')} ${house} W`}>
@@ -1343,10 +1343,10 @@ class AureonDashboard extends LitElement {
               <path d="M16 20 C 45 20, 50 50, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path>
               <path d="M16 20 C 45 20, 50 50, 80 50" fill="none" stroke="#F5D08A" stroke-width="2" stroke-dasharray="4 8" stroke-linecap="round" vector-effect="non-scaling-stroke" style=${flow(solar > 0, false, 1.1)}></path>
               <path d="M16 80 C 45 80, 50 50, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path>
-              <path d="M16 80 C 45 80, 50 50, 80 50" fill="none" stroke="#8FB8FF" stroke-width="2" stroke-dasharray="4 8" stroke-linecap="round" vector-effect="non-scaling-stroke" style=${flow(gridNet !== 0, gridNet < 0, 2.2)}></path>
+              <path d="M16 80 C 45 80, 50 50, 80 50" fill="none" stroke="#8FB8FF" stroke-width="2" stroke-dasharray="4 8" stroke-linecap="round" vector-effect="non-scaling-stroke" style=${flow(gridNet != null && gridNet !== 0, gridNet < 0, 2.2)}></path>
               <path d="M48 92 C 60 92, 66 60, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path></svg>`}
             <div class="node" style=${`left:16%;top:20%;opacity:${hasSolar ? 1 : 0.4}`}><span class="o" style=${hasSolar ? 'background:#1E1A12;border:1px solid #4A3C22;color:#F5D08A;box-shadow:0 0 32px -6px rgba(245,208,138,.5)' : 'border:1px dashed var(--dim);color:#F5D08A'}>${ic('sun')}</span><span style="font-size:13px">${hasSolar ? solar + ' W' : t('soon')}</span><span class="tag muted" style="font-size:9px">${t('solar')}</span></div>
-            <div class="node" style="left:16%;top:80%"><span class="o" style="background:#121826;border:1px solid #2A3A5A;color:#8FB8FF">${ic('grid')}</span><span style="font-size:13px">${Math.abs(gridNet)} W</span><span class="tag muted" style="font-size:9px">${gridNet < 0 ? t('gridSelling') : t('grid')}</span></div>
+            <div class="node" style="left:16%;top:80%"><span class="o" style="background:#121826;border:1px solid #2A3A5A;color:#8FB8FF">${ic('grid')}</span><span style="font-size:13px">${gridNet == null ? '—' : Math.abs(gridNet) + ' W'}</span><span class="tag muted" style="font-size:9px">${gridNet != null && gridNet < 0 ? t('gridSelling') : t('grid')}</span></div>
             <div class="node" style=${`left:48%;top:92%;flex-direction:row;opacity:${hasSolar && m.batterySoc != null ? 1 : 0.4}`}><span class="o" style=${'width:44px;height:44px;color:#7EE0A8;' + (hasSolar && m.batterySoc != null ? 'background:#12201A;border:1px solid #2B5A40' : 'border:1px dashed var(--dim)')}>${ic('batt', 'i s')}</span><span style="display:flex;flex-direction:column;text-align:left"><span style="font-size:13px">${hasSolar && m.batterySoc != null ? Math.round(m.batterySoc) + '%' : t('soon')}</span><span class="tag muted" style="font-size:9px">${t('batteryS')}</span></span></div>
             <div class="node" style="left:80%;top:50%"><span class="o" style=${`width:92px;height:92px;background:var(--raise);border:1px solid var(--line2);flex-direction:column;gap:2px;box-shadow:0 0 60px -10px ${rgba(aRgb, Math.min(0.55, 0.12 + house / 3000).toFixed(2))}`}>${ic('home')}<b style="font-size:15px;font-weight:500">${house} W</b></span><span class="tag muted" style="font-size:10px">${t('home')}</span></div>
           </div>
