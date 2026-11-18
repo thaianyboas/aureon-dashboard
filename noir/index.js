@@ -10,8 +10,8 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, ap
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.4.9';
-export const BUILD = 'AUREON-NOIR-20261118k';
+export const VERSION = '1.5.0';
+export const BUILD = 'AUREON-NOIR-20261118l';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -45,6 +45,7 @@ const P = {
   win: 'M4 3h16v18H4zM12 3v18M4 12h16', door: 'M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M4 21h16M14.5 12h.01', shield: 'M12 3l8 3v6c0 4.5-3.4 8.4-8 9-4.6-.6-8-4.5-8-9V6z',
   speaker: 'M7 3h10v18H7zM12 8h.01M12 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', tv: 'M3 5h18v12H3zM8 21h8', note: 'M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
   play: 'M8 5v14l11-7z', pause: 'M6 5h4v14H6zM14 5h4v14h-4z', prev: 'M7 5h2v14H7zM20 5v14L10 12z', next: 'M15 5h2v14h-2zM4 5v14l10-7z',
+  sections: 'M4 5h16v5H4zM4 14h16v5H4z',
   shuffle: 'M4 7h3c4 0 6 10 10 10h3M17 4l3 3-3 3M4 17h3c1.5 0 2.6-1.4 3.6-3M14 9.5C15 8 16 7 17 7h3M17 14l3 3-3 3', vol: 'M4 9h4l5-4v14l-5-4H4zM16 9a4 4 0 0 1 0 6',
   washer: 'M4 3h16v18H4zM12 17.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zM7 6.5h2', dish: 'M4 3h16v18H4zM4 8h16M8 13h8M8 16.5h8', robot: 'M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z',
   trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6', camOff: 'M3 3l18 18M15 10l6-3v10l-2-1M10 7h5v5M3 7h3v10h9', grip: 'M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01',
@@ -342,11 +343,13 @@ class AureonDashboard extends LitElement {
     const pagebg = `--pagebg:radial-gradient(70% 40% at 20% 0%, ${rgba(aRgb, (0.02 + 0.12 * L).toFixed(3))} 0%, ${rgba(aRgb, 0)} 70%), var(--bg);`;
     const ctx = { m, t, lang, now, aRgb, L };
     const show = {
-      lights: m.lights.length, climate: m.climate.length, plugs: m.plugs.length, energy: m.metered.length || m.solarW != null,
+      lights: m.lights.length, climate: m.climate.length, plugs: m.plugs.length, energy: m.metered.length || m.loosePower.length || m.solarW != null || m.energyToday != null,
       covers: m.covers.length, openings: m.openings.length, security: m.cams.length + m.locks.length + m.alarms.length, tv: m.tvs.length, music: m.speakers.length || m.accounts.length
     };
     const secRender = { lights: () => this.sLights(ctx), climate: () => this.sClimate(ctx), plugs: () => this.sPlugs(ctx), energy: () => this.sEnergy(ctx), covers: () => this.sCovers(ctx), openings: () => this.sOpenings(ctx), security: () => this.sSecurity(ctx), tv: () => this.sTV(ctx), music: () => this.sMusic(ctx) };
     const secs = prefs.secOrder.filter((k) => show[k] && !(prefs.secHidden || []).includes(k) && (ui.domain === 'all' || ui.domain === k));
+    // Owner 2026-11-18: AUREON Music sits above the room / device chips — the chips belong to the device sections.
+    const musicTop = show.music && !(prefs.secHidden || []).includes('music');
     return html`<div lang=${lang} class="page ${ui.edit ? 'editing' : ''}" style=${vars + pagebg} @click=${(e) => { if (ui.themeOpen && !e.composedPath().some((n) => n.classList?.contains('themeWrap'))) this._set({ themeOpen: false }); if (ui.alarmOpen && !e.composedPath().some((n) => n.classList?.contains('alw'))) this._set({ alarmOpen: false, alarmCode: '' }); }}>
       <div class="wrap">
         ${ui.musicPage ? html`<div class="mpage">
@@ -359,10 +362,11 @@ class AureonDashboard extends LitElement {
         ${ui.modeSheet ? this.modeSheet(ctx, this._modeDefs(t).find((d) => d.id === ui.modeSheet)) : nothing}
         ${m.scenes.length ? this.scenes(ctx) : nothing}
         ${this.live(ctx)}
+        ${musicTop ? secRender.music() : nothing}
         ${this.filters(ctx, show)}
         ${ui.room !== 'all' ? this.roomHead(ctx) : nothing}
-        ${secs.map((k) => secRender[k]())}
-        ${secs.every((k) => !secRender[k]) || !secs.length ? html`<div class="empty">${t('nothingHere')}</div>` : nothing}`}
+        ${secs.filter((k) => k !== 'music').map((k) => secRender[k]())}
+        ${!secs.filter((k) => k !== 'music').length ? html`<div class="empty">${t('nothingHere')}</div>` : nothing}`}
       </div>
       ${ui.settings ? this.settings(ctx) : nothing}
       <div class="toasts" aria-live="polite">${repeat(this._toasts, (x) => x.id, (x) => html`<div class="toast rise" role="status">
@@ -497,7 +501,7 @@ class AureonDashboard extends LitElement {
         ${is3d ? html`<div class="stage" role="group" aria-label=${t('house3d')}><div class="iso"><div class="ground" aria-hidden="true"></div>
           ${layout.map((r) => this.room3d(r, ctx))}</div>
           <div class="lbls" aria-hidden="true">${layout.map((r) => this.label3d(r, ctx))}</div></div>`
-          : html`<div class="plan2d" role="group" aria-label=${t('plan')}>${layout.map((r) => this.room2d(r, ctx))}</div>`}
+          : html`<div class=${'plan2d ps-' + (prefs.planStyle || 'b')} role="group" aria-label=${t('plan')}>${layout.map((r) => this.room2d(r, ctx))}</div>`}
       </div>
     </section>`;
   }
@@ -530,13 +534,17 @@ class AureonDashboard extends LitElement {
       <span style=${`font-size:13px;color:${L.lit ? 'var(--fg)' : 'var(--mut)'}`}>${L.temp != null ? L.temp.toFixed(1).replace('.', ',') + '° · ' : ''}${L.on.length}/${L.ls.length}</span>
       <span class="dots">${L.dots.map((c) => html`<i style=${'background:' + c}></i>`)}</span></span>`;
   }
+  // Owner 2026-11-18 ("o modo planta … deixando a desejar"): the plan draws rooms as a floor plan; colour and glow
+  // come from CSS variables (--rgb light colour, --k brightness) so each style stays in the stylesheet.
   room2d(r, { m, t }) {
     const a = r.area, L = this._roomLook(a, m), sel = this._ui.room === a.id;
-    const look = (L.lit ? `border:1px ${a.outdoor ? 'dashed' : 'solid'} ${rgba(L.rgb, 0.28 + 0.4 * L.k)};background:radial-gradient(120% 100% at 50% 45%, ${rgba(L.rgb, 0.1 + 0.34 * L.k)} 0%, ${rgba(L.rgb, 0)} 72%), var(--card);box-shadow:0 0 ${Math.round(20 + 40 * L.k)}px -10px ${rgba(L.rgb, 0.25 + 0.5 * L.k)}` : `border:1px ${a.outdoor ? 'dashed' : 'solid'} var(--line2);background:var(--sunk)`) + (sel ? ';outline:2px solid var(--fg);outline-offset:2px' : '');
-    return html`<button class="r2" aria-pressed=${sel ? 'true' : 'false'} aria-label=${`${a.name}: ${t('ofOn', { a: L.on.length, b: L.ls.length })}`} @click=${() => this._pickRoom(sel ? 'all' : a.id)}
-      style=${`left:calc(${r.x}% + 5px);top:calc(${r.y}% + 5px);width:calc(${r.w}% - 10px);height:calc(${r.h}% - 10px);${look}`}>
-      <span class="n"><i style=${L.lit ? `background:rgb(${L.rgb});box-shadow:0 0 12px 2px ${rgba(L.rgb, 0.7)}` : 'background:var(--line2)'}></i>${a.name}</span>
-      <span class="row" style=${`gap:6px;font-size:13px;color:${L.lit ? 'var(--fg)' : 'var(--dim)'}`}>${L.temp != null ? L.temp.toFixed(1).replace('.', ',') + '° · ' : ''}${L.on.length}/${L.ls.length}<span class="dots">${L.dots.map((c) => html`<i style=${'background:' + c}></i>`)}</span></span></button>`;
+    const cls = 'r2' + (L.lit ? ' lit' : '') + (a.outdoor ? ' out' : '') + (sel ? ' sel' : '');
+    return html`<button class=${cls} aria-pressed=${sel ? 'true' : 'false'} aria-label=${`${a.name}: ${t('ofOn', { a: L.on.length, b: L.ls.length })}`} @click=${() => this._pickRoom(sel ? 'all' : a.id)}
+      style=${`left:calc(${r.x}% + var(--g));top:calc(${r.y}% + var(--g));width:calc(${r.w}% - 2 * var(--g));height:calc(${r.h}% - 2 * var(--g));--rgb:${L.rgb};--k:${L.k.toFixed(2)}`}>
+      <span class="pool" aria-hidden="true"></span>
+      <span class="n">${a.name}</span>
+      ${L.temp != null ? html`<span class="tp">${L.temp.toFixed(1).replace('.', ',')}<small>°</small></span>` : html`<span class="tp none"></span>`}
+      <span class="mt"><span class=${'lc' + (L.lit ? ' on' : '')}>${ic('bulb', 'i s')}${L.on.length}/${L.ls.length}</span><span class="dots">${L.dots.map((c) => html`<i style=${'background:' + c}></i>`)}</span></span></button>`;
   }
 
   // ── weather forecast (weather/subscribe_forecast, native HA) ─────────────
@@ -876,7 +884,7 @@ class AureonDashboard extends LitElement {
     const secNames = { lights: t('lights'), climate: t('climate'), plugs: t('plugs'), energy: t('energy'), covers: t('covers'), openings: t('openings'), security: t('security'), tv: t('tvs'), music: 'AUREON Music', scenes: t('scenes') };
     let body = nothing;
     const hints = { geral: t('stHintGeneral'), modos: t('stHintModes'), aparelhos: t('stHintAppl'), secoes: t('stHintSections'), etiquetas: t('stHintLabels'), dispositivos: t('stHintDevices'), sobre: t('stHintAbout') };
-    const icons = { geral: 'palette', modos: 'home', aparelhos: 'washer', secoes: 'grip', etiquetas: 'eye', dispositivos: 'plug', sobre: 'gear' };
+    const icons = { geral: 'palette', modos: 'home', aparelhos: 'washer', secoes: 'sections', etiquetas: 'eye', dispositivos: 'plug', sobre: 'gear' };
     if (tab === 'home') {
       // Owner 2026-11-18: a start page for Settings; "Voltar" in any tab returns here, "Fechar" closes.
       body = html`<div class="sthome">${tabs.map(([k, n]) => html`<button class="sthi" @click=${() => this._set({ settings: k })}>
@@ -1111,7 +1119,7 @@ class AureonDashboard extends LitElement {
     const chips = [{ id: 'all', name: t('allHome') }, ...roomsOrd];
     const doms = [['all', t('all')], ['lights', t('lightsShort')], ['climate', t('climateShort')], ['plugs', t('plugsShort')], ['energy', t('energyShort')], ['covers', t('coversShort')], ['openings', t('openingsShort')], ['security', t('securityShort')], ['tv', t('tvs')], ['music', t('musicShort')]].filter(([k]) => k === 'all' || show[k]);
     const inR = (list) => list.filter((d) => ui.room === 'all' || d.area === ui.room).length;
-    const counts = { lights: inR(m.lights), climate: inR(m.climate), plugs: inR(m.plugs), energy: inR(m.metered), covers: inR(m.covers), openings: inR(m.openings), security: inR(m.cams) + inR(m.locks) + m.alarms.length, tv: inR(m.tvs), music: inR(m.speakers) };
+    const counts = { lights: inR(m.lights), climate: inR(m.climate), plugs: inR(m.plugs), energy: inR(m.metered) + inR(m.loosePower), covers: inR(m.covers), openings: inR(m.openings), security: inR(m.cams) + inR(m.locks) + m.alarms.length, tv: inR(m.tvs), music: inR(m.speakers) };
     return html`<div class="filters">
       <div class="scroller" role="group" aria-label=${t('room')}>${chips.map((c) => {
         const lit = c.id === 'all' ? m.lights.some((l) => l.on) : m.lights.some((l) => l.on && l.area === c.id);
@@ -1265,14 +1273,15 @@ class AureonDashboard extends LitElement {
   // ── energy ───────────────────────────────────────────────────────────────
   sEnergy({ m, t, aRgb, lang }) {
     const ui = this._ui, inRoom = (d) => ui.room === 'all' || d.area === ui.room;
-    const plugs = m.metered.filter(inRoom), total = Math.round(plugs.reduce((s, p) => s + (p.on && p.w ? p.w : 0), 0));
-    if (!plugs.length && m.solarW == null) return nothing;
-    const hasSolar = m.solarW != null, solar = m.solarW || 0, house = ui.room === 'all' ? m.plugW : total;
+    const plugs = [...m.metered, ...m.loosePower].filter(inRoom), total = Math.round(plugs.reduce((s, p) => s + (p.on && p.w ? p.w : 0), 0));
+    if (!plugs.length && m.solarW == null && m.energyToday == null) return nothing;
+    const hasSolar = m.solarW != null, solar = m.solarW || 0, house = total;
     const gridNet = m.gridW != null ? m.gridW : house - solar;
     const maxW = Math.max(1, ...plugs.map((p) => p.w || 0));
     const flow = (on, rev, dur) => on ? `opacity:1;animation:flow ${dur}s linear infinite${rev ? ' reverse' : ''}` : 'opacity:0';
     const areaName = ui.room === 'all' ? '' : (m.areas.find((a) => a.id === ui.room)?.name || '');
-    const byRoom = m.areas.map((a) => ({ n: a.name, w: Math.round(m.metered.filter((p) => p.area === a.id && p.on).reduce((s, p) => s + (p.w || 0), 0)) })).filter((x) => m.metered.some((p) => p.area && m.areas.find((a) => a.name === x.n)?.id === p.area));
+    const mAll = [...m.metered, ...m.loosePower];
+    const byRoom = m.areas.map((a) => ({ n: a.name, w: Math.round(mAll.filter((p) => p.area === a.id && p.on).reduce((s, p) => s + (p.w || 0), 0)) })).filter((x) => mAll.some((p) => p.area && m.areas.find((a) => a.name === x.n)?.id === p.area));
     return html`<section class="sec">${this.secHead('energy', t('energy'), t('plugsMetered', { n: plugs.length }), html`<span class="tag row" style="gap:6px;color:#7EE0A8"><span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#7EE0A8"></span>${t('live')}</span>`, t)}
       <div class="wrapRow" style="align-items:stretch;gap:12px">
         <div class="tile" style="flex:3 1 440px;padding:22px;gap:16px;border-radius:24px">

@@ -110,10 +110,20 @@ console.log('behaviour');
   await new Promise((r) => setTimeout(r, 300));
   check(await shadow(page, `return !!root.querySelector('.plan2d .r2')`), '3D / Planta switch shows the plan');
   await page.screenshot({ path: 'build/noir/plan.png' });
+  for (const ps of ['a', 'b', 'c']) {
+    await page.evaluate((v) => { const d = document.getElementById('d'); d._save({ planStyle: v }); }, ps); await new Promise((r) => setTimeout(r, 250));
+    await page.evaluate(() => document.getElementById('d').shadowRoot.querySelector('.plan2d').scrollIntoView({ block: 'center' }));
+    await page.screenshot({ path: `build/noir/plan-${ps}.png`, clip: await page.evaluate(() => { const r = document.getElementById('d').shadowRoot.querySelector('.heroR').getBoundingClientRect(); return { x: r.left, y: r.top + scrollY, width: r.width, height: r.height }; }) });
+  }
+  await page.evaluate(() => { const d = document.getElementById('d'); d._save({ planStyle: undefined }); });
+  check(await shadow(page, `return !!root.querySelector('.plan2d.ps-b')`), 'plan uses the glass style (B) by default');
+  check(await shadow(page, `return root.querySelector('.hero').getBoundingClientRect().height < 470`), 'hero is compact on desktop');
+  check(await shadow(page, `const mu=root.querySelector('.mcard.cmp'), f=root.querySelector('.filters'); return !!mu && !!f && (mu.compareDocumentPosition(f) & Node.DOCUMENT_POSITION_FOLLOWING) > 0`), 'AUREON Music comes before the room / device chips');
   check(await shadow(page, `return !!root.querySelector('.heroR .alp') && !root.querySelector('.heroR .alm')`), 'house mode sits as a closed menu beside 3D / Planta');
   const alCalls0 = await page.evaluate(() => H.calls.length);
   await shadow(page, `root.querySelector('.heroR .alp').click()`); await new Promise((r) => setTimeout(r, 200));
   check(await shadow(page, `return root.querySelectorAll('.alm [role=menuitemradio]').length === 4 && !root.querySelector('.modes')`) && await page.evaluate((n) => H.calls.length === n, alCalls0), 'house mode menu opens with the 4 modes, sends nothing, and the modes strip is gone');
+  check(await shadow(page, `const b=root.querySelector('.alm .alic'), i=b.querySelector('svg').getBoundingClientRect(), r=b.getBoundingClientRect(); return Math.abs((i.left+i.width/2)-(r.left+r.width/2))<1.5 && Math.abs((i.top+i.height/2)-(r.top+r.height/2))<1.5`), 'mode icons are centred');
   await page.screenshot({ path: 'build/noir/alarm-menu.png', clip: await page.evaluate(() => { const r = document.getElementById('d').shadowRoot.querySelector('.heroR').getBoundingClientRect(); return { x: r.left + r.width - 520, y: r.top + scrollY, width: 520, height: 360 }; }) });
   await shadow(page, `[...root.querySelectorAll('.alm button')].find((b)=>/Noite/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 200));
   check(await shadow(page, `return !root.querySelector('.alm') && !!root.querySelector('.sheet .willoff, .sheet .btn.pri')`) && await page.evaluate((n) => !H.calls.slice(n).some((c) => c[0] === 'alarm_control_panel'), alCalls0), 'choosing a mode opens its confirmation, nothing is sent yet');
@@ -123,6 +133,7 @@ console.log('behaviour');
   await shadow(page, `root.querySelector('.btn[aria-label="Configurações"]').click()`);
   await new Promise((r) => setTimeout(r, 200));
   check(await shadow(page, `return root.querySelectorAll('.sheet .sthi').length === 7 && !root.querySelector('.sheet [role=tab]') && !!root.querySelector('.sheet .stclose')`), 'Settings opens on a start page with Fechar');
+  check(await shadow(page, `return [...root.querySelectorAll('.sheet .sthi .ic svg path')].every((p)=>(p.getAttribute('d')||'').length>10)`), 'every Settings entry has a visible icon');
   await page.screenshot({ path: 'build/noir/settings-home.png' });
   await shadow(page, `[...root.querySelectorAll('.sheet .sthi')].find((b)=>/Geral/.test(b.textContent)).click()`);
   await new Promise((r) => setTimeout(r, 200));
@@ -151,10 +162,10 @@ console.log('behaviour');
   const ws = await page.evaluate(() => H.ws.find((m) => m.type === 'config/entity_registry/update'));
   check(ws && ws.name === 'Lustre novo' && /^scene\.|^light\./.test(ws.entity_id), 'confirmed rename updates the HA entity registry: ' + JSON.stringify(ws));
   // move a card
-  const firstBefore = await shadow(page, `return root.querySelectorAll('.grid .tile .nm b')[0]?.textContent`);
-  await shadow(page, `root.querySelector('.grid .tile .editbar button[aria-label^="Mover para frente"]').click()`);
+  const firstBefore = await shadow(page, `const g=[...root.querySelectorAll('.grid')].find((x)=>(root.querySelector('.filters').compareDocumentPosition(x)&4) && x.querySelectorAll('.tile').length>1); return g.querySelectorAll('.tile .nm b')[0]?.textContent`);
+  await shadow(page, `const g=[...root.querySelectorAll('.grid')].find((x)=>(root.querySelector('.filters').compareDocumentPosition(x)&4) && x.querySelectorAll('.tile').length>1); g.querySelector('.tile .editbar button[aria-label^="Mover para frente"]').click()`);
   await new Promise((r) => setTimeout(r, 200));
-  const firstAfter = await shadow(page, `return root.querySelectorAll('.grid .tile .nm b')[0]?.textContent`);
+  const firstAfter = await shadow(page, `const g=[...root.querySelectorAll('.grid')].find((x)=>(root.querySelector('.filters').compareDocumentPosition(x)&4) && x.querySelectorAll('.tile').length>1); return g.querySelectorAll('.tile .nm b')[0]?.textContent`);
   check(firstBefore !== firstAfter, `moving a card changes its position (${firstBefore} → ${firstAfter})`);
   await shadow(page, `[...root.querySelectorAll('.btn')].find((b)=>/Concluir edição/.test(b.textContent)).click()`);
   // music library from SpotifyPlus

@@ -161,7 +161,11 @@ export function buildModel(hass, opts = {}) {
     // Labels on the device count for every entity of that device (owner labels devices in HA).
     const reg = { ...reg0, allLabels: [...new Set([...(reg0.labels || []), ...((reg0.device_id && devices[reg0.device_id]?.labels) || [])])] };
     const domain = eid.split('.')[0];
-    if ((reg.hidden || reg.hidden_by) && !forceShow.has(eid)) {
+    // Owner 2026-11-18 ("o meu energia nem aparece"): every power sensor feeds Energy — also the ones HA hides
+    // by default (many plugs ship them hidden) and the ones measured in kW.
+    const pu = st.attributes?.unit_of_measurement;
+    const isPower = domain === 'sensor' && (st.attributes?.device_class === 'power' || pu === 'W' || pu === 'kW');
+    if ((reg.hidden || reg.hidden_by) && !forceShow.has(eid) && !isPower) {
       if (domain === 'media_player') m.hiddenMedia.push({ id: eid, name: st.attributes?.friendly_name || eid });
       continue;
     }
@@ -180,7 +184,7 @@ export function buildModel(hass, opts = {}) {
     if (domain === 'person') { m.people.push(item); continue; }
     if (domain === 'sensor' && reg.platform === 'proximity') { (m.proximity ||= []).push(item); continue; }
     if (domain === 'scene') { m.scenes.push(item); continue; }
-    if (domain === 'sensor' && dc === 'power') { m.power.push({ ...item, w: num(st.state) }); continue; }
+    if (isPower) { const v = num(st.state); m.power.push({ ...item, w: v == null ? null : pu === 'kW' ? v * 1000 : v }); continue; }
     if (domain === 'sensor' && dc === 'energy' && /today|heute|daily|hoje|tag/i.test(eid + ' ' + base) && m.energyToday == null) m.energyToday = { v: num(st.state), unit: a.unit_of_measurement || 'kWh' };
     if (domain === 'sensor' && dc === 'energy' && /month|monat|monthly|mês|mes\b|mensal/i.test(eid + ' ' + base) && m.energyMonth == null) m.energyMonth = { v: num(st.state), unit: a.unit_of_measurement || 'kWh' };
     if (domain === 'sensor' && (dc === 'monetary' || /^(€|eur|\$|usd|r\$|brl)$/i.test(a.unit_of_measurement || '')) && /cost|kosten|custo/i.test(eid + ' ' + base) && /today|heute|hoje|daily|tag/i.test(eid + ' ' + base) && m.costToday == null) m.costToday = { v: num(st.state), unit: a.unit_of_measurement || '€' };
@@ -254,6 +258,16 @@ export function buildModel(hass, opts = {}) {
   if (grid.length) m.gridW = Math.round(grid[0].w || 0);
   m.plugW = Math.round(m.plugs.reduce((s, p) => s + (p.on && p.w ? p.w : 0), 0));
   m.metered = m.plugs.filter((p) => p.w != null);
+  // Power sensors that belong to no plug (a measuring plug whose switch is hidden, a device meter…), one row per device.
+  const plugDevs = new Set(m.plugs.map((p) => p.device).filter(Boolean)), loose = {};
+  for (const p of m.power) {
+    if (p.w == null || solar.includes(p) || grid.includes(p) || (p.device && plugDevs.has(p.device))) continue;
+    if (/total|gesamt|house|haus|casa|home|standby/i.test(p.id + ' ' + p.baseName) && !p.device) continue;
+    const key = p.device || p.id, dev = p.device ? devices[p.device] : null;
+    const g = (loose[key] ||= { id: key, device: p.device, name: dev ? cleanName(dev.name_by_user || dev.name || p.name, p.areaName) : p.name, area: p.area, areaName: p.areaName, on: true, w: 0, sensor: true });
+    g.w += p.w;
+  }
+  m.loosePower = Object.values(loose).map((g) => ({ ...g, w: Math.round(g.w) }));
 
   // Washer / dryer / dishwasher: device level, from whatever sensors that device exposes.
   const seen = new Set();

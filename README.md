@@ -1,5 +1,13 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.5.0 — 2026-11-18
+
+- Planta nova em vidro: cada cômodo com temperatura grande, luzes acesas na cor da lâmpada e brilho vindo de baixo; cômodo escolhido em dourado.
+- Topo (relógio, tempo, casa) mais baixo.
+- AUREON Music vem antes dos botões de cômodos e tipos.
+- Energia aparece com qualquer sensor de potência (também os escondidos pelo HA e os em kW), uma linha por aparelho.
+- Ícone de Seções nas Configurações; ícones do menu Modo da casa centralizados.
+
 ## AUREON Noir 1.4.9 — 2026-11-18
 
 - Modo da casa e alarme juntos num só menu elegante ao lado de 3D / Planta (Em casa, Fora, Férias, Noite). Escolher um modo abre a confirmação de sempre; nada muda antes de tocar em "Ativar".

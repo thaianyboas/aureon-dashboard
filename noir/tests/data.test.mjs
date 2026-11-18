@@ -95,3 +95,13 @@ test('label roles come from HA (id, name or description), device labels count', 
   assert.equal(m.plugs.length, 1);
   assert.equal(m.plugs[0].locked, true, 'a device label protects the plug');
 });
+
+test('energy: power sensors without a plug (hidden or kW) still count', () => {
+  const h = hass();
+  h.devices.dmeter = { id: 'dmeter', name: 'Waschmaschine', area_id: 'kitchen' };
+  h.states['sensor.meter_power'] = { entity_id: 'sensor.meter_power', state: '0.45', attributes: { unit_of_measurement: 'kW', friendly_name: 'Power' } };
+  h.entities['sensor.meter_power'] = { entity_id: 'sensor.meter_power', device_id: 'dmeter', hidden_by: 'integration' };
+  const m = buildModel(h);
+  const r = m.loosePower.find((x) => x.device === 'dmeter');
+  assert.ok(r); assert.equal(r.w, 450);
+});

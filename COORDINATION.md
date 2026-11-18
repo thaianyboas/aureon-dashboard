@@ -1494,3 +1494,7 @@ The Music browser suite passed again with that label and native transfer.
 ## Claude batch — 2026-11-18k (AUREON Noir 1.4.9)
 - `houseMenu` replaces `alarmMenu` and the `.modes` strip: menu items open the existing `modeSheet` (confirmation, off-list). `_modeEffect` extracted. `modes()` kept but no longer rendered.
 - Browser test PASS. No HA test run by Claude.
+
+## Claude batch — 2026-11-18l (AUREON Noir 1.5.0)
+- Plan view redesigned (owner chose concept B "vidro"): `room2d` uses CSS vars --rgb/--k/--g; styles `.ps-a/.ps-b/.ps-c` kept, default `ps-b` (`prefs.planStyle`). Browser test PASS. No HA test run by Claude.
+- Also in 1.5.0: compact hero; music rendered above `.filters` (`musicTop`); `m.loosePower` (power sensors without a plug, hidden/kW included) feeds Energy; `sections` icon; `.alm` check icon selector fixed. Unit tests 10/10.
