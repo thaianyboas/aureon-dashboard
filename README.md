@@ -1,5 +1,11 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.4.2 — 2026-11-18
+
+- Configurações salvas no Home Assistant: as mesmas em todos os aparelhos, com aviso "Salvo em todos os aparelhos".
+- Configurações: botão Voltar, abas fixas no topo, nada cortado; etiquetas com "Não usar / Mostrar só estes / Esconder estes" e explicação.
+- Nomes: "Flur - Lampen" no cômodo Flur aparece como "Lampen" (sem o traço solto).
+
 ## AUREON Noir 1.4.1 — 2026-11-18
 
 - Tocar na foto de uma pessoa abre o mapa do Home Assistant com onde ela está.

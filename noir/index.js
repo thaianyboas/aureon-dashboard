@@ -10,8 +10,8 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, PL
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.4.1';
-export const BUILD = 'AUREON-NOIR-20261118c';
+export const VERSION = '1.4.2';
+export const BUILD = 'AUREON-NOIR-20261118d';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -118,13 +118,48 @@ class AureonDashboard extends LitElement {
   _save(patch) {
     this._prefs = { ...this._prefs, ...patch };
     try { localStorage.setItem(this._key, JSON.stringify(this._prefs)); } catch { /* private mode */ }
+    this._pushPrefs();
     this.requestUpdate();
+  }
+  // Owner 2026-11-18: the same settings on every phone/computer. Stored on the Home Assistant server per user
+  // (frontend user data), kept in sync live; localStorage is only the fast first paint / offline copy.
+  _syncPrefs() {
+    if (this._syncing || !this.hass?.callWS) return;
+    this._syncing = true;
+    const KEY = 'aureon_noir';
+    this.hass.callWS({ type: 'frontend/get_user_data', key: KEY }).then((r) => {
+      const v = r?.value;
+      if (v && typeof v === 'object') this._applyRemote(v);
+      else this._pushPrefs(true);
+      this._synced = true;
+    }).catch(() => { this._synced = false; });
+    try {
+      this.hass.connection?.subscribeMessage?.((ev) => { const v = ev?.value; if (v && typeof v === 'object' && JSON.stringify(v) !== this._lastPushed) this._applyRemote(v); }, { type: 'frontend/subscribe_user_data', key: KEY })
+        .then((u) => (this._unsubs ||= []).push(u)).catch(() => {});
+    } catch { /* ok */ }
+  }
+  _applyRemote(v) {
+    const so = (v.secOrder || []).filter((k) => SECTIONS.includes(k));
+    this._prefs = { theme: 'aureon', view: '3d', order: {}, aliases: {}, hidden: [], wasteAck: {}, ...v, secOrder: so.concat(SECTIONS.filter((k) => !so.includes(k))) };
+    try { localStorage.setItem(this._key, JSON.stringify(this._prefs)); } catch { /* ok */ }
+    this.requestUpdate();
+  }
+  _pushPrefs(silent) {
+    if (!this.hass?.callWS) return;
+    clearTimeout(this._pushT);
+    this._pushT = setTimeout(() => {
+      const body = JSON.stringify(this._prefs); this._lastPushed = body;
+      this.hass.callWS({ type: 'frontend/set_user_data', key: 'aureon_noir', value: JSON.parse(body) })
+        .then(() => { if (!silent) { this._savedState = 'all'; this._savedAt = Date.now(); this.requestUpdate(); setTimeout(() => this.requestUpdate(), 2600); } })
+        .catch(() => { if (!silent) { this._savedState = 'local'; this._savedAt = Date.now(); this.requestUpdate(); setTimeout(() => this.requestUpdate(), 2600); } });
+    }, 350);
   }
   _set(patch) { this._ui = { ...this._ui, ...patch }; }
 
   willUpdate(changed) {
     if (changed.has('hass') && this.hass) {
       if (!this._prefs) this._loadPrefs();
+      if (!this._syncing) this._syncPrefs();
       this._mc.setHass(this.hass);
       const wid = this._config.weather_entity || this._prefs?.weather || Object.keys(this.hass.states).find((e) => e.startsWith('weather.') && !this.hass.entities?.[e]?.hidden);
       if (wid) this._subForecast(wid);
@@ -792,13 +827,15 @@ class AureonDashboard extends LitElement {
       const ROLE_TXT = { hide: t('lbSysHide'), protect: t('lbSysProtect'), outlet: t('lbSysOutlet') };
       const user = labels.filter((l) => !l.role && !SYS[l.id]), sys = labels.filter((l) => l.role || SYS[l.id]);
       const opts = [['all', t('stAllSections')], ...Object.entries(secNames).filter(([k]) => k !== 'energy')];
+      const secLabel = sec === 'all' ? t('stEverywhere') : secNames[sec];
       body = html`<span class="muted txt" style="font-size:13px;line-height:1.55">${t('stLabelsHint2')}</span>
         <label class="lbsel"><span class="eyebrow" style="font-size:10px">${t('stApplyTo')}</span>
           <select .value=${sec} @change=${(e) => this._set({ labelSec: e.target.value })}>${opts.map(([k, n]) => html`<option value=${k} ?selected=${sec === k}>${n}${(rules[k]?.include?.length || rules[k]?.exclude?.length) ? ' •' : ''}</option>`)}</select></label>
         ${!user.length ? html`<span class="muted" style="font-size:13px">${t('stNoLabels')}</span>` : html`<div class="lblist">${user.map((l) => { const st = state(l.id); return html`<div class=${'lbrow ' + st}>
           <span class="lbic" style=${'--lc:' + col(l.color)}>${l.icon ? html`<ha-icon .icon=${l.icon}></ha-icon>` : nothing}</span>
           <span class="grow txt"><b>${l.name}</b><span class="muted">${[t('stLabelCount', { n: l.count }), l.desc].filter(Boolean).join(' · ')}</span></span>
-          <span class="lbseg" role="radiogroup" aria-label=${l.name}>${[['normal', t('stLbNormal')], ['include', t('stLbOnly')], ['exclude', t('stLbHide')]].map(([k, n]) => html`<button role="radio" aria-checked=${st === k ? 'true' : 'false'} class=${k} @click=${() => setState(l.id, k)}>${n}</button>`)}</span></div>`; })}</div>`}
+          <span class="lbseg" role="radiogroup" aria-label=${l.name}>${[['normal', t('stLbNormal')], ['include', t('stLbOnly')], ['exclude', t('stLbHide')]].map(([k, n]) => html`<button role="radio" aria-checked=${st === k ? 'true' : 'false'} class=${k} @click=${() => setState(l.id, k)}>${n}</button>`)}</span>
+          <span class="lbexp">${st === 'include' ? t('stLbExpOnly', { s: secLabel, l: l.name }) : st === 'exclude' ? t('stLbExpHide', { s: secLabel, l: l.name }) : t('stLbExpNormal', { l: l.name })}</span></div>`; })}</div>`}
         ${sys.length ? html`<div class="lbsys"><span class="eyebrow" style="font-size:10px">${t('stLbSystem')}</span>${sys.map((l) => html`<span class="row" style="gap:10px;font-size:13px"><span class="lbic sm" style=${'--lc:' + col(l.color)}>${l.icon ? html`<ha-icon .icon=${l.icon}></ha-icon>` : nothing}</span><b style="font-weight:500">${l.name}</b><span class="muted">${ROLE_TXT[l.role] || SYS[l.id]}</span></span>`)}</div>` : nothing}`;
     } else if (tab === 'dispositivos') {
       const q = (ui.setQ || '').toLowerCase(), hid = new Set(prefs.hidden || []), force = new Set(prefs.forceShow || []);
@@ -820,14 +857,21 @@ class AureonDashboard extends LitElement {
         <span class="muted txt" style="font-size:13px;line-height:1.5">${t('stAboutHint')}</span>
         <div class="wrapRow"><button class="btn" @click=${() => { try { navigator.clipboard.writeText(JSON.stringify(this._prefs)); this._toast(t('stCopied'), ''); } catch { /* ok */ } }}>${t('stExport')}</button>
           <button class="btn" @click=${() => { const v = prompt(t('stImport')); if (!v) return; try { const p = JSON.parse(v); if (p && typeof p === 'object') { this._save(p); this._toast(t('stImported'), ''); } } catch { this._toast(t('stImportFail'), ''); } }}>${t('stImport')}</button>
-          <button class="btn" @click=${() => { if (confirm(t('stResetQ'))) { this._prefs = null; try { localStorage.removeItem(this._key); } catch { /* ok */ } this._loadPrefs(); this.requestUpdate(); } }}>${t('stReset')}</button></div>`;
+          <button class="btn" @click=${() => { if (confirm(t('stResetQ'))) { this._prefs = null; try { localStorage.removeItem(this._key); } catch { /* ok */ } this._loadPrefs(); this._pushPrefs(); this.requestUpdate(); } }}>${t('stReset')}</button></div>`;
     }
     return html`<div class="overlay" @click=${(e) => { if (e.target === e.currentTarget) this._set({ settings: null }); }}>
       <div class="sheet rise" role="dialog" aria-modal="true" aria-label=${t('settings')} style="width:min(720px,100%)">
-        <div class="row sp" style="gap:12px"><span style="font-size:26px;font-weight:300;letter-spacing:-.03em">${t('settings')}</span><button class="ib" aria-label=${t('cancel')} @click=${() => this._set({ settings: null })}>${ic('x', 'i s')}</button></div>
-        <div class="scroller" role="tablist">${tabs.map(([k, n]) => html`<button role="tab" class="rc" aria-pressed=${tab === k ? 'true' : 'false'} @click=${() => this._set({ settings: k })}>${n}</button>`)}</div>
+        <div class="sthead">
+          <div class="row" style="gap:10px;min-width:0">
+            <button class="btn sm" aria-label=${t('goBack')} @click=${() => this._set({ settings: null })}>${ic('left', 'i s')}${t('goBack')}</button>
+            <span style="font-size:24px;font-weight:300;letter-spacing:-.03em;white-space:nowrap">${t('settings')}</span>
+          </div>
+          <div class="sttabs" role="tablist">${tabs.map(([k, n]) => html`<button role="tab" aria-selected=${tab === k ? 'true' : 'false'} @click=${() => this._set({ settings: k })}>${n}</button>`)}</div>
+        </div>
         ${body}
-        <span class="dim txt" style="font-size:11px;padding-top:6px">${t('stLocal')}</span>
+        <span class="dim txt" style="font-size:11px;padding-top:6px">${this._synced ? t('stSynced') : t('stLocal')}</span>
+        ${this._savedAt && Date.now() - this._savedAt < 2500 ? html`<span class=${'saved ' + (this._savedState || 'all')} role="status">${ic('check', 'i s')}${this._savedState === 'local' ? t('savedLocal') : t('savedAll')}</span>` : nothing}
+
       </div></div>`;
   }
 

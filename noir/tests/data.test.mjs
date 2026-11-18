@@ -56,6 +56,12 @@ test('short bin names keep the meaning without the colour word', () => {
   assert.equal(shortBin('Restmüll'), 'Restmüll');
   assert.equal(shortBin('Paper bin'), 'Paper');
 });
+test('names keep meaning when the room prefix goes', () => {
+  assert.equal(cleanName('Flur - Lampen', 'Flur'), 'Lampen');
+  assert.equal(cleanName('WC - Licht', 'Badezimmer'), 'WC - Licht');
+  assert.equal(cleanName('Küche · Decke', 'Küche'), 'Decke');
+  assert.equal(cleanName('Flur -', 'Flur'), 'Flur -');
+});
 test('helpers', () => {
   assert.equal(cleanName('Kitchen Ceiling', 'Kitchen'), 'Ceiling');
   assert.equal(cleanName('kitchen', 'Kitchen'), 'Kitchen');

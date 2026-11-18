@@ -64,7 +64,11 @@ export function cleanName(name, areaName) {
   let n = String(name || '').trim();
   if (areaName) {
     const a = areaName.toLowerCase();
-    if (n.toLowerCase().startsWith(a + ' ') && n.length > a.length + 1) n = n.slice(areaName.length + 1);
+    if (n.toLowerCase().startsWith(a + ' ') && n.length > a.length + 1) {
+      // Owner 2026-11-18: "Flur - Lampen" must not become "- Lampen" — drop the separator too.
+      const rest = n.slice(areaName.length + 1).replace(/^[\s\-–—·:|/_.,]+/, '').trim();
+      if (rest.length >= 2) n = rest;
+    }
   }
   return n ? n.charAt(0).toLocaleUpperCase() + n.slice(1) : n;
 }
