@@ -1467,3 +1467,10 @@ The Music browser suite passed again with that label and native transfer.
 - 2026-11-18: likely root cause of the 2026-11-17 plug incident: owner's protection label is `systemgeraete_dashboard` (HA description 'Roteador, central de aquecimento e equipamentos essenciais'), which Noir did not know. Now: PROTECT includes it, roles also inferred from the HA label description (labelRoles), device-level labels count for their entities, label registry re-read on label_registry_updated, Settings shows HA icon/colour/description.
 - People: hero chips show where each person is (zone / em casa / a caminho ~N min). ETA from HA Proximity sensors (distance + direction_of_travel, platform 'proximity') using speed over the last 15 min (history + live). Arrival push in the dashboard (kind 'arrivals'); phone push via new blueprint aureon/person_arriving.yaml (notify service text input).
 - Prefs now synced via HA frontend/get|set|subscribe_user_data key 'aureon_noir' (per HA user, all devices); localStorage is the fast/offline copy. Settings sheet: sticky header with Voltar + segmented tabs, children no longer shrink (that cut the label list), 'Salvo' pill.
+
+## Claude batch — 2026-11-18f (AUREON Noir 1.4.4)
+- Appliances always shown (washer/dish/dryer); placeholder "Configurar" card opens Settings → Aparelhos (`prefs.applHidden`, `prefs.applMap`).
+- Settings tabs: Modos (shared `modeConfig`) and Aparelhos.
+- Map room tap scrolls to `.roomhead` (`_pickRoom`).
+- Compact home player (`.mcard.cmp`); full music page unchanged.
+- Checks: build-noir, unit tests, `scripts/test-noir-browser.mjs` PASS. No HA test run by Claude.

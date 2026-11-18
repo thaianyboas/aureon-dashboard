@@ -1,5 +1,13 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.4.4 — 2026-11-18
+
+- Máquina de lavar, lava-louças e secadora sempre aparecem; sem aparelho ligado ao HA, aparece o cartão "Configurar".
+- Configurações → Aparelhos: escolher de onde vem cada máquina (aparelho inteligente ou tomada) e esconder as que não quiser.
+- Configurações → Modo da casa: configurar cada modo (Fora, Férias, Noite…) e as tomadas que desligam.
+- Tocar num cômodo do mapa leva direto aos dispositivos desse cômodo.
+- AUREON Music na página inicial mais baixo: controles, volume e biblioteca numa linha só.
+
 ## AUREON Noir 1.4.3 — 2026-11-18
 
 - Nome escrito por você (no painel ou no HA) aparece exatamente como escrito.
