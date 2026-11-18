@@ -807,14 +807,17 @@ class AureonDashboard extends LitElement {
       const days = [...byDay.values()].sort((x, y) => x.days - y.days);
       const hero = days[0], keys = hero.items.map((x) => hero.date + x.type), out = keys.every((k) => ack[k]);
       const wd = (date, opt) => new Date(date + 'T12:00:00').toLocaleDateString(lang, opt);
-      const when = hero.days === 0 ? t('today') : hero.days === 1 ? t('tomorrow') : wd(hero.date, { weekday: 'long' });
+      // Owner 2026-11-18: "Hoje", "Amanhã", otherwise just the date (20.11).
+      const dmy = (date) => { const [, mo, dd] = String(date).split('-'); return dd + '.' + mo; };
+      const dayLabel = (w) => (w.days === 0 ? t('today') : w.days === 1 ? t('tomorrow') : dmy(w.date));
+      const when = dayLabel(hero);
       const urgent = hero.days <= 1 && !out;
       const today = byDay.get(0);
       const sub = hero.days === 0 ? (out ? t('wasteOut') : t('wasteToday')) : today ? '' : t('wasteTodayNone');
       const shelf = days.filter((d) => d !== hero).flatMap((d) => d.items.map((w) => ({ ...w }))).slice(0, 4);
       cards.push(html`<article class=${'act wst' + (urgent ? ' urgent' : '')}>
         <span class="wglow" aria-hidden="true" style=${'background:radial-gradient(closest-side,' + binColor(hero.items[0].type) + '55,transparent)'}></span>
-        <div class="wwrap"><span class="tag wtag">${t('waste')} · ${when}${hero.days > 1 ? '' : ' · ' + wd(hero.date, { weekday: 'short', day: 'numeric' })}</span>
+        <div class="wwrap"><span class="tag wtag">${t('waste')} · ${when}</span>
         <div class="whero">
           <span class="wbins" aria-hidden="true">${hero.items.slice(0, 2).map((w, i) => binSvg(binColor(w.type), urgent, 'h' + i, i ? 'back' : ''))}</span>
           <div class="wtxt">
@@ -823,7 +826,7 @@ class AureonDashboard extends LitElement {
             ${hero.days <= 1 ? (out ? html`<span class="wok">${ic('check', 'i s')}${t('wasteOut')}</span>` : html`<button class="wbtn" @click=${() => this._save({ wasteAck: { ...ack, ...Object.fromEntries(keys.map((k) => [k, true])) } })}>${ic('check', 'i s')}${t('wasteDoneS')}</button>`) : nothing}
           </div>
         </div>
-        ${shelf.length ? html`<div class="wshelf">${shelf.map((w, i) => html`<span class="wsi"><i class="wdot" style=${'background:' + binColor(w.type)}></i><b class="txt">${shortBin(w.type)}</b><span class="mono">${w.days === 0 ? t('today') : w.days === 1 ? t('tomorrow') : wd(w.date, { weekday: 'short', day: 'numeric' })}</span></span>`)}</div>` : nothing}
+        ${shelf.length ? html`<div class="wshelf">${shelf.map((w, i) => html`<span class="wsi"><i class="wdot" style=${'background:' + binColor(w.type)}></i><b class="txt">${shortBin(w.type)}</b><span class="mono">${dayLabel(w)}</span></span>`)}</div>` : nothing}
       </div></article>`);
     }
     for (const v of m.vacuums) {
