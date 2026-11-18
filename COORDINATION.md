@@ -1485,3 +1485,8 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18i (AUREON Noir 1.4.7)
 - Settings footer `.stfoot` (sticky) shows either the sync note or the "Salvo" pill. Browser test PASS.
+
+## Claude batch — 2026-11-18j (AUREON Noir 1.4.8)
+- `alarmMenu` in heroR (supported_features filter, code input when `code_format`); alarm removed from the Security section header.
+- Settings start page `settings:'home'` (`.sthome/.sthi`), Voltar → home, `.stclose` closes. de/en i18n filled for all keys.
+- Browser test PASS (alarm menu sends nothing until a mode is tapped). No HA test run by Claude.

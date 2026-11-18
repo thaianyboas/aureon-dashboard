@@ -1,5 +1,11 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.4.8 — 2026-11-18
+
+- Alarme da casa: menu elegante ao lado de 3D / Planta, com o estado atual; só muda quando você escolhe um modo.
+- Configurações: página inicial com todas as áreas; "Voltar" volta para ela e "Fechar" fecha.
+- Aba escolhida nas Configurações na cor do tema; textos completos em alemão e inglês.
+
 ## AUREON Noir 1.4.7 — 2026-11-18
 
 - Configurações: o aviso "Salvo" aparece no lugar da nota do rodapé, sem ficar por cima do texto.

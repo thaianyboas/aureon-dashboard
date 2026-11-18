@@ -43,7 +43,9 @@ const pt = {
   soon: 'em breve', solarReady: 'Solar · preparado', whoNow: 'Quem consome agora', byPlugs: 'pelas tomadas', byRoom: 'Por cômodo', todayE: 'Hoje', solarToday: 'Solar hoje', plugsMetered: '{n} tomadas medindo',
   lightsOn: '{n} luzes acesas em {r} cômodos', allLightsOff: 'Todas as luzes apagadas', musicAll: 'música no apartamento todo', musicIn: 'música em {n} caixas', washerEnds: 'a {n} termina às {t}', robotIn: 'o robô está aspirando',
   statLights: 'Luzes', statOpen: 'Abertas', statHeat: 'Aquecendo', statPlugs: 'Tomadas', homePeople: 'Em casa', away: 'Fora', closeToast: 'Fechar aviso', notAvailable: 'indisponível',
-  sunUp: 'sol às {t}', sunLeft: '{t} de sol', night: 'noite', nothingHere: 'Nenhum dispositivo deste tipo neste cômodo.', loading: 'Carregando a casa…', min: 'min'
+  sunUp: 'sol às {t}', sunLeft: '{t} de sol', night: 'noite', nothingHere: 'Nenhum dispositivo deste tipo neste cômodo.', loading: 'Carregando a casa…', min: 'min',
+  closeS: 'Fechar', stHintModes: 'O que cada modo faz e quais tomadas desliga', stHintAppl: 'Máquinas: de onde vêm os dados, mostrar ou esconder', alarmArming: 'armando…', stHintGeneral: 'Tema, vista do mapa, previsão e avisos', stHintSections: 'Quais seções aparecem e em que ordem',
+  stHintLabels: 'Etiquetas do Home Assistant: mostrar ou esconder', stHintDevices: 'Dispositivos, TV e onde tocar música', stHintAbout: 'Versão, exportar e redefinir'
 };
 const de = {
   settings: 'Einstellungen', stGeneral: 'Allgemein', stSections: 'Bereiche', stLabels: 'Labels', stDevices: 'Geräte', stAbout: 'Info', stDefaultView: 'Hausansicht', stPushMin: 'Hinweise minimiert',
@@ -89,7 +91,14 @@ const de = {
   soon: 'bald', solarReady: 'Solar · vorbereitet', whoNow: 'Wer gerade verbraucht', byPlugs: 'über Steckdosen', byRoom: 'Nach Raum', todayE: 'Heute', solarToday: 'Solar heute', plugsMetered: '{n} Steckdosen messen',
   lightsOn: '{n} Lichter an in {r} Räumen', allLightsOff: 'Alle Lichter aus', musicAll: 'Musik in der ganzen Wohnung', musicIn: 'Musik auf {n} Lautsprechern', washerEnds: '{n} fertig um {t}', robotIn: 'der Roboter saugt',
   statLights: 'Licht', statOpen: 'Offen', statHeat: 'Heizen', statPlugs: 'Steckdosen', homePeople: 'Zuhause', away: 'Unterwegs', closeToast: 'Hinweis schließen', notAvailable: 'nicht verfügbar',
-  sunUp: 'Sonne um {t}', sunLeft: 'noch {t} Sonne', night: 'Nacht', nothingHere: 'Keine Geräte dieser Art in diesem Raum.', loading: 'Zuhause wird geladen…', min: 'Min.'
+  sunUp: 'Sonne um {t}', sunLeft: 'noch {t} Sonne', night: 'Nacht', nothingHere: 'Keine Geräte dieser Art in diesem Raum.', loading: 'Zuhause wird geladen…', min: 'Min.',
+  notSetUp: 'Noch nicht eingerichtet', notSetUpHint: 'Gerät oder Steckdose auswählen', setUp: 'Einrichten', kind_washer: 'Waschmaschine', kind_dish: 'Spülmaschine', kind_dryer: 'Trockner',
+  applIdle: 'Aus', applIdleTag: 'bereit', stAppliances: 'Geräte', stApplHint: 'Waschmaschine und Spülmaschine erscheinen immer unter „Gerade los“. Wähle, woher die Daten kommen: das smarte Gerät oder die Messsteckdose einer älteren Maschine.',
+  applSource: 'Datenquelle', applAuto: 'Automatisch: {n}', applAutoNone: 'Automatisch (noch nichts gefunden)', applDevices: 'Smarte Geräte', applPlugs: 'Steckdosen', applHiddenTxt: 'Im Dashboard ausgeblendet.',
+  stModesHint: 'Wähle einen Modus und lege fest, was er tut. Er wird nur aktiviert, wenn du ihn auf der Startseite antippst.', goBack: 'Zurück', savedAll: 'Auf allen Geräten gespeichert', savedLocal: 'Nur auf diesem Gerät gespeichert',
+  stSynced: 'In Home Assistant gespeichert: gilt auf all deinen Geräten.', stEverywhere: 'alle Bereiche', stLbExpNormal: '„{l}“ ändert nichts im Dashboard.', stLbExpOnly: 'In {s} erscheinen NUR Geräte mit „{l}“.', stLbExpHide: 'In {s} werden Geräte mit „{l}“ ausgeblendet.',
+  closeS: 'Schließen', stHintModes: 'Was jeder Modus tut und welche Steckdosen er ausschaltet', stHintAppl: 'Maschinen: Datenquelle, zeigen oder ausblenden', alarmArming: 'wird scharf…', stHintGeneral: 'Design, Kartenansicht, Wetter und Hinweise', stHintSections: 'Welche Bereiche erscheinen und in welcher Reihenfolge',
+  stHintLabels: 'Home-Assistant-Labels: zeigen oder ausblenden', stHintDevices: 'Geräte, TV und Musikwiedergabe', stHintAbout: 'Version, Export und Zurücksetzen'
 };
 const en = {
   settings: 'Settings', stGeneral: 'General', stSections: 'Sections', stLabels: 'Labels', stDevices: 'Devices', stAbout: 'About', stDefaultView: 'House view', stPushMin: 'Reminders minimized',
@@ -135,7 +144,14 @@ const en = {
   soon: 'soon', solarReady: 'Solar · ready', whoNow: 'Using power now', byPlugs: 'from plugs', byRoom: 'By room', todayE: 'Today', solarToday: 'Solar today', plugsMetered: '{n} metered plugs',
   lightsOn: '{n} lights on in {r} rooms', allLightsOff: 'All lights off', musicAll: 'music in the whole home', musicIn: 'music on {n} speakers', washerEnds: 'the {n} ends at {t}', robotIn: 'the robot is cleaning',
   statLights: 'Lights', statOpen: 'Open', statHeat: 'Heating', statPlugs: 'Plugs', homePeople: 'Home', away: 'Away', closeToast: 'Close notice', notAvailable: 'unavailable',
-  sunUp: 'sun at {t}', sunLeft: '{t} of sun', night: 'night', nothingHere: 'No devices of this kind in this room.', loading: 'Loading your home…', min: 'min'
+  sunUp: 'sun at {t}', sunLeft: '{t} of sun', night: 'night', nothingHere: 'No devices of this kind in this room.', loading: 'Loading your home…', min: 'min',
+  notSetUp: 'Not set up yet', notSetUpHint: 'Choose the appliance or its plug', setUp: 'Set up', kind_washer: 'Washing machine', kind_dish: 'Dishwasher', kind_dryer: 'Dryer',
+  applIdle: 'Off', applIdleTag: 'idle', stAppliances: 'Appliances', stApplHint: 'Washing machine and dishwasher always appear in "Happening now". Choose where the data comes from: the smart appliance or the metering plug of an older machine.',
+  applSource: 'Data source', applAuto: 'Automatic: {n}', applAutoNone: 'Automatic (nothing found yet)', applDevices: 'Smart appliances', applPlugs: 'Plugs', applHiddenTxt: 'Hidden from the dashboard.',
+  stModesHint: 'Pick a mode and set what it does. It only runs when you tap it on the home screen.', goBack: 'Back', savedAll: 'Saved on all devices', savedLocal: 'Saved on this device only',
+  stSynced: 'Saved in Home Assistant: applies on all your devices.', stEverywhere: 'all sections', stLbExpNormal: '"{l}" changes nothing on the dashboard.', stLbExpOnly: 'In {s}, ONLY devices with "{l}" appear.', stLbExpHide: 'In {s}, devices with "{l}" are hidden.',
+  closeS: 'Close', stHintModes: 'What each mode does and which plugs it turns off', stHintAppl: 'Machines: data source, show or hide', alarmArming: 'arming…', stHintGeneral: 'Theme, map view, forecast and reminders', stHintSections: 'Which sections appear and in which order',
+  stHintLabels: 'Home Assistant labels: show or hide', stHintDevices: 'Devices, TV and where music plays', stHintAbout: 'Version, export and reset'
 };
 const DICTS = { pt, de, en };
 export function translator(lang) {

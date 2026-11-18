@@ -207,7 +207,7 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .sttabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:3px;border-radius:14px;background:var(--sunk);border:1px solid var(--line)}
 .sttabs::-webkit-scrollbar{display:none}
 .sttabs button{flex:1 0 auto;min-height:38px;padding:0 14px;border:0;border-radius:11px;background:transparent;color:var(--mut);font:inherit;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
-.sttabs button[aria-selected="true"]{background:var(--fg);color:var(--bg)}
+.sttabs button[aria-selected="true"]{background:var(--accent);color:var(--on-accent)}
 /* Owner 2026-11-18: the note and the "Salvo" pill share one footer line — never on top of each other. */
 .stfoot{position:sticky;bottom:-22px;z-index:4;margin:0 -2px -22px;min-height:40px;display:flex;align-items:center;justify-content:center;padding:8px 2px 22px;background:linear-gradient(to top,var(--raise) 78%,transparent);font-size:11px;text-align:center}
 .saved{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;box-shadow:0 8px 20px -8px rgba(0,0,0,.8);border-radius:999px;font-size:12px;animation:msin .3s ease;white-space:nowrap}
@@ -424,4 +424,28 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .empty{padding:40px;border-radius:24px;border:1px dashed var(--line2);text-align:center;color:var(--mut);font-size:14px}
 @container (max-width:700px){.stage{height:300px}.hero{border-radius:24px}.clock{font-size:64px}}
 @container (max-width:460px){.r2{padding:8px;border-radius:12px}.r2 .n{font-size:9px;letter-spacing:.03em;gap:5px}.stage{height:250px}.iso{width:94%}.lbl .n{font-size:9px;letter-spacing:.08em;max-width:96px}.btn,.chip{padding:0 12px}}
+/* Settings start page (owner 2026-11-18). */
+.sthome{display:flex;flex-direction:column;gap:8px}
+.sthi{display:flex;align-items:center;gap:14px;min-height:64px;padding:10px 14px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;text-align:left;cursor:pointer;transition:border-color .2s,background .2s}
+.sthi:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.sthi .ic{width:38px;height:38px;flex:none;color:var(--accent)}
+.sthi b{display:block;font-size:15px;font-weight:500}.sthi small{display:block;font-size:12px;color:var(--mut);line-height:1.4;margin-top:2px}
+.sthi>.i:last-child{color:var(--mut);flex:none}
+.stclose{flex:none;border-radius:50%}
+/* Alarm menu in the hero (owner 2026-11-18). */
+.alw{position:relative;display:inline-flex}
+.alp{display:inline-flex;align-items:center;gap:9px;min-height:40px;padding:0 10px 0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--mut);font:inherit;cursor:pointer;transition:all .25s}
+.alp .txt{display:flex;flex-direction:column;line-height:1.1;text-align:left}
+.alp small{font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}.alp b{font-size:12px;font-weight:500;color:var(--fg)}
+.alp .alc{opacity:.6;transition:transform .25s}.alp[aria-expanded="true"] .alc{transform:rotate(180deg)}
+.alp.on{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent);box-shadow:0 0 18px -4px color-mix(in srgb,var(--accent) 45%,transparent)}
+.alp.alert{color:#FF8A80;border-color:rgba(255,138,128,.6);animation:pulse 1.4s ease-in-out infinite}
+.alm{position:absolute;top:calc(100% + 8px);right:0;z-index:30;min-width:220px;display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:18px;background:color-mix(in srgb,var(--bg) 55%,var(--raise));-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--line2);box-shadow:0 24px 60px -12px rgba(0,0,0,.8)}
+.alm button{display:flex;align-items:center;gap:10px;min-height:42px;padding:0 10px;border:0;border-radius:12px;background:transparent;color:var(--fg);font:inherit;font-size:14px;text-align:left;cursor:pointer}
+.alm button:hover:not(:disabled){background:var(--sunk)}
+.alm button i{width:7px;height:7px;border-radius:50%;background:var(--line2);flex:none}
+.alm button[aria-checked="true"]{color:var(--accent);cursor:default;opacity:1}.alm button[aria-checked="true"] i{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.alm button[aria-checked="true"] .i{margin-left:auto}
+.alm button:disabled:not([aria-checked="true"]){opacity:.45;cursor:not-allowed}
+.alcode{min-height:40px;margin:2px 2px 6px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit}
 `;

@@ -10,8 +10,8 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, ap
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.4.7';
-export const BUILD = 'AUREON-NOIR-20261118i';
+export const VERSION = '1.4.8';
+export const BUILD = 'AUREON-NOIR-20261118j';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -347,7 +347,7 @@ class AureonDashboard extends LitElement {
     };
     const secRender = { lights: () => this.sLights(ctx), climate: () => this.sClimate(ctx), plugs: () => this.sPlugs(ctx), energy: () => this.sEnergy(ctx), covers: () => this.sCovers(ctx), openings: () => this.sOpenings(ctx), security: () => this.sSecurity(ctx), tv: () => this.sTV(ctx), music: () => this.sMusic(ctx) };
     const secs = prefs.secOrder.filter((k) => show[k] && !(prefs.secHidden || []).includes(k) && (ui.domain === 'all' || ui.domain === k));
-    return html`<div lang=${lang} class="page ${ui.edit ? 'editing' : ''}" style=${vars + pagebg} @click=${(e) => { if (ui.themeOpen && !e.composedPath().some((n) => n.classList?.contains('themeWrap'))) this._set({ themeOpen: false }); }}>
+    return html`<div lang=${lang} class="page ${ui.edit ? 'editing' : ''}" style=${vars + pagebg} @click=${(e) => { if (ui.themeOpen && !e.composedPath().some((n) => n.classList?.contains('themeWrap'))) this._set({ themeOpen: false }); if (ui.alarmOpen && !e.composedPath().some((n) => n.classList?.contains('alw'))) this._set({ alarmOpen: false, alarmCode: '' }); }}>
       <div class="wrap">
         ${ui.musicPage ? html`<div class="mpage">
           <div class="mpbar"><button class="btn sm" @click=${() => this._musicPage(false)}>${ic('left', 'i s')}${t('backHome')}</button></div>
@@ -393,7 +393,7 @@ class AureonDashboard extends LitElement {
     return html`<header class="top">
       <span class="wordmark">AUREON</span>
       <div class="wrapRow" style="justify-content:flex-end">
-        <button class="btn" aria-label=${t('settings')} @click=${() => this._set({ settings: 'geral', themeOpen: false })}>${ic('gear', 'i s')}<span class="hideNarrow">${t('settings')}</span></button>
+        <button class="btn" aria-label=${t('settings')} @click=${() => this._set({ settings: 'home', themeOpen: false })}>${ic('gear', 'i s')}<span class="hideNarrow">${t('settings')}</span></button>
         <button class=${'btn' + (ui.edit ? ' pri' : '')} aria-pressed=${ui.edit ? 'true' : 'false'} @click=${() => this._set({ edit: !ui.edit, editing: null, confirm: null })}>${ic('pencil', 'i s')}${ui.edit ? t('doneEdit') : t('edit')}</button>
         ${m.metered.length ? html`<span class="chip">${svg`<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--accent)"><path d=${P.bolt}></path></svg>`}${m.plugW} W</span>` : nothing}
         ${people.length ? html`<span class="avatars" role="img" aria-label=${t('homePeople') + ': ' + people.filter((p) => p.state === 'home').map((p) => p.name).join(', ')}>
@@ -490,9 +490,10 @@ class AureonDashboard extends LitElement {
       </div>
       <div class="heroR">
         <div class="row sp" style="flex-wrap:wrap;gap:8px"><span class="eyebrow txt">${t('tapRoom')}</span>
+          <span class="row" style="gap:8px;flex-wrap:wrap">${m.alarms[0] ? this.alarmMenu(ctx) : nothing}
           <span class="seg" role="group" aria-label=${t('house3d') + ' / ' + t('plan')}>
             <button aria-pressed=${is3d ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button>
-            <button aria-pressed=${!is3d ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></div>
+            <button aria-pressed=${!is3d ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></span></div>
         ${is3d ? html`<div class="stage" role="group" aria-label=${t('house3d')}><div class="iso"><div class="ground" aria-hidden="true"></div>
           ${layout.map((r) => this.room3d(r, ctx))}</div>
           <div class="lbls" aria-hidden="true">${layout.map((r) => this.label3d(r, ctx))}</div></div>`
@@ -810,6 +811,24 @@ class AureonDashboard extends LitElement {
       else if (!a.running && r.end && now - r.end < 3 * 3600000 && (this._prefs.cycleAck || {})[a.id] !== r.end) { a.done = true; a.idle = false; a.endedAt = new Date(r.end); a.runEnd = r.end; a.status = 'plugdone'; }
     }
   }
+  // Owner 2026-11-18 ("o alarme da casa … em drop-down … bonito e elegante"): a quiet pill beside 3D/Planta with the
+  // alarm state; it opens a small menu with the modes the panel supports. Nothing is sent until a mode is tapped.
+  alarmMenu({ m, t }) {
+    const a = m.alarms[0], st = a.state, f = a.attrs.supported_features || 0, open = this._ui.alarmOpen;
+    const all = [['disarmed', 'alarm_disarm', t('disarmed'), 0], ['armed_home', 'alarm_arm_home', t('armHome'), 1], ['armed_away', 'alarm_arm_away', t('armAway'), 2], ['armed_night', 'alarm_arm_night', t('armNight'), 4], ['armed_vacation', 'alarm_arm_vacation', t('modeVacation'), 32]];
+    const opts = all.filter(([, , , bit]) => !bit || !f || (f & bit));
+    const label = st === 'triggered' ? t('triggered') : (all.find(([s2]) => s2 === st)?.[2] || (/arming|pending/.test(st) ? t('alarmArming') : st));
+    const armed = /^armed/.test(st), alert = st === 'triggered', code = (this._ui.alarmCode || '').trim();
+    const pick = (svc) => { if (a.needsCode && !code) return; this._call('alarm_control_panel', svc, { entity_id: a.id, ...(code ? { code } : {}) }); this._set({ alarmOpen: false, alarmCode: '' }); };
+    return html`<span class="alw">
+      <button class=${'alp' + (armed ? ' on' : '') + (alert ? ' alert' : '')} aria-haspopup="menu" aria-expanded=${open ? 'true' : 'false'} aria-label=${a.name + ' · ' + label} @click=${(e) => { e.stopPropagation(); this._set({ alarmOpen: !open }); }}>
+        ${ic('shield', 'i s')}<span class="txt"><small>${a.name}</small><b>${label}</b></span>${ic('down', 'i s alc')}</button>
+      ${open ? html`<div class="alm rise" role="menu" @click=${(e) => e.stopPropagation()}>
+        <span class="eyebrow" style="font-size:10px;padding:4px 8px 2px">${a.name}</span>
+        ${a.needsCode ? html`<input class="alcode" type="password" inputmode="numeric" autocomplete="off" .value=${this._ui.alarmCode || ''} placeholder=${t('code')} aria-label=${t('code')} @input=${(e) => this._set({ alarmCode: e.target.value })}>` : nothing}
+        ${opts.map(([s2, svc, n]) => html`<button role="menuitemradio" aria-checked=${st === s2 ? 'true' : 'false'} ?disabled=${st === s2 || (a.needsCode && !code)} @click=${() => pick(svc)}><i aria-hidden="true"></i>${n}${st === s2 ? ic('check', 'i s') : nothing}</button>`)}
+      </div>` : nothing}</span>`;
+  }
   // "Back to top" (owner 2026-11-18): a round button pinned bottom-right once the page is scrolled. It lives in
   // document.body because the dashboard host is a size container, which would trap position:fixed.
   _mountTop() {
@@ -856,7 +875,13 @@ class AureonDashboard extends LitElement {
     const tabs = [['geral', t('stGeneral')], ['modos', t('modeTitle')], ['aparelhos', t('stAppliances')], ['secoes', t('stSections')], ['etiquetas', t('stLabels')], ['dispositivos', t('stDevices')], ['sobre', t('stAbout')]];
     const secNames = { lights: t('lights'), climate: t('climate'), plugs: t('plugs'), energy: t('energy'), covers: t('covers'), openings: t('openings'), security: t('security'), tv: t('tvs'), music: 'AUREON Music', scenes: t('scenes') };
     let body = nothing;
-    if (tab === 'geral') {
+    const hints = { geral: t('stHintGeneral'), modos: t('stHintModes'), aparelhos: t('stHintAppl'), secoes: t('stHintSections'), etiquetas: t('stHintLabels'), dispositivos: t('stHintDevices'), sobre: t('stHintAbout') };
+    const icons = { geral: 'palette', modos: 'home', aparelhos: 'washer', secoes: 'grip', etiquetas: 'eye', dispositivos: 'plug', sobre: 'gear' };
+    if (tab === 'home') {
+      // Owner 2026-11-18: a start page for Settings; "Voltar" in any tab returns here, "Fechar" closes.
+      body = html`<div class="sthome">${tabs.map(([k, n]) => html`<button class="sthi" @click=${() => this._set({ settings: k })}>
+        <span class="ic">${ic(icons[k], 'i s')}</span><span class="grow txt"><b>${n}</b><small>${hints[k]}</small></span>${ic('right', 'i s')}</button>`)}</div>`;
+    } else if (tab === 'geral') {
       const weathers = Object.keys(this.hass.states).filter((e) => e.startsWith('weather.'));
       const rk = { arrivals: t('rkArrivals'), lights: t('lights'), openings: t('openings'), locks: t('locked'), appliances: t('cycleDone'), waste: t('waste'), ...{} };
       const kinds = prefs.reminderKinds || {};
@@ -944,10 +969,11 @@ class AureonDashboard extends LitElement {
       <div class="sheet rise" role="dialog" aria-modal="true" aria-label=${t('settings')} style="width:min(720px,100%)">
         <div class="sthead">
           <div class="row" style="gap:10px;min-width:0">
-            <button class="btn sm" aria-label=${t('goBack')} @click=${() => this._set({ settings: null })}>${ic('left', 'i s')}${t('goBack')}</button>
-            <span style="font-size:24px;font-weight:300;letter-spacing:-.03em;white-space:nowrap">${t('settings')}</span>
+            ${tab !== 'home' ? html`<button class="btn sm" aria-label=${t('goBack')} @click=${() => this._set({ settings: 'home' })}>${ic('left', 'i s')}${t('goBack')}</button>` : nothing}
+            <span class="grow" style="font-size:24px;font-weight:300;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tab === 'home' ? t('settings') : (tabs.find(([k]) => k === tab)?.[1] || t('settings'))}</span>
+            <button class="ib sm stclose" aria-label=${t('closeS')} title=${t('closeS')} @click=${() => this._set({ settings: null })}>${ic('x', 'i s')}</button>
           </div>
-          <div class="sttabs" role="tablist">${tabs.map(([k, n]) => html`<button role="tab" aria-selected=${tab === k ? 'true' : 'false'} @click=${() => this._set({ settings: k })}>${n}</button>`)}</div>
+          ${tab !== 'home' ? html`<div class="sttabs" role="tablist">${tabs.map(([k, n]) => html`<button role="tab" aria-selected=${tab === k ? 'true' : 'false'} @click=${() => this._set({ settings: k })}>${n}</button>`)}</div>` : nothing}
         </div>
         ${body}
         <div class="stfoot">${this._savedAt && Date.now() - this._savedAt < 2500
@@ -1334,13 +1360,12 @@ class AureonDashboard extends LitElement {
     const cams = this._visible('cams', this._sorted('cams', m.cams)), locks = this._visible('locks', this._sorted('locks', m.locks));
     const camIds = cams.map((x) => x.id), lockIds = locks.map((x) => x.id);
     const alarm = m.alarms[0];
-    if (!cams.length && !locks.length && !alarm) return nothing;
+    if (!cams.length && !locks.length) return nothing; // the alarm lives in the hero menu (owner 2026-11-18)
     const st = alarm?.state;
     const stLabel = !alarm ? '' : st === 'disarmed' ? t('disarmed') : st === 'armed_home' ? t('armHome') : st === 'armed_away' ? t('armAway') : st === 'armed_night' ? t('armNight') : st === 'triggered' ? t('triggered') : st;
     const modes = alarm ? [['disarmed', 'alarm_disarm', t('disarmed')], ['armed_home', 'alarm_arm_home', t('armHome')], ['armed_away', 'alarm_arm_away', t('armAway')], ['armed_night', 'alarm_arm_night', t('armNight')]] : [];
     const refresh = Math.floor(now.getTime() / 10000);
-    return html`<section class="sec">${this.secHead('security', t('security'), alarm ? alarm.name + ' · ' + stLabel : '', alarm ? html`<span class="seg" role="group" aria-label=${alarm.name}>${modes.map(([s, svc, n]) => html`<button aria-pressed=${st === s ? 'true' : 'false'} ?disabled=${alarm.needsCode && s === 'disarmed' && st !== 'disarmed'} style="font-family:inherit;font-size:12px;letter-spacing:0" @click=${() => this._call('alarm_control_panel', svc, { entity_id: alarm.id })}>${n}</button>`)}</span>` : null, t)}
-      ${alarm?.needsCode && st !== 'disarmed' ? html`<span class="muted txt" style="font-size:12px;padding:0 4px">${t('codeNeeded')}</span>` : nothing}
+    return html`<section class="sec">${this.secHead('security', t('security'), alarm ? alarm.name + ' · ' + stLabel : '', null, t)}
       <div class="grid w">
         ${repeat(cams, (c) => c.id, (c) => { const ta = this.tileAttrs('cams', c, camIds), off = c.unavailable || c.state === 'off' || !c.attrs.entity_picture; const src = off ? '' : this._url(c.attrs.entity_picture) + (c.attrs.entity_picture.includes('?') ? '&' : '?') + 't=' + refresh;
           return html`<div class=${'cam' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end}>
