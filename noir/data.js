@@ -54,6 +54,13 @@ const APPLIANCE = [
 ];
 export const applianceKind = (text) => (APPLIANCE.find(([, re]) => re.test(String(text || ''))) || [null])[0];
 const WASTE = /abfall|m(ü|ue|u)ll|waste|tonne|garbage|trash|recycl|restm|bio|papier|gelb|wertstoff|coleta|lixo/i;
+const POWER_UNIT = /^(m|k|M)?W$/;
+// Power sensors that are not "what it draws now": limits, peaks, averages, standby thresholds, settings.
+const POWER_SKIP = /peak|spitze|max|min\b|minimum|average|avg|durchschnitt|mittel|limit|threshold|schwelle|standby_?thr|setpoint|soll|forecast|prognose/i;
+const toWatt = (v, unit) => { const n = num(v); if (n == null) return null; return unit === 'kW' ? n * 1000 : unit === 'MW' ? n * 1e6 : unit === 'mW' ? n / 1000 : n; };
+// Prefer the plain "power / Leistung / current consumption" sensor of a device, a live measurement over others.
+const powerScore = (p) => (p.w != null ? 4 : 0) + (p.sclass === 'measurement' ? 2 : 0) + (/(^|[_ ])(power|leistung|current_consumption|aktuelle|consumo|pot[êe]ncia|active_power|load)([_ ]|$)/i.test(p.id + ' ' + p.baseName) ? 1 : 0) - (/phase|l[123]\b|channel_?\d/i.test(p.id) ? 1 : 0);
+const MAIN_METER = /stromz[äa]hler|smart ?meter|hauptz[äa]hler|hausanschluss|main ?meter|whole ?house|casa toda|tibber|powerfox|discovergy/i;
 const CONSUMPTION = /verbrauch|consumption|consumo/i;
 const PERIODIC = /today|heute|daily|t[äa]glich|hoje|week|woche|month|monat|m[êe]s|year|jahr|ano|yesterday|gestern/i;
 const SOLAR = /solar|photovolt|\bpv\b|_pv_|wechselrichter|inverter/i;
@@ -68,7 +75,7 @@ export function kelvinToRgb(k) {
   return [c(r), c(g), c(b)];
 }
 
-const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
+const num = (v) => { if (v == null || v === '' || typeof v === 'boolean') return null; const n = Number(v); return Number.isFinite(n) ? n : null; };
 
 export function cleanName(name, areaName) {
   let n = String(name || '').trim();
@@ -163,7 +170,7 @@ export function buildModel(hass, opts = {}) {
   const areaName = (id) => areaReg[id]?.name || '';
 
   const byDevice = {};
-  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], tvs: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], proximity: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], batteries: [], energyAll: [], energyMeters: [], energyByLabel: false, energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
+  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], tvs: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], proximity: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], batteries: [], mainMeters: [], powerUnavailable: [], energyAll: [], energyMeters: [], energyByLabel: false, energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
 
   for (const [eid, st] of Object.entries(states)) {
     const reg0 = regs[eid] || {};
@@ -173,7 +180,7 @@ export function buildModel(hass, opts = {}) {
     // Owner 2026-11-18 ("o meu energia nem aparece"): every power sensor feeds Energy — also the ones HA hides
     // by default (many plugs ship them hidden) and the ones measured in kW.
     const pu = st.attributes?.unit_of_measurement;
-    const isPower = domain === 'sensor' && (st.attributes?.device_class === 'power' || pu === 'W' || pu === 'kW');
+    const isPower = domain === 'sensor' && (st.attributes?.device_class === 'power' || POWER_UNIT.test(pu || '')) && !/^(var|VA|kVA|kvar)$/i.test(pu || '');
     // Owner 2026-11-18: battery check — every battery the home reports (also hidden/diagnostic ones), phones excluded
     // because they charge every day.
     const bdc = st.attributes?.device_class;
@@ -208,7 +215,7 @@ export function buildModel(hass, opts = {}) {
     if (domain === 'person') { m.people.push(item); continue; }
     if (domain === 'sensor' && reg.platform === 'proximity') { (m.proximity ||= []).push(item); continue; }
     if (domain === 'scene') { m.scenes.push(item); continue; }
-    if (isPower) { const v = num(st.state); m.power.push({ ...item, w: v == null ? null : pu === 'kW' ? v * 1000 : v }); continue; }
+    if (isPower) { m.power.push({ ...item, w: toWatt(st.state, pu), platform: reg.platform || '', sclass: a.state_class || '' }); continue; }
     if (domain === 'sensor' && dc === 'energy' && /today|heute|daily|hoje|tag/i.test(eid + ' ' + base) && m.energyToday == null) m.energyToday = { v: num(st.state), unit: a.unit_of_measurement || 'kWh' };
     if (domain === 'sensor' && dc === 'energy' && /month|monat|monthly|mês|mes\b|mensal/i.test(eid + ' ' + base) && m.energyMonth == null) m.energyMonth = { v: num(st.state), unit: a.unit_of_measurement || 'kWh' };
     if (domain === 'sensor' && (dc === 'monetary' || /^(€|eur|\$|usd|r\$|brl)$/i.test(a.unit_of_measurement || '')) && /cost|kosten|custo/i.test(eid + ' ' + base) && /today|heute|hoje|daily|tag/i.test(eid + ' ' + base) && m.costToday == null) m.costToday = { v: num(st.state), unit: a.unit_of_measurement || '€' };
@@ -229,7 +236,8 @@ export function buildModel(hass, opts = {}) {
       const outlet = dc === 'outlet' || hasLabel(reg, labels, OUTLET) || /steckdose|plug|outlet|tomada|socket|smart ?plug/i.test(base + ' ' + (dev?.model || '') + ' ' + (dev?.name || ''));
       // Owner 2026-11-17 (Fora/Férias left the fridge off): essentials are protected even without a label.
       const essential = ESSENTIAL.test([item.name, st.attributes.friendly_name, devices[reg.device_id]?.name_by_user, devices[reg.device_id]?.name].filter(Boolean).join(' '));
-      m.plugs.push({ ...item, on: st.state === 'on', outlet, essential, locked: hasLabel(reg, labels, PROTECT) || essential });
+      const attrW = ['current_power_w', 'current_power', 'power', 'load_power', 'active_power'].map((k) => num(a[k])).find((v) => v != null);
+      m.plugs.push({ ...item, on: st.state === 'on', outlet, essential, locked: hasLabel(reg, labels, PROTECT) || essential, attrW: attrW ?? null });
     } else if (domain === 'climate') {
       m.climate.push({ ...item, cur: num(a.current_temperature), target: num(a.temperature), action: a.hvac_action || null, mode: st.state, min: num(a.min_temp) ?? 5, max: num(a.max_temp) ?? 30, step: num(a.target_temp_step) || 0.5, hum: num(a.current_humidity) });
     } else if (domain === 'cover') {
@@ -275,30 +283,49 @@ export function buildModel(hass, opts = {}) {
   // Settings switches of a robot vacuum are not plugs either.
   const vacDevs = new Set(m.vacuums.map((v) => v.device).filter(Boolean));
   m.plugs = m.plugs.filter((p) => !(p.device && vacDevs.has(p.device)) || hasLabel(p.reg, labels, OUTLET));
-  // Power per device, linked to the plug of the same device.
-  const powerByDevice = {};
-  for (const p of m.power) if (p.device && p.w != null) powerByDevice[p.device] = (powerByDevice[p.device] || 0) + p.w;
-  for (const p of m.plugs) p.w = p.device && powerByDevice[p.device] != null ? Math.round(powerByDevice[p.device]) : null;
+  // ── Power (owner 2026-11-18, "Consumo agora 0 W") ─────────────────────────────────────────────────────────
+  // One rule for every brand: a device's live power is ONE power sensor of that device (W/kW/mW, device_class
+  // power), chosen by name; summing every power sensor of a device double-counted (power + peak/average…). Phones
+  // (mobile_app battery power) are not house consumers. Solar and grid meters are kept apart from consumers.
+  // A sensor that is unavailable gives "no value", never 0 W. Read-only: nothing here switches anything.
   const solar = m.power.filter((p) => SOLAR.test(p.id + ' ' + p.baseName + ' ' + (devices[p.device]?.name || '')));
   const grid = m.power.filter((p) => GRID.test(p.id + ' ' + p.baseName) && !solar.includes(p));
   if (solar.length) m.solarW = Math.round(solar.reduce((s, p) => s + (p.w || 0), 0));
   if (grid.length) m.gridW = Math.round(grid[0].w || 0);
-  m.plugW = Math.round(m.plugs.reduce((s, p) => s + (p.on && p.w ? p.w : 0), 0));
-  m.metered = m.plugs.filter((p) => p.w != null);
-  // Power sensors that belong to no plug (a measuring plug whose switch is hidden, a device meter…), one row per device.
-  const plugDevs = new Set(m.metered.map((p) => p.device).filter(Boolean)), loose = {};
-  for (const p of m.power) {
-    if (p.w == null || solar.includes(p) || grid.includes(p) || (p.device && plugDevs.has(p.device))) continue;
-    if (/total|gesamt|house|haus|casa|home|standby/i.test(p.id + ' ' + p.baseName) && !p.device) continue;
-    const key = p.device || p.id, dev = p.device ? devices[p.device] : null;
-    const g = (loose[key] ||= { id: key, device: p.device, name: dev ? cleanName(dev.name_by_user || dev.name || p.name, p.areaName) : p.name, area: p.area, areaName: p.areaName, on: true, w: 0, sensor: true });
-    g.w += p.w;
+  const consumersP = m.power.filter((p) => !solar.includes(p) && !grid.includes(p) && p.platform !== 'mobile_app' && !POWER_SKIP.test(p.id + ' ' + p.baseName));
+  const pickPower = (list) => list.slice().sort((x, y) => powerScore(y) - powerScore(x))[0] || null;
+  const perDev = {};
+  for (const p of consumersP) if (p.device) (perDev[p.device] ||= []).push(p);
+  // Sensors without a device: link to the switch whose entity name they extend (sensor.kitchen_plug_power → switch.kitchen_plug).
+  const orphan = consumersP.filter((p) => !p.device), objId = (id) => id.split('.')[1] || '';
+  const orphanFor = (plug) => pickPower(orphan.filter((p) => objId(p.id).startsWith(objId(plug.id) + '_')));
+  const usedOrphans = new Set();
+  for (const p of m.plugs) {
+    const src = p.device && perDev[p.device] ? pickPower(perDev[p.device]) : orphanFor(p);
+    if (src && !p.device) usedOrphans.add(src.id);
+    if (src && src.w != null) { p.w = Math.round(src.w); p.wSrc = 'sensor'; p.powerId = src.id; }
+    else if (p.attrW != null) { p.w = Math.round(p.attrW); p.wSrc = 'attribute'; p.powerId = p.id; }
+    else { p.w = null; p.wSrc = src ? 'unavailable' : 'none'; p.powerId = src?.id || null; }
   }
-  m.loosePower = Object.values(loose).map((g) => ({ ...g, w: Math.round(g.w) }));
+  m.plugW = Math.round(m.plugs.reduce((s, p) => s + (p.w > 0 ? p.w : 0), 0));
+  m.metered = m.plugs.filter((p) => p.w != null);
+  // Devices that measure power but have no switch here (measuring plug with hidden switch, appliance, Shelly PM…).
+  const plugDevs = new Set(m.plugs.map((p) => p.device).filter(Boolean)), loose = [];
+  for (const [devId, list] of Object.entries(perDev)) {
+    if (plugDevs.has(devId)) continue;
+    const src = pickPower(list), dev = devices[devId] || {};
+    loose.push({ id: devId, device: devId, powerId: src.id, name: cleanName(dev.name_by_user || dev.name || src.name, src.areaName), area: src.area, areaName: src.areaName, on: true, sensor: true, w: src.w == null ? null : Math.round(src.w), wSrc: src.w == null ? 'unavailable' : 'sensor' });
+  }
+  for (const p of orphan) if (!usedOrphans.has(p.id) && !/total|gesamt|house|haus|casa|home/i.test(p.id + ' ' + p.baseName)) loose.push({ id: p.id, device: null, powerId: p.id, name: p.name, area: p.area, areaName: p.areaName, on: true, sensor: true, w: p.w == null ? null : Math.round(p.w), wSrc: p.w == null ? 'unavailable' : 'sensor' });
+  m.loosePower = loose.filter((x) => x.w != null);
+  m.liveW = m.plugW + m.loosePower.reduce((a, x) => a + Math.max(0, x.w), 0);
+  m.powerUnavailable = [...m.plugs.filter((p) => p.wSrc === 'unavailable'), ...loose.filter((x) => x.w == null)];
   // Energy meters: with a "Verbrauch" label only those count; otherwise every device counter except solar, grid and
   // periodic copies (utility meters "heute/Monat" would count the same energy twice). One counter per device.
-  m.energyByLabel = false; // Labels are optional: discover every valid non-grid, non-solar device meter.
-  { const pool = m.energyAll.filter((e) => (m.energyByLabel ? e.consumption : !SOLAR.test(e.text) && !GRID.test(e.text) && !/produc|erzeug|r[üu]ckspeis|returned/i.test(e.text)) && !PERIODIC.test(e.text)), per = {};
+  m.energyByLabel = false; // Labels are optional (other agent, 2026-11-18): discover every valid device meter.
+  // A whole-house meter is never added to the individual devices (it already contains them).
+  m.mainMeters = m.energyAll.filter((e) => MAIN_METER.test(e.text) && !e.consumption);
+  { const pool = m.energyAll.filter((e) => (m.energyByLabel ? e.consumption : !SOLAR.test(e.text) && !GRID.test(e.text) && !MAIN_METER.test(e.text) && !/produc|erzeug|r[üu]ckspeis|returned/i.test(e.text)) && !PERIODIC.test(e.text)), per = {};
     for (const e of pool) { const k = e.device || e.id, cur = per[k]; if (!cur || (/total|gesamt/i.test(e.text) && !/total|gesamt/i.test(cur.text))) per[k] = e; }
     m.energyMeters = Object.values(per); }
 

@@ -510,4 +510,9 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 select.numin{text-align:left}
 .chk small{display:block;font-size:11px;color:var(--mut);font-weight:400;margin-top:2px;line-height:1.4}
 .linkbtn{border:0;background:transparent;padding:0;color:var(--accent);font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;text-align:left}
+.esttag{display:inline-block;margin-right:4px;padding:1px 6px;border-radius:999px;border:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);font-size:10px;letter-spacing:.04em}
+.ediag{display:flex;flex-direction:column;gap:6px;padding-top:8px}
+.edr{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:10px;background:var(--sunk);font-size:11.5px;color:var(--mut);overflow-wrap:anywhere}
+.edr b{color:var(--fg);font-size:12.5px;font-weight:500}.edr b small{color:var(--dim);font-weight:400}
+.edr.bad{border-left:2px solid #F2C14E}
 `;

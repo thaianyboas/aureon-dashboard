@@ -1,5 +1,14 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.5.5 — 2026-11-18
+
+- Energia — consumo em tempo real reescrito para qualquer marca (Meross, Tapo, Shelly, Tuya, IKEA, Zigbee2MQTT, Matter…): um sensor de potência por aparelho (W/kW/mW), também sensores ocultos, sensores sem dispositivo (pelo nome da entidade) e potência como atributo da tomada.
+- Nunca mostra 0 W sem medição: sensor indisponível = sem valor; sem nenhuma medição aparece "—".
+- Tomada desligada ainda conta a potência real que o sensor informa; celulares, medidor geral e rede não entram como consumidores; média/pico não são somados.
+- Aparelho só com kWh: potência ESTIMADA pelo aumento do contador nos últimos 30 min, marcada "estimado".
+- "Consumo monitorado agora" (não é a casa inteira); solar/rede/bateria só aparecem com sensores reais.
+- Diagnóstico de energia: por aparelho, qual sensor de potência e de energia o Home Assistant entrega.
+
 ## AUREON Noir 1.5.4 — 2026-11-18
 
 - Energia calcula sozinha: soma os medidores de energia (kWh) da casa pelas estatísticas do Home Assistant — hoje e este mês. Com a etiqueta "Verbrauch" só esses aparelhos contam; sem ela, todos os medidores (sem solar, rede e cópias "heute/Monat").

@@ -14,8 +14,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.5.4';
-export const BUILD = 'AUREON-NOIR-20261118q';
+export const VERSION = '1.5.5';
+export const BUILD = 'AUREON-NOIR-20261118r';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -404,7 +404,7 @@ class AureonDashboard extends LitElement {
         <button class="btn" aria-label=${t('settings')} @click=${() => this._set({ settings: 'home', themeOpen: false })}>${ic('gear', 'i s')}<span class="hideNarrow">${t('settings')}</span></button>
         <button class=${'btn' + (ui.edit ? ' pri' : '')} aria-pressed=${ui.edit ? 'true' : 'false'} @click=${() => this._set({ edit: !ui.edit, editing: null, confirm: null })}>${ic('pencil', 'i s')}${ui.edit ? t('doneEdit') : t('edit')}</button>
         ${m.batteries.length ? this.battChip({ m, t }) : nothing}
-        ${m.metered.length ? html`<span class="chip">${svg`<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--accent)"><path d=${P.bolt}></path></svg>`}${m.plugW} W</span>` : nothing}
+        ${m.metered.length || m.loosePower.length ? html`<span class="chip">${svg`<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--accent)"><path d=${P.bolt}></path></svg>`}${m.liveW} W</span>` : nothing}
       </div>
     </header>`;
   }
@@ -1154,7 +1154,7 @@ class AureonDashboard extends LitElement {
     const chips = [{ id: 'all', name: t('allHome') }, ...roomsOrd];
     const doms = [['all', t('all')], ['lights', t('lightsShort')], ['climate', t('climateShort')], ['plugs', t('plugsShort')], ['energy', t('energyShort')], ['covers', t('coversShort')], ['openings', t('openingsShort')], ['security', t('securityShort')], ['tv', t('tvs')], ['music', t('musicShort')]].filter(([k]) => k === 'all' || show[k]);
     const inR = (list) => list.filter((d) => ui.room === 'all' || d.area === ui.room).length;
-    const counts = { lights: inR(m.lights), climate: inR(m.climate), plugs: inR(m.plugs), energy: inR(m.metered) + inR(m.loosePower), covers: inR(m.covers), openings: inR(m.openings), security: inR(m.cams) + inR(m.locks) + m.alarms.length, tv: inR(m.tvs), music: inR(m.speakers) };
+    const counts = { lights: inR(m.lights), climate: inR(m.climate), plugs: inR(m.plugs), energy: inR(m.metered) + inR(m.loosePower) + (m.energyMeters.length && !m.metered.length && !m.loosePower.length ? 1 : 0), covers: inR(m.covers), openings: inR(m.openings), security: inR(m.cams) + inR(m.locks) + m.alarms.length, tv: inR(m.tvs), music: inR(m.speakers) };
     return html`<div class="filters">
       <div class="scroller" role="group" aria-label=${t('room')}>${chips.map((c) => {
         const lit = c.id === 'all' ? m.lights.some((l) => l.on) : m.lights.some((l) => l.on && l.area === c.id);
@@ -1320,62 +1320,104 @@ class AureonDashboard extends LitElement {
     });
     return this._eStats || null;
   }
+  // Owner 2026-11-18 (0 W with 12 meters): a device that only has a kWh counter gets an ESTIMATED power from how
+  // much its counter rose in the last 30 minutes (Home Assistant history). Shown with "≈" and "estimado", never as
+  // a measurement. Needs two different counter readings in the window; otherwise no value.
+  _powerEstimates(ids) {
+    const sig = ids.join(',');
+    if (!ids.length || !this.hass?.callWS) return this._pEst || {};
+    if (this._pSig === sig && Date.now() - (this._pAt || 0) < 120000) return this._pEst || {};
+    this._pSig = sig; this._pAt = Date.now();
+    const end = new Date(), start = new Date(end.getTime() - 30 * 60000);
+    this.hass.callWS({ type: 'history/history_during_period', start_time: start.toISOString(), end_time: end.toISOString(), entity_ids: ids, minimal_response: true, no_attributes: true, significant_changes_only: false })
+      .then((res) => {
+        const out = {};
+        for (const id of ids) {
+          const unit = this.hass.states[id]?.attributes?.unit_of_measurement || 'kWh', k = unit === 'Wh' ? 0.001 : unit === 'MWh' ? 1000 : 1;
+          const pts = (res?.[id] || []).map((x) => ({ v: Number(x.s ?? x.state), t: (x.lu ?? x.lc ?? 0) * 1000 || Date.parse(x.last_changed || x.last_updated || '') })).filter((x) => Number.isFinite(x.v) && Number.isFinite(x.t));
+          if (pts.length < 2) continue;
+          const first = pts[0], last = pts[pts.length - 1], hours = (Date.now() - first.t) / 3600000, dk = (last.v - first.v) * k;
+          if (hours < 0.08 || dk < 0) continue; // counter reset or too little time: no estimate
+          out[id] = Math.round((dk / hours) * 1000);
+        }
+        this._pEst = out; this.requestUpdate();
+      }).catch(() => {});
+    return this._pEst || {};
+  }
   sEnergy({ m, t, aRgb, lang }) {
     const ui = this._ui, inRoom = (d) => ui.room === 'all' || d.area === ui.room;
-    const plugs = [...m.metered, ...m.loosePower].filter(inRoom), total = Math.round(plugs.reduce((s, p) => s + (p.on && p.w ? p.w : 0), 0));
-    if (!plugs.length && !m.energyMeters.length && m.solarW == null && m.energyToday == null) return nothing;
-    const hasSolar = m.solarW != null, solar = m.solarW || 0, house = plugs.length ? total : null;
-    const gridNet = m.gridW != null ? m.gridW : null;
-    const maxW = Math.max(1, ...plugs.map((p) => p.w || 0));
-    const flow = (on, rev, dur) => on ? `opacity:1;animation:flow ${dur}s linear infinite${rev ? ' reverse' : ''}` : 'opacity:0';
+    // Measured consumers: every device with a live power value (plugs with a sensor/attribute, devices without switch).
+    const measured = [...m.metered, ...m.loosePower].filter(inRoom).map((p) => ({ ...p, w: Math.max(0, p.w), est: false }));
+    const measuredDevs = new Set(measured.map((p) => p.device).filter(Boolean));
+    // kWh-only devices → estimate.
+    const estMeters = m.energyMeters.filter((e) => !(e.device && measuredDevs.has(e.device)) && !m.loosePower.some((x) => x.device && x.device === e.device));
+    const est = this._powerEstimates(estMeters.map((e) => e.id).sort());
+    const estimated = estMeters.filter(inRoom).filter((e) => est[e.id] != null).map((e) => ({ id: e.id, device: e.device, name: e.name, area: e.area, areaName: e.areaName, w: est[e.id], est: true }));
+    const rows = [...measured, ...estimated].sort((x, y) => y.w - x.w);
+    const mW = Math.round(measured.reduce((s, p) => s + p.w, 0)), eW = Math.round(estimated.reduce((s, p) => s + p.w, 0)), total = mW + eW;
+    const known = measured.length + estimated.length;
+    if (!known && !m.energyMeters.length && m.solarW == null && m.gridW == null && m.energyToday == null) return nothing;
+    const hasSolar = m.solarW != null, hasGrid = m.gridW != null;
+    const maxW = Math.max(1, ...rows.map((p) => p.w));
+    const nf = (v, d = 1) => v == null ? '—' : Number(v).toLocaleString(lang, { minimumFractionDigits: d, maximumFractionDigits: d });
     const areaName = ui.room === 'all' ? '' : (m.areas.find((a) => a.id === ui.room)?.name || '');
-    const mAll = [...m.metered, ...m.loosePower];
-    const byRoom = m.areas.map((a) => ({ n: a.name, w: Math.round(mAll.filter((p) => p.area === a.id && p.on).reduce((s, p) => s + (p.w || 0), 0)) })).filter((x) => mAll.some((p) => p.area && m.areas.find((a) => a.name === x.n)?.id === p.area));
-    return html`<section class="sec">${this.secHead('energy', t('energy'), t('plugsMetered', { n: plugs.length }), html`<span class="tag row" style="gap:6px;color:#7EE0A8"><span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#7EE0A8"></span>${t('live')}</span>`, t)}
+    const byRoom = ui.room === 'all' ? m.areas.map((a) => ({ n: a.name, w: rows.filter((p) => p.area === a.id).reduce((s, p) => s + p.w, 0), any: rows.some((p) => p.area === a.id) })).filter((x) => x.any) : [];
+    const kwhToday = (dev) => { const e = this._eStats?.ok && m.energyMeters.find((x) => x.device && x.device === dev); const v = e ? this._eStats.day[e.id] : null; return v != null ? ' · ' + v.toLocaleString(lang, { maximumFractionDigits: 2 }) + ' kWh ' + t('todayShort') : ''; };
+    const sub = known ? [t('monitoredOf', { n: known }), eW ? t('inclEst', { w: eW }) : '', areaName ? areaName : t('notWholeHouse')].filter(Boolean).join(' · ') : t('noLivePower');
+    // History (statistics) and costs.
+    const es = this._energyStats(m), meters = m.energyMeters.filter(inRoom);
+    const sum = (k) => (es?.ok ? meters.reduce((a2, e) => a2 + (es[k][e.id] || 0), 0) : null);
+    const today = sum('day') ?? (ui.room === 'all' ? m.energyToday?.v : null), month = sum('month') ?? (ui.room === 'all' ? m.energyMonth?.v : null);
+    const price = this._prefs.energyPrice ?? m.price?.v ?? null, cur = this._prefs.energyCur || m.price?.unit || m.costToday?.unit || '€';
+    const cost = price != null && today != null ? today * price : (ui.room === 'all' ? m.costToday?.v : null), mcost = price != null && month != null ? month * price : null;
+    const setPrice = html`<button class="linkbtn" @click=${() => this._set({ settings: 'geral' })}>${t('setPrice')}</button>`;
+    const flow = (on, rev, dur) => on ? `opacity:1;animation:flow ${dur}s linear infinite${rev ? ' reverse' : ''}` : 'opacity:0';
+    return html`<section class="sec">${this.secHead('energy', t('energy'), known ? t('devicesMeasuring', { n: known }) : '', known ? html`<span class="tag row" style="gap:6px;color:#7EE0A8"><span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#7EE0A8"></span>${t('live')}</span>` : nothing, t)}
       <div class="wrapRow" style="align-items:stretch;gap:12px">
         <div class="tile" style="flex:3 1 440px;padding:22px;gap:16px;border-radius:24px">
-          <div class="row sp" style="align-items:flex-start;gap:12px;flex-wrap:wrap"><span style="display:flex;flex-direction:column;gap:4px"><span class="eyebrow" style="font-size:10px">${t('nowW')}</span>
-            <span class="row" style="align-items:baseline;gap:6px"><span style="font-size:56px;font-weight:200;letter-spacing:-.06em;line-height:.9">${house ?? '—'}</span><span class="muted" style="font-size:16px">${house == null ? '' : 'W'}</span></span>
-            <span class="muted txt" style="font-size:12px">${areaName ? t('sumPlugsRoom', { r: areaName }) : t('sumPlugs')}</span></span>
-            ${hasSolar ? nothing : html`<span class="badge" style="border-style:dashed">${svg`<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color:#F5D08A"><path d=${P.sun}></path></svg>`}${t('solarReady')}</span>`}</div>
-          <div class="flowbox" role="img" aria-label=${hasSolar ? `${t('solar')} ${solar} W · ${t('grid')} ${gridNet} W · ${t('home')} ${house} W` : `${t('grid')} → ${t('home')} ${house} W`}>
+          <span style="display:flex;flex-direction:column;gap:4px"><span class="eyebrow" style="font-size:10px">${t('monitoredNow')}</span>
+            <span class="row" style="align-items:baseline;gap:6px"><span class="ebig" style="font-size:56px;font-weight:200;letter-spacing:-.06em;line-height:.9">${known ? (eW && !mW ? '≈ ' : '') + total : '—'}</span>${known ? html`<span class="muted" style="font-size:16px">W</span>` : nothing}</span>
+            <span class="muted txt" style="font-size:12px">${sub}</span></span>
+          ${hasSolar || hasGrid ? html`<div class="flowbox" role="img" aria-label=${[hasSolar ? `${t('solar')} ${m.solarW} W` : '', hasGrid ? `${t('grid')} ${m.gridW} W` : '', `${t('home')} ${total} W`].filter(Boolean).join(' · ')}>
             ${svg`<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0" aria-hidden="true">
-              <path d="M16 20 C 45 20, 50 50, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path>
-              <path d="M16 20 C 45 20, 50 50, 80 50" fill="none" stroke="#F5D08A" stroke-width="2" stroke-dasharray="4 8" stroke-linecap="round" vector-effect="non-scaling-stroke" style=${flow(solar > 0, false, 1.1)}></path>
-              <path d="M16 80 C 45 80, 50 50, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path>
-              <path d="M16 80 C 45 80, 50 50, 80 50" fill="none" stroke="#8FB8FF" stroke-width="2" stroke-dasharray="4 8" stroke-linecap="round" vector-effect="non-scaling-stroke" style=${flow(gridNet != null && gridNet !== 0, gridNet < 0, 2.2)}></path>
-              <path d="M48 92 C 60 92, 66 60, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path></svg>`}
-            <div class="node" style=${`left:16%;top:20%;opacity:${hasSolar ? 1 : 0.4}`}><span class="o" style=${hasSolar ? 'background:#1E1A12;border:1px solid #4A3C22;color:#F5D08A;box-shadow:0 0 32px -6px rgba(245,208,138,.5)' : 'border:1px dashed var(--dim);color:#F5D08A'}>${ic('sun')}</span><span style="font-size:13px">${hasSolar ? solar + ' W' : t('soon')}</span><span class="tag muted" style="font-size:9px">${t('solar')}</span></div>
-            <div class="node" style="left:16%;top:80%"><span class="o" style="background:#121826;border:1px solid #2A3A5A;color:#8FB8FF">${ic('grid')}</span><span style="font-size:13px">${gridNet == null ? '—' : Math.abs(gridNet) + ' W'}</span><span class="tag muted" style="font-size:9px">${gridNet != null && gridNet < 0 ? t('gridSelling') : t('grid')}</span></div>
-            <div class="node" style=${`left:48%;top:92%;flex-direction:row;opacity:${hasSolar && m.batterySoc != null ? 1 : 0.4}`}><span class="o" style=${'width:44px;height:44px;color:#7EE0A8;' + (hasSolar && m.batterySoc != null ? 'background:#12201A;border:1px solid #2B5A40' : 'border:1px dashed var(--dim)')}>${ic('batt', 'i s')}</span><span style="display:flex;flex-direction:column;text-align:left"><span style="font-size:13px">${hasSolar && m.batterySoc != null ? Math.round(m.batterySoc) + '%' : t('soon')}</span><span class="tag muted" style="font-size:9px">${t('batteryS')}</span></span></div>
-            <div class="node" style="left:80%;top:50%"><span class="o" style=${`width:92px;height:92px;background:var(--raise);border:1px solid var(--line2);flex-direction:column;gap:2px;box-shadow:0 0 60px -10px ${rgba(aRgb, Math.min(0.55, 0.12 + house / 3000).toFixed(2))}`}>${ic('home')}<b style="font-size:15px;font-weight:500">${house} W</b></span><span class="tag muted" style="font-size:10px">${t('home')}</span></div>
+              ${hasSolar ? svg`<path d="M16 20 C 45 20, 50 50, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path><path d="M16 20 C 45 20, 50 50, 80 50" fill="none" stroke="#F5D08A" stroke-width="2" stroke-dasharray="4 8" stroke-linecap="round" vector-effect="non-scaling-stroke" style=${flow(m.solarW > 0, false, 1.1)}></path>` : nothing}
+              ${hasGrid ? svg`<path d="M16 80 C 45 80, 50 50, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path><path d="M16 80 C 45 80, 50 50, 80 50" fill="none" stroke="#8FB8FF" stroke-width="2" stroke-dasharray="4 8" stroke-linecap="round" vector-effect="non-scaling-stroke" style=${flow(m.gridW !== 0, m.gridW < 0, 2.2)}></path>` : nothing}</svg>`}
+            ${hasSolar ? html`<div class="node" style="left:16%;top:20%"><span class="o" style="background:#1E1A12;border:1px solid #4A3C22;color:#F5D08A">${svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d=${P.sun}></path></svg>`}</span><span style="font-size:13px">${m.solarW} W</span><span class="tag muted" style="font-size:9px">${t('solar')}</span></div>` : nothing}
+            ${hasGrid ? html`<div class="node" style="left:16%;top:80%"><span class="o" style="background:#121826;border:1px solid #2A3A5A;color:#8FB8FF">${ic('grid')}</span><span style="font-size:13px">${Math.abs(m.gridW)} W</span><span class="tag muted" style="font-size:9px">${t('grid')}</span></div>` : nothing}
+            <div class="node" style="left:80%;top:50%"><span class="o" style=${`width:92px;height:92px;background:var(--raise);border:1px solid var(--line2);flex-direction:column;gap:2px;box-shadow:0 0 60px -10px ${rgba(aRgb, Math.min(0.55, 0.12 + total / 3000))}`}>${ic('home')}<b style="font-size:14px;font-weight:500">${known ? total + ' W' : '—'}</b></span><span class="tag muted" style="font-size:9px">${t('home')}</span></div>
+          </div>` : nothing}
+          <div class="ekv">
+            <div><span class="tag muted">${t('todayE')}</span><b>${nf(today)} <small>kWh</small></b></div>
+            <div><span class="tag muted">${t('costToday')}</span>${cost == null && price == null ? setPrice : html`<b>${nf(cost, 2)} <small>${cur}</small></b>`}</div>
+            <div><span class="tag muted">${t('thisMonth')}</span><b>${nf(month, month != null && month < 10 ? 1 : 0)} <small>kWh</small></b></div>
+            <div><span class="tag muted">${t('costMonth')}</span>${price == null ? setPrice : html`<b>${nf(mcost, 2)} <small>${cur}</small></b>`}</div>
           </div>
-          ${(() => {
-            const nf = (v, d = 1) => v == null ? '—' : Number(v).toLocaleString(lang, { minimumFractionDigits: d, maximumFractionDigits: d });
-            const es = this._energyStats(m), meters = m.energyMeters.filter((e) => ui.room === 'all' || e.area === ui.room);
-            const sum = (k) => (es?.ok ? meters.reduce((a, e) => a + (es[k][e.id] || 0), 0) : null);
-            const today = sum('day') ?? (ui.room === 'all' ? m.energyToday?.v : null), month = sum('month') ?? (ui.room === 'all' ? m.energyMonth?.v : null);
-            const price = this._prefs.energyPrice ?? m.price?.v ?? null, cur = this._prefs.energyCur || m.price?.unit || m.costToday?.unit || '€';
-            const cost = price != null && today != null ? today * price : (ui.room === 'all' ? m.costToday?.v : null), mcost = price != null && month != null ? month * price : null;
-            const setPrice = html`<button class="linkbtn" @click=${() => this._set({ settings: 'geral' })}>${t('setPrice')}</button>`;
-            return html`<div class="ekv">
-              <div><span class="tag muted">${t('todayE')}</span><b>${nf(today)} <small>kWh</small></b></div>
-              <div><span class="tag muted">${t('costToday')}</span>${cost == null && price == null ? setPrice : html`<b>${nf(cost, 2)} <small>${cur}</small></b>`}</div>
-              <div><span class="tag muted">${t('thisMonth')}</span><b>${nf(month, month != null && month < 10 ? 1 : 0)} <small>kWh</small></b></div>
-              <div><span class="tag muted">${t('costMonth')}</span>${price == null ? setPrice : html`<b>${nf(mcost, 2)} <small>${cur}</small></b>`}</div>
-              ${hasSolar ? html`<div><span class="tag muted">${t('solarToday')}</span><b>—</b></div>` : nothing}
-            </div>
-            ${m.energyMeters.length ? html`<span class="dim txt" style="font-size:11px">${t(m.energyByLabel ? 'meterHintLabel' : 'meterHintAll', { n: m.energyMeters.length })}${price != null ? ' · ' + nf(price, 2) + ' ' + cur + '/kWh' : ''}</span>` : nothing}`;
-          })()}
+          ${m.energyMeters.length ? html`<span class="dim txt" style="font-size:11px">${t(m.energyByLabel ? 'meterHintLabel' : 'meterHintAll', { n: m.energyMeters.length })}${m.mainMeters.length ? ' · ' + t('mainMeterApart', { n: m.mainMeters.length }) : ''}${price != null ? ' · ' + nf(price, 2) + ' ' + cur + '/kWh' : ''}</span>` : nothing}
         </div>
         <div class="tile" style="flex:2 1 300px;padding:22px;border-radius:24px">
-          <span class="row sp"><span class="eyebrow" style="font-size:10px">${t('whoNow')}</span><span class="dim" style="font-size:12px">${t('byPlugs')}</span></span>
-          ${plugs.slice().sort((a, b) => (b.on ? b.w || 0 : 0) - (a.on ? a.w || 0 : 0)).slice(0, 8).map((p) => { const w = p.on ? p.w || 0 : 0; return html`<div style="display:flex;flex-direction:column;gap:6px">
-            <span class="row sp" style="gap:8px;font-size:13px;align-items:flex-start"><span class="txt">${p.name} <span class="dim" style="font-size:11px">${p.areaName}${(() => { const e = this._eStats?.ok && m.energyMeters.find((x) => x.device && x.device === p.device); const v = e ? this._eStats.day[e.id] : null; return v != null ? ' · ' + v.toLocaleString(lang, { maximumFractionDigits: 2 }) + ' kWh ' + t('todayShort') : ''; })()}</span></span><span style="white-space:nowrap">${w} W <span class="dim">· ${total ? Math.round(100 * w / total) : 0}%</span></span></span>
-            <span class="bar" style="height:4px"><i style=${`width:${Math.round(100 * w / maxW)}%;background:${p.locked ? '#8FB8FF' : 'var(--accent)'}`}></i></span></div>`; })}
-          ${ui.room === 'all' && byRoom.length ? html`<span class="eyebrow" style="font-size:10px;padding-top:10px;border-top:1px solid var(--line)">${t('byRoom')}</span>
-            <div class="kv" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">${byRoom.map((r) => html`<div><span class="muted txt" style="font-size:11px">${r.n}</span><b style="font-size:15px">${r.w} W</b></div>`)}</div>` : nothing}
+          <span class="row sp"><span class="eyebrow" style="font-size:10px">${t('whoNow')}</span><span class="dim" style="font-size:12px">${t('ofMonitored')}</span></span>
+          ${rows.length ? rows.slice(0, 12).map((p) => html`<div class="erow" style="display:flex;flex-direction:column;gap:6px">
+            <span class="row sp" style="gap:8px;font-size:13px;align-items:flex-start"><span class="txt">${p.name} <span class="dim" style="font-size:11px">${p.areaName}${kwhToday(p.device)}</span></span>
+              <span style="white-space:nowrap">${p.est ? html`<span class="esttag">${t('estimated')}</span> ≈ ` : ''}${p.w} W <span class="dim">· ${total ? Math.round(100 * p.w / total) : 0}%</span></span></span>
+            <span class="bar" style="height:4px"><i style=${`width:${Math.round(100 * p.w / maxW)}%;background:${p.est ? 'repeating-linear-gradient(90deg,var(--accent) 0 6px,transparent 6px 9px)' : p.locked ? '#8FB8FF' : 'var(--accent)'}`}></i></span></div>`)
+            : html`<span class="muted txt" style="font-size:13px">${t('noLivePowerLong')}</span>`}
+          ${byRoom.length ? html`<span class="eyebrow" style="font-size:10px;padding-top:10px;border-top:1px solid var(--line)">${t('byRoom')}</span>
+            <div class="kv" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">${byRoom.map((r) => html`<div><span class="muted txt" style="font-size:11px">${r.n}</span><b style="font-size:15px">${Math.round(r.w)} W</b></div>`)}</div>` : nothing}
+          <button class="linkbtn" style="margin-top:6px" aria-expanded=${ui.eDiag ? 'true' : 'false'} @click=${() => this._set({ eDiag: !ui.eDiag })}>${ui.eDiag ? t('diagHide') : t('diagShow')}</button>
+          ${ui.eDiag ? this.energyDiag({ m, t }, est, estMeters) : nothing}
         </div></div></section>`;
+  }
+  // Diagnosis (owner 2026-11-18): per device, what Home Assistant actually gives the dashboard — read-only.
+  energyDiag({ m, t }, est, estMeters) {
+    const S = this.hass.states, list = [];
+    for (const p of m.plugs) {
+      const e = m.energyMeters.find((x) => x.device && x.device === p.device);
+      list.push({ name: p.name, area: p.areaName, power: p.wSrc === 'sensor' ? `${p.w} W · ${p.powerId}` : p.wSrc === 'attribute' ? `${p.w} W · ${t('diagAttr')}` : p.wSrc === 'unavailable' ? `${t('diagUnavail')} · ${p.powerId}` : (e && est[e.id] != null ? `≈ ${est[e.id]} W · ${t('estimated')}` : t('diagNoPower')), energy: e ? `${S[e.id]?.state ?? '—'} ${S[e.id]?.attributes?.unit_of_measurement || ''} · ${e.id}` : '—', bad: p.wSrc === 'none' || p.wSrc === 'unavailable' });
+    }
+    for (const x of m.loosePower) list.push({ name: x.name, area: x.areaName, power: `${x.w} W · ${x.powerId}`, energy: '', bad: false });
+    for (const e of estMeters.filter((x) => !m.plugs.some((p) => p.device && p.device === x.device))) list.push({ name: e.name, area: e.areaName, power: est[e.id] != null ? `≈ ${est[e.id]} W · ${t('estimated')}` : t('diagNoPower'), energy: `${S[e.id]?.state ?? '—'} ${S[e.id]?.attributes?.unit_of_measurement || ''} · ${e.id}`, bad: est[e.id] == null });
+    return html`<div class="ediag">${list.map((r) => html`<div class=${'edr' + (r.bad ? ' bad' : '')}><b>${r.name} <small>${r.area}</small></b><span>${t('diagPower')}: ${r.power}</span>${r.energy ? html`<span>${t('diagEnergy')}: ${r.energy}</span>` : nothing}</div>`)}
+      <span class="dim txt" style="font-size:11px">${t('diagFoot')}</span></div>`;
   }
 
   // ── covers ───────────────────────────────────────────────────────────────

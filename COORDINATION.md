@@ -1514,3 +1514,9 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18q (AUREON Noir 1.5.4)
 - `m.energyAll/energyMeters/energyByLabel` (label /verbrauch|consumption|consumo/ restricts the pool; PERIODIC/SOLAR/GRID excluded; one per device). `_energyStats` reads `recorder/statistic_during_period` (calendar day/month, change, kWh) every 5 min. `prefs.energyPrice/energyCur`. Browser test PASS, unit 11/11. No HA test run by Claude.
+
+## Claude batch — 2026-11-18r (AUREON Noir 1.5.5) — energy live power
+- data.js: POWER_UNIT/toWatt (mW/W/kW/MW), POWER_SKIP (peak/avg/limit…), powerScore → one power sensor per device (was: sum of all). Orphan sensors linked by entity object_id prefix; switch attributes (current_power_w…); `wSrc` sensor|attribute|unavailable|none; mobile_app excluded; MAIN_METER kept out of energy sum (`m.mainMeters`); `m.liveW`, `m.powerUnavailable`; `num('')` → null.
+- index.js: sEnergy rewritten (no 0 W without data, no fake solar/battery, `_powerEstimates` from 30-min kWh history, `energyDiag`).
+- Tests: new noir/tests/energy.test.mjs (multi-brand cases), browser checks for estimate/sort/diagnosis. No HA test run by Claude.
+- Merged on top of the other agent's energy commits c2751b3…9b14edd: kept their rules (labels optional → energyByLabel=false, no invented grid, missing ≠ 0 W, CI path triggers); their sEnergy edits superseded by the 1.5.5 rewrite that implements the same rules.
