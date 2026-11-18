@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.4.7 — 2026-11-18
+
+- Configurações: o aviso "Salvo" aparece no lugar da nota do rodapé, sem ficar por cima do texto.
+
 ## AUREON Noir 1.4.6 — 2026-11-18
 
 - "Alexa avisa ao terminar" agora reconhece de verdade as automações feitas com o blueprint AUREON (o HA só informa o blueprint pela configuração salva da automação).

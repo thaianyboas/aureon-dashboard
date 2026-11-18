@@ -10,8 +10,8 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, ap
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.4.6';
-export const BUILD = 'AUREON-NOIR-20261118h';
+export const VERSION = '1.4.7';
+export const BUILD = 'AUREON-NOIR-20261118i';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -950,8 +950,9 @@ class AureonDashboard extends LitElement {
           <div class="sttabs" role="tablist">${tabs.map(([k, n]) => html`<button role="tab" aria-selected=${tab === k ? 'true' : 'false'} @click=${() => this._set({ settings: k })}>${n}</button>`)}</div>
         </div>
         ${body}
-        <span class="dim txt" style="font-size:11px;padding-top:6px">${this._synced ? t('stSynced') : t('stLocal')}</span>
-        ${this._savedAt && Date.now() - this._savedAt < 2500 ? html`<span class=${'saved ' + (this._savedState || 'all')} role="status">${ic('check', 'i s')}${this._savedState === 'local' ? t('savedLocal') : t('savedAll')}</span>` : nothing}
+        <div class="stfoot">${this._savedAt && Date.now() - this._savedAt < 2500
+          ? html`<span class=${'saved ' + (this._savedState || 'all')} role="status">${ic('check', 'i s')}${this._savedState === 'local' ? t('savedLocal') : t('savedAll')}</span>`
+          : html`<span class="dim txt">${this._synced ? t('stSynced') : t('stLocal')}</span>`}</div>
 
       </div></div>`;
   }

@@ -208,7 +208,9 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .sttabs::-webkit-scrollbar{display:none}
 .sttabs button{flex:1 0 auto;min-height:38px;padding:0 14px;border:0;border-radius:11px;background:transparent;color:var(--mut);font:inherit;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
 .sttabs button[aria-selected="true"]{background:var(--fg);color:var(--bg)}
-.saved{position:sticky;bottom:6px;align-self:center;z-index:4;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;box-shadow:0 8px 20px -8px rgba(0,0,0,.8);border-radius:999px;font-size:12px;animation:msin .3s ease;white-space:nowrap}
+/* Owner 2026-11-18: the note and the "Salvo" pill share one footer line — never on top of each other. */
+.stfoot{position:sticky;bottom:-22px;z-index:4;margin:0 -2px -22px;min-height:40px;display:flex;align-items:center;justify-content:center;padding:8px 2px 22px;background:linear-gradient(to top,var(--raise) 78%,transparent);font-size:11px;text-align:center}
+.saved{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;box-shadow:0 8px 20px -8px rgba(0,0,0,.8);border-radius:999px;font-size:12px;animation:msin .3s ease;white-space:nowrap}
 .saved.all{background:rgba(126,224,168,.14);color:#9FEBC0}.saved.local{background:rgba(255,200,120,.14);color:#FFD49A}
 .lbexp{flex-basis:100%;font-size:12px;color:var(--mut);padding-left:46px}
 .lbrow{flex-wrap:wrap}

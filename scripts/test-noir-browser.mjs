@@ -277,6 +277,8 @@ console.log('behaviour');
   await page.screenshot({ path: 'build/noir/settings-labels.png' });
   await new Promise((r) => setTimeout(r, 600));
   check(await shadow(page, `return /Salvo em todos os aparelhos/.test(root.querySelector(".sheet .saved")?.textContent || '')`), 'settings show "Salvo em todos os aparelhos"');
+  check(await shadow(page, `const f=root.querySelector('.sheet .stfoot'); return !!f && f.children.length===1 && !!f.querySelector('.saved')`), '"Salvo" replaces the footer note instead of covering it');
+  await page.screenshot({ path: 'build/noir/settings-saved.png' });
   check(await page.evaluate(() => H.ws.some((w) => w.type === 'frontend/set_user_data' && w.key === 'aureon_noir' && w.value?.labelRules?.lights?.exclude?.length === 1)), 'settings saved to Home Assistant (all devices)');
   await shadow(page, `[...root.querySelectorAll('[role=tab]')].find((b)=>/Modo da casa/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 200));
   check(await shadow(page, `return [...root.querySelectorAll('.sheet .chk')].some((x)=>/Apagar todas as luzes/.test(x.textContent)) && !!root.querySelector('.sheet .offchk')`), 'Settings has a Modos tab to configure each mode');

@@ -1482,3 +1482,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18h (AUREON Noir 1.4.6)
 - Root cause: WS `automation/config` returns the substituted config (no `use_blueprint`). `_loadAlexaAutos` now reads REST `config/automation/config/<attributes.id>` (as the HA editor does), with a WS fallback that reads trigger entities of "Alexa … ciclo/fertig" automations. Fixture now mimics real HA.
+
+## Claude batch — 2026-11-18i (AUREON Noir 1.4.7)
+- Settings footer `.stfoot` (sticky) shows either the sync note or the "Salvo" pill. Browser test PASS.
