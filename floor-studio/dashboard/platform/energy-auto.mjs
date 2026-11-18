@@ -17,8 +17,7 @@ export function meterKind(state){const a=state?.attributes||{},unit=a.unit_of_me
 export function autoConsumers(rows,states,labelIds){
  // Discover compatible meters even when the user has not assigned a label.
  // Labels remain supported but are not required.
- const tagged=r=>(r.labels||[]).some(id=>labelIds.includes(id));
- const devices=new Set(rows.filter(tagged).map(r=>r.deviceId).filter(Boolean)),groups=new Map();
+ const groups=new Map();
  for(const r of rows){
   if(r.domain!=='sensor')continue;
   const kind=meterKind(states?.[r.id]);if(!kind||NOT_CONSUMPTION.test(r.id+' '+r.name))continue;
@@ -46,5 +45,5 @@ export function autoTotals(consumers,stats,{timeZone='UTC',now=Date.now(),states
  const series=[...all].sort((a,b)=>a[0].localeCompare(b[0])).map(([k,value])=>({time:Date.parse(k+'T12:00:00Z'),key:k,value}));
  const known=list.some(x=>x.today!==null);
  const watts=list.filter(x=>x.watts!==null);
- return {consumers:list,series,today:known?all.get(today)||0:null,month:known?series.filter(x=>x.key.startsWith(month)).reduce((s,x)=>s+x.value,0):null,watts:watts.length?watts.reduce((s,x)=>s+x.watts,0):null};
+ return {consumers:list,series,today:known?all.get(today)||0:null,month:known?series.filter(x=>x.key.startsWith(month)).reduce((s,x)=>s+x.value,0):null,watts:watts.length?watts.reduce((s,x)=>s+x.watts,0):null,powerMeterCount:watts.length,energyMeterCount:list.filter(x=>x.energyId).length,partialPower:watts.length<list.length};
 }
