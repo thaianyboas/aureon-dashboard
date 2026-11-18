@@ -23,7 +23,7 @@ export const THEMES = [
   { id: 'platina', name: 'Platina', desc: 'Preto · branco', accent: '#F2F2F3', bg: '#070707', card: '#111111', card2: '#0D0D0D', sunk: '#0A0A0A', raise: '#171717', line: '#1E1E1E', line2: '#2A2A2A' },
   { id: 'ha', name: 'Home Assistant', desc: 'Segue o tema do HA', ha: true }
 ];
-const SECTIONS = ['lights', 'climate', 'plugs', 'energy', 'covers', 'openings', 'security', 'music'];
+const SECTIONS = ['lights', 'climate', 'plugs', 'energy', 'covers', 'openings', 'security', 'tv', 'music'];
 const SCENE_GLOW = ['245,208,138', '169,155,255', '255,160,100', '143,184,255', '126,224,168', '242,167,181'];
 const F = { PAUSE: 1, SEEK: 2, VOL: 4, PREV: 16, NEXT: 32, SOURCE: 2048, PLAY: 16384, SHUFFLE: 32768, GROUP: 524288 };
 
@@ -31,6 +31,7 @@ const P = {
   repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
   power: 'M12 3v9M6.3 7.3a8 8 0 1 0 11.4 0',
   minus: 'M5 12h14', plus: 'M12 5v14M5 12h14',
+  tv: 'M3 6h18v11H3zM8 21h8M12 17v4',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
   bulb: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z',
   plug: 'M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4', lock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3', unlock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 7.5-2',
@@ -102,8 +103,8 @@ class AureonDashboard extends LitElement {
 
   setConfig(config) { this._config = { ...(config || {}) }; }
   getCardSize() { return 14; }
-  connectedCallback() { super.connectedCallback(); this._timer = setInterval(() => { this._tick = Date.now(); this._toasts = this._toasts.filter((t) => t.exp > Date.now()); }, 1000); window.addEventListener('popstate', this._onPop); if (location.hash === '#aureon-music' && this._ui) this._ui = { ...this._ui, musicPage: true, libMore: true }; }
-  disconnectedCallback() { window.removeEventListener('popstate', this._onPop); clearInterval(this._timer); this._lblRO?.disconnect(); this._lblRO = null; this._lblObs = null; (this._unsubs || []).forEach((u) => { try { u(); } catch { /* ok */ } }); this._unsubs = []; this._fcFor = null; super.disconnectedCallback(); }
+  connectedCallback() { super.connectedCallback(); this._timer = setInterval(() => { this._tick = Date.now(); this._toasts = this._toasts.filter((t) => t.exp > Date.now()); }, 1000); window.addEventListener('popstate', this._onPop); this._mountTop(); if (location.hash === '#aureon-music' && this._ui) this._ui = { ...this._ui, musicPage: true, libMore: true }; }
+  disconnectedCallback() { window.removeEventListener('popstate', this._onPop); this._unmountTop(); clearInterval(this._timer); this._lblRO?.disconnect(); this._lblRO = null; this._lblObs = null; (this._unsubs || []).forEach((u) => { try { u(); } catch { /* ok */ } }); this._unsubs = []; this._fcFor = null; super.disconnectedCallback(); }
 
   // ── preferences (per HA user, this browser) ──────────────────────────────
   get _key() { return 'aureon.noir.v1.' + (this.hass?.user?.id || 'local'); }
@@ -290,6 +291,7 @@ class AureonDashboard extends LitElement {
     const now = new Date();
     const ui = this._ui, prefs = this._prefs;
     const m = buildModel(this.hass, { now, labels: this._labels, aliases: prefs.aliases, hidden: prefs.hidden, forceShow: prefs.forceShow, noAreaName: t('noArea') });
+    if (this._topBtn) { this._topBtn.setAttribute('aria-label', t('toTop')); this._topBtn.title = t('toTop'); }
     this._plugCycles(m, now);
     this._detectFinished(m, t);
     const th = this._theme();
@@ -302,9 +304,9 @@ class AureonDashboard extends LitElement {
     const ctx = { m, t, lang, now, aRgb, L };
     const show = {
       lights: m.lights.length, climate: m.climate.length, plugs: m.plugs.length, energy: m.metered.length || m.solarW != null,
-      covers: m.covers.length, openings: m.openings.length, security: m.cams.length + m.locks.length + m.alarms.length, music: m.speakers.length
+      covers: m.covers.length, openings: m.openings.length, security: m.cams.length + m.locks.length + m.alarms.length, tv: m.tvs.length, music: m.speakers.length || m.accounts.length
     };
-    const secRender = { lights: () => this.sLights(ctx), climate: () => this.sClimate(ctx), plugs: () => this.sPlugs(ctx), energy: () => this.sEnergy(ctx), covers: () => this.sCovers(ctx), openings: () => this.sOpenings(ctx), security: () => this.sSecurity(ctx), music: () => this.sMusic(ctx) };
+    const secRender = { lights: () => this.sLights(ctx), climate: () => this.sClimate(ctx), plugs: () => this.sPlugs(ctx), energy: () => this.sEnergy(ctx), covers: () => this.sCovers(ctx), openings: () => this.sOpenings(ctx), security: () => this.sSecurity(ctx), tv: () => this.sTV(ctx), music: () => this.sMusic(ctx) };
     const secs = prefs.secOrder.filter((k) => show[k] && !(prefs.secHidden || []).includes(k) && (ui.domain === 'all' || ui.domain === k));
     return html`<div lang=${lang} class="page ${ui.edit ? 'editing' : ''}" style=${vars + pagebg} @click=${(e) => { if (ui.themeOpen && !e.composedPath().some((n) => n.classList?.contains('themeWrap'))) this._set({ themeOpen: false }); }}>
       <div class="wrap">
@@ -679,6 +681,23 @@ class AureonDashboard extends LitElement {
       else if (!a.running && r.end && now - r.end < 3 * 3600000 && (this._prefs.cycleAck || {})[a.id] !== r.end) { a.done = true; a.idle = false; a.endedAt = new Date(r.end); a.runEnd = r.end; a.status = 'plugdone'; }
     }
   }
+  // "Back to top" (owner 2026-11-18): a round button pinned bottom-right once the page is scrolled. It lives in
+  // document.body because the dashboard host is a size container, which would trap position:fixed.
+  _mountTop() {
+    if (this._topBtn) return;
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'aureon-top';
+    b.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
+    Object.assign(b.style, { position: 'fixed', right: 'max(20px, env(safe-area-inset-right))', bottom: 'calc(20px + env(safe-area-inset-bottom))', zIndex: '4', width: '48px', height: '48px', borderRadius: '50%', border: '1px solid rgba(255,255,255,.14)', background: 'rgba(18,18,20,.82)', color: '#E2C98F', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 12px 30px -8px rgba(0,0,0,.8)', backdropFilter: 'blur(12px)', webkitBackdropFilter: 'blur(12px)', opacity: '0', transform: 'translateY(12px)', pointerEvents: 'none', transition: 'opacity .25s, transform .25s' });
+    const scrollers = () => { const out = [document.scrollingElement || document.documentElement]; let n = this; while (n) { if (n instanceof Element && n.scrollHeight > n.clientHeight + 4 && /(auto|scroll)/.test(getComputedStyle(n).overflowY)) out.push(n); n = n.parentNode || n.host; } return out; };
+    const offset = () => scrollers().reduce((mx, el) => Math.max(mx, el.scrollTop || 0), window.scrollY || 0);
+    const update = () => { const on = this.isConnected && offset() > 500; b.style.opacity = on ? '1' : '0'; b.style.transform = on ? 'none' : 'translateY(12px)'; b.style.pointerEvents = on ? 'auto' : 'none'; b.tabIndex = on ? 0 : -1; };
+    b.addEventListener('click', () => { for (const el of scrollers()) el.scrollTo?.({ top: 0, behavior: 'smooth' }); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    this._topScroll = () => { if (!this._topRaf) this._topRaf = requestAnimationFrame(() => { this._topRaf = null; update(); }); };
+    document.addEventListener('scroll', this._topScroll, { capture: true, passive: true });
+    document.body.appendChild(b); this._topBtn = b; update();
+  }
+  _unmountTop() { if (!this._topBtn) return; document.removeEventListener('scroll', this._topScroll, { capture: true }); this._topBtn.remove(); this._topBtn = null; }
   // AUREON Music page (owner 2026-11-16: the home shows a short list; "ver mais" opens a complete music page).
   _musicPage(open) {
     if (open) { try { history.pushState({ ...(history.state || {}), aureonMusic: true }, '', location.pathname + location.search + '#aureon-music'); } catch { /* ok */ } }
@@ -690,14 +709,14 @@ class AureonDashboard extends LitElement {
   _moreInfo(id) { this.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId: id }, bubbles: true, composed: true })); }
   _labelList(m) {
     const ids = new Set(Object.keys(this._labels || {}));
-    for (const k of ['lights', 'plugs', 'climate', 'covers', 'openings', 'locks', 'cams', 'speakers', 'scenes']) for (const d of m[k]) for (const l of d.labels || []) ids.add(l);
+    for (const k of ['lights', 'plugs', 'climate', 'covers', 'openings', 'locks', 'cams', 'speakers', 'tvs', 'scenes']) for (const d of m[k]) for (const l of d.labels || []) ids.add(l);
     return [...ids].map((id) => ({ id, name: this._labels?.[id] || id })).sort((a, b) => a.name.localeCompare(b.name));
   }
   settings(ctx) {
     const { m, t } = ctx, ui = this._ui, prefs = this._prefs, tab = ui.settings;
     const sw = (on, fn, label) => html`<button class="switch" role="switch" aria-checked=${on ? 'true' : 'false'} aria-label=${label} @click=${fn}><span><i></i></span></button>`;
     const tabs = [['geral', t('stGeneral')], ['secoes', t('stSections')], ['etiquetas', t('stLabels')], ['dispositivos', t('stDevices')], ['sobre', t('stAbout')]];
-    const secNames = { lights: t('lights'), climate: t('climate'), plugs: t('plugs'), energy: t('energy'), covers: t('covers'), openings: t('openings'), security: t('security'), music: 'AUREON Music', scenes: t('scenes') };
+    const secNames = { lights: t('lights'), climate: t('climate'), plugs: t('plugs'), energy: t('energy'), covers: t('covers'), openings: t('openings'), security: t('security'), tv: t('tvs'), music: 'AUREON Music', scenes: t('scenes') };
     let body = nothing;
     if (tab === 'geral') {
       const weathers = Object.keys(this.hass.states).filter((e) => e.startsWith('weather.'));
@@ -733,14 +752,19 @@ class AureonDashboard extends LitElement {
         <span class="dim txt" style="font-size:12px">${t('stLabelsFixed')}</span>`;
     } else if (tab === 'dispositivos') {
       const q = (ui.setQ || '').toLowerCase(), hid = new Set(prefs.hidden || []), force = new Set(prefs.forceShow || []);
-      const groups = [['lights', t('lights'), m.lights], ['plugs', t('plugs'), m.plugs], ['climate', t('climate'), m.climate], ['covers', t('covers'), m.covers], ['openings', t('openings'), m.openings], ['security', t('security'), [...m.locks, ...m.cams]], ['music', t('speakersAll'), m.speakers], ['scenes', t('scenes'), m.scenes]];
+      const groups = [['lights', t('lights'), m.lights], ['plugs', t('plugs'), m.plugs], ['climate', t('climate'), m.climate], ['covers', t('covers'), m.covers], ['openings', t('openings'), m.openings], ['security', t('security'), [...m.locks, ...m.cams]], ['tv', t('tvs'), m.tvs], ['music', t('speakersAll'), m.speakers], ['scenes', t('scenes'), m.scenes]];
+      const mcd = this._mc?.devices || [], ch = new Set(prefs.connectHidden || []);
+      if (this._mc && !mcd.length && !this._mc.pending?.has('devices') && !this._connAsked) { this._connAsked = true; this._mc.loadDevices?.(false); }
       const match = (d) => !q || (d.name + ' ' + d.id + ' ' + (d.areaName || '')).toLowerCase().includes(q);
       body = html`<input type="search" .value=${ui.setQ || ''} placeholder=${t('stSearch')} aria-label=${t('stSearch')} @input=${(e) => this._set({ setQ: e.target.value })} style="min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit">
         ${groups.map(([k, n, list]) => { const f = list.filter(match); if (!f.length && !(k === 'music' && m.hiddenMedia.length)) return nothing; return html`<span class="eyebrow" style="font-size:10px;padding-top:8px">${n} · ${f.length}</span>
           ${f.map((d) => html`<div class="chk"><span class="grow txt"><b>${d.name}</b><span class="muted" style="display:block;font-size:11px">${[d.areaName, d.id].filter(Boolean).join(' · ')}${force.has(d.id) ? ' · ' + t('stHiddenInHa') : ''}</span></span>
             ${sw(!hid.has(d.id), () => this._toggleHidden(d.id), d.name)}</div>`)}
           ${k === 'music' ? m.hiddenMedia.filter(match).map((d) => html`<div class="chk" style="opacity:.75"><span class="grow txt"><b>${d.name}</b><span class="muted" style="display:block;font-size:11px">${d.id} · ${t('stHiddenInHa')}</span></span>
-            ${sw(false, () => this._save({ forceShow: [...new Set([...(prefs.forceShow || []), d.id])] }), d.name)}</div>`) : nothing}`; })}`;
+            ${sw(false, () => this._save({ forceShow: [...new Set([...(prefs.forceShow || []), d.id])] }), d.name)}</div>`) : nothing}`; })}
+        ${mcd.length ? html`<span class="eyebrow" style="font-size:10px;padding-top:8px">${t('stOutputs')} · ${mcd.filter((d) => !ch.has(d.name)).length}</span>
+          <span class="muted txt" style="font-size:12px">${t('stOutputsHint')}</span>
+          ${mcd.map((d) => html`<div class="chk"><span class="grow txt"><b>${d.name}</b></span>${sw(!ch.has(d.name), () => { ch.has(d.name) ? ch.delete(d.name) : ch.add(d.name); this._save({ connectHidden: [...ch] }); }, d.name)}</div>`)}` : nothing}`;
     } else {
       body = html`<div class="chk"><span class="grow txt"><b>AUREON Noir</b><span class="muted" style="display:block;font-size:12px">${VERSION} · ${BUILD}</span></span></div>
         <span class="muted txt" style="font-size:13px;line-height:1.5">${t('stAboutHint')}</span>
@@ -866,9 +890,9 @@ class AureonDashboard extends LitElement {
     const ui = this._ui;
     const roomsOrd = this._sorted('rooms', m.areas.map((a) => ({ ...a, name: a.name })));
     const chips = [{ id: 'all', name: t('allHome') }, ...roomsOrd];
-    const doms = [['all', t('all')], ['lights', t('lightsShort')], ['climate', t('climateShort')], ['plugs', t('plugsShort')], ['energy', t('energyShort')], ['covers', t('coversShort')], ['openings', t('openingsShort')], ['security', t('securityShort')], ['music', t('musicShort')]].filter(([k]) => k === 'all' || show[k]);
+    const doms = [['all', t('all')], ['lights', t('lightsShort')], ['climate', t('climateShort')], ['plugs', t('plugsShort')], ['energy', t('energyShort')], ['covers', t('coversShort')], ['openings', t('openingsShort')], ['security', t('securityShort')], ['tv', t('tvs')], ['music', t('musicShort')]].filter(([k]) => k === 'all' || show[k]);
     const inR = (list) => list.filter((d) => ui.room === 'all' || d.area === ui.room).length;
-    const counts = { lights: inR(m.lights), climate: inR(m.climate), plugs: inR(m.plugs), energy: inR(m.metered), covers: inR(m.covers), openings: inR(m.openings), security: inR(m.cams) + inR(m.locks) + m.alarms.length, music: inR(m.speakers) };
+    const counts = { lights: inR(m.lights), climate: inR(m.climate), plugs: inR(m.plugs), energy: inR(m.metered), covers: inR(m.covers), openings: inR(m.openings), security: inR(m.cams) + inR(m.locks) + m.alarms.length, tv: inR(m.tvs), music: inR(m.speakers) };
     return html`<div class="filters">
       <div class="scroller" role="group" aria-label=${t('room')}>${chips.map((c) => {
         const lit = c.id === 'all' ? m.lights.some((l) => l.on) : m.lights.some((l) => l.on && l.area === c.id);
@@ -1178,6 +1202,30 @@ class AureonDashboard extends LitElement {
         <svg viewBox="0 0 64 64" aria-hidden="true"><path class="ktrack" d=${arc(A0, A0 + SW, 29)}></path>${vol > 0 ? svg`<path class="kval2" d=${arc(A0, Math.max(A0 + 0.5, ang), 29)}></path>` : nothing}</svg>
         <span class="kcap" style=${`transform:rotate(${ang}deg)`}><i></i></span></span></span>`;
   }
+  // Televisions (owner 2026-11-18): their own section — power, volume, mute; the name opens the HA dialog.
+  sTV({ m, t }) {
+    const list = this._visible('tv', this._sorted('tv', m.tvs)), ids = list.map((x) => x.id);
+    if (!list.length) return nothing;
+    const F = { VOL_SET: 4, MUTE: 8, ON: 128, OFF: 256, VOL_STEP: 1024 };
+    return html`<section class="sec">${this.secHead('tv', t('tvs'), t('plugsHead', { a: list.filter((x) => x.state !== 'off' && !x.unavailable && x.state !== 'standby').length, b: list.length }), null, t)}
+      <div class="grid sgrid">${repeat(list, (d) => d.id, (d) => {
+        const ta = this.tileAttrs('tv', d, ids), on = !d.unavailable && !['off', 'standby'].includes(d.state);
+        const muted = !!d.attrs?.is_volume_muted;
+        return html`<div class=${'tile mini' + ta.cls + (d.unavailable ? ' ghosted' : '')} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end}>
+          ${this.editBar('tv', d, ids, t)}
+          <div class="row" style="gap:12px">
+            <span class="ic" style=${on ? 'background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)' : ''}>${ic('tv', 'i')}</span>
+            <button class="lname grow" aria-label=${d.name + ' · ' + t('details')} @click=${() => this._moreInfo(d.id)}><span class="txt" style="display:flex;flex-direction:column;gap:2px"><b class="txt" style="font-weight:500">${d.name}</b><span class="muted txt" style="font-size:12px">${[d.areaName, d.unavailable ? t('notAvailable') : on ? (d.attrs?.source || t('plugOn')) : t('plugOff')].filter(Boolean).join(' · ')}</span></span></button>
+            ${(d.features & (F.ON | F.OFF)) && !d.unavailable ? html`<button class="ib sm" aria-label=${(on ? t('plugOff') : t('plugOn')) + ' · ' + d.name} style=${on ? 'color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)' : ''} @click=${() => this._call('media_player', on ? 'turn_off' : 'turn_on', { entity_id: d.id })}>${ic('power', 'i s')}</button>` : nothing}
+          </div>
+          ${on && (d.features & (F.VOL_STEP | F.VOL_SET)) ? html`<div class="row" style="gap:8px">
+            ${d.features & F.MUTE ? html`<button class="ib sm ghost" aria-pressed=${muted ? 'true' : 'false'} aria-label=${t('mute') + ' · ' + d.name} style=${muted ? 'color:var(--accent)' : 'color:var(--mut)'} @click=${() => this._call('media_player', 'volume_mute', { entity_id: d.id, is_volume_muted: !muted })}>${ic('vol', 'i s')}</button>` : nothing}
+            <button class="vpm" aria-label=${t('volume') + ' − · ' + d.name} @click=${() => this._call('media_player', 'volume_down', { entity_id: d.id })}>${ic('minus', 'i s')}</button>
+            <button class="vpm" aria-label=${t('volume') + ' + · ' + d.name} @click=${() => this._call('media_player', 'volume_up', { entity_id: d.id })}>${ic('plus', 'i s')}</button>
+            ${d.vol != null ? html`<span class="mono vnum">${d.vol}</span>` : nothing}</div>` : nothing}
+        </div>`;
+      })}</div></section>`;
+  }
   sMusic({ m, t, now, aRgb }, full = false) {
     const ui = this._ui, mc = this._mc;
     const acct = mc.state;
@@ -1245,7 +1293,7 @@ class AureonDashboard extends LitElement {
           ${(ui.musicSearch || full) && mc.advanced('search_tracks') ? html`<input class="msearch" type="search" .value=${ui.musicQuery || ''} placeholder=${t('searchS')} aria-label=${t('searchS')} @input=${(e) => this._set({ musicQuery: e.target.value })} @keydown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) { mc.browse('search', e.target.value); } }}
             style="min-height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit;font-size:13px">` : nothing}
           ${panel === 'devices' ? html`<div class="mrow">${mc.pending.has('devices') ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
-              ${mc.devices.map((d) => html`<button class="dc" style=${'min-height:44px;' + (d.active ? 'border-color:var(--accent);color:var(--fg)' : '')} aria-pressed=${d.active ? 'true' : 'false'} ?disabled=${mc.pending.has('transfer')} @click=${() => { mc.transfer(d.id); if (!full) setTimeout(() => this._set({ libSheet: false }), 600); }}>${ic('speaker', 'i s')} ${d.name}${d.active ? ' · ' + t('playing') : d.ready ? '' : ' · ' + t('openSpotify')}</button>`)}
+              ${mc.devices.filter((d) => d.active || !(this._prefs.connectHidden || []).includes(d.name)).map((d) => html`<button class="dc" style=${'min-height:44px;' + (d.active ? 'border-color:var(--accent);color:var(--fg)' : '')} aria-pressed=${d.active ? 'true' : 'false'} ?disabled=${mc.pending.has('transfer')} @click=${() => { mc.transfer(d.id); if (!full) setTimeout(() => this._set({ libSheet: false }), 600); }}>${ic('speaker', 'i s')} ${d.name}${d.active ? ' · ' + t('playing') : d.ready ? '' : ' · ' + t('openSpotify')}</button>`)}
               ${!mc.pending.has('devices') && !mc.devices.length ? html`<span class="muted txt" style="font-size:13px">${t('noDevices')}</span>` : nothing}</div>`
           : (() => {
               // Owner 2026-11-16 ("playlists daquele jeito tá feio"): a calm list — small cover, name, who/what, play.
@@ -1272,7 +1320,7 @@ class AureonDashboard extends LitElement {
           ${(ui.musicSearch || full) && mc.advanced('search_tracks') ? html`<input class="msearch" type="search" .value=${ui.musicQuery || ''} placeholder=${t('searchS')} aria-label=${t('searchS')} @input=${(e) => this._set({ musicQuery: e.target.value })} @keydown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) { mc.browse('search', e.target.value); } }}
             style="min-height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit;font-size:13px">` : nothing}
           ${panel === 'devices' ? html`<div class="mrow">${mc.pending.has('devices') ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
-              ${mc.devices.map((d) => html`<button class="dc" style=${'min-height:44px;' + (d.active ? 'border-color:var(--accent);color:var(--fg)' : '')} aria-pressed=${d.active ? 'true' : 'false'} ?disabled=${mc.pending.has('transfer')} @click=${() => { mc.transfer(d.id); if (!full) setTimeout(() => this._set({ libSheet: false }), 600); }}>${ic('speaker', 'i s')} ${d.name}${d.active ? ' · ' + t('playing') : d.ready ? '' : ' · ' + t('openSpotify')}</button>`)}
+              ${mc.devices.filter((d) => d.active || !(this._prefs.connectHidden || []).includes(d.name)).map((d) => html`<button class="dc" style=${'min-height:44px;' + (d.active ? 'border-color:var(--accent);color:var(--fg)' : '')} aria-pressed=${d.active ? 'true' : 'false'} ?disabled=${mc.pending.has('transfer')} @click=${() => { mc.transfer(d.id); if (!full) setTimeout(() => this._set({ libSheet: false }), 600); }}>${ic('speaker', 'i s')} ${d.name}${d.active ? ' · ' + t('playing') : d.ready ? '' : ' · ' + t('openSpotify')}</button>`)}
               ${!mc.pending.has('devices') && !mc.devices.length ? html`<span class="muted txt" style="font-size:13px">${t('noDevices')}</span>` : nothing}</div>`
           : (() => {
               // Owner 2026-11-16 ("playlists daquele jeito tá feio"): a calm list — small cover, name, who/what, play.

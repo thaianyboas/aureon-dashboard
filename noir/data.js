@@ -130,7 +130,7 @@ export function buildModel(hass, opts = {}) {
   const areaName = (id) => areaReg[id]?.name || '';
 
   const byDevice = {};
-  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
+  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], tvs: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
 
   for (const [eid, st] of Object.entries(states)) {
     const reg = regs[eid] || {};
@@ -195,6 +195,9 @@ export function buildModel(hass, opts = {}) {
     }
   }
 
+  // Owner 2026-11-18: a TV is a device of its own, not a speaker.
+  m.tvs = m.speakers.filter((x) => x.tv);
+  m.speakers = m.speakers.filter((x) => !x.tv);
   // Settings switches of a robot vacuum are not plugs either.
   const vacDevs = new Set(m.vacuums.map((v) => v.device).filter(Boolean));
   m.plugs = m.plugs.filter((p) => !(p.device && vacDevs.has(p.device)) || hasLabel(p.reg, labels, OUTLET));
