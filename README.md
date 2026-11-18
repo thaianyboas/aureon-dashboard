@@ -1,5 +1,11 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.4.5 — 2026-11-18
+
+- "Alexa avisa ao terminar" encontra também a automação que observa a tomada da máquina (mesmo nome de máquina ou mesmo cômodo).
+- Cômodo escolhido aparece na cor do tema (dourado no Noir).
+- Ao tocar num cômodo, o nome dele aparece inteiro abaixo dos botões fixos.
+
 ## AUREON Noir 1.4.4 — 2026-11-18
 
 - Máquina de lavar, lava-louças e secadora sempre aparecem; sem aparelho ligado ao HA, aparece o cartão "Configurar".

@@ -109,7 +109,10 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .filters{position:sticky;top:0;z-index:20;margin:0 -8px;padding:10px 8px;display:flex;flex-direction:column;gap:10px;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
 .scroller{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.scroller::-webkit-scrollbar{display:none}
 .rc{flex:none;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 16px 0 12px;border-radius:14px;font-size:13px;font-weight:500;white-space:nowrap;border:1px solid var(--line);background:var(--card);transition:all .25s}
-.rc[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+/* Owner 2026-11-18: the chosen room shines in the theme colour (gold in Noir), not white. */
+.rc[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent);box-shadow:0 0 18px color-mix(in srgb,var(--accent) 35%,transparent)}
+.rc[aria-pressed="true"] i{background:var(--on-accent)!important;box-shadow:none!important}
+.rc[aria-pressed="true"] small{color:inherit;opacity:.75}
 .rc i{width:8px;height:8px;border-radius:50%}
 .rc small{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;font-weight:400;opacity:.65}
 .dc{flex:none;min-height:36px;padding:0 12px;border-radius:10px;font-size:12px;white-space:nowrap;border:1px solid var(--line);background:transparent;color:var(--mut);transition:all .25s}

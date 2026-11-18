@@ -6,12 +6,12 @@
 import { LitElement, html, svg, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
 import { styles } from './styles.js';
-import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, PLUG_RUN_W, PLUG_IDLE_W } from './data.js';
+import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, applianceKind, PLUG_RUN_W, PLUG_IDLE_W } from './data.js';
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.4.4';
-export const BUILD = 'AUREON-NOIR-20261118f';
+export const VERSION = '1.4.5';
+export const BUILD = 'AUREON-NOIR-20261118g';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -740,10 +740,28 @@ class AureonDashboard extends LitElement {
       this._alexaAutos = out; this.requestUpdate();
     });
   }
+  // Owner 2026-11-18 ("ja configurei e esta em Automações e ele nao encontra"): the automation often watches the
+  // machine's plug, not the smart machine itself. Match, in order: same entity, same device, the watched entity
+  // names the same kind of machine, the alias names the machine, the watched entity is in the machine's room.
+  _alexaFind(a) {
+    const list = this._alexaAutos || []; if (!list.length) return null;
+    const E = this.hass.entities || {}, D = this.hass.devices || {};
+    const info = (e) => { const r = E[e] || {}, d = D[r.device_id] || {}; return { dev: r.device_id, area: r.area_id || d.area_id, text: [e, r.name, this.hass.states[e]?.attributes?.friendly_name, d.name_by_user, d.name].filter(Boolean).join(' ') }; };
+    const tests = [
+      (x) => x.ents.some((e) => a.entities?.includes(e)),
+      (x) => x.ents.some((e) => info(e).dev && info(e).dev === a.id),
+      (x) => !!a.kind && x.ents.some((e) => applianceKind(info(e).text) === a.kind),
+      (x) => !!a.name && x.alias.toLowerCase().includes(a.name.toLowerCase()),
+      (x) => !!a.kind && applianceKind(x.alias) === a.kind,
+      (x) => !!a.area && x.ents.some((e) => info(e).area === a.area && [null, a.kind].includes(applianceKind(info(e).text)))
+    ];
+    for (const ok of tests) { const hit = list.find(ok); if (hit) return hit; }
+    return null;
+  }
   alexaRow(a, t) {
     if (!this.hass.user?.is_admin) return nothing;
     this._loadAlexaAutos();
-    const au = (this._alexaAutos || []).find((x) => x.ents.some((e) => a.entities?.includes(e)) || (a.name && x.alias.toLowerCase().includes(a.name.toLowerCase())));
+    const au = this._alexaFind(a);
     const st = au && this.hass.states[au.id], on = st?.state === 'on';
     return html`<div class="alexa">${ic('speaker', 'i s')}<span class="grow txt">${t('alexaDone')}</span>
       ${au ? html`<button class="switch" role="switch" aria-checked=${on ? 'true' : 'false'} aria-label=${t('alexaDone') + ' · ' + a.name} @click=${() => this._call('automation', on ? 'turn_off' : 'turn_on', { entity_id: au.id })}><span><i></i></span></button>`
@@ -1070,7 +1088,11 @@ class AureonDashboard extends LitElement {
     this._set({ room: id });
     if (id === 'all') return;
     await this.updateComplete;
-    this.renderRoot.querySelector('.roomhead')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    // Land just below the sticky room/device chips so the room name is never hidden under them.
+    const head = this.renderRoot.querySelector('.roomhead'), bar = this.renderRoot.querySelector('.filters'); if (!head) return;
+    const hb = head.getBoundingClientRect(), top = (bar?.getBoundingClientRect().height || 0) + 6;
+    let sc = null; for (let n = this.parentNode || this.host; n && !sc; n = n.parentNode || n.host) if (n instanceof Element && n.scrollHeight > n.clientHeight + 4 && /(auto|scroll)/.test(getComputedStyle(n).overflowY)) sc = n;
+    (sc || window).scrollBy({ top: hb.top - top - 12, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }
   roomHead({ m, t }) {
     const a = m.areas.find((x) => x.id === this._ui.room); if (!a) return nothing;

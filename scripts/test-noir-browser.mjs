@@ -101,7 +101,9 @@ console.log('behaviour');
   const roomTitle = await shadow(page, `const h=[...root.querySelectorAll('h2')].find((x)=>x.style.fontWeight==='200');return h?h.textContent.trim():''`);
   check(!!roomTitle, 'tapping a room in 3D filters to that room: ' + roomTitle);
   await new Promise((r) => setTimeout(r, 700));
-  check(await shadow(page, `const r=root.querySelector('.roomhead').getBoundingClientRect(); return r.top >= 0 && r.top < innerHeight`), 'tapping a room scrolls its devices into view');
+  check(await shadow(page, `const r=root.querySelector('.roomhead').getBoundingClientRect(), f=root.querySelector('.filters').getBoundingClientRect(); return (r.top >= f.bottom - 2 && r.top < innerHeight) || [r.top,f.top,f.bottom,innerHeight,scrollY,document.documentElement.scrollHeight].join(',')`)===true, 'tapping a room scrolls its devices into view, below the sticky chips');
+  check(await shadow(page, `const b=root.querySelector('.rc[aria-pressed="true"]'); return !!b && getComputedStyle(b).backgroundColor !== getComputedStyle(root.querySelector('.page')).color`), 'chosen room chip uses the theme colour');
+  await shadow(page, `root.querySelector('.filters').scrollIntoView()`); await page.screenshot({ path: 'build/noir/room-chip.png', clip: await page.evaluate(() => { const r = document.getElementById('d').shadowRoot.querySelector('.filters').getBoundingClientRect(); return { x: 0, y: r.top + scrollY, width: innerWidth, height: r.height + 140 }; }) });
   await shadow(page, `[...root.querySelectorAll('.btn')].find((b)=>/Ver a casa toda/.test(b.textContent)).click()`);
   // plan view
   await shadow(page, `[...root.querySelectorAll('.seg button')].find((b)=>/PLANTA/.test(b.textContent)).click()`);
@@ -186,6 +188,7 @@ console.log('behaviour');
   const al = await shadow(page, `const a=[...root.querySelectorAll('.act')].find((x)=>/Washing machine/.test(x.textContent)); const sw=a&&a.querySelector('.alexa .switch'); if(!sw) return 'no switch'; sw.click(); return sw.getAttribute('aria-checked')`);
   await new Promise((r) => setTimeout(r, 200));
   check(al === 'true' && await page.evaluate(() => H.calls.some((c) => c[0] === 'automation' && c[1] === 'turn_off' && c[2].entity_id === 'automation.washer_alexa')), 'Alexa row finds the blueprint automation and switches it (' + al + ')');
+  check(await shadow(page, `const a=[...root.querySelectorAll('.act')].find((x)=>/Dishwasher/.test(x.querySelector('.ttl')?.textContent||'')); return !!a?.querySelector('.alexa .switch')`), 'Alexa automation watching the machine plug is found for the smart dishwasher');
   check(await shadow(page, `const a=[...root.querySelectorAll('.act')].find((x)=>/Old washing machine/.test(x.textContent)); return !!a && /ligada há 3[45] min/.test(a.textContent) && /450 W/.test(a.textContent) && !!a.querySelector('.byplug')`), 'old machine on a plug: running since the power went up');
   check(await shadow(page, `return root.querySelectorAll('.vrooms .vr').length===5 && root.querySelector('.vr.now').textContent.trim()==='Kitchen' && /cômodo 2 de 5/.test(root.textContent)`), 'robot shows room-by-room progress');
   check(await shadow(page, `const e=root.querySelector('.ekv'); return !!e && /84/.test(e.textContent) && /€/.test(e.textContent)`), 'energy shows month and cost');

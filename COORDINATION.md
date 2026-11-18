@@ -1474,3 +1474,8 @@ The Music browser suite passed again with that label and native transfer.
 - Map room tap scrolls to `.roomhead` (`_pickRoom`).
 - Compact home player (`.mcard.cmp`); full music page unchanged.
 - Checks: build-noir, unit tests, `scripts/test-noir-browser.mjs` PASS. No HA test run by Claude.
+
+## Claude batch — 2026-11-18g (AUREON Noir 1.4.5)
+- `_alexaFind`: entity → device → kind of watched entity (`applianceKind`) → alias → same area. Fixture: plug automation `automation.aureon_plug_alexa`.
+- Selected room chip uses accent; `_pickRoom` scrolls the nearest scroller below the sticky `.filters`.
+- Checks: build-noir, unit tests, browser test PASS. No HA test run by Claude.

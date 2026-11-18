@@ -45,6 +45,7 @@ const APPLIANCE = [
   ['dryer', /trockner|dryer|secadora/i],
   ['washer', /wasch(?!becken)|washer|washing|lavadora|m(á|a)quina de lavar/i]
 ];
+export const applianceKind = (text) => (APPLIANCE.find(([, re]) => re.test(String(text || ''))) || [null])[0];
 const WASTE = /abfall|m(ü|ue|u)ll|waste|tonne|garbage|trash|recycl|restm|bio|papier|gelb|wertstoff|coleta|lixo/i;
 const SOLAR = /solar|photovolt|\bpv\b|_pv_|wechselrichter|inverter/i;
 const GRID = /grid|netz|bezug|einspeis|import|export/i;
