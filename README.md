@@ -1,5 +1,10 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.5.3 — 2026-11-18
+
+- Celular: AUREON Music ocupa o cartão inteiro e os botões da biblioteca não ficam mais cortados.
+- Lembretes: "luz acesa" e "coleta de lixo" não aparecem mais por padrão (já se vê no mapa e no cartão do lixo). Dá para ligar de novo em Configurações → Geral → Lembretes.
+
 ## AUREON Noir 1.5.2 — 2026-11-18
 
 - Celular e tablet: Modo da casa ao lado do relógio.

@@ -10,8 +10,12 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, ap
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.5.2';
-export const BUILD = 'AUREON-NOIR-20261118n';
+// Owner 2026-11-18: lights on and waste day are already visible on the map and in the waste card, so they are no
+// reminder unless switched on in Settings → Geral.
+const RK_OFF = ['lights', 'waste'];
+const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
+export const VERSION = '1.5.3';
+export const BUILD = 'AUREON-NOIR-20261118o';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -582,23 +586,23 @@ class AureonDashboard extends LitElement {
   reminders({ m, t, lang, now }) {
     const list = [], ack = this._prefs.wasteAck || {};
     const byRoom = {};
-    const kinds = this._prefs.reminderKinds || {};
-    if (kinds.lights !== false) for (const l of m.lights) if (l.on && !l.hidden && this._rulesOk('lights', l)) (byRoom[l.area] ||= []).push(l);
+    const kinds = this._prefs.reminderKinds || {}, rkOn = (k) => reminderOn(kinds, k);
+    if (rkOn('lights')) for (const l of m.lights) if (l.on && !l.hidden && this._rulesOk('lights', l)) (byRoom[l.area] ||= []).push(l);
     const heatingRooms = new Set(m.climate.filter((c) => c.action === 'heating').map((c) => c.area));
     for (const [area, ls] of Object.entries(byRoom).sort((a, b) => b[1].length - a[1].length)) {
       const room = ls[0].areaName || t('noArea');
       list.push({ key: 'L:' + area + ':' + ls.map((l) => l.id).join(','), icon: 'bulb', tone: 'var(--accent)', title: ls.length === 1 ? t('lightRoom', { r: room }) : t('lightsRoom', { n: ls.length, r: room }), body: ls.map((l) => l.name).join(' · '), action: t('turnOff'), act: () => this._call('light', 'turn_off', { entity_id: ls.map((l) => l.id) }) });
     }
-    for (const o of m.openings.filter((x) => kinds.openings !== false && x.open && !x.hidden && this._rulesOk('openings', x))) {
+    for (const o of m.openings.filter((x) => rkOn('openings') && x.open && !x.hidden && this._rulesOk('openings', x))) {
       const mins = Math.max(0, Math.round((now - Date.parse(o.st.last_changed)) / 60000));
       const heat = heatingRooms.has(o.area);
       list.push({ key: 'O:' + o.id + ':' + o.st.last_changed, icon: o.door ? 'door' : 'win', tone: heat ? '#FF9A5A' : 'var(--accent)', title: t('openedIn', { n: o.name, r: o.areaName }), body: t('since', { t: mins < 60 ? mins + ' ' + t('min') : Math.round(mins / 60) + ' h' }) + (heat ? ' · ' + t('heatingWaste') : ''), action: t('okS'), act: null });
     }
-    for (const l of m.locks.filter((x) => kinds.locks !== false && !x.locked && !x.unavailable)) list.push({ key: 'K:' + l.id + ':' + l.st.last_changed, icon: 'unlock', tone: '#FF8A80', title: t('unlockedN', { n: l.name }), body: l.areaName, action: t('lockS'), act: () => this._call('lock', 'lock', { entity_id: l.id }) });
-    for (const a of m.appliances.filter((x) => kinds.appliances !== false && x.done)) list.push({ key: 'A:' + a.id + ':' + a.status, icon: a.kind === 'dish' ? 'dish' : 'washer', tone: 'var(--accent)', title: t('finished', { n: a.name }), body: t('cycleDone') + (a.areaName ? ' · ' + a.areaName : ''), action: t('okS'), act: null });
-    for (const p of m.people.filter((x) => kinds.arrivals !== false && x.etaMin != null && x.etaMin <= 30 && x.state !== 'home' && x.id !== this._meId())) list.unshift({ key: 'P:' + p.id + ':' + Math.round(p.etaMin / 5), icon: 'home', tone: '#7EE0A8', title: t('arriving', { n: p.name, m: p.etaMin }), body: t('arrivingBody', { d: p.distM >= 1000 ? (p.distM / 1000).toFixed(1).replace('.', ',') + ' km' : Math.round(p.distM) + ' m' }), action: t('okS'), act: null });
+    for (const l of m.locks.filter((x) => rkOn('locks') && !x.locked && !x.unavailable)) list.push({ key: 'K:' + l.id + ':' + l.st.last_changed, icon: 'unlock', tone: '#FF8A80', title: t('unlockedN', { n: l.name }), body: l.areaName, action: t('lockS'), act: () => this._call('lock', 'lock', { entity_id: l.id }) });
+    for (const a of m.appliances.filter((x) => rkOn('appliances') && x.done)) list.push({ key: 'A:' + a.id + ':' + a.status, icon: a.kind === 'dish' ? 'dish' : 'washer', tone: 'var(--accent)', title: t('finished', { n: a.name }), body: t('cycleDone') + (a.areaName ? ' · ' + a.areaName : ''), action: t('okS'), act: null });
+    for (const p of m.people.filter((x) => rkOn('arrivals') && x.etaMin != null && x.etaMin <= 30 && x.state !== 'home' && x.id !== this._meId())) list.unshift({ key: 'P:' + p.id + ':' + Math.round(p.etaMin / 5), icon: 'home', tone: '#7EE0A8', title: t('arriving', { n: p.name, m: p.etaMin }), body: t('arrivingBody', { d: p.distM >= 1000 ? (p.distM / 1000).toFixed(1).replace('.', ',') + ' km' : Math.round(p.distM) + ' m' }), action: t('okS'), act: null });
     const nb = m.waste[0];
-    if (kinds.waste !== false && nb && nb.days <= 1 && !ack[nb.date + nb.type]) list.push({ key: 'W:' + nb.date + nb.type, icon: 'trash', tone: binColor(nb.type), title: shortBin(nb.type), body: nb.days === 0 ? t('wasteToday') : t('wasteTomorrow'), action: t('doneS'), act: () => this._save({ wasteAck: { ...ack, [nb.date + nb.type]: true } }) });
+    if (rkOn('waste') && nb && nb.days <= 1 && !ack[nb.date + nb.type]) list.push({ key: 'W:' + nb.date + nb.type, icon: 'trash', tone: binColor(nb.type), title: shortBin(nb.type), body: nb.days === 0 ? t('wasteToday') : t('wasteTomorrow'), action: t('doneS'), act: () => this._save({ wasteAck: { ...ack, [nb.date + nb.type]: true } }) });
     return list.filter((r) => !this._dismissed?.has(r.key));
   }
   pushes(ctx) {
@@ -926,7 +930,7 @@ class AureonDashboard extends LitElement {
         ${weathers.length > 1 ? html`<div class="chk"><span class="grow txt"><b>${t('forecastT')}</b></span><select style="min-height:40px;border-radius:10px;background:var(--sunk);color:var(--fg);border:1px solid var(--line2);padding:0 10px;font:inherit" @change=${(e) => { this._save({ weather: e.target.value }); this._fcFor = null; this.requestUpdate(); }}>${weathers.map((w) => html`<option value=${w} ?selected=${(prefs.weather || weathers[0]) === w}>${this.hass.states[w].attributes.friendly_name || w}</option>`)}</select></div>` : nothing}
         <span class="eyebrow" style="font-size:10px;padding-top:6px">${t('reminders')}</span>
         <div class="chk"><span class="grow txt"><b>${t('stPushMin')}</b></span>${sw(!!prefs.pushMin, () => this._save({ pushMin: !prefs.pushMin }), t('stPushMin'))}</div>
-        ${Object.entries(rk).map(([k, n]) => html`<div class="chk"><span class="grow txt"><b>${n}</b></span>${sw(kinds[k] !== false, () => this._save({ reminderKinds: { ...kinds, [k]: kinds[k] === false } }), n)}</div>`)}`;
+        ${Object.entries(rk).map(([k, n]) => html`<div class="chk"><span class="grow txt"><b>${n}</b></span>${sw(reminderOn(kinds, k), () => this._save({ reminderKinds: { ...kinds, [k]: !reminderOn(kinds, k) } }), n)}</div>`)}`;
     } else if (tab === 'secoes') {
       const hiddenS = new Set(prefs.secHidden || []);
       body = html`<span class="muted txt" style="font-size:13px">${t('stSectionsHint')}</span>

@@ -1504,3 +1504,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18n (AUREON Noir 1.5.2)
 - `houseMenu(ctx, slot)` rendered in `.hmL` (hero left, shown ≤860px container) and `.hmR` (beside 3D/Planta); `ui.alarmOpen` holds the slot. Header avatars removed. Browser test PASS. No HA test run by Claude.
+
+## Claude batch — 2026-11-18o (AUREON Noir 1.5.3)
+- Phone compact player: `align-items:stretch`, `.mchips` wrap. Reminder kinds `lights`/`waste` default off (`RK_OFF`, `reminderOn`). Browser test PASS. No HA test run by Claude.

@@ -446,7 +446,7 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .mcard.jzc.cmp .jtitle{font-size:clamp(26px,3vw,40px)}
 .mcard.jzc.cmp>.mctl{padding:10px 0;margin-right:6px;flex-wrap:nowrap}
 .mcard.jzc.cmp>.mlib{margin:0 16px 0 6px;padding:10px 0;border-top:0}
-@container (max-width:760px){.mcard.jzc.cmp{display:flex}.mcard.jzc.cmp>.mctl{padding:10px 0 2px;margin-right:16px;flex-wrap:wrap}.mcard.jzc.cmp>.mlib{margin:6px 16px 0;padding:10px 0 14px;border-top:1px solid var(--line)}}
+@container (max-width:760px){.mcard.jzc.cmp{display:flex;align-items:stretch}.mcard.jzc.cmp .mchips{flex-wrap:wrap;overflow:visible}.mcard.jzc.cmp>.mctl{justify-content:flex-start}.mcard.jzc.cmp>.mctl{padding:10px 0 2px;margin-right:16px;flex-wrap:wrap}.mcard.jzc.cmp>.mlib{margin:6px 16px 0;padding:10px 0 14px;border-top:1px solid var(--line)}}
 @container (max-width:460px){.mcard.jzc.cmp .stg{--k:.9;min-height:220px;padding:18px 18px 22px}.mcard.jzc.cmp .bigv{width:320px;height:320px;right:-150px;margin-top:-160px}.mcard.jzc.cmp .jtitle{font-size:26px}}
 @container (max-width:460px){.stg{--k:1;min-height:320px;padding:22px 20px 30px}.bigv{width:360px;height:360px;right:-170px;margin-top:-180px}.stg .arm{right:calc(16px - 10px * var(--k))}.stxt{max-width:62%}.jtitle{font-size:30px}.sctl{gap:12px}.mctl{justify-content:space-between}.cover{width:86px}.sgrid{gap:6px}}
 /* toasts */
