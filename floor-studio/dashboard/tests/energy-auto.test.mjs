@@ -104,3 +104,16 @@ test('rooms and "without a room" can be hidden by the owner; ids are validated',
  assert.ok(c.state('light.c')); // the equipment itself stays available (start page widgets, energy)
  for(const d of Object.values(dictionaries))for(const k of ['roomsSettings','roomsSettingsHint','roomsShown','roomsShownHint','roomsEquipment','roomsEmpty','roomsHiddenShort','energyManual'])assert.ok(d[k],k);
 });
+
+
+test('power sensors with HA device_class are recognized, unavailable readings are not zero',()=>{
+ const rows=[{id:'sensor.plug_power',name:'Plug power',domain:'sensor',deviceId:'plug',device:'Plug',labels:[]}];
+ const states={'sensor.plug_power':state(42,'W',undefined,{device_class:'power'})};
+ const list=autoConsumers(rows,states,[]);
+ assert.equal(list.length,1);
+ assert.equal(autoTotals(list,null,{states}).watts,42);
+ states['sensor.plug_power'].state='unavailable';
+ assert.equal(autoTotals(list,null,{states}).watts,null);
+ states['sensor.plug_power'].state='unknown';
+ assert.equal(autoTotals(list,null,{states}).watts,null);
+});
