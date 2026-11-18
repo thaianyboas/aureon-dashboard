@@ -9,8 +9,8 @@ const ENERGY_UNITS={Wh:.001,kWh:1,MWh:1000},POWER_UNITS={W:1,kW:1000,MW:1000000}
 const NOT_CONSUMPTION=/export|return|einspeis|r[üu]ckspeis|produ[ck]|erzeug|generat|injection|feed[_ -]?in/i;
 export function consumerLabelIds(labels=[]){return labels.filter(l=>NAMES.has(labelKey(l.name))||NAMES.has(labelKey(l.id))).map(l=>l.id);}
 export function meterKind(state){const a=state?.attributes||{},unit=a.unit_of_measurement;
- if(Object.hasOwn(ENERGY_UNITS,unit)&&['total','total_increasing'].includes(a.state_class))return 'energy';
- if(Object.hasOwn(POWER_UNITS,unit)&&a.state_class==='measurement')return 'power';
+ if(Object.hasOwn(ENERGY_UNITS,unit)&&(['total','total_increasing'].includes(a.state_class)||(a.device_class==='energy'&&!a.state_class)))return 'energy';
+ if(Object.hasOwn(POWER_UNITS,unit)&&(a.state_class==='measurement'||a.device_class==='power'))return 'power';
  return null;}
 // One consumer per device (a labelled plug's switch brings along its meter sensors); entities without a device stand
 // alone. The first matching energy meter and power sensor of each device are used.
@@ -40,7 +40,7 @@ export function autoTotals(consumers,stats,{timeZone='UTC',now=Date.now(),states
   if(Array.isArray(energy))for(const x of energy)add(ms(x.start),Number(x.change));
   else if(c.powerId&&Array.isArray(stats?.power?.[c.powerId]))for(const x of stats.power[c.powerId])add(ms(x.start),Number(x.mean)/1000);
   for(const [k,v] of days)all.set(k,(all.get(k)||0)+v);
-  const p=states[c.powerId],watts=p&&Number.isFinite(Number(p.state))&&Object.hasOwn(POWER_UNITS,p.attributes?.unit_of_measurement)?Math.max(0,Number(p.state)*POWER_UNITS[p.attributes.unit_of_measurement]):null;
+  const p=states[c.powerId],watts=p&&p.state!=='unknown'&&p.state!=='unavailable'&&p.state!==''&&Number.isFinite(Number(p.state))&&Object.hasOwn(POWER_UNITS,p.attributes?.unit_of_measurement)?Math.max(0,Number(p.state)*POWER_UNITS[p.attributes.unit_of_measurement]):null;
   list.push({...c,today:days.get(today)??(days.size?0:null),month:days.size?[...days].filter(([k])=>k.startsWith(month)).reduce((s,[,v])=>s+v,0):null,watts});
  }
  const series=[...all].sort((a,b)=>a[0].localeCompare(b[0])).map(([k,value])=>({time:Date.parse(k+'T12:00:00Z'),key:k,value}));
