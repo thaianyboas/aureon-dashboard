@@ -1535,3 +1535,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18w (AUREON Noir 1.6.0) — edit everything, stage 1
 - `prefs.layout` {order, hidden, names, heroHidden}; `blk()` page blocks (pushes, hero, scenes, live, music, devices), `hp()` hero parts, `renameField()` for live/scenes/sec_<key>/greet ({nome}). Single "Restaurar padrão" resets order/secOrder/hidden/layout. Next: stage 2 = custom HA/HACS cards.
+
+## Claude batch — 2026-11-18x (AUREON Noir 1.6.1) — edit stage 2: own HA/HACS cards
+- noir/cards.js (window.loadCardHelpers, window.customCards, getStubConfig/getConfigElement, js-yaml devDependency bundled). `prefs.layout.cards` [{id, config, wide}], block 'mycards', `cardEditor` sheet (pick → preview + visual editor + YAML). hass pushed to card elements in updated(). Fixture: fake helpers + fake HACS card.

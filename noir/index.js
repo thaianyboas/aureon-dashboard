@@ -8,14 +8,15 @@ import { repeat } from 'lit/directives/repeat.js';
 import { styles } from './styles.js';
 import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, applianceKind, PLUG_RUN_W, PLUG_IDLE_W } from './data.js';
 import { translator, localeOf } from './i18n.js';
+import { BUILTIN_CARDS, installedCards, stubConfig, configElement, createCard, toYaml, fromYaml } from './cards.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
 // Owner 2026-11-18: lights on and waste day are already visible on the map and in the waste card, so they are no
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.6.0';
-export const BUILD = 'AUREON-NOIR-20261118w';
+export const VERSION = '1.6.1';
+export const BUILD = 'AUREON-NOIR-20261118x';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -180,6 +181,9 @@ class AureonDashboard extends LitElement {
   }
   updated() {
     this._declutter();
+    // Owner cards (HA / HACS) need every hass update, like in a normal HA dashboard.
+    for (const v of (this._cardEls || new Map()).values()) if (v.el && v.el.hass !== this.hass) v.el.hass = this.hass;
+    for (const el of [this._prevEl, this._cfgEl]) if (el && el.hass !== this.hass) el.hass = this.hass;
     const th = this._theme();
     if (th.ha) { const c = getComputedStyle(this).getPropertyValue('--primary-color'); const rgb = hexRgb(c); if (rgb !== this._accentRgb) { this._accentRgb = rgb; this.requestUpdate(); } }
   }
@@ -326,7 +330,7 @@ class AureonDashboard extends LitElement {
   _layout() { return this._prefs.layout || {}; }
   _saveLayout(patch) { this._save({ layout: { ...this._layout(), ...patch } }); }
   _blockOrder() {
-    const def = ['pushes', 'hero', 'scenes', 'live', 'music', 'devices'], o = (this._layout().order || []).filter((k) => def.includes(k));
+    const def = ['pushes', 'hero', 'scenes', 'live', 'music', 'mycards', 'devices'], o = (this._layout().order || []).filter((k) => def.includes(k));
     return [...o, ...def.filter((k) => !o.includes(k))];
   }
   _title(key, def) { return (this._layout().names || {})[key] || def; }
@@ -343,8 +347,8 @@ class AureonDashboard extends LitElement {
     const { t } = ctx, ui = this._ui, L = this._layout(), hidden = !!(L.hidden || {})[k];
     if (!ui.edit) return hidden || !render ? nothing : render();
     const o = this._blockOrder(), i = o.indexOf(k);
-    const names = { pushes: t('reminders'), hero: t('blkHero'), scenes: t('scenes'), live: t('now'), music: 'AUREON Music', devices: t('blkDevices') };
-    const renamable = { scenes: t('scenes'), live: t('now') };
+    const names = { pushes: t('reminders'), hero: t('blkHero'), scenes: t('scenes'), live: t('now'), music: 'AUREON Music', mycards: t('myCards'), devices: t('blkDevices') };
+    const renamable = { scenes: t('scenes'), live: t('now'), mycards: t('myCards') };
     return html`<div class=${'blk' + (hidden ? ' off' : '')}>
       <div class="blkbar" role="group" aria-label=${names[k]}>
         <span class="eyebrow grow txt">${renamable[k] ? this._title(k, renamable[k]) : names[k]}${hidden ? ' · ' + t('blkHidden') : ''}</span>
@@ -354,6 +358,89 @@ class AureonDashboard extends LitElement {
         <button class="ib sm" aria-pressed=${hidden ? 'true' : 'false'} aria-label=${(hidden ? t('blkShow') : t('blkHide')) + ' · ' + names[k]} title=${hidden ? t('blkShow') : t('blkHide')} @click=${() => this._saveLayout({ hidden: { ...(L.hidden || {}), [k]: !hidden } })}>${ic(hidden ? 'eyeOff' : 'eye', 'i s')}</button>
       </div>
       ${hidden || !render ? nothing : render()}</div>`;
+  }
+  // ── Own cards: HA built-ins and HACS cards (owner 2026-11-18, edit stage 2) ─────────────────────────────────
+  _cards() { return this._layout().cards || []; }
+  _saveCards(cards) { this._saveLayout({ cards }); }
+  _cardEl(c) {
+    const json = JSON.stringify(c.config), cache = (this._cardEls ||= new Map()), hit = cache.get(c.id);
+    if (hit && hit.json === json) return hit.el || hit.ph;
+    const ph = document.createElement('div'); ph.className = 'cardph';
+    cache.set(c.id, { json, el: null, ph });
+    createCard(c.config, this.hass).then((el) => { const cur = cache.get(c.id); if (cur && cur.json === json) { cur.el = el; this.requestUpdate(); } })
+      .catch(() => { const cur = cache.get(c.id); if (cur) { cur.ph.textContent = '⚠ ' + c.config.type; cur.ph.classList.add('err'); } });
+    return ph;
+  }
+  myCards(ctx) {
+    const { t } = ctx, ui = this._ui, cards = this._cards();
+    if (!cards.length && !ui.edit) return nothing;
+    const move = (i, d) => { const a = cards.slice(), j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; this._saveCards(a); };
+    return html`<section class="sec" aria-label=${this._title('mycards', t('myCards'))}>
+      <h2 class="eyebrow" style="margin:0;padding:0 4px;font-weight:400">${this._title('mycards', t('myCards'))}</h2>
+      ${cards.length ? html`<div class="mycards">${repeat(cards, (c) => c.id, (c, i) => html`<div class=${'mycard' + (c.wide ? ' wide' : '')}>
+        ${ui.edit ? html`<div class="mcbar"><span class="eyebrow grow txt">${c.config.type.replace('custom:', '')}</span>
+          <button class="ib sm" ?disabled=${i === 0} aria-label=${t('moveBack')} @click=${() => move(i, -1)}>${ic('up', 'i s')}</button>
+          <button class="ib sm" ?disabled=${i === cards.length - 1} aria-label=${t('moveFwd')} @click=${() => move(i, 1)}>${ic('down', 'i s')}</button>
+          <button class="ib sm" aria-pressed=${c.wide ? 'true' : 'false'} aria-label=${t('cardWide')} title=${t('cardWide')} @click=${() => this._saveCards(cards.map((x) => (x.id === c.id ? { ...x, wide: !x.wide } : x)))}>${ic('grip', 'i s')}</button>
+          <button class="ib sm" aria-label=${t('cardEdit')} title=${t('cardEdit')} @click=${() => this._openCardEditor(c)}>${ic('pencil', 'i s')}</button>
+          <button class="ib sm" aria-label=${t('cardRemove')} title=${t('cardRemove')} @click=${() => { if (confirm(t('cardRemoveQ'))) this._saveCards(cards.filter((x) => x.id !== c.id)); }}>${ic('x', 'i s')}</button></div>` : nothing}
+        ${this._cardEl(c)}</div>`)}</div>` : nothing}
+      ${ui.edit ? html`<button class="btn addcard" @click=${() => this._set({ cardEd: { id: null, step: 'pick', q: '' } })}>${ic('plus', 'i s')}${t('addCard')}</button>` : nothing}
+    </section>`;
+  }
+  async _openCardEditor(card, type) {
+    const config = card ? card.config : await stubConfig(type, this.hass);
+    this._set({ cardEd: { id: card?.id || null, step: 'cfg', config, yaml: toYaml(config), err: '' } });
+    this._cfgEl = null; this._prevEl = null; this._prevJson = '';
+    const el = await configElement(config.type, this.hass);
+    if (el) {
+      try { el.setConfig(config); } catch { /* the YAML box still works */ }
+      el.addEventListener('config-changed', (e) => { const c = e.detail?.config; if (c) this._setCardCfg({ ...c, type: c.type || config.type }, true); });
+      this._cfgEl = el; this.requestUpdate();
+    }
+  }
+  _setCardCfg(config, fromVisual) {
+    const ed = this._ui.cardEd; if (!ed) return;
+    this._set({ cardEd: { ...ed, config, yaml: toYaml(config), err: '' } });
+    if (!fromVisual && this._cfgEl) { try { this._cfgEl.setConfig(config); } catch { /* fine */ } }
+  }
+  _preview(config) {
+    const json = JSON.stringify(config);
+    if (json !== this._prevJson) {
+      this._prevJson = json; clearTimeout(this._prevT);
+      this._prevT = setTimeout(() => createCard(config, this.hass).then((el) => { if (this._prevJson === json) { this._prevEl = el; this.requestUpdate(); } }).catch(() => {}), 300);
+    }
+    return this._prevEl || html`<div class="cardph"></div>`;
+  }
+  cardEditor({ t }) {
+    const ed = this._ui.cardEd, close = () => { this._set({ cardEd: null }); this._cfgEl = null; this._prevEl = null; };
+    let body;
+    if (ed.step === 'pick') {
+      const q = (ed.q || '').toLowerCase(), inst = installedCards(), bi = BUILTIN_CARDS.map(([k, n]) => ({ type: k, name: n, description: '' }));
+      const f = (l) => l.filter((c) => !q || (c.name + ' ' + c.type + ' ' + c.description).toLowerCase().includes(q));
+      const item = (c) => html`<button class="cpick" @click=${() => this._openCardEditor(null, c.type)}><b>${c.name}</b><small>${c.description || c.type.replace('custom:', '')}</small></button>`;
+      body = html`<input type="search" class="cq" .value=${ed.q || ''} placeholder=${t('cardSearch')} aria-label=${t('cardSearch')} @input=${(e) => this._set({ cardEd: { ...ed, q: e.target.value } })}>
+        <span class="eyebrow" style="font-size:10px">${t('cardsInstalled')} · ${f(inst).length}</span>
+        ${inst.length ? html`<div class="cpicks">${f(inst).map(item)}</div>` : html`<span class="muted txt" style="font-size:13px">${t('cardsNoneInstalled')}</span>`}
+        <span class="eyebrow" style="font-size:10px">${t('cardsBuiltin')}</span>
+        <div class="cpicks">${f(bi).map(item)}</div>`;
+    } else {
+      body = html`<div class="cedit">
+        <div class="cprev"><span class="eyebrow" style="font-size:10px">${t('cardPreview')}</span>${this._preview(ed.config)}</div>
+        <div class="ccfg">${this._cfgEl ? html`<span class="eyebrow" style="font-size:10px">${t('cardVisual')}</span>${this._cfgEl}` : nothing}
+          <span class="eyebrow" style="font-size:10px">YAML</span>
+          <textarea class="cyaml" spellcheck="false" .value=${ed.yaml} aria-label="YAML" @input=${(e) => { try { const c = fromYaml(e.target.value); this._set({ cardEd: { ...this._ui.cardEd, config: c, yaml: e.target.value, err: '' } }); if (this._cfgEl) { try { this._cfgEl.setConfig(c); } catch { /* fine */ } } } catch (er) { this._set({ cardEd: { ...this._ui.cardEd, yaml: e.target.value, err: t('cardYamlErr') } }); } }}></textarea>
+          ${ed.err ? html`<span class="cerr" role="alert">${ed.err}</span>` : nothing}</div></div>
+        <div class="row" style="gap:8px;justify-content:flex-end;flex-wrap:wrap">
+          ${!ed.id ? html`<button class="btn" @click=${() => this._set({ cardEd: { id: null, step: 'pick', q: '' } })}>${ic('left', 'i s')}${t('goBack')}</button>` : nothing}
+          <button class="btn" @click=${close}>${t('cancel')}</button>
+          <button class="btn pri" ?disabled=${!!ed.err} @click=${() => { const cards = this._cards(); this._saveCards(ed.id ? cards.map((c) => (c.id === ed.id ? { ...c, config: ed.config } : c)) : [...cards, { id: 'c' + Date.now().toString(36), config: ed.config }]); close(); }}>${t('save')}</button></div>`;
+    }
+    return html`<div class="overlay" @click=${(e) => { if (e.target === e.currentTarget) close(); }}>
+      <div class="sheet rise" role="dialog" aria-modal="true" aria-label=${ed.id ? t('cardEdit') : t('addCard')} style="width:min(860px,100%)">
+        <div class="row sp" style="gap:10px"><span style="font-size:24px;font-weight:300;letter-spacing:-.03em">${ed.id ? t('cardEdit') : t('addCard')}</span>
+          <button class="ib sm stclose" aria-label=${t('closeS')} @click=${close}>${ic('x', 'i s')}</button></div>
+        ${body}</div></div>`;
   }
   // A hero part (date, clock, greeting, people, weather, house mode, map): hidden outside edit mode, dimmed with an eye in it.
   hp(key, content, t, extra) {
@@ -411,6 +498,7 @@ class AureonDashboard extends LitElement {
           scenes: () => (m.scenes.length ? this.scenes(ctx) : nothing),
           live: () => this.live(ctx),
           music: () => (musicTop ? secRender.music() : nothing),
+          mycards: () => this.myCards(ctx),
           devices: () => html`${this.filters(ctx, show)}
             ${ui.room !== 'all' ? this.roomHead(ctx) : nothing}
             ${secs.filter((k2) => k2 !== 'music').map((k2) => secRender[k2]())}
@@ -419,6 +507,7 @@ class AureonDashboard extends LitElement {
       </div>
       ${ui.settings ? this.settings(ctx) : nothing}
       ${ui.battOpen ? this.battSheet(ctx) : nothing}
+      ${ui.cardEd ? this.cardEditor(ctx) : nothing}
       <div class="toasts" aria-live="polite">${repeat(this._toasts, (x) => x.id, (x) => html`<div class="toast rise" role="status">
         <span class="ic" style="background:var(--accent);color:var(--on-accent)">${ic('check')}</span>
         <span class="grow"><b class="txt" style="display:block;font-size:14px;font-weight:500">${x.title}</b><span class="txt muted" style="display:block;font-size:13px;line-height:1.45">${x.body}</span></span>

@@ -543,4 +543,24 @@ select.numin{text-align:left}
 .hpbar .ib{background:var(--raise);border:1px solid var(--line2)}
 .rnbox{display:inline-flex;align-items:center;gap:4px}
 .rnbox input{min-height:36px;min-width:0;width:min(260px,52vw);border-radius:10px;border:1px solid var(--accent);background:var(--sunk);color:var(--fg);font:inherit;padding:0 10px}
+/* Own HA / HACS cards (owner 2026-11-18). */
+.mycards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@container (max-width:700px){.mycards{grid-template-columns:minmax(0,1fr)}}
+.mycard{display:flex;flex-direction:column;gap:6px;min-width:0}
+.mycard.wide{grid-column:1/-1}
+.mycard>*:not(.mcbar){--ha-card-background:var(--card2);--ha-card-border-radius:22px;--ha-card-border-color:var(--line);--card-background-color:var(--card2);--primary-text-color:var(--fg);--secondary-text-color:var(--mut)}
+.mcbar{display:flex;align-items:center;gap:4px;padding:0 4px}.mcbar .eyebrow{font-size:10px;color:var(--accent)}
+.cardph{min-height:96px;border-radius:22px;border:1px dashed var(--line2);display:grid;place-items:center;color:var(--mut);font-size:12px}
+.cardph.err{color:#FF8A80;border-color:rgba(255,138,128,.5)}
+.addcard{align-self:flex-start;border-style:dashed}
+.cq{min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit}
+.cpicks{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.cpick{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;text-align:left;cursor:pointer}
+.cpick:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.cpick b{font-size:14px;font-weight:500}.cpick small{font-size:11px;color:var(--mut);overflow-wrap:anywhere}
+.cedit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@container (max-width:700px){.cedit{grid-template-columns:minmax(0,1fr)}}
+.cprev,.ccfg{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cyaml{min-height:220px;resize:vertical;border-radius:12px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:12.5px/1.5 'Geist Mono',ui-monospace,monospace;padding:12px;tab-size:2}
+.cerr{color:#FF8A80;font-size:12px}
 `;

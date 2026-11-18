@@ -103,3 +103,24 @@ window.makeHass = function makeHass(lang) {
   };
   return hass;
 };
+
+// Fake Home Assistant card helpers + one fake HACS card (owner cards, edit stage 2).
+if (typeof customElements !== 'undefined' && !customElements.get('fake-hacs-card')) {
+  class FakeCard extends HTMLElement {
+    setConfig(c) { this._c = c; this.render(); }
+    set hass(h) { this._h = h; this.render(); }
+    get hass() { return this._h; }
+    render() { if (!this._c) return; const e = this._c.entity, st = e && this._h ? this._h.states[e]?.state : ''; this.innerHTML = `<div class="fakecard" style="padding:16px;border-radius:var(--ha-card-border-radius);background:var(--ha-card-background);color:var(--primary-text-color)">${this._c.title || this._c.type} ${e ? '· ' + e + ' = ' + st : ''}</div>`; }
+    static getStubConfig(hass, ents) { return { entity: ents.find((x) => x.startsWith('light.')) || '', title: 'Mushroom-like' }; }
+    static async getConfigElement() { return document.createElement('fake-hacs-card-editor'); }
+  }
+  class FakeEditor extends HTMLElement {
+    setConfig(c) { this._c = c; this.innerHTML = '<input class="fake-title">'; this.querySelector('input').value = c.title || ''; this.querySelector('input').oninput = (e) => this.dispatchEvent(new CustomEvent('config-changed', { detail: { config: { ...this._c, title: e.target.value } }, bubbles: true, composed: true })); }
+  }
+  class FakeTile extends FakeCard { static getStubConfig(hass, ents) { return { entity: ents.find((x) => x.startsWith('sensor.')) || '' }; } }
+  customElements.define('fake-hacs-card', FakeCard);
+  customElements.define('fake-hacs-card-editor', FakeEditor);
+  customElements.define('hui-tile-card', FakeTile);
+  window.customCards = [{ type: 'fake-hacs-card', name: 'Fake Mushroom', description: 'A HACS card for tests' }];
+  window.loadCardHelpers = async () => ({ createCardElement(config) { const tag = config.type.startsWith('custom:') ? config.type.slice(7) : `hui-${config.type}-card`; const C = customElements.get(tag); const el = C ? new C() : document.createElement('div'); if (el.setConfig) el.setConfig(config); else el.textContent = 'unknown ' + config.type; return el; } });
+}

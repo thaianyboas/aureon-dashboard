@@ -187,11 +187,27 @@ console.log('behaviour');
   await shadow(page, `root.querySelector('.hero button[aria-label="Renomear · Saudação"]').click()`); await new Promise((r) => setTimeout(r, 150));
   await shadow(page, `const i=root.querySelector('.hero .rnbox input');i.value='Oi {nome}, tudo certo?';i.dispatchEvent(new Event('input',{bubbles:true,composed:true}));i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,composed:true}))`); await new Promise((r) => setTimeout(r, 200));
   await shadow(page, `[...root.querySelectorAll('.blk')].find((b)=>/Cenas/.test(b.querySelector('.blkbar').textContent)).querySelector('button[aria-label^="Esconder"]').click()`); await new Promise((r) => setTimeout(r, 150));
+  // Owner 2026-11-18: own HA / HACS cards.
+  check(await shadow(page, `return !!root.querySelector('.addcard')`), 'edit mode offers "Adicionar cartão"');
+  await shadow(page, `root.querySelector('.addcard').click()`); await new Promise((r) => setTimeout(r, 200));
+  check(await shadow(page, `return [...root.querySelectorAll('.cpick')].some((b)=>/Fake Mushroom/.test(b.textContent)) && [...root.querySelectorAll('.cpick')].some((b)=>/Tile/.test(b.textContent))`), 'card picker lists installed HACS cards and HA built-ins');
+  await page.screenshot({ path: 'build/noir/card-pick.png' });
+  await shadow(page, `[...root.querySelectorAll('.cpick')].find((b)=>/Fake Mushroom/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 900));
+  check(await shadow(page, `return /type: custom:fake-hacs-card/.test(root.querySelector('.cyaml').value) && /light\./.test(root.querySelector('.cyaml').value) && !!root.querySelector('fake-hacs-card-editor') && !!root.querySelector('.cprev fake-hacs-card')`), 'new card starts from its own example config, with its visual editor and a live preview');
+  await shadow(page, `const i=root.querySelector('fake-hacs-card-editor input'); i.value='Sala'; i.dispatchEvent(new Event('input'))`); await new Promise((r) => setTimeout(r, 600));
+  check(await shadow(page, `return /title: Sala/.test(root.querySelector('.cyaml').value) && /Sala/.test(root.querySelector('.cprev').textContent)`), 'visual editor changes update YAML and preview');
+  await page.screenshot({ path: 'build/noir/card-edit.png' });
+  await shadow(page, `[...root.querySelectorAll('.sheet .btn')].find((b)=>/^Salvar$/.test(b.textContent.trim())).click()`); await new Promise((r) => setTimeout(r, 400));
+  check(await shadow(page, `return !!root.querySelector('.mycards .mycard fake-hacs-card') && /Sala/.test(root.querySelector('.mycards').textContent)`) && await page.evaluate(() => (document.getElementById('d')._prefs.layout?.cards || []).length === 1), 'saved card shows in "Meus cartões" and is stored in prefs');
+  await shadow(page, `const t=root.querySelector('.mycards .cyaml'); t && 0`);
   await shadow(page, `[...root.querySelectorAll('.btn')].find((b)=>/Concluir edição/.test(b.textContent)).click()`);
   await new Promise((r) => setTimeout(r, 200));
   check(await shadow(page, `const tx=root.textContent; return /Agora em casa/.test(tx) && /Oi Alex, tudo certo\\?/.test(root.querySelector('.greet').textContent) && !root.querySelector('.hero .wx, .hero .hours') && !root.querySelector('.blk') && ![...root.querySelectorAll('h2')].some((h)=>/^Cenas$/.test(h.textContent.trim()))`), 'after editing: new title, own greeting, weather and scenes hidden');
   check(await page.evaluate(() => { const L = document.getElementById('d')._prefs.layout || {}; return L.hidden?.scenes === true && L.heroHidden?.weather === true && L.names?.live === 'Agora em casa'; }), 'layout edits are saved in prefs (synced)');
   await page.screenshot({ path: 'build/noir/edit-after.png' });
+  check(await shadow(page, `return !!root.querySelector('.mycards fake-hacs-card') && !root.querySelector('.mcbar')`), 'own card stays on the dashboard after editing, without edit bars');
+  await page.evaluate(() => { const d = document.getElementById('d'); const h = { ...d.hass, states: { ...d.hass.states } }; const id = Object.keys(h.states).find((x) => x.startsWith('light.')); h.states[id] = { ...h.states[id], state: 'off' }; d.hass = h; }); await new Promise((r) => setTimeout(r, 300));
+  check(await shadow(page, `return /= off/.test(root.querySelector('.mycards fake-hacs-card').textContent)`), 'own card receives hass updates');
   await page.evaluate(() => { document.getElementById('d')._save({ layout: {} }); }); await new Promise((r) => setTimeout(r, 200));
 
   // music library from SpotifyPlus

@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.6.1 — 2026-11-18
+
+- Editar painel (etapa 2): "Adicionar cartão" — qualquer cartão do Home Assistant ou instalado pelo HACS (Mushroom, mini-graph…) entra no bloco "Meus cartões", com prévia ao vivo, editor visual do próprio cartão e YAML. Cada cartão pode ser movido, editado, ficar em largura inteira ou ser removido.
+
 ## AUREON Noir 1.6.0 — 2026-11-18
 
 - Editar painel (etapa 1): todos os blocos da página (Lembretes, Início, Cenas, Acontecendo agora, AUREON Music, Aparelhos e seções) podem ser movidos e escondidos; "Acontecendo agora", "Cenas" e cada seção podem ser renomeados.

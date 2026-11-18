@@ -14,9 +14,10 @@
     "test:noir": "node --test noir/tests/*.test.mjs && node scripts/test-noir-browser.mjs"
   },
   "devDependencies": {
-    "typescript": "6.0.2",
     "esbuild": "0.24.2",
+    "js-yaml": "^4.1.0",
     "lit": "3.2.1",
-    "puppeteer-core": "23.11.1"
+    "puppeteer-core": "23.11.1",
+    "typescript": "6.0.2"
   }
 }
