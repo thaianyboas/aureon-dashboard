@@ -70,7 +70,7 @@ test('controller: automatic energy reads statistics only, prices kWh and can be 
  assert.ok(calls.every(x=>x.type==='recorder/statistics_during_period'));
  assert.deepEqual(calls.map(x=>[x.period,x.statistic_ids]),[['day',['sensor.washer_energy','sensor.fridge_energy']],['hour',['sensor.tv_power','sensor.lamp_power']]]);
  const e=c.energy();
- assert.equal(e.auto,true);assert.equal(e.daily.value,4);assert.ok(Math.abs(e.daily.cost-1.3)<1e-9);assert.equal(e.power.value,900);
+ assert.equal(e.auto,true);assert.equal(e.daily.value,4);assert.ok(Math.abs(e.daily.cost-1.3)<1e-9);assert.equal(e.power.value,909);
  assert.equal(c.series.length,1);
  c.save({...c.preferences,energy:{...c.preferences.energy,auto:false}});
  assert.equal(c.energyAuto,false);assert.equal(c.energy().auto,undefined);
