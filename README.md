@@ -1,5 +1,11 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.5.9 — 2026-11-18
+
+- Configurações: todo título abre e fecha (fica salvo em todos os aparelhos).
+- Diagnóstico de energia saiu da página e foi para Configurações → Geral (fechado por padrão).
+- Saiu a frase "Toque num cômodo para ver os dispositivos".
+
 ## AUREON Noir 1.5.8 — 2026-11-18
 
 - Energia: "Mês passado" e "Este ano" (kWh e €) e um gráfico dos últimos 30 dias ou 12 meses, tudo das estatísticas do Home Assistant.

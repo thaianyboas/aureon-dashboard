@@ -1529,3 +1529,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18u (AUREON Noir 1.5.8)
 - `_energySeries` (recorder/statistics_during_period, month ×12 and day ×30, change, kWh, every 30 min) → last month, this year, `energyChart` toggle 30 dias / 12 meses. `.ekv` grid 3/2 columns. Browser test PASS. No HA test run by Claude.
+
+## Claude batch — 2026-11-18v (AUREON Noir 1.5.9)
+- Settings fold groups `grp()` (`.sgrp/.stgh/.stgb`, `prefs.stFold`, NOT `.stg` — that is the music stage). energyDiag moved to Settings → Geral (folded). tapRoom hint removed. Browser test PASS.

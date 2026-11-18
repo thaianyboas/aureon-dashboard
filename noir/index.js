@@ -14,8 +14,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.5.8';
-export const BUILD = 'AUREON-NOIR-20261118u';
+export const VERSION = '1.5.9';
+export const BUILD = 'AUREON-NOIR-20261118v';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -496,7 +496,7 @@ class AureonDashboard extends LitElement {
         </div>
       </div>
       <div class="heroR">
-        <div class="row sp" style="flex-wrap:wrap;gap:8px"><span class="eyebrow txt">${t('tapRoom')}</span>
+        <div class="row" style="flex-wrap:wrap;gap:8px;justify-content:flex-end">
           <span class="row" style="gap:8px;flex-wrap:wrap"><span class="hmR">${this.houseMenu(ctx)}</span>
           <span class="seg" role="group" aria-label=${t('house3d') + ' / ' + t('plan')}>
             <button aria-pressed=${is3d ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button>
@@ -913,6 +913,11 @@ class AureonDashboard extends LitElement {
     const tabs = [['geral', t('stGeneral')], ['modos', t('modeTitle')], ['aparelhos', t('stAppliances')], ['secoes', t('stSections')], ['etiquetas', t('stLabels')], ['dispositivos', t('stDevices')], ['sobre', t('stAbout')]];
     const secNames = { lights: t('lights'), climate: t('climate'), plugs: t('plugs'), energy: t('energy'), covers: t('covers'), openings: t('openings'), security: t('security'), tv: t('tvs'), music: 'AUREON Music', scenes: t('scenes') };
     let body = nothing;
+    // Owner 2026-11-18 ("cada título tem que ter drop down … em todo lugar da configuração"): every settings heading
+    // folds; what is folded is remembered (synced) per tab and heading.
+    const fold = prefs.stFold || {};
+    const grp = (key, title, content, defClosed = false) => { const k = tab + ':' + key, closed = fold[k] ?? defClosed;
+      return html`<div class=${'sgrp' + (closed ? ' closed' : '')}><button class="stgh" aria-expanded=${closed ? 'false' : 'true'} @click=${() => this._save({ stFold: { ...(this._prefs.stFold || {}), [k]: !closed } })}><span class="eyebrow">${title}</span>${ic('down', 'i s')}</button>${closed ? nothing : html`<div class="stgb">${content}</div>`}</div>`; };
     const hints = { geral: t('stHintGeneral'), modos: t('stHintModes'), aparelhos: t('stHintAppl'), secoes: t('stHintSections'), etiquetas: t('stHintLabels'), dispositivos: t('stHintDevices'), sobre: t('stHintAbout') };
     const icons = { geral: 'palette', modos: 'home', aparelhos: 'washer', secoes: 'sections', etiquetas: 'eye', dispositivos: 'plug', sobre: 'gear' };
     if (tab === 'home') {
@@ -924,25 +929,28 @@ class AureonDashboard extends LitElement {
       const rk = { arrivals: t('rkArrivals'), lights: t('lights'), openings: t('openings'), locks: t('locked'), appliances: t('cycleDone'), waste: t('waste'), ...{} };
       const kinds = prefs.reminderKinds || {};
       body = html`
-        <span class="eyebrow" style="font-size:10px">${t('theme')}</span>
+        ${grp('theme', t('theme'), html`
         <div class="wrapRow">${THEMES.map((x) => html`<button class="dc" aria-pressed=${prefs.theme === x.id ? 'true' : 'false'} style=${prefs.theme === x.id ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => this._save({ theme: x.id })}><span style=${`display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:${x.ha ? 'var(--primary-color,#03a9f4)' : x.accent}`}></span>${x.name}</button>`)}</div>
         <div class="chk"><span class="grow txt"><b>${t('stDefaultView')}</b></span><span class="seg"><button aria-pressed=${prefs.view !== '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button><button aria-pressed=${prefs.view === '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></div>
         ${weathers.length > 1 ? html`<div class="chk"><span class="grow txt"><b>${t('forecastT')}</b></span><select style="min-height:40px;border-radius:10px;background:var(--sunk);color:var(--fg);border:1px solid var(--line2);padding:0 10px;font:inherit" @change=${(e) => { this._save({ weather: e.target.value }); this._fcFor = null; this.requestUpdate(); }}>${weathers.map((w) => html`<option value=${w} ?selected=${(prefs.weather || weathers[0]) === w}>${this.hass.states[w].attributes.friendly_name || w}</option>`)}</select></div>` : nothing}
-        <span class="eyebrow" style="font-size:10px;padding-top:6px">${t('energy')}</span>
+        `)}
+        ${grp('energy', t('energy'), html`
         <div class="chk"><span class="grow txt"><b>${t('stPrice')}</b><small>${t('stPriceHint')}</small></span>
           <span class="row" style="gap:6px"><input class="numin" type="number" inputmode="decimal" min="0" step="0.01" aria-label=${t('stPrice')} .value=${prefs.energyPrice != null ? String(prefs.energyPrice) : ''} placeholder="0.35"
             @change=${(e) => { const v = parseFloat(String(e.target.value).replace(',', '.')); this._save({ energyPrice: Number.isFinite(v) && v >= 0 ? v : null }); }}>
           <select class="numin" style="width:auto" aria-label=${t('currency')} @change=${(e) => this._save({ energyCur: e.target.value })}>${['€', 'R$', '$', 'CHF', '£'].map((c) => html`<option ?selected=${(prefs.energyCur || '€') === c}>${c}</option>`)}</select><span class="dim">/kWh</span></span></div>
-        <span class="eyebrow" style="font-size:10px;padding-top:6px">${t('reminders')}</span>
+        `)}
+        ${grp('ediag', t('diagShow'), this.energyDiag(ctx), true)}
+        ${grp('rem', t('reminders'), html`
         <div class="chk"><span class="grow txt"><b>${t('stPushMin')}</b></span>${sw(!!prefs.pushMin, () => this._save({ pushMin: !prefs.pushMin }), t('stPushMin'))}</div>
-        ${Object.entries(rk).map(([k, n]) => html`<div class="chk"><span class="grow txt"><b>${n}</b></span>${sw(reminderOn(kinds, k), () => this._save({ reminderKinds: { ...kinds, [k]: !reminderOn(kinds, k) } }), n)}</div>`)}`;
+        ${Object.entries(rk).map(([k, n]) => html`<div class="chk"><span class="grow txt"><b>${n}</b></span>${sw(reminderOn(kinds, k), () => this._save({ reminderKinds: { ...kinds, [k]: !reminderOn(kinds, k) } }), n)}</div>`)}`)}`;
     } else if (tab === 'secoes') {
       const hiddenS = new Set(prefs.secHidden || []);
-      body = html`<span class="muted txt" style="font-size:13px">${t('stSectionsHint')}</span>
+      body = html`${grp('sections', tabs.find(([k]) => k === 'secoes')[1], html`<span class="muted txt" style="font-size:13px">${t('stSectionsHint')}</span>
         ${prefs.secOrder.map((k, i) => html`<div class="chk"><span class="grow txt"><b>${secNames[k]}</b></span>
           <button class="ib sm" ?disabled=${i === 0} aria-label=${t('sectionUp') + ' · ' + secNames[k]} @click=${() => this._moveSection(k, -1)}>${ic('up', 'i s')}</button>
           <button class="ib sm" ?disabled=${i === prefs.secOrder.length - 1} aria-label=${t('sectionDown') + ' · ' + secNames[k]} @click=${() => this._moveSection(k, 1)}>${ic('down', 'i s')}</button>
-          ${sw(!hiddenS.has(k), () => { hiddenS.has(k) ? hiddenS.delete(k) : hiddenS.add(k); this._save({ secHidden: [...hiddenS] }); }, secNames[k])}</div>`)}`;
+          ${sw(!hiddenS.has(k), () => { hiddenS.has(k) ? hiddenS.delete(k) : hiddenS.add(k); this._save({ secHidden: [...hiddenS] }); }, secNames[k])}</div>`)}`)}`;
     } else if (tab === 'modos') {
       const defs = this._modeDefs(t), cur = defs.find((d) => d.id === (ui.modeTab || 'away')) || defs[1];
       body = html`<span class="muted txt" style="font-size:13px;line-height:1.55">${t('stModesHint')}</span>
@@ -952,7 +960,7 @@ class AureonDashboard extends LitElement {
       const map = prefs.applMap || {}, hid = prefs.applHidden || {};
       const kinds = ['washer', 'dish', 'dryer'];
       body = html`<span class="muted txt" style="font-size:13px;line-height:1.55">${t('stApplHint')}</span>
-        ${kinds.map((k) => { const auto = m.appliances.find((a) => a.kind === k && !map[k]); return html`<div class="applcfg">
+        ${kinds.map((k) => { const auto = m.appliances.find((a) => a.kind === k && !map[k]); return grp('appl_' + k, t('kind_' + k), html`<div class="applcfg">
           <div class="row sp" style="gap:12px"><span class="row" style="gap:10px"><span class="ic" style="width:36px;height:36px">${ic(k === 'dish' ? 'dish' : 'washer', 'i s')}</span><b style="font-weight:500">${t('kind_' + k)}</b></span>
             ${sw(!hid[k], () => this._save({ applHidden: { ...hid, [k]: !hid[k] } }), t('kind_' + k))}</div>
           ${hid[k] ? html`<span class="muted" style="font-size:12px">${t('applHiddenTxt')}</span>` : html`<label class="lbsel"><span class="eyebrow" style="font-size:10px">${t('applSource')}</span>
@@ -961,7 +969,7 @@ class AureonDashboard extends LitElement {
               ${m.appliances.filter((a) => !a.plug || a.kind === k).length ? html`<optgroup label=${t('applDevices')}>${m.appliances.filter((a) => !a.plug).map((a) => html`<option value=${a.id} ?selected=${map[k] === a.id}>${a.name}${a.areaName ? ' · ' + a.areaName : ''}</option>`)}</optgroup>` : nothing}
               <optgroup label=${t('applPlugs')}>${m.plugs.slice().sort((x, y) => (y.w != null) - (x.w != null) || x.name.localeCompare(y.name)).map((p) => html`<option value=${p.id} ?selected=${map[k] === p.id}>${p.name}${p.areaName ? ' · ' + p.areaName : ''}${p.w != null ? ' · ' + p.w + ' W' : ''}</option>`)}</optgroup>
             </select></label>`}
-        </div>`; })}`;
+        </div>`); })}`;
     } else if (tab === 'etiquetas') {
       const labels = this._labelList(m), rules = prefs.labelRules || {};
       const sec = ui.labelSec || 'all';
@@ -980,12 +988,12 @@ class AureonDashboard extends LitElement {
       body = html`<span class="muted txt" style="font-size:13px;line-height:1.55">${t('stLabelsHint2')}</span>
         <label class="lbsel"><span class="eyebrow" style="font-size:10px">${t('stApplyTo')}</span>
           <select .value=${sec} @change=${(e) => this._set({ labelSec: e.target.value })}>${opts.map(([k, n]) => html`<option value=${k} ?selected=${sec === k}>${n}${(rules[k]?.include?.length || rules[k]?.exclude?.length) ? ' •' : ''}</option>`)}</select></label>
-        ${!user.length ? html`<span class="muted" style="font-size:13px">${t('stNoLabels')}</span>` : html`<div class="lblist">${user.map((l) => { const st = state(l.id); return html`<div class=${'lbrow ' + st}>
+        ${grp('mine', t('stLbMine'), !user.length ? html`<span class="muted" style="font-size:13px">${t('stNoLabels')}</span>` : html`<div class="lblist">${user.map((l) => { const st = state(l.id); return html`<div class=${'lbrow ' + st}>
           <span class="lbic" style=${'--lc:' + col(l.color)}>${l.icon ? html`<ha-icon .icon=${l.icon}></ha-icon>` : nothing}</span>
           <span class="grow txt"><b>${l.name}</b><span class="muted">${[t('stLabelCount', { n: l.count }), l.desc].filter(Boolean).join(' · ')}</span></span>
           <span class="lbseg" role="radiogroup" aria-label=${l.name}>${[['normal', t('stLbNormal')], ['include', t('stLbOnly')], ['exclude', t('stLbHide')]].map(([k, n]) => html`<button role="radio" aria-checked=${st === k ? 'true' : 'false'} class=${k} @click=${() => setState(l.id, k)}>${n}</button>`)}</span>
-          <span class="lbexp">${st === 'include' ? t('stLbExpOnly', { s: secLabel, l: l.name }) : st === 'exclude' ? t('stLbExpHide', { s: secLabel, l: l.name }) : t('stLbExpNormal', { l: l.name })}</span></div>`; })}</div>`}
-        ${sys.length ? html`<div class="lbsys"><span class="eyebrow" style="font-size:10px">${t('stLbSystem')}</span>${sys.map((l) => html`<span class="row" style="gap:10px;font-size:13px"><span class="lbic sm" style=${'--lc:' + col(l.color)}>${l.icon ? html`<ha-icon .icon=${l.icon}></ha-icon>` : nothing}</span><b style="font-weight:500">${l.name}</b><span class="muted">${ROLE_TXT[l.role] || SYS[l.id]}</span></span>`)}</div>` : nothing}`;
+          <span class="lbexp">${st === 'include' ? t('stLbExpOnly', { s: secLabel, l: l.name }) : st === 'exclude' ? t('stLbExpHide', { s: secLabel, l: l.name }) : t('stLbExpNormal', { l: l.name })}</span></div>`; })}</div>`)}
+        ${sys.length ? grp('sys', t('stLbSystem'), html`<div class="lbsys">${sys.map((l) => html`<span class="row" style="gap:10px;font-size:13px"><span class="lbic sm" style=${'--lc:' + col(l.color)}>${l.icon ? html`<ha-icon .icon=${l.icon}></ha-icon>` : nothing}</span><b style="font-weight:500">${l.name}</b><span class="muted">${ROLE_TXT[l.role] || SYS[l.id]}</span></span>`)}</div>`) : nothing}`;
     } else if (tab === 'dispositivos') {
       const q = (ui.setQ || '').toLowerCase(), hid = new Set(prefs.hidden || []), force = new Set(prefs.forceShow || []);
       const groups = [['lights', t('lights'), m.lights], ['plugs', t('plugs'), m.plugs], ['climate', t('climate'), m.climate], ['covers', t('covers'), m.covers], ['openings', t('openings'), m.openings], ['security', t('security'), [...m.locks, ...m.cams]], ['tv', t('tvs'), m.tvs], ['music', t('speakersAll'), m.speakers], ['scenes', t('scenes'), m.scenes]];
@@ -993,20 +1001,20 @@ class AureonDashboard extends LitElement {
       if (this._mc && !mcd.length && !this._mc.pending?.has('devices') && !this._connAsked) { this._connAsked = true; this._mc.loadDevices?.(false); }
       const match = (d) => !q || (d.name + ' ' + d.id + ' ' + (d.areaName || '')).toLowerCase().includes(q);
       body = html`<input type="search" .value=${ui.setQ || ''} placeholder=${t('stSearch')} aria-label=${t('stSearch')} @input=${(e) => this._set({ setQ: e.target.value })} style="min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit">
-        ${groups.map(([k, n, list]) => { const f = list.filter(match); if (!f.length && !(k === 'music' && m.hiddenMedia.length)) return nothing; return html`<span class="eyebrow" style="font-size:10px;padding-top:8px">${n} · ${f.length}</span>
+        ${groups.map(([k, n, list]) => { const f = list.filter(match); if (!f.length && !(k === 'music' && m.hiddenMedia.length)) return nothing; return grp('dev_' + k, n + ' · ' + f.length, html`
           ${f.map((d) => html`<div class="chk"><span class="grow txt"><b>${d.name}</b><span class="muted" style="display:block;font-size:11px">${[d.areaName, d.id].filter(Boolean).join(' · ')}${force.has(d.id) ? ' · ' + t('stHiddenInHa') : ''}</span></span>
             ${sw(!hid.has(d.id), () => this._toggleHidden(d.id), d.name)}</div>`)}
           ${k === 'music' ? m.hiddenMedia.filter(match).map((d) => html`<div class="chk" style="opacity:.75"><span class="grow txt"><b>${d.name}</b><span class="muted" style="display:block;font-size:11px">${d.id} · ${t('stHiddenInHa')}</span></span>
-            ${sw(false, () => this._save({ forceShow: [...new Set([...(prefs.forceShow || []), d.id])] }), d.name)}</div>`) : nothing}`; })}
-        ${mcd.length ? html`<span class="eyebrow" style="font-size:10px;padding-top:8px">${t('stOutputs')} · ${mcd.filter((d) => !ch.has(d.name)).length}</span>
+            ${sw(false, () => this._save({ forceShow: [...new Set([...(prefs.forceShow || []), d.id])] }), d.name)}</div>`) : nothing}`); })}
+        ${mcd.length ? grp('outputs', t('stOutputs') + ' · ' + mcd.filter((d) => !ch.has(d.name)).length, html`
           <span class="muted txt" style="font-size:12px">${t('stOutputsHint')}</span>
-          ${mcd.map((d) => html`<div class="chk"><span class="grow txt"><b>${d.name}</b></span>${sw(!ch.has(d.name), () => { ch.has(d.name) ? ch.delete(d.name) : ch.add(d.name); this._save({ connectHidden: [...ch] }); }, d.name)}</div>`)}` : nothing}`;
+          ${mcd.map((d) => html`<div class="chk"><span class="grow txt"><b>${d.name}</b></span>${sw(!ch.has(d.name), () => { ch.has(d.name) ? ch.delete(d.name) : ch.add(d.name); this._save({ connectHidden: [...ch] }); }, d.name)}</div>`)}`) : nothing}`;
     } else {
-      body = html`<div class="chk"><span class="grow txt"><b>AUREON Noir</b><span class="muted" style="display:block;font-size:12px">${VERSION} · ${BUILD}</span></span></div>
+      body = html`${grp('about', t('stAbout'), html`<div class="chk"><span class="grow txt"><b>AUREON Noir</b><span class="muted" style="display:block;font-size:12px">${VERSION} · ${BUILD}</span></span></div>
         <span class="muted txt" style="font-size:13px;line-height:1.5">${t('stAboutHint')}</span>
         <div class="wrapRow"><button class="btn" @click=${() => { try { navigator.clipboard.writeText(JSON.stringify(this._prefs)); this._toast(t('stCopied'), ''); } catch { /* ok */ } }}>${t('stExport')}</button>
           <button class="btn" @click=${() => { const v = prompt(t('stImport')); if (!v) return; try { const p = JSON.parse(v); if (p && typeof p === 'object') { this._save(p); this._toast(t('stImported'), ''); } } catch { this._toast(t('stImportFail'), ''); } }}>${t('stImport')}</button>
-          <button class="btn" @click=${() => { if (confirm(t('stResetQ'))) { this._prefs = null; try { localStorage.removeItem(this._key); } catch { /* ok */ } this._loadPrefs(); this._pushPrefs(); this.requestUpdate(); } }}>${t('stReset')}</button></div>`;
+          <button class="btn" @click=${() => { if (confirm(t('stResetQ'))) { this._prefs = null; try { localStorage.removeItem(this._key); } catch { /* ok */ } this._loadPrefs(); this._pushPrefs(); this.requestUpdate(); } }}>${t('stReset')}</button></div>`)}`;
     }
     return html`<div class="overlay" @click=${(e) => { if (e.target === e.currentTarget) this._set({ settings: null }); }}>
       <div class="sheet rise" role="dialog" aria-modal="true" aria-label=${t('settings')} style="width:min(720px,100%)">
@@ -1441,13 +1449,13 @@ class AureonDashboard extends LitElement {
             : html`<span class="muted txt" style="font-size:13px">${t('noLivePowerLong')}</span>`}
           ${byRoom.length ? html`<span class="eyebrow" style="font-size:10px;padding-top:10px;border-top:1px solid var(--line)">${t('byRoom')}</span>
             <div class="kv" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">${byRoom.map((r) => html`<div><span class="muted txt" style="font-size:11px">${r.n}</span><b style="font-size:15px">${Math.round(r.w)} W</b></div>`)}</div>` : nothing}
-          <button class="linkbtn" style="margin-top:6px" aria-expanded=${ui.eDiag ? 'true' : 'false'} @click=${() => this._set({ eDiag: !ui.eDiag })}>${ui.eDiag ? t('diagHide') : t('diagShow')}</button>
-          ${ui.eDiag ? this.energyDiag({ m, t }, est, estMeters) : nothing}
         </div></div></section>`;
   }
   // Diagnosis (owner 2026-11-18): per device, what Home Assistant actually gives the dashboard — read-only.
-  energyDiag({ m, t }, est, estMeters) {
-    const S = this.hass.states, list = [];
+  energyDiag({ m, t }) {
+    const S = this.hass.states, list = [], est = this._pEst || {};
+    const liveDevs = new Set([...m.metered, ...m.loosePower].map((p) => p.device).filter(Boolean));
+    const estMeters = m.energyMeters.filter((e) => !(e.device && liveDevs.has(e.device)));
     for (const p of m.plugs) {
       const e = m.energyMeters.find((x) => x.device && x.device === p.device);
       list.push({ name: p.name, area: p.areaName, power: p.wSrc === 'sensor' ? `${p.w} W · ${p.powerId}` : p.wSrc === 'attribute' ? `${p.w} W · ${t('diagAttr')}` : p.wSrc === 'unavailable' ? `${t('diagUnavail')} · ${p.powerId}` : (e && est[e.id] != null ? `≈ ${est[e.id]} W · ${t('estimated')}` : t('diagNoPower')), energy: e ? `${S[e.id]?.state ?? '—'} ${S[e.id]?.attributes?.unit_of_measurement || ''} · ${e.id}` : '—', bad: p.wSrc === 'none' || p.wSrc === 'unavailable' });

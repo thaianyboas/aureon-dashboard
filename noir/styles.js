@@ -526,4 +526,10 @@ select.numin{text-align:left}
 .eb small{font-family:'Geist Mono',ui-monospace,monospace;font-size:9px;color:var(--dim);text-align:center;white-space:nowrap;overflow:hidden;height:12px;line-height:12px}
 .eb.now small{color:var(--accent)}
 @container (max-width:460px){.ebars.months small{font-size:8px}.ebars{height:96px}}
+.sgrp{display:flex;flex-direction:column;gap:10px}
+.stgh{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px;padding:4px 2px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--mut);font:inherit;cursor:pointer;text-align:left}
+.stgh .eyebrow{font-size:10px}.stgh .i{transition:transform .25s;color:var(--mut)}
+.sgrp.closed .stgh .i{transform:rotate(-90deg)}
+.stgh:hover .eyebrow,.stgh:hover .i{color:var(--fg)}
+.stgb{display:flex;flex-direction:column;gap:10px}
 `;
