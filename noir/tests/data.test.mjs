@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buildModel, roomLayout, wasteCollections, cleanName, kelvinToRgb, shortBin } from '../data.js';
+import { buildModel, roomLayout, wasteCollections, cleanName, kelvinToRgb, shortBin, labelRoles } from '../data.js';
 
 globalThis.window = {};
 new Function(readFileSync(new URL('../../scripts/noir-fixture.js', import.meta.url), 'utf8'))();
@@ -63,4 +63,29 @@ test('helpers', () => {
   const lay = roomLayout([{ id: 'a' }, { id: 'b' }, { id: 'c' }], () => 1);
   assert.equal(lay.length, 3);
   for (const r2 of lay) { assert.ok(r2.x >= 0 && r2.x + r2.w <= 100.001); assert.ok(r2.y >= 0 && r2.y + r2.h <= 100.001); }
+});
+
+test('label roles come from HA (id, name or description), device labels count', () => {
+  const roles = labelRoles({
+    systemgeraete_dashboard: { name: 'systemgeraete_dashboard', description: 'Roteador, central de aquecimento e equipamentos essenciais' },
+    no_dboard: { name: 'no_dboard', description: 'Exkludiert die Entität aus den Auto-Entity Auflistungen' },
+    steckdosen_dashboard: { name: 'steckdosen_dashboard', description: 'Tomadas que podem ser ligadas e desligadas' },
+    wichtig: { name: 'Wichtig', description: 'Geräte, die nie aus sein dürfen' },
+    musik_box: { name: 'Musik Box', description: '' }
+  });
+  assert.equal(roles.systemgeraete_dashboard, 'protect');
+  assert.equal(roles.no_dboard, 'hide');
+  assert.equal(roles.steckdosen_dashboard, 'outlet');
+  assert.equal(roles.wichtig, 'protect');
+  assert.equal(roles.musik_box, undefined);
+  const hass = {
+    states: { 'switch.router': { entity_id: 'switch.router', state: 'on', attributes: { friendly_name: 'Netzwerk' } } },
+    entities: { 'switch.router': { entity_id: 'switch.router', device_id: 'd1', labels: [] } },
+    devices: { d1: { id: 'd1', name: 'Steckdose 3', labels: ['systemgeraete_dashboard'] } },
+    areas: {}
+  };
+  const labels = { systemgeraete_dashboard: 'systemgeraete_dashboard', __roles: roles };
+  const m = buildModel(hass, { labels });
+  assert.equal(m.plugs.length, 1);
+  assert.equal(m.plugs[0].locked, true, 'a device label protects the plug');
 });

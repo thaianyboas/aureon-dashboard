@@ -11,11 +11,30 @@ export const labelKey = (v) => String(v || '').trim().toLowerCase().replaceAll('
 //   no_dboard            → never shown on the dashboard (kept from AUREON)
 //   steckdosen_dashboard → a switch that is a socket/plug (kept from AUREON)
 //   protegida / immer_an / always_on / no_off → plug can never be switched off here
+//   systemgeraete_dashboard (owner's HA: "Roteador, central de aquecimento e equipamentos essenciais") → protected
+// Owner 2026-11-18: roles also come from the label's own description in HA, so a new label works without code.
 const HIDE = ['no_dboard'];
-const OUTLET = ['steckdosen_dashboard', 'tomada', 'steckdose', 'outlet', 'plug'];
-const PROTECT = ['protegida', 'protegido', 'immer_an', 'always_on', 'no_off', 'nicht_ausschalten', 'aureon_protect'];
+const OUTLET = ['steckdosen_dashboard', 'show_dboard', 'tomada', 'steckdose', 'outlet', 'plug'];
+const PROTECT = ['protegida', 'protegido', 'immer_an', 'always_on', 'no_off', 'nicht_ausschalten', 'aureon_protect', 'systemgeraete_dashboard', 'systemgeräte_dashboard', 'systemgeraete', 'essenciais', 'essential'];
+const ROLE_RE = {
+  protect: /essenci|essential|wichtig|systemger|nie aus|nicht aus|never (switch|turn) off|não deslig|nao deslig|roteador|router|heizung|aquecimento/i,
+  hide: /exklud|exclu|ausblend|esconde|hide|no_dboard/i,
+  outlet: /tomadas? que|steckdose|outlet|switch-entit|schalter/i
+};
+export function labelRoles(meta) {
+  // meta: { [label_id]: { name, description } } → { [label_id]: 'protect' | 'hide' | 'outlet' }
+  const out = {};
+  for (const [id, l] of Object.entries(meta || {})) {
+    const key = labelKey(id), name = labelKey(l?.name);
+    if (HIDE.includes(key) || HIDE.includes(name)) out[id] = 'hide';
+    else if (PROTECT.includes(key) || PROTECT.includes(name)) out[id] = 'protect';
+    else if (OUTLET.includes(key) || OUTLET.includes(name)) out[id] = 'outlet';
+    else if (l?.description) { for (const r of ['protect', 'hide', 'outlet']) if (ROLE_RE[r].test(l.description)) { out[id] = r; break; } }
+  }
+  return out;
+}
 
-const hasLabel = (reg, labels, keys) => (reg?.labels || []).some((id) => keys.includes(labelKey(id)) || keys.includes(labelKey(labels?.[id])));
+const hasLabel = (reg, labels, keys) => (reg?.allLabels || reg?.labels || []).some((id) => keys.includes(labelKey(id)) || keys.includes(labelKey(labels?.[id])) || (labels?.__roles?.[id] && keys === ({ hide: HIDE, protect: PROTECT, outlet: OUTLET })[labels.__roles[id]]));
 
 const OUTDOOR = /balk|balcon|varanda|terra(s|z)|garten|garden|jardim|patio|pátio|quintal|pool|piscina|outdoor|au(ss|ß)en/i;
 // Fridge/freezer, network, Home Assistant/server, heating, aquarium: never switched off by the dashboard.
@@ -133,7 +152,9 @@ export function buildModel(hass, opts = {}) {
   const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], tvs: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
 
   for (const [eid, st] of Object.entries(states)) {
-    const reg = regs[eid] || {};
+    const reg0 = regs[eid] || {};
+    // Labels on the device count for every entity of that device (owner labels devices in HA).
+    const reg = { ...reg0, allLabels: [...new Set([...(reg0.labels || []), ...((reg0.device_id && devices[reg0.device_id]?.labels) || [])])] };
     const domain = eid.split('.')[0];
     if ((reg.hidden || reg.hidden_by) && !forceShow.has(eid)) {
       if (domain === 'media_player') m.hiddenMedia.push({ id: eid, name: st.attributes?.friendly_name || eid });
@@ -144,7 +165,7 @@ export function buildModel(hass, opts = {}) {
     const area = reg.area_id || dev?.area_id || null;
     const a = st.attributes || {};
     const base = cleanName(reg.name || a.friendly_name || eid, areaName(area));
-    const item = { id: eid, domain, area, areaName: areaName(area), device: reg.device_id || null, name: aliases[eid] || base, baseName: base, state: st.state, attrs: a, st, reg, labels: reg.labels || [], unavailable: BAD.includes(st.state), hidden: hidden.has(eid) };
+    const item = { id: eid, domain, area, areaName: areaName(area), device: reg.device_id || null, name: aliases[eid] || base, baseName: base, state: st.state, attrs: a, st, reg, labels: reg.allLabels, unavailable: BAD.includes(st.state), hidden: hidden.has(eid) };
     if (reg.device_id) (byDevice[reg.device_id] ||= []).push(item);
     const technical = reg.entity_category === 'config' || reg.entity_category === 'diagnostic';
     const dc = a.device_class;

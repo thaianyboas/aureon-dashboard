@@ -181,6 +181,9 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .lbrow+.lbrow{border-top:1px solid var(--line)}
 .lbrow .grow{display:flex;flex-direction:column;gap:2px}.lbrow b{font-weight:500;font-size:14px}.lbrow .muted{font-size:11px}
 .lbdot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--fg) 6%,transparent)}
+.lbic{width:34px;height:34px;flex:none;border-radius:10px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--lc) 18%,transparent);color:var(--lc);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lc) 35%,transparent);--mdc-icon-size:18px}
+.lbic:empty::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--lc)}
+.lbic.sm{width:24px;height:24px;border-radius:7px;--mdc-icon-size:14px}
 .lbseg{display:inline-flex;flex:none;padding:3px;border-radius:999px;background:var(--bg);border:1px solid var(--line)}
 .lbseg button{min-height:30px;padding:0 10px;border:0;border-radius:999px;background:transparent;color:var(--mut);font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
 .lbseg button[aria-checked="true"].normal{background:var(--raise);color:var(--fg)}

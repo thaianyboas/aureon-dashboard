@@ -6,7 +6,7 @@
 import { LitElement, html, svg, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
 import { styles } from './styles.js';
-import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, PLUG_RUN_W, PLUG_IDLE_W } from './data.js';
+import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, PLUG_RUN_W, PLUG_IDLE_W } from './data.js';
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
@@ -131,7 +131,9 @@ class AureonDashboard extends LitElement {
       if (this._libAsked && this._libAsked !== this._mc.entityId) this._libAsked = null;
       if (!this._labelsLoaded && this.hass.callWS) {
         this._labelsLoaded = true;
-        this.hass.callWS({ type: 'config/label_registry/list' }).then((list) => { const o = {}, c = {}; for (const l of list || []) { o[l.label_id] = l.name; c[l.label_id] = l.color || ''; } this._labels = o; this._labelColors = c; this.requestUpdate(); }).catch(() => {});
+        this._loadLabels();
+        // Owner 2026-11-18: everything comes from HA and stays in sync — a new or edited label shows up by itself.
+        try { this.hass.connection?.subscribeEvents?.(() => this._loadLabels(), 'label_registry_updated').then((u) => (this._unsubs ||= []).push(u)).catch(() => {}); } catch { /* ok */ }
       }
     }
   }
@@ -707,11 +709,19 @@ class AureonDashboard extends LitElement {
   }
   _onPop = () => { const want = location.hash === '#aureon-music'; if (want !== !!this._ui.musicPage) { this._set({ musicPage: want, libMore: want }); this.requestUpdate(); } };
   _moreInfo(id) { this.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId: id }, bubbles: true, composed: true })); }
+  _loadLabels() {
+    this.hass.callWS({ type: 'config/label_registry/list' }).then((list) => {
+      const o = {}, c = {}, meta = {};
+      for (const l of list || []) { o[l.label_id] = l.name; c[l.label_id] = l.color || ''; meta[l.label_id] = { name: l.name, description: l.description || '', icon: l.icon || '', color: l.color || '' }; }
+      o.__roles = labelRoles(meta);
+      this._labels = o; this._labelColors = c; this._labelMeta = meta; this.requestUpdate();
+    }).catch(() => {});
+  }
   _labelList(m) {
-    const ids = new Set(Object.keys(this._labels || {}));
+    const ids = new Set(Object.keys(this._labels || {}).filter((k) => k !== '__roles'));
     for (const k of ['lights', 'plugs', 'climate', 'covers', 'openings', 'locks', 'cams', 'speakers', 'tvs', 'scenes']) for (const d of m[k]) for (const l of d.labels || []) ids.add(l);
     const n = {}; for (const k of ['lights', 'plugs', 'climate', 'covers', 'openings', 'locks', 'cams', 'speakers', 'tvs', 'scenes']) for (const d of m[k]) for (const l of d.labels || []) n[l] = (n[l] || 0) + 1;
-    return [...ids].map((id) => ({ id, name: this._labels?.[id] || id, color: this._labelColors?.[id] || '', count: n[id] || 0 })).sort((a, b) => a.name.localeCompare(b.name));
+    return [...ids].map((id) => ({ id, name: this._labels?.[id] || id, color: this._labelColors?.[id] || '', icon: this._labelMeta?.[id]?.icon || '', desc: this._labelMeta?.[id]?.description || '', role: this._labels?.__roles?.[id] || '', count: n[id] || 0 })).sort((a, b) => a.name.localeCompare(b.name));
   }
   settings(ctx) {
     const { m, t } = ctx, ui = this._ui, prefs = this._prefs, tab = ui.settings;
@@ -749,16 +759,17 @@ class AureonDashboard extends LitElement {
       const col = (c) => (!c ? 'var(--line2)' : HA[c] || c);
       const state = (id) => ((rule.include || []).includes(id) ? 'include' : (rule.exclude || []).includes(id) ? 'exclude' : 'normal');
       const setState = (id, st) => { const inc = new Set(rule.include || []), exc = new Set(rule.exclude || []); inc.delete(id); exc.delete(id); if (st === 'include') inc.add(id); if (st === 'exclude') exc.add(id); this._save({ labelRules: { ...rules, [sec]: { include: [...inc], exclude: [...exc] } } }); };
-      const user = labels.filter((l) => !SYS[l.id]), sys = labels.filter((l) => SYS[l.id]);
+      const ROLE_TXT = { hide: t('lbSysHide'), protect: t('lbSysProtect'), outlet: t('lbSysOutlet') };
+      const user = labels.filter((l) => !l.role && !SYS[l.id]), sys = labels.filter((l) => l.role || SYS[l.id]);
       const opts = [['all', t('stAllSections')], ...Object.entries(secNames).filter(([k]) => k !== 'energy')];
       body = html`<span class="muted txt" style="font-size:13px;line-height:1.55">${t('stLabelsHint2')}</span>
         <label class="lbsel"><span class="eyebrow" style="font-size:10px">${t('stApplyTo')}</span>
           <select .value=${sec} @change=${(e) => this._set({ labelSec: e.target.value })}>${opts.map(([k, n]) => html`<option value=${k} ?selected=${sec === k}>${n}${(rules[k]?.include?.length || rules[k]?.exclude?.length) ? ' •' : ''}</option>`)}</select></label>
         ${!user.length ? html`<span class="muted" style="font-size:13px">${t('stNoLabels')}</span>` : html`<div class="lblist">${user.map((l) => { const st = state(l.id); return html`<div class=${'lbrow ' + st}>
-          <span class="lbdot" style=${'background:' + col(l.color)}></span>
-          <span class="grow txt"><b>${l.name}</b><span class="muted">${t('stLabelCount', { n: l.count })}</span></span>
+          <span class="lbic" style=${'--lc:' + col(l.color)}>${l.icon ? html`<ha-icon .icon=${l.icon}></ha-icon>` : nothing}</span>
+          <span class="grow txt"><b>${l.name}</b><span class="muted">${[t('stLabelCount', { n: l.count }), l.desc].filter(Boolean).join(' · ')}</span></span>
           <span class="lbseg" role="radiogroup" aria-label=${l.name}>${[['normal', t('stLbNormal')], ['include', t('stLbOnly')], ['exclude', t('stLbHide')]].map(([k, n]) => html`<button role="radio" aria-checked=${st === k ? 'true' : 'false'} class=${k} @click=${() => setState(l.id, k)}>${n}</button>`)}</span></div>`; })}</div>`}
-        ${sys.length ? html`<div class="lbsys"><span class="eyebrow" style="font-size:10px">${t('stLbSystem')}</span>${sys.map((l) => html`<span class="row" style="gap:10px;font-size:13px"><span class="lbdot" style=${'background:' + col(l.color)}></span><b style="font-weight:500">${l.name}</b><span class="muted">${SYS[l.id]}</span></span>`)}</div>` : nothing}`;
+        ${sys.length ? html`<div class="lbsys"><span class="eyebrow" style="font-size:10px">${t('stLbSystem')}</span>${sys.map((l) => html`<span class="row" style="gap:10px;font-size:13px"><span class="lbic sm" style=${'--lc:' + col(l.color)}>${l.icon ? html`<ha-icon .icon=${l.icon}></ha-icon>` : nothing}</span><b style="font-weight:500">${l.name}</b><span class="muted">${ROLE_TXT[l.role] || SYS[l.id]}</span></span>`)}</div>` : nothing}`;
     } else if (tab === 'dispositivos') {
       const q = (ui.setQ || '').toLowerCase(), hid = new Set(prefs.hidden || []), force = new Set(prefs.forceShow || []);
       const groups = [['lights', t('lights'), m.lights], ['plugs', t('plugs'), m.plugs], ['climate', t('climate'), m.climate], ['covers', t('covers'), m.covers], ['openings', t('openings'), m.openings], ['security', t('security'), [...m.locks, ...m.cams]], ['tv', t('tvs'), m.tvs], ['music', t('speakersAll'), m.speakers], ['scenes', t('scenes'), m.scenes]];
