@@ -1526,3 +1526,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18t (AUREON Noir 1.5.7) — ROOT CAUSE of 0 W found
 - Owner screenshots: every Meross "Power" (W) entity carries label no_dboard; data.js dropped HIDE-labelled entities before the power pipeline. Now HIDE-labelled power sensors are kept (`hideLab`) and used only for a plug of the same device that is shown; never for solar/grid or loose devices. Test "owner case" in noir/tests/energy.test.mjs.
+
+## Claude batch — 2026-11-18u (AUREON Noir 1.5.8)
+- `_energySeries` (recorder/statistics_during_period, month ×12 and day ×30, change, kWh, every 30 min) → last month, this year, `energyChart` toggle 30 dias / 12 meses. `.ekv` grid 3/2 columns. Browser test PASS. No HA test run by Claude.

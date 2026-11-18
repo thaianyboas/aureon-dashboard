@@ -266,7 +266,8 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .vr i{height:4px;border-radius:2px;background:var(--line2)}
 .vr.done{color:var(--mut)}.vr.done i{background:color-mix(in srgb,#7EE0A8 45%,var(--line2))}
 .vr.now{color:var(--fg)}.vr.now i{background:#7EE0A8;box-shadow:0 0 10px #7EE0A8}
-.ekv{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.ekv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@container (min-width:700px){.ekv:has(>div:nth-child(5)){grid-template-columns:repeat(3,minmax(0,1fr))}.ekv:not(:has(>div:nth-child(5))){grid-template-columns:repeat(4,minmax(0,1fr))}}
 .ekv>div{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;background:var(--sunk);border:1px solid var(--line)}
 .ekv b{font-size:22px;font-weight:300;letter-spacing:-.03em}.ekv small{font-size:12px;color:var(--mut);font-weight:400}
 .ekv .soon{opacity:.45}
@@ -515,4 +516,14 @@ select.numin{text-align:left}
 .edr{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:10px;background:var(--sunk);font-size:11.5px;color:var(--mut);overflow-wrap:anywhere}
 .edr b{color:var(--fg);font-size:12.5px;font-weight:500}.edr b small{color:var(--dim);font-weight:400}
 .edr.bad{border-left:2px solid #F2C14E}
+.ekv>div>small.dim{display:block;font-size:11px;margin-top:2px}
+.echart{display:flex;flex-direction:column;gap:10px;padding-top:4px}
+.ebars{display:grid;align-items:end;gap:4px;height:120px}
+.ebars.months{grid-template-columns:repeat(12,1fr)}.ebars.days{grid-template-columns:repeat(30,1fr);gap:2px}
+.eb{position:relative;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:4px;min-width:0}
+.eb i{display:block;border-radius:5px 5px 2px 2px;background:color-mix(in srgb,var(--accent) 38%,var(--line2));transition:height .5s}
+.eb.now i{background:var(--accent);box-shadow:0 0 14px -2px color-mix(in srgb,var(--accent) 60%,transparent)}
+.eb small{font-family:'Geist Mono',ui-monospace,monospace;font-size:9px;color:var(--dim);text-align:center;white-space:nowrap;overflow:hidden;height:12px;line-height:12px}
+.eb.now small{color:var(--accent)}
+@container (max-width:460px){.ebars.months small{font-size:8px}.ebars{height:96px}}
 `;

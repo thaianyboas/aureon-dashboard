@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.5.8 — 2026-11-18
+
+- Energia: "Mês passado" e "Este ano" (kWh e €) e um gráfico dos últimos 30 dias ou 12 meses, tudo das estatísticas do Home Assistant.
+
 ## AUREON Noir 1.5.7 — 2026-11-18
 
 - Energia: o sensor "Power" (W) de uma tomada com a etiqueta no_dboard agora é usado para medir essa tomada (a etiqueta só esconde o sensor como cartão). Consumo agora volta a ser medido de verdade nas tomadas Meross e outras.

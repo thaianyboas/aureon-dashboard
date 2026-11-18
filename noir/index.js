@@ -14,8 +14,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.5.7';
-export const BUILD = 'AUREON-NOIR-20261118t';
+export const VERSION = '1.5.8';
+export const BUILD = 'AUREON-NOIR-20261118u';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -1344,6 +1344,37 @@ class AureonDashboard extends LitElement {
       }).catch(() => {});
     return this._pEst || {};
   }
+  // Owner 2026-11-18 ("mostra consumo no mês/ano?"): month-by-month (12) and day-by-day (30) sums of all meters, from
+  // the long-term statistics Home Assistant already keeps. Refreshed every 30 minutes. Read-only.
+  _energySeries(m) {
+    const ids = m.energyMeters.map((e) => e.id), sig = ids.join(',') + '|' + new Date().toDateString();
+    if (!ids.length || !this.hass?.callWS) return this._eSer || null;
+    if (this._sSig === sig && Date.now() - (this._sAt || 0) < 1800000) return this._eSer || null;
+    this._sSig = sig; this._sAt = Date.now();
+    const now = new Date(), mStart = new Date(now.getFullYear(), now.getMonth() - 11, 1), dStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
+    const ask = (period, start) => this.hass.callWS({ type: 'recorder/statistics_during_period', start_time: start.toISOString(), statistic_ids: ids, period, types: ['change'], units: { energy: 'kWh' } }).catch(() => null);
+    Promise.all([ask('month', mStart), ask('day', dStart)]).then(([mo, dy]) => {
+      const fold = (res, keyOf) => { const out = {}; for (const id of ids) for (const r of (res?.[id] || [])) { const t0 = typeof r.start === 'number' ? r.start : Date.parse(r.start); if (!Number.isFinite(t0) || typeof r.change !== 'number') continue; const k = keyOf(new Date(t0)); out[k] = (out[k] || 0) + Math.max(0, r.change); } return out; };
+      const months = fold(mo, (d) => d.getFullYear() + '-' + d.getMonth()), days = fold(dy, (d) => d.toDateString());
+      const mList = Array.from({ length: 12 }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1); return { d, v: months[d.getFullYear() + '-' + d.getMonth()] ?? null }; });
+      const dList = Array.from({ length: 30 }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29 + i); return { d, v: days[d.toDateString()] ?? null }; });
+      this._eSer = { ok: !!(mo || dy), months: mList, days: dList }; this.requestUpdate();
+    });
+    return this._eSer || null;
+  }
+  energyChart({ t, lang }, ser, price, cur) {
+    if (!ser?.ok) return nothing;
+    const mode = this._ui.eChart || 'months', list = mode === 'months' ? ser.months : ser.days, max = Math.max(0.001, ...list.map((x) => x.v || 0));
+    const lbl = (d) => mode === 'months' ? d.toLocaleDateString(lang, { month: 'short' }).replace('.', '') : String(d.getDate());
+    const fmt = (v) => v == null ? '—' : v.toLocaleString(lang, { maximumFractionDigits: v < 10 ? 1 : 0 }) + ' kWh' + (price != null ? ' · ' + (v * price).toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + cur : '');
+    return html`<div class="echart">
+      <div class="row sp" style="gap:8px;flex-wrap:wrap"><span class="eyebrow" style="font-size:10px">${mode === 'months' ? t('last12m') : t('last30d')}</span>
+        <span class="seg"><button aria-pressed=${mode === 'days' ? 'true' : 'false'} @click=${() => this._set({ eChart: 'days' })}>${t('days30')}</button><button aria-pressed=${mode === 'months' ? 'true' : 'false'} @click=${() => this._set({ eChart: 'months' })}>${t('months12')}</button></span></div>
+      <div class=${'ebars ' + mode} role="img" aria-label=${(mode === 'months' ? t('last12m') : t('last30d')) + ': ' + list.map((x) => lbl(x.d) + ' ' + fmt(x.v)).join(', ')}>
+        ${list.map((x, i) => html`<div class=${'eb' + (i === list.length - 1 ? ' now' : '') + (x.v == null ? ' none' : '')} title=${(mode === 'months' ? x.d.toLocaleDateString(lang, { month: 'long', year: 'numeric' }) : x.d.toLocaleDateString(lang, { day: 'numeric', month: 'short' })) + ' · ' + fmt(x.v)}>
+          <i style=${`height:${x.v == null ? 0 : Math.max(2, Math.round(100 * x.v / max))}%`}></i>${mode === 'months' || i % 5 === 4 || i === list.length - 1 ? html`<small>${lbl(x.d)}</small>` : html`<small></small>`}</div>`)}
+      </div></div>`;
+  }
   sEnergy({ m, t, aRgb, lang }) {
     const ui = this._ui, inRoom = (d) => ui.room === 'all' || d.area === ui.room;
     // Measured consumers: every device with a live power value (plugs with a sensor/attribute, devices without switch).
@@ -1370,6 +1401,10 @@ class AureonDashboard extends LitElement {
     const today = sum('day') ?? (ui.room === 'all' ? m.energyToday?.v : null), month = sum('month') ?? (ui.room === 'all' ? m.energyMonth?.v : null);
     const price = this._prefs.energyPrice ?? m.price?.v ?? null, cur = this._prefs.energyCur || m.price?.unit || m.costToday?.unit || '€';
     const cost = price != null && today != null ? today * price : (ui.room === 'all' ? m.costToday?.v : null), mcost = price != null && month != null ? month * price : null;
+    const ser = this._energySeries(m), yNow = new Date().getFullYear();
+    const lastM = ser?.ok ? ser.months[10]?.v ?? null : null;
+    const yList = ser?.ok ? ser.months.filter((x) => x.d.getFullYear() === yNow && x.v != null) : [];
+    const yearV = yList.length ? yList.reduce((a2, x) => a2 + x.v, 0) : null;
     const setPrice = html`<button class="linkbtn" @click=${() => this._set({ settings: 'geral' })}>${t('setPrice')}</button>`;
     const flow = (on, rev, dur) => on ? `opacity:1;animation:flow ${dur}s linear infinite${rev ? ' reverse' : ''}` : 'opacity:0';
     return html`<section class="sec">${this.secHead('energy', t('energy'), known ? t('devicesMeasuring', { n: known }) : '', known ? html`<span class="tag row" style="gap:6px;color:#7EE0A8"><span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#7EE0A8"></span>${t('live')}</span>` : nothing, t)}
@@ -1391,7 +1426,10 @@ class AureonDashboard extends LitElement {
             <div><span class="tag muted">${t('costToday')}</span>${cost == null && price == null ? setPrice : html`<b>${nf(cost, 2)} <small>${cur}</small></b>`}</div>
             <div><span class="tag muted">${t('thisMonth')}</span><b>${nf(month, month != null && month < 10 ? 1 : 0)} <small>kWh</small></b></div>
             <div><span class="tag muted">${t('costMonth')}</span>${price == null ? setPrice : html`<b>${nf(mcost, 2)} <small>${cur}</small></b>`}</div>
+            ${ser?.ok && ui.room === 'all' ? html`<div><span class="tag muted">${t('lastMonth')}</span><b>${nf(lastM, lastM != null && lastM < 10 ? 1 : 0)} <small>kWh</small></b>${price != null && lastM != null ? html`<small class="dim">${nf(lastM * price, 2)} ${cur}</small>` : nothing}</div>
+            <div><span class="tag muted">${t('thisYear')}</span><b>${nf(yearV, yearV != null && yearV < 10 ? 1 : 0)} <small>kWh</small></b>${price != null && yearV != null ? html`<small class="dim">${nf(yearV * price, 2)} ${cur}</small>` : nothing}</div>` : nothing}
           </div>
+          ${ui.room === 'all' ? this.energyChart({ t, lang }, ser, price, cur) : nothing}
           ${m.energyMeters.length ? html`<span class="dim txt" style="font-size:11px">${t(m.energyByLabel ? 'meterHintLabel' : 'meterHintAll', { n: m.energyMeters.length })}${m.mainMeters.length ? ' · ' + t('mainMeterApart', { n: m.mainMeters.length }) : ''}${price != null ? ' · ' + nf(price, 2) + ' ' + cur + '/kWh' : ''}</span>` : nothing}
         </div>
         <div class="tile" style="flex:2 1 300px;padding:22px;border-radius:24px">
