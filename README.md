@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.4.3 — 2026-11-18
+
+- Nome escrito por você (no painel ou no HA) aparece exatamente como escrito.
+
 ## AUREON Noir 1.4.2 — 2026-11-18
 
 - Configurações salvas no Home Assistant: as mesmas em todos os aparelhos, com aviso "Salvo em todos os aparelhos".

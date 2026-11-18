@@ -168,7 +168,8 @@ export function buildModel(hass, opts = {}) {
     const dev = reg.device_id ? devices[reg.device_id] : null;
     const area = reg.area_id || dev?.area_id || null;
     const a = st.attributes || {};
-    const base = cleanName(reg.name || a.friendly_name || eid, areaName(area));
+    // Owner 2026-11-18: a name the user typed in HA (registry name) is shown exactly as typed.
+    const base = reg.name ? String(reg.name).trim() : cleanName(a.friendly_name || eid, areaName(area));
     const item = { id: eid, domain, area, areaName: areaName(area), device: reg.device_id || null, name: aliases[eid] || base, baseName: base, state: st.state, attrs: a, st, reg, labels: reg.allLabels, unavailable: BAD.includes(st.state), hidden: hidden.has(eid) };
     if (reg.device_id) (byDevice[reg.device_id] ||= []).push(item);
     const technical = reg.entity_category === 'config' || reg.entity_category === 'diagnostic';
