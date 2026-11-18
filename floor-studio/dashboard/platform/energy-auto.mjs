@@ -15,12 +15,15 @@ export function meterKind(state){const a=state?.attributes||{},unit=a.unit_of_me
 // One consumer per device (a labelled plug's switch brings along its meter sensors); entities without a device stand
 // alone. The first matching energy meter and power sensor of each device are used.
 export function autoConsumers(rows,states,labelIds){
- if(!labelIds?.length)return [];
+ // Discover compatible meters even when the user has not assigned a label.
+ // Labels remain supported but are not required.
  const tagged=r=>(r.labels||[]).some(id=>labelIds.includes(id));
  const devices=new Set(rows.filter(tagged).map(r=>r.deviceId).filter(Boolean)),groups=new Map();
  for(const r of rows){
-  if(r.domain!=='sensor'||!(tagged(r)||(r.deviceId&&devices.has(r.deviceId))))continue;
+  if(r.domain!=='sensor')continue;
   const kind=meterKind(states?.[r.id]);if(!kind||NOT_CONSUMPTION.test(r.id+' '+r.name))continue;
+  // Whole-home grid meters are not individual appliances; keep them out of the device sum.
+  if(/(?:^|[_. -])(grid|netzbezug|grid_import|house_total|whole_home)(?:$|[_. -])/i.test(r.id+' '+r.name))continue;
   const key=r.deviceId||r.id;
   if(!groups.has(key))groups.set(key,{key,name:r.deviceId&&r.device&&r.device!=='Sem dispositivo'?r.device:r.name,areaId:r.areaId||'',areaName:r.areaId?r.areaName:'',energyId:'',powerId:''});
   const g=groups.get(key);if(kind==='energy'&&!g.energyId)g.energyId=r.id;if(kind==='power'&&!g.powerId)g.powerId=r.id;
