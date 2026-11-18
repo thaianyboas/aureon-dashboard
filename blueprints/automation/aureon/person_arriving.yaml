@@ -8,6 +8,7 @@ blueprint:
     Home Assistant no celular de quem recebe o aviso.
   domain: automation
   author: AUREON
+  source_url: https://github.com/thaianyboas/aureon-dashboard/blob/master/blueprints/automation/aureon/person_arriving.yaml
   input:
     person:
       name: Quem está chegando
