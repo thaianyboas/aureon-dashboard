@@ -1,5 +1,10 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.6.3 — 2026-11-18
+
+- Energia: "Quem consome agora" começa fechado e abre na seta; gráfico e "Por cômodo" também abrem e fecham (salvo em todos os aparelhos).
+- 8 temas novos: Champagne, Cobre, Bordô, Esmeralda, Safira, Aurora, Oliva e Grafite.
+
 ## AUREON Noir 1.6.2 — 2026-11-18
 
 - Modo edição: botão "Adicionar cartão" no topo; no celular os olhinhos da data e do modo da casa não ficam mais um em cima do outro.

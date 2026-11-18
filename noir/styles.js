@@ -564,4 +564,9 @@ select.numin{text-align:left}
 .cyaml{min-height:220px;resize:vertical;border-radius:12px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:12.5px/1.5 'Geist Mono',ui-monospace,monospace;padding:12px;tab-size:2}
 .cerr{color:#FF8A80;font-size:12px}
 .hmL .hpbar{right:auto;left:-10px;top:-10px}
+.efold{display:flex;flex-direction:column;gap:12px}
+.efold+.efold{padding-top:10px;border-top:1px solid var(--line)}
+.efh{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:36px;padding:0;border:0;background:transparent;color:var(--mut);font:inherit;cursor:pointer;text-align:left}
+.efh .i{transition:transform .25s}.efold.closed .efh .i{transform:rotate(-90deg)}
+.efh:hover .eyebrow{color:var(--fg)}
 `;

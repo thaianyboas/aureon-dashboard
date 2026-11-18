@@ -1542,3 +1542,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18y (AUREON Noir 1.6.2)
 - Add-card button in edit banner; `.hmL .hpbar` moved left (phone overlap). Browser test PASS.
+
+## Claude batch — 2026-11-18z (AUREON Noir 1.6.3)
+- `efold()` energy parts (`prefs.eFold`, 'who' closed by default). 8 new THEMES. Browser test PASS.

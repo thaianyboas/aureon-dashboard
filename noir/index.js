@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.6.2';
-export const BUILD = 'AUREON-NOIR-20261118y';
+export const VERSION = '1.6.3';
+export const BUILD = 'AUREON-NOIR-20261118z';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -26,6 +26,15 @@ export const THEMES = [
   { id: 'jade', name: 'Jade', desc: 'Menta · floresta', accent: '#7EE0A8', bg: '#060A08', card: '#0F1512', card2: '#0B110E', sunk: '#080D0A', raise: '#141C18', line: '#1B2721', line2: '#25362D' },
   { id: 'rose', name: 'Rosé', desc: 'Rosa antigo · vinho', accent: '#F2A7B5', bg: '#0B0708', card: '#161012', card2: '#120C0E', sunk: '#0D090A', raise: '#1D1517', line: '#271C20', line2: '#36282C' },
   { id: 'platina', name: 'Platina', desc: 'Preto · branco', accent: '#F2F2F3', bg: '#070707', card: '#111111', card2: '#0D0D0D', sunk: '#0A0A0A', raise: '#171717', line: '#1E1E1E', line2: '#2A2A2A' },
+  // Owner 2026-11-18 ("mais temas elegantes"): eight more, same calm dark base, each with its own metal or stone.
+  { id: 'champagne', name: 'Champagne', desc: 'Marfim · ônix', accent: '#EBD9B4', bg: '#090807', card: '#131210', card2: '#0F0E0C', sunk: '#0B0A09', raise: '#191714', line: '#221F1B', line2: '#2E2A24' },
+  { id: 'cobre', name: 'Cobre', desc: 'Cobre · carvão', accent: '#E39468', bg: '#0A0706', card: '#15100E', card2: '#110D0B', sunk: '#0C0908', raise: '#1C1512', line: '#261C18', line2: '#342620' },
+  { id: 'bordo', name: 'Bordô', desc: 'Vinho · ouro velho', accent: '#E2B57A', bg: '#0C0608', card: '#180D11', card2: '#130A0D', sunk: '#0E0709', raise: '#201117', line: '#2B1820', line2: '#3B212C' },
+  { id: 'esmeralda', name: 'Esmeralda', desc: 'Verde joia · veludo', accent: '#4FD1A5', bg: '#040A08', card: '#0C1612', card2: '#09120E', sunk: '#060D0A', raise: '#111D18', line: '#172821', line2: '#20372D' },
+  { id: 'safira', name: 'Safira', desc: 'Azul real · meia-noite', accent: '#7FA2FF', bg: '#05060D', card: '#0E1120', card2: '#0B0D19', sunk: '#080A13', raise: '#141829', line: '#1B2036', line2: '#262C49' },
+  { id: 'aurora', name: 'Aurora', desc: 'Turquesa · noite polar', accent: '#86E3DC', bg: '#04090B', card: '#0C1518', card2: '#091114', sunk: '#060C0E', raise: '#111C20', line: '#17262B', line2: '#20343A' },
+  { id: 'oliva', name: 'Oliva', desc: 'Latão · musgo', accent: '#CDBE7E', bg: '#080906', card: '#12140F', card2: '#0E100B', sunk: '#0A0B08', raise: '#181B14', line: '#21251B', line2: '#2D3224' },
+  { id: 'grafite', name: 'Grafite', desc: 'Aço azulado · grafite', accent: '#AEB9CC', bg: '#08090B', card: '#111317', card2: '#0D0F12', sunk: '#0A0B0E', raise: '#171A1F', line: '#1E2228', line2: '#2A2F37' },
   { id: 'ha', name: 'Home Assistant', desc: 'Segue o tema do HA', ha: true }
 ];
 const SECTIONS = ['lights', 'climate', 'plugs', 'energy', 'covers', 'openings', 'security', 'tv', 'music'];
@@ -1506,18 +1515,24 @@ class AureonDashboard extends LitElement {
     });
     return this._eSer || null;
   }
+  // Owner 2026-11-18 ("quero poder fechar essas informações"): parts of Energy fold from their title, remembered.
+  efold(key, title, right, content) {
+    // "Quem consome agora" stays closed until the owner opens it (owner 2026-11-18); the rest starts open.
+    const f = this._prefs.eFold || {}, closed = f[key] ?? key === 'who';
+    return html`<div class=${'efold' + (closed ? ' closed' : '')}><button class="efh" aria-expanded=${closed ? 'false' : 'true'} @click=${() => this._save({ eFold: { ...(this._prefs.eFold || {}), [key]: !closed } })}>
+      <span class="eyebrow" style="font-size:10px">${title}</span><span class="row" style="gap:8px">${closed ? nothing : right || nothing}${ic('down', 'i s')}</span></button>${closed ? nothing : content}</div>`;
+  }
   energyChart({ t, lang }, ser, price, cur) {
     if (!ser?.ok) return nothing;
     const mode = this._ui.eChart || 'months', list = mode === 'months' ? ser.months : ser.days, max = Math.max(0.001, ...list.map((x) => x.v || 0));
     const lbl = (d) => mode === 'months' ? d.toLocaleDateString(lang, { month: 'short' }).replace('.', '') : String(d.getDate());
     const fmt = (v) => v == null ? '—' : v.toLocaleString(lang, { maximumFractionDigits: v < 10 ? 1 : 0 }) + ' kWh' + (price != null ? ' · ' + (v * price).toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + cur : '');
-    return html`<div class="echart">
-      <div class="row sp" style="gap:8px;flex-wrap:wrap"><span class="eyebrow" style="font-size:10px">${mode === 'months' ? t('last12m') : t('last30d')}</span>
-        <span class="seg"><button aria-pressed=${mode === 'days' ? 'true' : 'false'} @click=${() => this._set({ eChart: 'days' })}>${t('days30')}</button><button aria-pressed=${mode === 'months' ? 'true' : 'false'} @click=${() => this._set({ eChart: 'months' })}>${t('months12')}</button></span></div>
+    return this.efold('chart', mode === 'months' ? t('last12m') : t('last30d'), nothing, html`<div class="echart">
+      <div class="row" style="justify-content:flex-end"><span class="seg"><button aria-pressed=${mode === 'days' ? 'true' : 'false'} @click=${() => this._set({ eChart: 'days' })}>${t('days30')}</button><button aria-pressed=${mode === 'months' ? 'true' : 'false'} @click=${() => this._set({ eChart: 'months' })}>${t('months12')}</button></span></div>
       <div class=${'ebars ' + mode} role="img" aria-label=${(mode === 'months' ? t('last12m') : t('last30d')) + ': ' + list.map((x) => lbl(x.d) + ' ' + fmt(x.v)).join(', ')}>
         ${list.map((x, i) => html`<div class=${'eb' + (i === list.length - 1 ? ' now' : '') + (x.v == null ? ' none' : '')} title=${(mode === 'months' ? x.d.toLocaleDateString(lang, { month: 'long', year: 'numeric' }) : x.d.toLocaleDateString(lang, { day: 'numeric', month: 'short' })) + ' · ' + fmt(x.v)}>
           <i style=${`height:${x.v == null ? 0 : Math.max(2, Math.round(100 * x.v / max))}%`}></i>${mode === 'months' || i % 5 === 4 || i === list.length - 1 ? html`<small>${lbl(x.d)}</small>` : html`<small></small>`}</div>`)}
-      </div></div>`;
+      </div></div>`);
   }
   sEnergy({ m, t, aRgb, lang }) {
     const ui = this._ui, inRoom = (d) => ui.room === 'all' || d.area === ui.room;
@@ -1577,14 +1592,14 @@ class AureonDashboard extends LitElement {
           ${m.energyMeters.length ? html`<span class="dim txt" style="font-size:11px">${t(m.energyByLabel ? 'meterHintLabel' : 'meterHintAll', { n: m.energyMeters.length })}${m.mainMeters.length ? ' · ' + t('mainMeterApart', { n: m.mainMeters.length }) : ''}${price != null ? ' · ' + nf(price, 2) + ' ' + cur + '/kWh' : ''}</span>` : nothing}
         </div>
         <div class="tile" style="flex:2 1 300px;padding:22px;border-radius:24px">
-          <span class="row sp"><span class="eyebrow" style="font-size:10px">${t('whoNow')}</span><span class="dim" style="font-size:12px">${t('ofMonitored')}</span></span>
-          ${rows.length ? rows.slice(0, 12).map((p) => html`<div class="erow" style="display:flex;flex-direction:column;gap:6px">
+          ${this.efold('who', t('whoNow'), html`<span class="dim" style="font-size:12px">${t('ofMonitored')}</span>`, html`
+          ${rows.length ? rows.map((p) => html`<div class="erow" style="display:flex;flex-direction:column;gap:6px">
             <span class="row sp" style="gap:8px;font-size:13px;align-items:flex-start"><span class="txt">${p.name} <span class="dim" style="font-size:11px">${p.areaName}${kwhToday(p.device)}</span></span>
               <span style="white-space:nowrap">${p.est ? html`<span class="esttag">${t('estimated')}</span> ≈ ` : ''}${p.w} W <span class="dim">· ${total ? Math.round(100 * p.w / total) : 0}%</span></span></span>
             <span class="bar" style="height:4px"><i style=${`width:${Math.round(100 * p.w / maxW)}%;background:${p.est ? 'repeating-linear-gradient(90deg,var(--accent) 0 6px,transparent 6px 9px)' : p.locked ? '#8FB8FF' : 'var(--accent)'}`}></i></span></div>`)
             : html`<span class="muted txt" style="font-size:13px">${t('noLivePowerLong')}</span>`}
-          ${byRoom.length ? html`<span class="eyebrow" style="font-size:10px;padding-top:10px;border-top:1px solid var(--line)">${t('byRoom')}</span>
-            <div class="kv" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">${byRoom.map((r) => html`<div><span class="muted txt" style="font-size:11px">${r.n}</span><b style="font-size:15px">${Math.round(r.w)} W</b></div>`)}</div>` : nothing}
+`)}
+          ${byRoom.length ? this.efold('rooms', t('byRoom'), nothing, html`<div class="kv" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">${byRoom.map((r) => html`<div><span class="muted txt" style="font-size:11px">${r.n}</span><b style="font-size:15px">${Math.round(r.w)} W</b></div>`)}</div>`) : nothing}
         </div></div></section>`;
   }
   // Diagnosis (owner 2026-11-18): per device, what Home Assistant actually gives the dashboard — read-only.
