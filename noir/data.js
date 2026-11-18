@@ -286,7 +286,7 @@ export function buildModel(hass, opts = {}) {
   m.plugW = Math.round(m.plugs.reduce((s, p) => s + (p.on && p.w ? p.w : 0), 0));
   m.metered = m.plugs.filter((p) => p.w != null);
   // Power sensors that belong to no plug (a measuring plug whose switch is hidden, a device meter…), one row per device.
-  const plugDevs = new Set(m.plugs.map((p) => p.device).filter(Boolean)), loose = {};
+  const plugDevs = new Set(m.metered.map((p) => p.device).filter(Boolean)), loose = {};
   for (const p of m.power) {
     if (p.w == null || solar.includes(p) || grid.includes(p) || (p.device && plugDevs.has(p.device))) continue;
     if (/total|gesamt|house|haus|casa|home|standby/i.test(p.id + ' ' + p.baseName) && !p.device) continue;
@@ -297,7 +297,7 @@ export function buildModel(hass, opts = {}) {
   m.loosePower = Object.values(loose).map((g) => ({ ...g, w: Math.round(g.w) }));
   // Energy meters: with a "Verbrauch" label only those count; otherwise every device counter except solar, grid and
   // periodic copies (utility meters "heute/Monat" would count the same energy twice). One counter per device.
-  m.energyByLabel = m.energyAll.some((e) => e.consumption);
+  m.energyByLabel = false; // Labels are optional: discover every valid non-grid, non-solar device meter.
   { const pool = m.energyAll.filter((e) => (m.energyByLabel ? e.consumption : !SOLAR.test(e.text) && !GRID.test(e.text) && !/produc|erzeug|r[üu]ckspeis|returned/i.test(e.text)) && !PERIODIC.test(e.text)), per = {};
     for (const e of pool) { const k = e.device || e.id, cur = per[k]; if (!cur || (/total|gesamt/i.test(e.text) && !/total|gesamt/i.test(cur.text))) per[k] = e; }
     m.energyMeters = Object.values(per); }
