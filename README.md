@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.5.7 — 2026-11-18
+
+- Energia: o sensor "Power" (W) de uma tomada com a etiqueta no_dboard agora é usado para medir essa tomada (a etiqueta só esconde o sensor como cartão). Consumo agora volta a ser medido de verdade nas tomadas Meross e outras.
+
 ## AUREON Noir 1.5.6 — 2026-11-18
 
 - Energia: aparelhos estimados pelo contador de kWh não são mais chamados de "medidos"; o número no botão Energia conta todos os aparelhos com valor.

@@ -70,3 +70,20 @@ test('no live data at all gives no value, not zero', () => {
   assert.equal(m.metered.length, 0); assert.equal(m.loosePower.length, 0);
   assert.ok(m.plugs.every((p) => p.w == null));
 });
+
+test('owner case: Meross "Power" labelled no_dboard still measures its shown plug', () => {
+  const H = home();
+  H.devices.mer2 = { id: 'mer2', name: 'Airfryer / LED', area_id: 'k' };
+  H.states['switch.airfryer'] = { entity_id: 'switch.airfryer', state: 'on', attributes: { friendly_name: 'Airfryer; Leds' } };
+  H.entities['switch.airfryer'] = { entity_id: 'switch.airfryer', device_id: 'mer2', platform: 'meross_lan', labels: ['steckdosen_dashboard'] };
+  H.states['sensor.airfryer_power'] = { entity_id: 'sensor.airfryer_power', state: '3.2', attributes: { device_class: 'power', unit_of_measurement: 'W', state_class: 'measurement', friendly_name: 'Power' } };
+  H.entities['sensor.airfryer_power'] = { entity_id: 'sensor.airfryer_power', device_id: 'mer2', platform: 'meross_lan', labels: ['no_dboard'] };
+  // a no_dboard power sensor on a device with nothing shown stays out
+  H.devices.tech = { id: 'tech', name: 'Server PSU', area_id: 'h' };
+  H.states['sensor.psu_power'] = { entity_id: 'sensor.psu_power', state: '80', attributes: { device_class: 'power', unit_of_measurement: 'W' } };
+  H.entities['sensor.psu_power'] = { entity_id: 'sensor.psu_power', device_id: 'tech', labels: ['no_dboard'] };
+  const m = buildModel(H, { labels: { no_dboard: 'no_dboard', steckdosen_dashboard: 'steckdosen_dashboard' } });
+  const p = m.plugs.find((x) => x.id === 'switch.airfryer');
+  assert.equal(p.w, 3); assert.equal(p.wSrc, 'sensor');
+  assert.ok(!m.loosePower.some((x) => x.device === 'tech'));
+});

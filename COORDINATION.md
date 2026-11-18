@@ -1523,3 +1523,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18s (AUREON Noir 1.5.6)
 - Owner HA confirmed: all 6 live rows estimated → her plugs expose kWh but no W to the dashboard. Wording measured vs estimated (`estFrom`), energy chip count. Tests PASS.
+
+## Claude batch — 2026-11-18t (AUREON Noir 1.5.7) — ROOT CAUSE of 0 W found
+- Owner screenshots: every Meross "Power" (W) entity carries label no_dboard; data.js dropped HIDE-labelled entities before the power pipeline. Now HIDE-labelled power sensors are kept (`hideLab`) and used only for a plug of the same device that is shown; never for solar/grid or loose devices. Test "owner case" in noir/tests/energy.test.mjs.

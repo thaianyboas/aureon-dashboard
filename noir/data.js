@@ -200,7 +200,10 @@ export function buildModel(hass, opts = {}) {
       if (domain === 'media_player') m.hiddenMedia.push({ id: eid, name: st.attributes?.friendly_name || eid });
       continue;
     }
-    if (hasLabel(reg, labels, HIDE)) continue;
+    // Owner 2026-11-18 (Meross "Power" sensor labelled no_dboard): no_dboard hides an entity as a card, but a power
+    // sensor is still the data source of its plug — it is kept (flagged) and only used for a plug that is shown.
+    const hideLab = hasLabel(reg, labels, HIDE);
+    if (hideLab && !isPower) continue;
     const dev = reg.device_id ? devices[reg.device_id] : null;
     const area = reg.area_id || dev?.area_id || null;
     const a = st.attributes || {};
@@ -215,7 +218,7 @@ export function buildModel(hass, opts = {}) {
     if (domain === 'person') { m.people.push(item); continue; }
     if (domain === 'sensor' && reg.platform === 'proximity') { (m.proximity ||= []).push(item); continue; }
     if (domain === 'scene') { m.scenes.push(item); continue; }
-    if (isPower) { m.power.push({ ...item, w: toWatt(st.state, pu), platform: reg.platform || '', sclass: a.state_class || '' }); continue; }
+    if (isPower) { m.power.push({ ...item, w: toWatt(st.state, pu), platform: reg.platform || '', sclass: a.state_class || '', hideLab }); continue; }
     if (domain === 'sensor' && dc === 'energy' && /today|heute|daily|hoje|tag/i.test(eid + ' ' + base) && m.energyToday == null) m.energyToday = { v: num(st.state), unit: a.unit_of_measurement || 'kWh' };
     if (domain === 'sensor' && dc === 'energy' && /month|monat|monthly|mês|mes\b|mensal/i.test(eid + ' ' + base) && m.energyMonth == null) m.energyMonth = { v: num(st.state), unit: a.unit_of_measurement || 'kWh' };
     if (domain === 'sensor' && (dc === 'monetary' || /^(€|eur|\$|usd|r\$|brl)$/i.test(a.unit_of_measurement || '')) && /cost|kosten|custo/i.test(eid + ' ' + base) && /today|heute|hoje|daily|tag/i.test(eid + ' ' + base) && m.costToday == null) m.costToday = { v: num(st.state), unit: a.unit_of_measurement || '€' };
@@ -288,11 +291,12 @@ export function buildModel(hass, opts = {}) {
   // power), chosen by name; summing every power sensor of a device double-counted (power + peak/average…). Phones
   // (mobile_app battery power) are not house consumers. Solar and grid meters are kept apart from consumers.
   // A sensor that is unavailable gives "no value", never 0 W. Read-only: nothing here switches anything.
-  const solar = m.power.filter((p) => SOLAR.test(p.id + ' ' + p.baseName + ' ' + (devices[p.device]?.name || '')));
-  const grid = m.power.filter((p) => GRID.test(p.id + ' ' + p.baseName) && !solar.includes(p));
+  const solar = m.power.filter((p) => !p.hideLab && SOLAR.test(p.id + ' ' + p.baseName + ' ' + (devices[p.device]?.name || '')));
+  const grid = m.power.filter((p) => !p.hideLab && GRID.test(p.id + ' ' + p.baseName) && !solar.includes(p));
   if (solar.length) m.solarW = Math.round(solar.reduce((s, p) => s + (p.w || 0), 0));
   if (grid.length) m.gridW = Math.round(grid[0].w || 0);
-  const consumersP = m.power.filter((p) => !solar.includes(p) && !grid.includes(p) && p.platform !== 'mobile_app' && !POWER_SKIP.test(p.id + ' ' + p.baseName));
+  const shownPlugDevs = new Set(m.plugs.map((p) => p.device).filter(Boolean));
+  const consumersP = m.power.filter((p) => !solar.includes(p) && !grid.includes(p) && p.platform !== 'mobile_app' && !POWER_SKIP.test(p.id + ' ' + p.baseName) && (!p.hideLab || (p.device && shownPlugDevs.has(p.device))));
   const pickPower = (list) => list.slice().sort((x, y) => powerScore(y) - powerScore(x))[0] || null;
   const perDev = {};
   for (const p of consumersP) if (p.device) (perDev[p.device] ||= []).push(p);
