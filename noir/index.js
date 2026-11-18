@@ -131,7 +131,7 @@ class AureonDashboard extends LitElement {
       if (this._libAsked && this._libAsked !== this._mc.entityId) this._libAsked = null;
       if (!this._labelsLoaded && this.hass.callWS) {
         this._labelsLoaded = true;
-        this.hass.callWS({ type: 'config/label_registry/list' }).then((list) => { const o = {}; for (const l of list || []) o[l.label_id] = l.name; this._labels = o; this.requestUpdate(); }).catch(() => {});
+        this.hass.callWS({ type: 'config/label_registry/list' }).then((list) => { const o = {}, c = {}; for (const l of list || []) { o[l.label_id] = l.name; c[l.label_id] = l.color || ''; } this._labels = o; this._labelColors = c; this.requestUpdate(); }).catch(() => {});
       }
     }
   }
@@ -710,7 +710,8 @@ class AureonDashboard extends LitElement {
   _labelList(m) {
     const ids = new Set(Object.keys(this._labels || {}));
     for (const k of ['lights', 'plugs', 'climate', 'covers', 'openings', 'locks', 'cams', 'speakers', 'tvs', 'scenes']) for (const d of m[k]) for (const l of d.labels || []) ids.add(l);
-    return [...ids].map((id) => ({ id, name: this._labels?.[id] || id })).sort((a, b) => a.name.localeCompare(b.name));
+    const n = {}; for (const k of ['lights', 'plugs', 'climate', 'covers', 'openings', 'locks', 'cams', 'speakers', 'tvs', 'scenes']) for (const d of m[k]) for (const l of d.labels || []) n[l] = (n[l] || 0) + 1;
+    return [...ids].map((id) => ({ id, name: this._labels?.[id] || id, color: this._labelColors?.[id] || '', count: n[id] || 0 })).sort((a, b) => a.name.localeCompare(b.name));
   }
   settings(ctx) {
     const { m, t } = ctx, ui = this._ui, prefs = this._prefs, tab = ui.settings;
@@ -742,14 +743,22 @@ class AureonDashboard extends LitElement {
       const sec = ui.labelSec || 'all';
       const rule = rules[sec] || { include: [], exclude: [] };
       const toggle = (kind, id) => { const cur = new Set(rule[kind] || []); cur.has(id) ? cur.delete(id) : cur.add(id); const other = kind === 'include' ? 'exclude' : 'include'; const o = new Set(rule[other] || []); o.delete(id); this._save({ labelRules: { ...rules, [sec]: { ...rule, [kind]: [...cur], [other]: [...o] } } }); };
-      body = html`<span class="muted txt" style="font-size:13px;line-height:1.5">${t('stLabelsHint')}</span>
-        <div class="wrapRow" style="gap:6px">${[['all', t('stAllSections')], ...Object.entries(secNames).filter(([k]) => k !== 'energy')].map(([k, n]) => html`<button class="dc" aria-pressed=${sec === k ? 'true' : 'false'} style=${sec === k ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => this._set({ labelSec: k })}>${n}${(rules[k]?.include?.length || rules[k]?.exclude?.length) ? ' •' : ''}</button>`)}</div>
-        ${!labels.length ? html`<span class="muted" style="font-size:13px">${t('stNoLabels')}</span>` : html`
-          <span class="eyebrow" style="font-size:10px">${t('stOnlyWith')}</span>
-          <div class="wrapRow" style="gap:6px">${labels.map((l) => { const on = (rule.include || []).includes(l.id); return html`<button class="dc" aria-pressed=${on ? 'true' : 'false'} style=${on ? 'border-color:#7EE0A8;color:#7EE0A8' : ''} @click=${() => toggle('include', l.id)}>${l.name}</button>`; })}</div>
-          <span class="eyebrow" style="font-size:10px">${t('stHideWith')}</span>
-          <div class="wrapRow" style="gap:6px">${labels.map((l) => { const on = (rule.exclude || []).includes(l.id); return html`<button class="dc" aria-pressed=${on ? 'true' : 'false'} style=${on ? 'border-color:#FF8A80;color:#FF8A80' : ''} @click=${() => toggle('exclude', l.id)}>${l.name}</button>`; })}</div>`}
-        <span class="dim txt" style="font-size:12px">${t('stLabelsFixed')}</span>`;
+      // Owner 2026-11-18 ("tá feio"): one calm row per label with a 3-way choice, the section picked from a menu.
+      const SYS = { no_dboard: t('lbSysHide'), protegida: t('lbSysProtect'), immer_an: t('lbSysProtect'), always_on: t('lbSysProtect'), no_off: t('lbSysProtect'), steckdosen_dashboard: t('lbSysOutlet') };
+      const HA = { red: '#E57373', pink: '#F48FB1', purple: '#BA68C8', 'deep-purple': '#9575CD', indigo: '#7986CB', blue: '#64B5F6', 'light-blue': '#4FC3F7', cyan: '#4DD0E1', teal: '#4DB6AC', green: '#81C784', 'light-green': '#AED581', lime: '#DCE775', yellow: '#FFF176', amber: '#FFD54F', orange: '#FFB74D', 'deep-orange': '#FF8A65', brown: '#A1887F', grey: '#9E9E9E', 'blue-grey': '#90A4AE', primary: 'var(--accent)', accent: 'var(--accent)' };
+      const col = (c) => (!c ? 'var(--line2)' : HA[c] || c);
+      const state = (id) => ((rule.include || []).includes(id) ? 'include' : (rule.exclude || []).includes(id) ? 'exclude' : 'normal');
+      const setState = (id, st) => { const inc = new Set(rule.include || []), exc = new Set(rule.exclude || []); inc.delete(id); exc.delete(id); if (st === 'include') inc.add(id); if (st === 'exclude') exc.add(id); this._save({ labelRules: { ...rules, [sec]: { include: [...inc], exclude: [...exc] } } }); };
+      const user = labels.filter((l) => !SYS[l.id]), sys = labels.filter((l) => SYS[l.id]);
+      const opts = [['all', t('stAllSections')], ...Object.entries(secNames).filter(([k]) => k !== 'energy')];
+      body = html`<span class="muted txt" style="font-size:13px;line-height:1.55">${t('stLabelsHint2')}</span>
+        <label class="lbsel"><span class="eyebrow" style="font-size:10px">${t('stApplyTo')}</span>
+          <select .value=${sec} @change=${(e) => this._set({ labelSec: e.target.value })}>${opts.map(([k, n]) => html`<option value=${k} ?selected=${sec === k}>${n}${(rules[k]?.include?.length || rules[k]?.exclude?.length) ? ' •' : ''}</option>`)}</select></label>
+        ${!user.length ? html`<span class="muted" style="font-size:13px">${t('stNoLabels')}</span>` : html`<div class="lblist">${user.map((l) => { const st = state(l.id); return html`<div class=${'lbrow ' + st}>
+          <span class="lbdot" style=${'background:' + col(l.color)}></span>
+          <span class="grow txt"><b>${l.name}</b><span class="muted">${t('stLabelCount', { n: l.count })}</span></span>
+          <span class="lbseg" role="radiogroup" aria-label=${l.name}>${[['normal', t('stLbNormal')], ['include', t('stLbOnly')], ['exclude', t('stLbHide')]].map(([k, n]) => html`<button role="radio" aria-checked=${st === k ? 'true' : 'false'} class=${k} @click=${() => setState(l.id, k)}>${n}</button>`)}</span></div>`; })}</div>`}
+        ${sys.length ? html`<div class="lbsys"><span class="eyebrow" style="font-size:10px">${t('stLbSystem')}</span>${sys.map((l) => html`<span class="row" style="gap:10px;font-size:13px"><span class="lbdot" style=${'background:' + col(l.color)}></span><b style="font-weight:500">${l.name}</b><span class="muted">${SYS[l.id]}</span></span>`)}</div>` : nothing}`;
     } else if (tab === 'dispositivos') {
       const q = (ui.setQ || '').toLowerCase(), hid = new Set(prefs.hidden || []), force = new Set(prefs.forceShow || []);
       const groups = [['lights', t('lights'), m.lights], ['plugs', t('plugs'), m.plugs], ['climate', t('climate'), m.climate], ['covers', t('covers'), m.covers], ['openings', t('openings'), m.openings], ['security', t('security'), [...m.locks, ...m.cams]], ['tv', t('tvs'), m.tvs], ['music', t('speakersAll'), m.speakers], ['scenes', t('scenes'), m.scenes]];

@@ -174,6 +174,20 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .offchk.on{border-color:#FF8A80;background:rgba(255,138,128,.14);color:#FFB1AA}
 .willoff{padding:12px 14px;border-radius:12px;background:var(--sunk);border:1px solid var(--line);font-size:13px;color:var(--mut);line-height:1.45}
 .willoff.some{border-color:rgba(255,138,128,.45);color:#FFD3CF;background:rgba(255,138,128,.08)}
+.lbsel{display:flex;flex-direction:column;gap:6px}
+.lbsel select{min-height:44px;padding:0 40px 0 14px;border-radius:12px;border:1px solid var(--line2);background:var(--sunk) url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23A1A1AA%22 stroke-width=%222%22><path d=%22M6 9l6 6 6-6%22/></svg>') no-repeat right 14px center/16px;color:var(--fg);font:inherit;font-size:14px;-webkit-appearance:none;appearance:none}
+.lblist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.lbrow{display:flex;align-items:center;gap:12px;min-height:58px;padding:8px 10px 8px 14px;background:var(--sunk)}
+.lbrow+.lbrow{border-top:1px solid var(--line)}
+.lbrow .grow{display:flex;flex-direction:column;gap:2px}.lbrow b{font-weight:500;font-size:14px}.lbrow .muted{font-size:11px}
+.lbdot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--fg) 6%,transparent)}
+.lbseg{display:inline-flex;flex:none;padding:3px;border-radius:999px;background:var(--bg);border:1px solid var(--line)}
+.lbseg button{min-height:30px;padding:0 10px;border:0;border-radius:999px;background:transparent;color:var(--mut);font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
+.lbseg button[aria-checked="true"].normal{background:var(--raise);color:var(--fg)}
+.lbseg button[aria-checked="true"].include{background:rgba(126,224,168,.16);color:#9FEBC0}
+.lbseg button[aria-checked="true"].exclude{background:rgba(255,138,128,.16);color:#FFB1AA}
+.lbsys{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:14px;border:1px dashed var(--line2)}
+@container (max-width:460px){.lbrow{flex-wrap:wrap}.lbseg{width:100%;justify-content:space-between}.lbseg button{flex:1}}
 .mall{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;padding:0 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));background:color-mix(in srgb,var(--accent) 6%,transparent);color:var(--accent);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
 .mpage{display:flex;flex-direction:column;gap:14px}.mpbar{display:flex;align-items:center;gap:10px}
 .mlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:2px 16px}
