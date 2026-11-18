@@ -820,17 +820,16 @@ class AureonDashboard extends LitElement {
           <div class="wtxt">
             <span class="wname txt">${hero.items.map((w) => shortBin(w.type)).join(' + ')}</span>
             ${sub ? html`<span class="wsub txt">${sub}</span>` : nothing}
-            ${hero.days <= 1 ? (out ? html`<span class="wok">${ic('check', 'i s')}${t('wasteOut')}</span>` : html`<button class="wbtn" @click=${() => this._save({ wasteAck: { ...ack, ...Object.fromEntries(keys.map((k) => [k, true])) } })}>${ic('check', 'i s')}${t('wasteDone')}</button>`) : nothing}
+            ${hero.days <= 1 ? (out ? html`<span class="wok">${ic('check', 'i s')}${t('wasteOut')}</span>` : html`<button class="wbtn" @click=${() => this._save({ wasteAck: { ...ack, ...Object.fromEntries(keys.map((k) => [k, true])) } })}>${ic('check', 'i s')}${t('wasteDoneS')}</button>`) : nothing}
           </div>
         </div>
-        ${shelf.length ? html`<div class="wshelf">${shelf.map((w, i) => html`<span class="wsi">${binSvg(binColor(w.type), false, 's' + i, 'sm')}<b class="txt">${shortBin(w.type)}</b><span class="mono">${w.days === 0 ? t('today') : w.days === 1 ? t('tomorrow') : wd(w.date, { weekday: 'short', day: 'numeric' })}</span></span>`)}</div>` : nothing}
+        ${shelf.length ? html`<div class="wshelf">${shelf.map((w, i) => html`<span class="wsi"><i class="wdot" style=${'background:' + binColor(w.type)}></i><b class="txt">${shortBin(w.type)}</b><span class="mono">${w.days === 0 ? t('today') : w.days === 1 ? t('tomorrow') : wd(w.date, { weekday: 'short', day: 'numeric' })}</span></span>`)}</div>` : nothing}
       </div></article>`);
     }
     for (const v of m.vacuums) {
       const st = v.state, cleaning = st === 'cleaning', bat = v.attrs.battery_level ?? v.battery;
       const vr = vacuumRooms(v.attrs), active = ['cleaning', 'paused', 'returning'].includes(st);
-      // Owner 2026-11-18 ("pegando muito espaço"): the map only shows while cleaning or when asked for.
-      const showMap = (this._ui.robMap || {})[v.id] ?? active;
+      // Owner 2026-11-18: every live card the same size; the map opens in the Home Assistant dialog.
       const curRoom = vr && vr.cur >= 0 ? vr.list[vr.cur] : null;
       const label = { cleaning: t('cleaning'), docked: t('docked'), returning: t('returning'), paused: t('vPaused'), error: t('vError'), idle: t('idle') }[st] || st;
       cards.push(html`<article class="act" style=${cleaning ? 'border-color:rgba(126,224,168,.35)' : ''}>
@@ -844,8 +843,8 @@ class AureonDashboard extends LitElement {
         <div class="wrapRow">
           ${cleaning ? html`<button class="btn" @click=${() => this._call('vacuum', 'pause', { entity_id: v.id })}>${ic('pause', 'i s f')}${t('stop')}</button>` : html`<button class="btn pri" @click=${() => this._call('vacuum', 'start', { entity_id: v.id })}>${ic('play', 'i s f')}${t('start')}</button>`}
           ${st !== 'docked' ? html`<button class="btn" @click=${() => this._call('vacuum', 'return_to_base', { entity_id: v.id })}>${ic('home', 'i s')}${t('dock')}</button>` : nothing}
-          ${v.map ? html`<button class="btn" aria-pressed=${showMap ? 'true' : 'false'} @click=${() => this._set({ robMap: { ...(this._ui.robMap || {}), [v.id]: !showMap } })}>${ic('mapI', 'i s')}${t('robotMap')}</button>` : nothing}</div>
-        ${showMap && v.map && v.map.attrs.entity_picture ? html`<button class="robmap" aria-label=${t('robotMap')} @click=${() => this._moreInfo(v.map.id)}><img src=${this._url(v.map.attrs.entity_picture) + (v.map.attrs.entity_picture.includes('?') ? '&' : '?') + 't=' + Math.floor(now.getTime() / 15000)} alt="" loading="lazy"></button>` : nothing}</article>`);
+          ${v.map ? html`<button class="btn" @click=${() => this._moreInfo(v.map.id)}>${ic('mapI', 'i s')}${t('robotMap')}</button>` : nothing}</div>
+        ${false ? html`<button class="robmap" aria-label=${t('robotMap')} @click=${() => this._moreInfo(v.map.id)}><img src=${this._url(v.map.attrs.entity_picture) + (v.map.attrs.entity_picture.includes('?') ? '&' : '?') + 't=' + Math.floor(now.getTime() / 15000)} alt="" loading="lazy"></button>` : nothing}</article>`);
     }
     for (const c of m.covers.filter((x) => x.moving).slice(0, 2)) {
       const closedPart = (100 - c.pos) / 2;
