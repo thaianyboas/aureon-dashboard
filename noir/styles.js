@@ -563,4 +563,5 @@ select.numin{text-align:left}
 .cprev,.ccfg{display:flex;flex-direction:column;gap:8px;min-width:0}
 .cyaml{min-height:220px;resize:vertical;border-radius:12px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:12.5px/1.5 'Geist Mono',ui-monospace,monospace;padding:12px;tab-size:2}
 .cerr{color:#FF8A80;font-size:12px}
+.hmL .hpbar{right:auto;left:-10px;top:-10px}
 `;

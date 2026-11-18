@@ -1539,3 +1539,6 @@ The Music browser suite passed again with that label and native transfer.
 ## Claude batch — 2026-11-18x (AUREON Noir 1.6.1) — edit stage 2: own HA/HACS cards
 - noir/cards.js (window.loadCardHelpers, window.customCards, getStubConfig/getConfigElement, js-yaml devDependency bundled). `prefs.layout.cards` [{id, config, wide}], block 'mycards', `cardEditor` sheet (pick → preview + visual editor + YAML). hass pushed to card elements in updated(). Fixture: fake helpers + fake HACS card.
 - CI fix: card tests wait for the async preview instead of fixed sleeps (failed on the slower runner).
+
+## Claude batch — 2026-11-18y (AUREON Noir 1.6.2)
+- Add-card button in edit banner; `.hmL .hpbar` moved left (phone overlap). Browser test PASS.

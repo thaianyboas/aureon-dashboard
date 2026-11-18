@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.6.2 — 2026-11-18
+
+- Modo edição: botão "Adicionar cartão" no topo; no celular os olhinhos da data e do modo da casa não ficam mais um em cima do outro.
+
 ## AUREON Noir 1.6.1 — 2026-11-18
 
 - Editar painel (etapa 2): "Adicionar cartão" — qualquer cartão do Home Assistant ou instalado pelo HACS (Mushroom, mini-graph…) entra no bloco "Meus cartões", com prévia ao vivo, editor visual do próprio cartão e YAML. Cada cartão pode ser movido, editado, ficar em largura inteira ou ser removido.

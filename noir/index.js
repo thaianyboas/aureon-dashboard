@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.6.1';
-export const BUILD = 'AUREON-NOIR-20261118x';
+export const VERSION = '1.6.2';
+export const BUILD = 'AUREON-NOIR-20261118y';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -591,6 +591,7 @@ class AureonDashboard extends LitElement {
       <span class="row grow"><span class="ic" style="background:var(--accent);color:var(--on-accent)">${ic('pencil', 'i s')}</span>
         <span class="grow"><b style="display:block;font-size:14px;font-weight:500">${t('editTitle')}</b><span class="muted txt" style="font-size:12px;line-height:1.45">${t('editHint')}</span></span></span>
       <span class="wrapRow">
+        <button class="btn sm pri" @click=${() => this._set({ cardEd: { id: null, step: 'pick', q: '' } })}>${ic('plus', 'i s')}${t('addCard')}</button>
         <button class="btn sm" @click=${() => this._set({ showHidden: !ui.showHidden })}>${ic(ui.showHidden ? 'eyeOff' : 'eye', 'i s')}${ui.showHidden ? t('hideHidden') : t('showHidden')}</button>
         <button class="btn sm" @click=${() => { if (confirm(t('layoutResetQ'))) this._save({ order: {}, secOrder: SECTIONS.slice(), hidden: [], layout: {} }); }}>${ic('undo', 'i s')}${t('reset')}</button>
         <button class="btn sm pri" @click=${() => this._set({ edit: false, editing: null, confirm: null })}>${t('done')}</button></span></div>`;

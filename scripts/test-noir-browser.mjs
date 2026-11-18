@@ -188,7 +188,7 @@ console.log('behaviour');
   await shadow(page, `const i=root.querySelector('.hero .rnbox input');i.value='Oi {nome}, tudo certo?';i.dispatchEvent(new Event('input',{bubbles:true,composed:true}));i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,composed:true}))`); await new Promise((r) => setTimeout(r, 200));
   await shadow(page, `[...root.querySelectorAll('.blk')].find((b)=>/Cenas/.test(b.querySelector('.blkbar').textContent)).querySelector('button[aria-label^="Esconder"]').click()`); await new Promise((r) => setTimeout(r, 150));
   // Owner 2026-11-18: own HA / HACS cards.
-  check(await shadow(page, `return !!root.querySelector('.addcard')`), 'edit mode offers "Adicionar cartão"');
+  check(await shadow(page, `return !!root.querySelector('.addcard') && [...root.querySelectorAll('.banner .btn')].some((b)=>/Adicionar cartão/.test(b.textContent))`), 'edit mode offers "Adicionar cartão" at the top and in Meus cartões');
   await shadow(page, `root.querySelector('.addcard').click()`); await new Promise((r) => setTimeout(r, 200));
   check(await shadow(page, `return [...root.querySelectorAll('.cpick')].some((b)=>/Fake Mushroom/.test(b.textContent)) && [...root.querySelectorAll('.cpick')].some((b)=>/Tile/.test(b.textContent))`), 'card picker lists installed HACS cards and HA built-ins');
   await page.screenshot({ path: 'build/noir/card-pick.png' });
@@ -347,6 +347,7 @@ console.log('behaviour');
   await ph.page.screenshot({ path: 'build/noir/hero-390.png', clip: await ph.page.evaluate(() => { const r = document.getElementById('d').shadowRoot.querySelector('.hero').getBoundingClientRect(); return { x: 0, y: r.top + scrollY, width: 390, height: 360 }; }) });
   await shadow(ph.page, `[...root.querySelectorAll('.btn')].find((b)=>/Editar painel/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 300));
   check(await ph.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'phone edit mode: nothing overflows sideways');
+  check(await shadow(ph.page, `const a=root.querySelector('.hmL .hpbar .ib').getBoundingClientRect(); return ![...root.querySelectorAll('.heroL .hp .hpbar .ib')].some((b)=>{ if (b.closest('.hmL')) return false; const r=b.getBoundingClientRect(); return r.left<a.right && r.right>a.left && r.top<a.bottom && r.bottom>a.top; })`), 'phone edit mode: eye buttons do not overlap');
   await ph.page.screenshot({ path: 'build/noir/edit-390.png' });
   await shadow(ph.page, `[...root.querySelectorAll('.btn')].find((b)=>/Concluir edição/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 200));
   check(await shadow(ph.page, `return root.querySelectorAll('.pgrp').length >= 2 && !root.querySelector('.pgrp .prow')`), 'plugs folded by room on the phone');
