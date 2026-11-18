@@ -10,8 +10,8 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, ap
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.4.5';
-export const BUILD = 'AUREON-NOIR-20261118g';
+export const VERSION = '1.4.6';
+export const BUILD = 'AUREON-NOIR-20261118h';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -734,9 +734,22 @@ class AureonDashboard extends LitElement {
     const sig = autos.join('|');
     if (this._autoSig === sig || !this.hass.user?.is_admin || !this.hass.callWS) return;
     this._autoSig = sig;
-    Promise.all(autos.map((id) => this.hass.callWS({ type: 'automation/config', entity_id: id }).then((r) => [id, r?.config || r]).catch(() => null))).then((rows) => {
+    // Owner 2026-11-18 ("mas nao aparece"): the automation/config WebSocket returns the blueprint already filled in,
+    // without use_blueprint. The stored automation (the same REST call the HA automation editor uses) still has it.
+    const stored = (id) => { const cid = this.hass.states[id]?.attributes?.id; return cid && this.hass.callApi ? this.hass.callApi('GET', 'config/automation/config/' + encodeURIComponent(cid)).then((r) => (r && typeof r === 'object' && !Array.isArray(r) ? r : null)).catch(() => null) : Promise.resolve(null); };
+    const live = (id) => this.hass.callWS({ type: 'automation/config', entity_id: id }).then((r) => r?.config || r).catch(() => null);
+    Promise.all(autos.map(async (id) => [id, (await stored(id)) || (await live(id))])).then((rows) => {
       const out = [];
-      for (const row of rows) { if (!row) continue; const [id, c] = row; const bp = c?.use_blueprint; if (!bp || !/appliance_done_(status|power)/.test(bp.path || '')) continue; const inp = bp.input || {}; out.push({ id, ents: [inp.status_entity, inp.power_entity, inp.power_sensor].flat().filter(Boolean), alias: String(c.alias || '') }); }
+      for (const [id, c] of rows) {
+        if (!c) continue;
+        const bp = c.use_blueprint;
+        if (bp && /appliance_done_(status|power)/.test(bp.path || '')) { const inp = bp.input || {}; out.push({ id, ents: [inp.status_entity, inp.power_entity, inp.power_sensor].flat().filter(Boolean), alias: String(c.alias || '') }); continue; }
+        // Filled-in form: an AUREON appliance automation names itself and watches one sensor in its trigger.
+        if (!bp && /alexa/i.test(String(c.alias || '')) && /ciclo|cycle|fertig|termin|zyklus|done/i.test(String(c.alias || ''))) {
+          const trig = JSON.stringify(c.triggers || c.trigger || []), ents = [...new Set(trig.match(/\b(?:sensor|binary_sensor|switch)\.[a-z0-9_]+/g) || [])];
+          if (ents.length) out.push({ id, ents, alias: String(c.alias || '') });
+        }
+      }
       this._alexaAutos = out; this.requestUpdate();
     });
   }

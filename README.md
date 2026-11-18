@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.4.6 — 2026-11-18
+
+- "Alexa avisa ao terminar" agora reconhece de verdade as automações feitas com o blueprint AUREON (o HA só informa o blueprint pela configuração salva da automação).
+
 ## AUREON Noir 1.4.5 — 2026-11-18
 
 - "Alexa avisa ao terminar" encontra também a automação que observa a tomada da máquina (mesmo nome de máquina ou mesmo cômodo).
