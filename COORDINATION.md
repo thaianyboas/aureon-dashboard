@@ -1490,3 +1490,7 @@ The Music browser suite passed again with that label and native transfer.
 - `alarmMenu` in heroR (supported_features filter, code input when `code_format`); alarm removed from the Security section header.
 - Settings start page `settings:'home'` (`.sthome/.sthi`), Voltar → home, `.stclose` closes. de/en i18n filled for all keys.
 - Browser test PASS (alarm menu sends nothing until a mode is tapped). No HA test run by Claude.
+
+## Claude batch — 2026-11-18k (AUREON Noir 1.4.9)
+- `houseMenu` replaces `alarmMenu` and the `.modes` strip: menu items open the existing `modeSheet` (confirmation, off-list). `_modeEffect` extracted. `modes()` kept but no longer rendered.
+- Browser test PASS. No HA test run by Claude.

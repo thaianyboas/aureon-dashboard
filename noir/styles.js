@@ -440,12 +440,17 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .alp .alc{opacity:.6;transition:transform .25s}.alp[aria-expanded="true"] .alc{transform:rotate(180deg)}
 .alp.on{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent);box-shadow:0 0 18px -4px color-mix(in srgb,var(--accent) 45%,transparent)}
 .alp.alert{color:#FF8A80;border-color:rgba(255,138,128,.6);animation:pulse 1.4s ease-in-out infinite}
-.alm{position:absolute;top:calc(100% + 8px);right:0;z-index:30;min-width:220px;display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:18px;background:color-mix(in srgb,var(--bg) 55%,var(--raise));-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--line2);box-shadow:0 24px 60px -12px rgba(0,0,0,.8)}
+.alm{position:absolute;top:calc(100% + 8px);right:0;z-index:30;width:min(300px,calc(100vw - 32px));display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:18px;background:color-mix(in srgb,var(--bg) 55%,var(--raise));-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--line2);box-shadow:0 24px 60px -12px rgba(0,0,0,.8)}
 .alm button{display:flex;align-items:center;gap:10px;min-height:42px;padding:0 10px;border:0;border-radius:12px;background:transparent;color:var(--fg);font:inherit;font-size:14px;text-align:left;cursor:pointer}
 .alm button:hover:not(:disabled){background:var(--sunk)}
 .alm button i{width:7px;height:7px;border-radius:50%;background:var(--line2);flex:none}
 .alm button[aria-checked="true"]{color:var(--accent);cursor:default;opacity:1}.alm button[aria-checked="true"] i{background:var(--accent);box-shadow:0 0 8px var(--accent)}
 .alm button[aria-checked="true"] .i{margin-left:auto}
 .alm button:disabled:not([aria-checked="true"]){opacity:.45;cursor:not-allowed}
+.alm button{min-height:52px}.alm .alic{width:32px;height:32px;flex:none;display:grid;place-items:center;border-radius:10px;background:var(--sunk);color:var(--mut)}
+.alm button[aria-checked="true"] .alic{background:var(--accent);color:var(--on-accent)}
+.alm button b{display:block;font-size:14px;font-weight:500}.alm button small{display:block;font-size:11px;color:var(--mut);line-height:1.35;margin-top:1px}
+.alm button[aria-checked="true"] b{color:var(--accent)}
+.alm .alset{min-height:40px;margin-top:4px;border-top:1px solid var(--line);border-radius:0 0 12px 12px;font-size:12px;color:var(--mut)}
 .alcode{min-height:40px;margin:2px 2px 6px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit}
 `;

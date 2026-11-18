@@ -1,5 +1,10 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.4.9 — 2026-11-18
+
+- Modo da casa e alarme juntos num só menu elegante ao lado de 3D / Planta (Em casa, Fora, Férias, Noite). Escolher um modo abre a confirmação de sempre; nada muda antes de tocar em "Ativar".
+- A faixa de modos embaixo saiu (não repete mais).
+
 ## AUREON Noir 1.4.8 — 2026-11-18
 
 - Alarme da casa: menu elegante ao lado de 3D / Planta, com o estado atual; só muda quando você escolhe um modo.

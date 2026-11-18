@@ -10,8 +10,8 @@ import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, ap
 import { translator, localeOf } from './i18n.js';
 import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
 
-export const VERSION = '1.4.8';
-export const BUILD = 'AUREON-NOIR-20261118j';
+export const VERSION = '1.4.9';
+export const BUILD = 'AUREON-NOIR-20261118k';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -356,7 +356,7 @@ class AureonDashboard extends LitElement {
         ${ui.edit ? this.banner(t) : nothing}
         ${this.pushes(ctx)}
         ${this.hero(ctx)}
-        ${this.modes(ctx)}
+        ${ui.modeSheet ? this.modeSheet(ctx, this._modeDefs(t).find((d) => d.id === ui.modeSheet)) : nothing}
         ${m.scenes.length ? this.scenes(ctx) : nothing}
         ${this.live(ctx)}
         ${this.filters(ctx, show)}
@@ -490,7 +490,7 @@ class AureonDashboard extends LitElement {
       </div>
       <div class="heroR">
         <div class="row sp" style="flex-wrap:wrap;gap:8px"><span class="eyebrow txt">${t('tapRoom')}</span>
-          <span class="row" style="gap:8px;flex-wrap:wrap">${m.alarms[0] ? this.alarmMenu(ctx) : nothing}
+          <span class="row" style="gap:8px;flex-wrap:wrap">${this.houseMenu(ctx)}
           <span class="seg" role="group" aria-label=${t('house3d') + ' / ' + t('plan')}>
             <button aria-pressed=${is3d ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button>
             <button aria-pressed=${!is3d ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></span></div>
@@ -635,17 +635,18 @@ class AureonDashboard extends LitElement {
     if (!a) return last || 'home';
     return { disarmed: 'home', armed_away: last === 'vacation' ? 'vacation' : 'away', armed_vacation: 'vacation', armed_night: 'night', armed_home: last === 'night' ? 'night' : 'home' }[a.state] || last || 'home';
   }
+  _modeEffect({ m, t }, d) {
+    const c = this._modeCfg(d), e = [], alarm = m.alarms[0];
+    if (alarm) e.push(d.id === 'home' ? t('effAlarmOff') : d.id === 'night' ? t('effAlarmNight') : t('effAlarmOn'));
+    if (c.lightsOff) e.push(t('effLights'));
+    const n = (c.plugs || []).filter((id) => m.plugs.some((p) => p.id === id && !p.locked)).length;
+    if (n) e.push(n === 1 ? t('effPlug') : t('effPlugs', { n }));
+    if (d.id === 'home' && c.restore && (this._prefs.modeOff || []).length) e.push(t('effRestore'));
+    return e.join(' · ') || '—';
+  }
   modes(ctx) {
     const { m, t } = ctx, defs = this._modeDefs(t), active = this._activeMode(m), alarm = m.alarms[0];
-    const effect = (d) => {
-      const c = this._modeCfg(d), e = [];
-      if (alarm) e.push(d.id === 'home' ? t('effAlarmOff') : d.id === 'night' ? t('effAlarmNight') : t('effAlarmOn'));
-      if (c.lightsOff) e.push(t('effLights'));
-      const n = (c.plugs || []).filter((id) => m.plugs.some((p) => p.id === id && !p.locked)).length;
-      if (n) e.push(n === 1 ? t('effPlug') : t('effPlugs', { n }));
-      if (d.id === 'home' && c.restore && (this._prefs.modeOff || []).length) e.push(t('effRestore'));
-      return e.join(' · ') || '—';
-    };
+    const effect = (d) => this._modeEffect(ctx, d);
     return html`<section class="sec" aria-label=${t('modeTitle')}><h2 class="eyebrow" style="margin:0;padding:0 4px;font-weight:400">${t('modeTitle')}</h2>
       <div class="modes">${defs.map((d) => { const on = d.id === active; return html`<button class="mode" aria-pressed=${on ? 'true' : 'false'} @click=${() => this._set({ modeSheet: d.id, modeCode: '' })}>
         <span class="row sp" style="width:100%"><span class="ic" style=${on ? 'background:var(--accent);color:var(--on-accent)' : ''}>${ic(d.icon)}</span>${on ? html`<span class="tag" style="color:var(--accent)">● ${t('active')}</span>` : nothing}</span>
@@ -811,22 +812,21 @@ class AureonDashboard extends LitElement {
       else if (!a.running && r.end && now - r.end < 3 * 3600000 && (this._prefs.cycleAck || {})[a.id] !== r.end) { a.done = true; a.idle = false; a.endedAt = new Date(r.end); a.runEnd = r.end; a.status = 'plugdone'; }
     }
   }
-  // Owner 2026-11-18 ("o alarme da casa … em drop-down … bonito e elegante"): a quiet pill beside 3D/Planta with the
-  // alarm state; it opens a small menu with the modes the panel supports. Nothing is sent until a mode is tapped.
-  alarmMenu({ m, t }) {
-    const a = m.alarms[0], st = a.state, f = a.attrs.supported_features || 0, open = this._ui.alarmOpen;
-    const all = [['disarmed', 'alarm_disarm', t('disarmed'), 0], ['armed_home', 'alarm_arm_home', t('armHome'), 1], ['armed_away', 'alarm_arm_away', t('armAway'), 2], ['armed_night', 'alarm_arm_night', t('armNight'), 4], ['armed_vacation', 'alarm_arm_vacation', t('modeVacation'), 32]];
-    const opts = all.filter(([, , , bit]) => !bit || !f || (f & bit));
-    const label = st === 'triggered' ? t('triggered') : (all.find(([s2]) => s2 === st)?.[2] || (/arming|pending/.test(st) ? t('alarmArming') : st));
-    const armed = /^armed/.test(st), alert = st === 'triggered', code = (this._ui.alarmCode || '').trim();
-    const pick = (svc) => { if (a.needsCode && !code) return; this._call('alarm_control_panel', svc, { entity_id: a.id, ...(code ? { code } : {}) }); this._set({ alarmOpen: false, alarmCode: '' }); };
+  // Owner 2026-11-18 ("esse alarme é o nosso modo casa, não precisa repetir em baixo"): one elegant pill beside
+  // 3D / Planta shows the active house mode (and the alarm state when there is one). It opens a small menu with the
+  // modes; picking one opens the same confirmation sheet as before — nothing is switched until "Ativar" is tapped.
+  houseMenu(ctx) {
+    const { m, t } = ctx, defs = this._modeDefs(t), active = this._activeMode(m), cur = defs.find((d) => d.id === active), a = m.alarms[0], open = this._ui.alarmOpen;
+    const st = a?.state, alert = st === 'triggered', armed = /^armed/.test(st || '') || (!a && active !== 'home');
+    const sub = alert ? t('triggered') : /arming|pending/.test(st || '') ? t('alarmArming') : null;
     return html`<span class="alw">
-      <button class=${'alp' + (armed ? ' on' : '') + (alert ? ' alert' : '')} aria-haspopup="menu" aria-expanded=${open ? 'true' : 'false'} aria-label=${a.name + ' · ' + label} @click=${(e) => { e.stopPropagation(); this._set({ alarmOpen: !open }); }}>
-        ${ic('shield', 'i s')}<span class="txt"><small>${a.name}</small><b>${label}</b></span>${ic('down', 'i s alc')}</button>
+      <button class=${'alp' + (armed ? ' on' : '') + (alert ? ' alert' : '')} aria-haspopup="menu" aria-expanded=${open ? 'true' : 'false'} aria-label=${t('modeTitle') + ' · ' + cur.name} @click=${(e) => { e.stopPropagation(); this._set({ alarmOpen: !open }); }}>
+        ${ic(a ? 'shield' : cur.icon, 'i s')}<span class="txt"><small>${t('modeTitle')}</small><b>${cur.name}${sub ? ' · ' + sub : ''}</b></span>${ic('down', 'i s alc')}</button>
       ${open ? html`<div class="alm rise" role="menu" @click=${(e) => e.stopPropagation()}>
-        <span class="eyebrow" style="font-size:10px;padding:4px 8px 2px">${a.name}</span>
-        ${a.needsCode ? html`<input class="alcode" type="password" inputmode="numeric" autocomplete="off" .value=${this._ui.alarmCode || ''} placeholder=${t('code')} aria-label=${t('code')} @input=${(e) => this._set({ alarmCode: e.target.value })}>` : nothing}
-        ${opts.map(([s2, svc, n]) => html`<button role="menuitemradio" aria-checked=${st === s2 ? 'true' : 'false'} ?disabled=${st === s2 || (a.needsCode && !code)} @click=${() => pick(svc)}><i aria-hidden="true"></i>${n}${st === s2 ? ic('check', 'i s') : nothing}</button>`)}
+        <span class="eyebrow" style="font-size:10px;padding:4px 8px 2px">${t('modeTitle')}${a ? ' · ' + a.name : ''}</span>
+        ${defs.map((d) => html`<button role="menuitemradio" aria-checked=${d.id === active ? 'true' : 'false'} @click=${() => this._set({ alarmOpen: false, modeSheet: d.id, modeCode: '' })}>
+          <span class="alic">${ic(d.icon, 'i s')}</span><span class="grow txt"><b>${d.name}</b><small>${this._modeEffect(ctx, d)}</small></span>${d.id === active ? ic('check', 'i s') : nothing}</button>`)}
+        <button class="alset" @click=${() => this._set({ alarmOpen: false, settings: 'modos' })}>${ic('gear', 'i s')}${t('stHintModes')}</button>
       </div>` : nothing}</span>`;
   }
   // "Back to top" (owner 2026-11-18): a round button pinned bottom-right once the page is scrolled. It lives in
