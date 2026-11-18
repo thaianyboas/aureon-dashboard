@@ -1,0 +1,101 @@
+blueprint:
+  name: "AUREON · Avisa quando alguém está chegando em casa"
+  description: >
+    Manda uma notificação para o celular de outra pessoa quando alguém está a caminho de casa
+    e já perto, por exemplo "Thaiany chega em casa em ~5 min".
+    Precisa da integração **Proximidade (Proximity)** do Home Assistant (Configurações → Dispositivos e
+    serviços → Adicionar integração → Proximidade, zona "Casa", seguindo as pessoas) e do app do
+    Home Assistant no celular de quem recebe o aviso.
+  domain: automation
+  author: AUREON
+  input:
+    person:
+      name: Quem está chegando
+      selector:
+        entity:
+          domain: person
+    distance_sensor:
+      name: Distância até a casa (Proximidade)
+      description: O sensor "… Distância / Distance" da pessoa, criado pela integração Proximidade.
+      selector:
+        entity:
+          domain: sensor
+          integration: proximity
+    direction_sensor:
+      name: Direção (Proximidade)
+      description: O sensor "… Direção / Direction of travel" da mesma pessoa.
+      selector:
+        entity:
+          domain: sensor
+          integration: proximity
+    notify_service:
+      name: Celular que recebe o aviso
+      description: >
+        Nome do serviço do app no celular, por exemplo notify.mobile_app_iphone_de_alex
+        (Ferramentas de desenvolvedor → Ações → digite "mobile_app" para ver o nome).
+      default: notify.notify
+      selector:
+        text:
+    near_km:
+      name: Avisar quando estiver a menos de
+      default: 3
+      selector:
+        number:
+          min: 0.5
+          max: 30
+          step: 0.5
+          unit_of_measurement: km
+    speed_kmh:
+      name: Velocidade média para a estimativa
+      description: Na cidade, 30–40 km/h dá uma boa estimativa.
+      default: 35
+      selector:
+        number:
+          min: 5
+          max: 120
+          unit_of_measurement: km/h
+    title:
+      name: Título da notificação
+      default: "AUREON"
+      selector:
+        text:
+
+mode: single
+max_exceeded: silent
+
+variables:
+  person: !input person
+  distance_sensor: !input distance_sensor
+  direction_sensor: !input direction_sensor
+  near_km: !input near_km
+  speed_kmh: !input speed_kmh
+
+triggers:
+  - trigger: template
+    value_template: >
+      {% set unit = state_attr(distance_sensor, 'unit_of_measurement') | default('m', true) | lower %}
+      {% set k = 1 if unit == 'km' else (1.60934 if unit == 'mi' else 0.001) %}
+      {% set km = states(distance_sensor) | float(9999) * k %}
+      {{ is_state(direction_sensor, 'towards') and km <= near_km | float and not is_state(person, 'home') }}
+
+conditions:
+  - condition: template
+    value_template: "{{ not is_state(person, 'home') }}"
+
+actions:
+  - variables:
+      unit: "{{ state_attr(distance_sensor, 'unit_of_measurement') | default('m', true) | lower }}"
+      km: "{{ states(distance_sensor) | float(0) * (1 if unit == 'km' else (1.60934 if unit == 'mi' else 0.001)) }}"
+      mins: "{{ [1, (km / (speed_kmh | float(35)) * 60) | round(0) | int] | max }}"
+      name: "{{ state_attr(person, 'friendly_name') or person }}"
+  - action: !input notify_service
+    data:
+      title: !input title
+      message: "{{ name }} chega em casa em ~{{ mins }} min"
+      data:
+        tag: "aureon-arriving-{{ person }}"
+        group: aureon
+  # One message per trip: wait until the person is home (or 2 h) before it can fire again.
+  - wait_template: "{{ is_state(person, 'home') }}"
+    timeout: "02:00:00"
+    continue_on_timeout: true

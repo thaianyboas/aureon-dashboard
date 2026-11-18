@@ -294,6 +294,7 @@ class AureonDashboard extends LitElement {
     const ui = this._ui, prefs = this._prefs;
     const m = buildModel(this.hass, { now, labels: this._labels, aliases: prefs.aliases, hidden: prefs.hidden, forceShow: prefs.forceShow, noAreaName: t('noArea') });
     if (this._topBtn) { this._topBtn.setAttribute('aria-label', t('toTop')); this._topBtn.title = t('toTop'); }
+    this._peopleEta(m, now);
     this._plugCycles(m, now);
     this._detectFinished(m, t);
     const th = this._theme();
@@ -365,6 +366,31 @@ class AureonDashboard extends LitElement {
       </div>
     </header>`;
   }
+  // Arrival estimate from the proximity distance: speed over the last ~15 minutes (history + live samples).
+  _peopleEta(m, now) {
+    this._prox ||= {};
+    for (const p of m.people) {
+      if (!p.distId || p.distM == null) continue;
+      const rec = (this._prox[p.id] ||= { samples: [], asked: 0 });
+      const last = rec.samples[rec.samples.length - 1];
+      if (!last || last.d !== p.distM) rec.samples.push({ t: now.getTime(), d: p.distM });
+      rec.samples = rec.samples.filter((x) => now - x.t < 20 * 60000).slice(-60);
+      if (this.hass.callWS && Date.now() - rec.asked > 5 * 60000 && p.dir === 'towards') {
+        rec.asked = Date.now();
+        this.hass.callWS({ type: 'history/history_during_period', start_time: new Date(now - 15 * 60000).toISOString(), entity_ids: [p.distId], minimal_response: true, no_attributes: true }).then((res) => {
+          const u = String(this.hass.states[p.distId]?.attributes?.unit_of_measurement || 'm').toLowerCase(), k = u === 'km' ? 1000 : u === 'mi' ? 1609.34 : 1;
+          const pts = (res?.[p.distId] || []).map((x) => ({ t: 1000 * Number(x.lu ?? x.lc), d: Number(x.s) * k })).filter((x) => Number.isFinite(x.t) && Number.isFinite(x.d));
+          rec.samples = [...pts, ...rec.samples].sort((a, b) => a.t - b.t); this.requestUpdate();
+        }).catch(() => {});
+      }
+      const s0 = rec.samples.find((x) => now - x.t < 15 * 60000), s1 = rec.samples[rec.samples.length - 1];
+      if (p.dir === 'towards' && s0 && s1 && s1.t - s0.t > 60000 && s0.d > s1.d) {
+        const v = (s0.d - s1.d) / ((s1.t - s0.t) / 1000);
+        if (v > 1.2 && p.distM < 80000) p.etaMin = Math.max(1, Math.round(p.distM / v / 60));
+      }
+    }
+  }
+  _meId() { const uid = this.hass.user?.id; return Object.values(this.hass.states).find((s2) => s2.entity_id.startsWith('person.') && s2.attributes?.user_id === uid)?.entity_id || null; }
   _url(path) { return path && this.hass.hassUrl ? this.hass.hassUrl(path) : path; }
 
   banner(t) {
@@ -404,6 +430,9 @@ class AureonDashboard extends LitElement {
         <div style="display:flex;flex-direction:column;gap:12px">
           <span class="eyebrow">${date}</span><span class="clock">${time}</span>
           <h1 class="greet txt">${greet}</h1>
+          ${m.people.length ? html`<div class="ppl" role="list" aria-label=${t('homePeople')}>${m.people.slice(0, 6).map((p) => { const pic = p.attrs.entity_picture, home = p.state === 'home';
+            const where = home ? t('homeS') : p.etaMin != null && p.etaMin <= 60 ? t('onTheWay', { m: p.etaMin }) : p.state === 'not_home' ? t('awayS') : p.state === 'unknown' || p.state === 'unavailable' ? '—' : p.state;
+            return html`<span class=${'pp' + (home ? ' home' : p.etaMin != null ? ' coming' : '')} role="listitem"><span class="ppav" style=${pic ? `background-image:url("${this._url(pic)}");color:transparent` : ''}>${(p.name || '?').charAt(0)}</span><span class="txt"><b>${p.name}</b><small>${where}</small></span></span>`; })}</div>` : nothing}
           ${m.weather ? this.weatherBlock(ctx) : html`<p class="story txt">${parts.join(', ')}.</p>`}
         </div>
       </div>
@@ -507,6 +536,7 @@ class AureonDashboard extends LitElement {
     }
     for (const l of m.locks.filter((x) => kinds.locks !== false && !x.locked && !x.unavailable)) list.push({ key: 'K:' + l.id + ':' + l.st.last_changed, icon: 'unlock', tone: '#FF8A80', title: t('unlockedN', { n: l.name }), body: l.areaName, action: t('lockS'), act: () => this._call('lock', 'lock', { entity_id: l.id }) });
     for (const a of m.appliances.filter((x) => kinds.appliances !== false && x.done)) list.push({ key: 'A:' + a.id + ':' + a.status, icon: a.kind === 'dish' ? 'dish' : 'washer', tone: 'var(--accent)', title: t('finished', { n: a.name }), body: t('cycleDone') + (a.areaName ? ' · ' + a.areaName : ''), action: t('okS'), act: null });
+    for (const p of m.people.filter((x) => kinds.arrivals !== false && x.etaMin != null && x.etaMin <= 30 && x.state !== 'home' && x.id !== this._meId())) list.unshift({ key: 'P:' + p.id + ':' + Math.round(p.etaMin / 5), icon: 'home', tone: '#7EE0A8', title: t('arriving', { n: p.name, m: p.etaMin }), body: t('arrivingBody', { d: p.distM >= 1000 ? (p.distM / 1000).toFixed(1).replace('.', ',') + ' km' : Math.round(p.distM) + ' m' }), action: t('okS'), act: null });
     const nb = m.waste[0];
     if (kinds.waste !== false && nb && nb.days <= 1 && !ack[nb.date + nb.type]) list.push({ key: 'W:' + nb.date + nb.type, icon: 'trash', tone: binColor(nb.type), title: shortBin(nb.type), body: nb.days === 0 ? t('wasteToday') : t('wasteTomorrow'), action: t('doneS'), act: () => this._save({ wasteAck: { ...ack, [nb.date + nb.type]: true } }) });
     return list.filter((r) => !this._dismissed?.has(r.key));
@@ -731,7 +761,7 @@ class AureonDashboard extends LitElement {
     let body = nothing;
     if (tab === 'geral') {
       const weathers = Object.keys(this.hass.states).filter((e) => e.startsWith('weather.'));
-      const rk = { lights: t('lights'), openings: t('openings'), locks: t('locked'), appliances: t('cycleDone'), waste: t('waste'), ...{} };
+      const rk = { arrivals: t('rkArrivals'), lights: t('lights'), openings: t('openings'), locks: t('locked'), appliances: t('cycleDone'), waste: t('waste'), ...{} };
       const kinds = prefs.reminderKinds || {};
       body = html`
         <span class="eyebrow" style="font-size:10px">${t('theme')}</span>

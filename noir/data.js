@@ -149,7 +149,7 @@ export function buildModel(hass, opts = {}) {
   const areaName = (id) => areaReg[id]?.name || '';
 
   const byDevice = {};
-  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], tvs: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
+  const m = { lights: [], plugs: [], climate: [], covers: [], openings: [], locks: [], alarms: [], cams: [], speakers: [], tvs: [], accounts: [], hiddenMedia: [], vacuums: [], scenes: [], people: [], proximity: [], appliances: [], waste: [], weather: null, sun: states['sun.sun'] || null, power: [], energyToday: null, energyMonth: null, costToday: null, price: null, solarW: null, gridW: null, batterySoc: null, all: [] };
 
   for (const [eid, st] of Object.entries(states)) {
     const reg0 = regs[eid] || {};
@@ -172,6 +172,7 @@ export function buildModel(hass, opts = {}) {
 
     if (domain === 'weather' && !m.weather) m.weather = item;
     if (domain === 'person') { m.people.push(item); continue; }
+    if (domain === 'sensor' && reg.platform === 'proximity') { (m.proximity ||= []).push(item); continue; }
     if (domain === 'scene') { m.scenes.push(item); continue; }
     if (domain === 'sensor' && dc === 'power') { m.power.push({ ...item, w: num(st.state) }); continue; }
     if (domain === 'sensor' && dc === 'energy' && /today|heute|daily|hoje|tag/i.test(eid + ' ' + base) && m.energyToday == null) m.energyToday = { v: num(st.state), unit: a.unit_of_measurement || 'kWh' };
@@ -216,6 +217,21 @@ export function buildModel(hass, opts = {}) {
     }
   }
 
+  // People: zone name and, with the HA "Proximity" integration, distance and direction to home (owner 2026-11-18).
+  const zoneName = (st) => (st === 'home' ? 'home' : st === 'not_home' ? 'away' : st);
+  for (const p of m.people) {
+    p.zone = zoneName(p.state);
+    const nm = labelKey(p.attrs?.friendly_name || p.name);
+    const mine = (m.proximity || []).filter((x) => labelKey(x.attrs?.friendly_name || x.name).includes(nm) || labelKey(x.id).includes(labelKey(p.id.split('.')[1])));
+    const dist = mine.find((x) => x.attrs?.device_class === 'distance' || /distance|distanz|distância/i.test(x.id));
+    const dir = mine.find((x) => /direction|richtung|dire/i.test(x.id));
+    if (dist && !dist.unavailable && Number.isFinite(Number(dist.state))) {
+      const u = String(dist.attrs?.unit_of_measurement || 'm').toLowerCase();
+      p.distM = Number(dist.state) * (u === 'km' ? 1000 : u === 'mi' ? 1609.34 : u === 'ft' ? 0.3048 : 1);
+      p.distId = dist.id;
+    }
+    if (dir) p.dir = dir.state;
+  }
   // Owner 2026-11-18: a TV is a device of its own, not a speaker.
   m.tvs = m.speakers.filter((x) => x.tv);
   m.speakers = m.speakers.filter((x) => !x.tv);

@@ -191,6 +191,12 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .lbseg button[aria-checked="true"].exclude{background:rgba(255,138,128,.16);color:#FFB1AA}
 .lbsys{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:14px;border:1px dashed var(--line2)}
 @container (max-width:460px){.lbrow{flex-wrap:wrap}.lbseg{width:100%;justify-content:space-between}.lbseg button{flex:1}}
+.ppl{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.pp{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:3px 12px 3px 3px;border-radius:999px;background:color-mix(in srgb,var(--fg) 4%,transparent);border:1px solid var(--line)}
+.ppav{width:30px;height:30px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--raise) center/cover;font-size:12px;font-weight:600;color:var(--fg2);box-shadow:0 0 0 2px var(--line2)}
+.pp.home .ppav{box-shadow:0 0 0 2px #7EE0A8}.pp.coming .ppav{box-shadow:0 0 0 2px var(--accent)}
+.pp b{display:block;font-size:12px;font-weight:500;line-height:1.2}.pp small{display:block;font-size:11px;color:var(--mut);line-height:1.2}
+.pp.coming small{color:var(--accent)}
 .mall{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;padding:0 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));background:color-mix(in srgb,var(--accent) 6%,transparent);color:var(--accent);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
 .mpage{display:flex;flex-direction:column;gap:14px}.mpbar{display:flex;align-items:center;gap:10px}
 .mlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:2px 16px}

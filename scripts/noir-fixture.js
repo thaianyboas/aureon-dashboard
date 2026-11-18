@@ -63,7 +63,9 @@ window.makeHass = function makeHass(lang) {
   ent('sensor.dishwasher_status', 'finished', { friendly_name: 'Dishwasher status' }, { device_id: 'ddish' });
   // others
   ent('scene.morning', iso(60 * 20), { friendly_name: 'Morning' }, {}); ent('scene.cinema', iso(30), { friendly_name: 'Cinema' }, {}); ent('scene.dinner', iso(60 * 30), { friendly_name: 'Dinner' }, {}); ent('scene.night', iso(60 * 40), { friendly_name: 'Good night' }, {});
-  ent('person.a', 'home', { friendly_name: 'Alex' }, {}); ent('person.b', 'not_home', { friendly_name: 'Sam' }, {});
+  ent('person.a', 'home', { friendly_name: 'Alex' }, {}); ent('person.b', 'Work', { friendly_name: 'Sam' }, {});
+  ent('sensor.home_sam_distance', '2.4', { friendly_name: 'Home Sam Distance', device_class: 'distance', unit_of_measurement: 'km' }, { platform: 'proximity' });
+  ent('sensor.home_sam_direction_of_travel', 'towards', { friendly_name: 'Home Sam Direction of travel', device_class: 'enum' }, { platform: 'proximity' });
   ent('weather.home', 'partlycloudy', { friendly_name: 'Sample City', temperature: 7, temperature_unit: '°C' }, {});
   ent('sun.sun', 'above_horizon', { next_setting: new Date(Date.now() + 3 * 3600e3).toISOString(), next_rising: new Date(Date.now() + 18 * 3600e3).toISOString() }, {});
   ent('sensor.waste_collection', '0', { friendly_name: 'Waste collection', [day(1)]: 'Schwarze Restmülltonne', [day(2)]: 'Blaue Papiertonne', [day(3)]: 'Grüne Biotonne', [day(4)]: 'Schwarze Restmülltonne', [day(9)]: 'Gelbe Tonne' }, {});
@@ -81,7 +83,7 @@ window.makeHass = function makeHass(lang) {
       if (d === 'spotifyplus' && s === 'check_track_favorites') return { response: { result: { abc123: false } } };
       return { response: { result: {} } };
     },
-    callWS: async (msg) => { H.ws.push(msg); if (msg.type === 'history/history_during_period') { const t0 = Date.now() / 1000; return { 'sensor.old_washer_power': [{ s: '0.4', lc: t0 - 7200 }, { s: '2100', lu: t0 - 35 * 60 }, { s: '450', lu: t0 - 20 * 60 }] }; } if (msg.type === 'automation/config' && msg.entity_id === 'automation.washer_alexa') return { config: { alias: 'Waschmaschine fertig (Alexa)', use_blueprint: { path: 'thaianyboas/appliance_done_status.yaml', input: { status_entity: 'sensor.washer_operation' } } } }; if (msg.type === 'config/label_registry/list') return [{ label_id: 'protegida', name: 'Protegida' }, { label_id: 'no_dboard', name: 'no_dboard' }, { label_id: 'deko', name: 'Deko' }]; return {}; },
+    callWS: async (msg) => { H.ws.push(msg); if (msg.type === 'history/history_during_period') { const t0 = Date.now() / 1000; if ((msg.entity_ids || [])[0] === 'sensor.home_sam_distance') return { 'sensor.home_sam_distance': [{ s: '6.0', lc: t0 - 600 }, { s: '4.2', lu: t0 - 300 }, { s: '2.4', lu: t0 - 5 }] }; return { 'sensor.old_washer_power': [{ s: '0.4', lc: t0 - 7200 }, { s: '2100', lu: t0 - 35 * 60 }, { s: '450', lu: t0 - 20 * 60 }] }; } if (msg.type === 'automation/config' && msg.entity_id === 'automation.washer_alexa') return { config: { alias: 'Waschmaschine fertig (Alexa)', use_blueprint: { path: 'thaianyboas/appliance_done_status.yaml', input: { status_entity: 'sensor.washer_operation' } } } }; if (msg.type === 'config/label_registry/list') return [{ label_id: 'protegida', name: 'Protegida' }, { label_id: 'no_dboard', name: 'no_dboard' }, { label_id: 'deko', name: 'Deko' }]; return {}; },
     callApi: async () => [],
     connection: { subscribeMessage: async (cb, msg) => { H.ws.push(msg); const conds = ['partlycloudy', 'cloudy', 'rainy', 'rainy', 'cloudy', 'clear-night', 'clear-night'];
       setTimeout(() => cb({ forecast: msg.forecast_type === 'daily' ? [{ datetime: new Date().toISOString(), condition: 'partlycloudy', temperature: 9, templow: 3 }] : conds.map((c, i) => ({ datetime: new Date(Date.now() + i * 3600e3).toISOString(), condition: c, temperature: 7 - Math.floor(i / 2), precipitation_probability: c === 'rainy' ? 60 : 0 })) }), 10);
