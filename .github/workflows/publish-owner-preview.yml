@@ -7,6 +7,8 @@ on:
     paths:
       - '.github/workflows/publish-owner-preview.yml'
       - 'noir/**'
+      - 'scripts/test-noir-browser.mjs'
+      - 'scripts/build-noir.mjs'
       - 'floor-studio/dashboard/music/controller.mjs'
   workflow_dispatch:
 permissions:
