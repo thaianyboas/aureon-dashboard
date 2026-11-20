@@ -1,5 +1,10 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.6.5 — 2026-11-20
+
+- iPhone: janelas (Configurações, baterias, cartões, modo da casa) não sobem mais até o relógio/notch nem descem até a barra de baixo.
+- Configurações: botão de voltar ao topo depois de descer.
+
 ## AUREON Noir 1.6.4 — 2026-11-20
 
 - Temas: galeria com miniatura de cada tema (fundo, cartão, relógio e cor de destaque), em famílias — Clássicos, Metais, Pedras preciosas, Cores da noite e Home Assistant.

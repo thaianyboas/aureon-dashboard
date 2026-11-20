@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.6.4';
-export const BUILD = 'AUREON-NOIR-20261120a';
+export const VERSION = '1.6.5';
+export const BUILD = 'AUREON-NOIR-20261120b';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -1184,17 +1184,17 @@ class AureonDashboard extends LitElement {
           <button class="btn" @click=${() => { if (confirm(t('stResetQ'))) { this._prefs = null; try { localStorage.removeItem(this._key); } catch { /* ok */ } this._loadPrefs(); this._pushPrefs(); this.requestUpdate(); } }}>${t('stReset')}</button></div>`)}`;
     }
     return html`<div class="overlay" @click=${(e) => { if (e.target === e.currentTarget) this._set({ settings: null }); }}>
-      <div class="sheet rise" role="dialog" aria-modal="true" aria-label=${t('settings')} style="width:min(720px,100%)">
+      <div class="sheet rise" role="dialog" aria-modal="true" aria-label=${t('settings')} style="width:min(720px,100%)" @scroll=${(e) => { const up = e.currentTarget.scrollTop > 320; if (up !== !!this._shUp) { this._shUp = up; this.requestUpdate(); } }}>
         <div class="sthead">
           <div class="row" style="gap:10px;min-width:0">
             ${tab !== 'home' ? html`<button class="btn sm" aria-label=${t('goBack')} @click=${() => this._set({ settings: 'home' })}>${ic('left', 'i s')}${t('goBack')}</button>` : nothing}
             <span class="grow" style="font-size:24px;font-weight:300;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tab === 'home' ? t('settings') : (tabs.find(([k]) => k === tab)?.[1] || t('settings'))}</span>
-            <button class="ib sm stclose" aria-label=${t('closeS')} title=${t('closeS')} @click=${() => this._set({ settings: null })}>${ic('x', 'i s')}</button>
+            <button class="ib sm stclose" aria-label=${t('closeS')} title=${t('closeS')} @click=${() => { this._shUp = false; this._set({ settings: null }); }}>${ic('x', 'i s')}</button>
           </div>
           ${tab !== 'home' ? html`<div class="sttabs" role="tablist">${tabs.map(([k, n]) => html`<button role="tab" aria-selected=${tab === k ? 'true' : 'false'} @click=${() => this._set({ settings: k })}>${n}</button>`)}</div>` : nothing}
         </div>
         ${body}
-        <div class="stfoot">${this._savedAt && Date.now() - this._savedAt < 2500
+        <div class="stfoot">${this._shUp ? html`<button class="ib shtop" aria-label=${t('toTop')} title=${t('toTop')} @click=${(e) => e.currentTarget.closest('.sheet').scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>${ic('up', 'i s')}</button>` : nothing}${this._savedAt && Date.now() - this._savedAt < 2500
           ? html`<span class=${'saved ' + (this._savedState || 'all')} role="status">${ic('check', 'i s')}${this._savedState === 'local' ? t('savedLocal') : t('savedAll')}</span>`
           : html`<span class="dim txt">${this._synced ? t('stSynced') : t('stLocal')}</span>`}</div>
 

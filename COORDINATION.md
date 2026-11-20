@@ -1548,3 +1548,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-20a (AUREON Noir 1.6.4)
 - Theme gallery (`THEME_FAMS`, `.thgal/.thc` mini previews), 8 more themes. Browser test PASS.
+
+## Claude batch — 2026-11-20b (AUREON Noir 1.6.5)
+- `.overlay` padding and `.sheet` max-height use env(safe-area-inset-*) (100dvh). Settings sheet back-to-top `.shtop`. Browser test PASS (safe area itself cannot be emulated in headless Chrome).

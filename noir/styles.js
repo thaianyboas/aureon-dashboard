@@ -361,8 +361,9 @@ svg.i.s{width:14px;height:14px}svg.i.f{fill:currentColor;stroke:none}
 .modes{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(170px,45%),1fr));gap:10px}
 .mode{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:132px;padding:16px;border-radius:22px;background:var(--card);border:1px solid var(--line);text-align:left;transition:border-color .3s,box-shadow .3s}
 .mode[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 24px 70px -34px var(--accent)}
-.overlay{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center;padding:16px;background:rgba(5,5,6,.6);backdrop-filter:blur(6px)}
-.sheet{width:min(520px,100%);max-height:calc(100vh - 32px);overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:22px;border-radius:26px;background:var(--raise);border:1px solid var(--line2);box-shadow:0 40px 100px rgba(0,0,0,.6)}
+/* Owner 2026-11-20: keep sheets clear of the iPhone status bar / notch and the home indicator. */
+.overlay{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center;padding:max(16px,calc(env(safe-area-inset-top,0px) + 14px)) max(16px,env(safe-area-inset-right,0px)) max(16px,calc(env(safe-area-inset-bottom,0px) + 10px)) max(16px,env(safe-area-inset-left,0px));background:rgba(5,5,6,.6);backdrop-filter:blur(6px)}
+.sheet{width:min(520px,100%);max-height:calc(100vh - 32px);max-height:calc(100dvh - max(16px,calc(env(safe-area-inset-top,0px) + 14px)) - max(16px,calc(env(safe-area-inset-bottom,0px) + 10px)));overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:22px;border-radius:26px;background:var(--raise);border:1px solid var(--line2);box-shadow:0 40px 100px rgba(0,0,0,.6)}
 .chk{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:14px;background:var(--sunk);border:1px solid var(--line)}
 .chk b{font-size:14px;font-weight:500}
 @container (min-width:720px){.overlay{align-items:center}}
@@ -587,4 +588,6 @@ select.numin{text-align:left}
 .thok{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--pa);color:#0A0A0A}
 .thok .i{width:13px;height:13px}
 @container (max-width:460px){.thgal{grid-template-columns:repeat(2,minmax(0,1fr))}.thpv{height:80px}.thclock{font-size:17px}}
+.stfoot{position:sticky}
+.shtop{position:absolute;right:2px;bottom:calc(100% - 4px);width:44px;height:44px;border-radius:50%;background:var(--raise);border:1px solid var(--line2);box-shadow:0 10px 26px -8px rgba(0,0,0,.7);color:var(--fg)}
 `;
