@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.6.3';
-export const BUILD = 'AUREON-NOIR-20261118z';
+export const VERSION = '1.6.4';
+export const BUILD = 'AUREON-NOIR-20261120a';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -35,7 +35,24 @@ export const THEMES = [
   { id: 'aurora', name: 'Aurora', desc: 'Turquesa · noite polar', accent: '#86E3DC', bg: '#04090B', card: '#0C1518', card2: '#091114', sunk: '#060C0E', raise: '#111C20', line: '#17262B', line2: '#20343A' },
   { id: 'oliva', name: 'Oliva', desc: 'Latão · musgo', accent: '#CDBE7E', bg: '#080906', card: '#12140F', card2: '#0E100B', sunk: '#0A0B08', raise: '#181B14', line: '#21251B', line2: '#2D3224' },
   { id: 'grafite', name: 'Grafite', desc: 'Aço azulado · grafite', accent: '#AEB9CC', bg: '#08090B', card: '#111317', card2: '#0D0F12', sunk: '#0A0B0E', raise: '#171A1F', line: '#1E2228', line2: '#2A2F37' },
+  // Owner 2026-11-20 ("mais temas bonitos e elegantes").
+  { id: 'onix', name: 'Ônix', desc: 'Preto profundo · prata', accent: '#D8D4CC', bg: '#030303', card: '#0C0C0C', card2: '#090909', sunk: '#060606', raise: '#121212', line: '#191919', line2: '#242424' },
+  { id: 'perola', name: 'Pérola', desc: 'Nácar · cinza lunar', accent: '#E9E2F2', bg: '#09090B', card: '#141418', card2: '#101014', sunk: '#0C0C0F', raise: '#1A1A20', line: '#23232A', line2: '#303038' },
+  { id: 'ourorose', name: 'Ouro rosé', desc: 'Rosé gold · cacau', accent: '#E9B49E', bg: '#0A0707', card: '#161011', card2: '#120D0E', sunk: '#0D0A0A', raise: '#1D1516', line: '#271D1E', line2: '#352829' },
+  { id: 'titanio', name: 'Titânio', desc: 'Metal frio · aço', accent: '#C9D2DC', bg: '#070809', card: '#101214', card2: '#0C0E10', sunk: '#090A0C', raise: '#16191C', line: '#1D2125', line2: '#292E33' },
+  { id: 'rubi', name: 'Rubi', desc: 'Vermelho joia · ônix', accent: '#FF7A88', bg: '#0A0506', card: '#160C0E', card2: '#12090B', sunk: '#0D0708', raise: '#1E1013', line: '#29161A', line2: '#381E24' },
+  { id: 'terracota', name: 'Terracota', desc: 'Barro · areia', accent: '#E0957A', bg: '#0A0706', card: '#17110E', card2: '#130E0B', sunk: '#0D0A08', raise: '#1E1713', line: '#291F1A', line2: '#382A23' },
+  { id: 'petroleo', name: 'Petróleo', desc: 'Azul-petróleo · profundo', accent: '#5FC2CE', bg: '#03080A', card: '#0B1518', card2: '#081114', sunk: '#060C0E', raise: '#101D21', line: '#16282D', line2: '#1F363C' },
+  { id: 'indigo', name: 'Índigo', desc: 'Violeta azulado · noite', accent: '#9FA8FF', bg: '#06060C', card: '#10101C', card2: '#0C0C17', sunk: '#090912', raise: '#161627', line: '#1D1D33', line2: '#282845' },
   { id: 'ha', name: 'Home Assistant', desc: 'Segue o tema do HA', ha: true }
+];
+// Theme gallery families (owner 2026-11-20: "uma visualização melhor").
+const THEME_FAMS = [
+  ['famClassic', ['aureon', 'champagne', 'onix', 'platina', 'perola', 'grafite']],
+  ['famMetal', ['ambar', 'cobre', 'ourorose', 'titanio', 'oliva', 'terracota']],
+  ['famStone', ['ametista', 'jade', 'esmeralda', 'safira', 'rubi', 'bordo']],
+  ['famNight', ['oceano', 'aurora', 'petroleo', 'indigo', 'rose']],
+  ['famHa', ['ha']]
 ];
 const SECTIONS = ['lights', 'climate', 'plugs', 'energy', 'covers', 'openings', 'security', 'tv', 'music'];
 const SCENE_GLOW = ['245,208,138', '169,155,255', '255,160,100', '143,184,255', '126,224,168', '242,167,181'];
@@ -1075,7 +1092,12 @@ class AureonDashboard extends LitElement {
       const kinds = prefs.reminderKinds || {};
       body = html`
         ${grp('theme', t('theme'), html`
-        <div class="wrapRow">${THEMES.map((x) => html`<button class="dc" aria-pressed=${prefs.theme === x.id ? 'true' : 'false'} style=${prefs.theme === x.id ? 'border-color:var(--accent);color:var(--fg)' : ''} @click=${() => this._save({ theme: x.id })}><span style=${`display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:${x.ha ? 'var(--primary-color,#03a9f4)' : x.accent}`}></span>${x.name}</button>`)}</div>
+        ${THEME_FAMS.map(([fk, ids]) => html`<span class="thfam">${t(fk)}</span>
+        <div class="thgal">${ids.map((id) => THEMES.find((x) => x.id === id)).filter(Boolean).map((x) => { const on = (prefs.theme || 'aureon') === x.id;
+          const pv = x.ha ? '--pb:var(--primary-background-color,#111);--pc:var(--card-background-color,#1c1c1c);--pa:var(--primary-color,#03a9f4);--pl:rgba(255,255,255,.08)' : `--pb:${x.bg};--pc:${x.card};--pa:${x.accent};--pl:${x.line2}`;
+          return html`<button class=${'thc' + (on ? ' on' : '')} aria-pressed=${on ? 'true' : 'false'} aria-label=${x.name + ' · ' + x.desc} style=${pv} @click=${() => this._save({ theme: x.id })}>
+            <span class="thpv" aria-hidden="true"><span class="thglow"></span><span class="thcard"><i class="thclock">21:39</i><i class="thline"></i><i class="thdots"><b></b><b></b><b></b></i></span><span class="thpill"></span></span>
+            <span class="thtx"><b>${x.name}</b><small>${x.desc}</small></span>${on ? html`<span class="thok">${ic('check', 'i s')}</span>` : nothing}</button>`; })}</div>`)}
         <div class="chk"><span class="grow txt"><b>${t('stDefaultView')}</b></span><span class="seg"><button aria-pressed=${prefs.view !== '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button><button aria-pressed=${prefs.view === '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></div>
         ${weathers.length > 1 ? html`<div class="chk"><span class="grow txt"><b>${t('forecastT')}</b></span><select style="min-height:40px;border-radius:10px;background:var(--sunk);color:var(--fg);border:1px solid var(--line2);padding:0 10px;font:inherit" @change=${(e) => { this._save({ weather: e.target.value }); this._fcFor = null; this.requestUpdate(); }}>${weathers.map((w) => html`<option value=${w} ?selected=${(prefs.weather || weathers[0]) === w}>${this.hass.states[w].attributes.friendly_name || w}</option>`)}</select></div>` : nothing}
         `)}

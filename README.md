@@ -1,5 +1,10 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.6.4 — 2026-11-20
+
+- Temas: galeria com miniatura de cada tema (fundo, cartão, relógio e cor de destaque), em famílias — Clássicos, Metais, Pedras preciosas, Cores da noite e Home Assistant.
+- 8 temas novos: Ônix, Pérola, Ouro rosé, Titânio, Rubi, Terracota, Petróleo e Índigo (24 no total).
+
 ## AUREON Noir 1.6.3 — 2026-11-18
 
 - Energia: "Quem consome agora" começa fechado e abre na seta; gráfico e "Por cômodo" também abrem e fecham (salvo em todos os aparelhos).

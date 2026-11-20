@@ -569,4 +569,22 @@ select.numin{text-align:left}
 .efh{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:36px;padding:0;border:0;background:transparent;color:var(--mut);font:inherit;cursor:pointer;text-align:left}
 .efh .i{transition:transform .25s}.efold.closed .efh .i{transform:rotate(-90deg)}
 .efh:hover .eyebrow{color:var(--fg)}
+/* Theme gallery (owner 2026-11-20). */
+.thfam{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);padding-top:4px}
+.thgal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.thc{position:relative;display:flex;flex-direction:column;gap:0;padding:0;border-radius:18px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;text-align:left;cursor:pointer;overflow:hidden;transition:border-color .25s,transform .25s,box-shadow .25s}
+.thc:hover{transform:translateY(-2px);border-color:var(--line2)}
+.thc.on{border-color:var(--pa);box-shadow:0 0 0 1px var(--pa),0 12px 30px -14px var(--pa)}
+.thpv{position:relative;display:block;height:92px;background:var(--pb);overflow:hidden}
+.thglow{position:absolute;inset:-30% 30% 40% -20%;background:radial-gradient(closest-side,color-mix(in srgb,var(--pa) 35%,transparent),transparent);filter:blur(6px);opacity:.7}
+.thcard{position:absolute;left:12px;right:30px;top:14px;bottom:14px;border-radius:12px;background:var(--pc);border:1px solid var(--pl);display:flex;flex-direction:column;justify-content:center;gap:6px;padding:0 12px}
+.thclock{font-style:normal;font-size:20px;font-weight:200;letter-spacing:-.05em;color:#F2F2F3;line-height:1}
+.thline{display:block;height:3px;width:56%;border-radius:2px;background:var(--pa)}
+.thdots{display:flex;gap:4px}.thdots b{width:6px;height:6px;border-radius:50%;background:var(--pa);opacity:.9}.thdots b+b{opacity:.45}.thdots b+b+b{opacity:.2}
+.thpill{position:absolute;right:10px;top:14px;width:12px;height:34px;border-radius:6px;background:linear-gradient(var(--pa),color-mix(in srgb,var(--pa) 30%,transparent))}
+.thtx{display:flex;flex-direction:column;gap:2px;padding:10px 12px 12px}
+.thtx b{font-size:13.5px;font-weight:500}.thtx small{font-size:11px;color:var(--mut);line-height:1.35}
+.thok{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--pa);color:#0A0A0A}
+.thok .i{width:13px;height:13px}
+@container (max-width:460px){.thgal{grid-template-columns:repeat(2,minmax(0,1fr))}.thpv{height:80px}.thclock{font-size:17px}}
 `;

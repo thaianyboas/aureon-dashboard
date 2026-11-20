@@ -1545,3 +1545,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-18z (AUREON Noir 1.6.3)
 - `efold()` energy parts (`prefs.eFold`, 'who' closed by default). 8 new THEMES. Browser test PASS.
+
+## Claude batch — 2026-11-20a (AUREON Noir 1.6.4)
+- Theme gallery (`THEME_FAMS`, `.thgal/.thc` mini previews), 8 more themes. Browser test PASS.
