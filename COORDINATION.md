@@ -1564,3 +1564,8 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-21d (AUREON Noir 1.6.9)
 - `opIc(door, open)` in index.js: inline SVG door/window with `.leaf`/`.sl`/`.sr` groups animated via CSS (`.opi`), used in the Escudo ring and tiles. Respects prefers-reduced-motion. Browser check added. Tests PASS.
+
+## Claude batch — 2026-11-21e (AUREON Noir 1.7.0)
+- Energy redesign (owner chose concept A premium). `sEnergy` render rewritten; data logic unchanged. New `_energyHours(m)` (recorder hourly `change`, yesterday+today, 10 min cache) → curve, peak, avg, vs-yesterday. Month forecast from pace (day ≥ 3).
+- Classes: `.egrid/.ecard/.ehero/.edial/.escale/.echips/.ecurve/.eduo/.ecell/.ewlist/.ewho/.ering/.ewv/.eidle/.erooms`. `.ekv/.erow` are gone (tests updated). Avoid `.top` (global flex class) → `.lead`.
+- `devIc(name)` maps consumer names to icons (new P icons fridge, wifi, coffee). Standby (≤ 5 W) grouped when > 5 rows; `_ui.eIdle`. Fixture mocks hourly stats.

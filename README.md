@@ -1,5 +1,12 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.7.0 — 2026-11-21
+
+- Energia em novo visual premium ("Medidor"): mostrador com escala e brilho, pico do dia em dourado, comparação com ontem e média do dia, curva de consumo hora a hora, Hoje e Este mês com previsão do fim do mês.
+- 12 meses em cartão próprio, com total do ano e mês passado.
+- "Quem consome agora": ícone de cada aparelho dentro de um anel que mostra a parte dele no total; aparelhos em espera (≤ 5 W) ficam juntos numa linha que abre ao tocar. Tocar num aparelho abre os detalhes no HA.
+- Tudo vem das estatísticas do Home Assistant (somente leitura); o que o HA não tiver simplesmente não aparece.
+
 ## AUREON Noir 1.6.9 — 2026-11-21
 
 - Portas e janelas: os ícones mostram o estado de verdade — porta aberta gira na dobradiça e janela aberta abre as folhas, com uma luz por trás e um leve balanço. Fechou, volta ao desenho fechado. Sem animação se o aparelho pedir menos movimento.

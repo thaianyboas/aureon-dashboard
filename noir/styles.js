@@ -645,4 +645,63 @@ select.numin{text-align:left}
 .shr.open .opi{filter:drop-shadow(0 0 6px rgba(242,193,78,.55))}
 .shr svg.opi.i.s{width:30px;height:30px;stroke-width:1.5}.shring .opi{width:30px;height:30px;stroke-width:1.5}
 @media (prefers-reduced-motion:reduce){.opi .leaf,.opi .sl,.opi .sr{animation:none!important;transition:none}}
+/* Energy — concept A premium "Medidor" (owner 2026-11-21). */
+.elive{display:inline-flex;align-items:center;gap:7px;font:10px ui-monospace,'SF Mono',monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+.elive:before{content:'';width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 15%,transparent),0 0 12px var(--accent);animation:pulse 2.4s ease-in-out infinite}
+.egrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:12px;align-items:start}
+.ecol{display:flex;flex-direction:column;gap:12px;min-width:0}
+.ecard{position:relative;display:flex;flex-direction:column;gap:16px;padding:22px;border-radius:30px;border:1px solid var(--line);min-width:0;overflow:hidden;
+  background:radial-gradient(120% 80% at 50% -10%,color-mix(in srgb,var(--accent) 10%,transparent),transparent 55%),linear-gradient(170deg,var(--card),var(--card2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 30px 60px -30px rgba(0,0,0,.8)}
+.ecard:before{content:'';position:absolute;top:0;left:22%;right:22%;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 60%,#fff),transparent);opacity:.6}
+.edial{position:relative;width:100%;max-width:320px;margin:0 auto;aspect-ratio:300/190}
+.edial svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.edial .tk line{stroke:var(--line2);stroke-width:1.5;stroke-linecap:round}.edial .tk line.on{stroke:color-mix(in srgb,var(--accent) 45%,var(--line2))}
+.edial .trk{fill:none;stroke:color-mix(in srgb,var(--fg) 6%,transparent);stroke-width:10;stroke-linecap:round}
+.edial .arc,.edial .glo{fill:none;stroke:url(#aurEg);stroke-width:10;stroke-linecap:round;transition:d .8s ease}
+.edial .glo{filter:blur(7px);opacity:.7}
+.edial .pk{stroke:#F2C14E;stroke-width:2.5;stroke-linecap:round}
+.edv{position:absolute;left:0;right:0;top:36%;display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:0 4px;text-align:center}
+.edv b{font-size:clamp(48px,13cqi,68px);font-weight:200;letter-spacing:-.05em;line-height:1;background:linear-gradient(180deg,#fff,color-mix(in srgb,var(--accent) 35%,#fff));-webkit-background-clip:text;background-clip:text;color:transparent}
+.edv small{font-size:17px;color:var(--mut)}
+.edv .txt{flex-basis:100%;font-size:12px;color:var(--mut);margin-top:6px;padding:0 24px}
+.escale{display:flex;justify-content:space-between;gap:8px;width:100%;max-width:320px;margin:-12px auto 0;font:10px ui-monospace,monospace;color:var(--mut)}
+.escale .pk{color:#F2C14E}
+.echips{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.echip{font-size:11.5px;padding:6px 11px;border-radius:999px;border:1px solid var(--line2);color:var(--mut);background:rgba(255,255,255,.02)}
+.echip b{color:var(--accent);font-weight:500}.echip.up b{color:#F2C14E}
+.ecurve svg{display:block;width:100%;height:46px}.ecurve .ln{fill:none;stroke:var(--accent);stroke-width:1.5;vector-effect:non-scaling-stroke}
+.eticks{display:flex;justify-content:space-between;font:9px ui-monospace,monospace;color:var(--mut);margin-top:4px}
+.eduo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ecell{display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.025),transparent);min-width:0}
+.ecell .eyebrow{font-size:10px}
+.ecell>b{font-size:28px;font-weight:200;letter-spacing:-.03em;margin-top:4px}.ecell>b small{font-size:12px;color:var(--mut);font-weight:400}
+.ecell .eur{font-size:15px;color:color-mix(in srgb,var(--accent) 55%,#fff)}.ecell .eur small{color:var(--mut);font-size:11px}
+.eprog{height:3px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:6px}.eprog i{display:block;height:100%;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 30%,transparent),var(--accent))}
+.esm{font-size:10.5px;color:var(--mut)}
+.etot{font-size:13px;color:var(--fg)}.etot em{font-style:normal;color:color-mix(in srgb,var(--accent) 55%,#fff);margin-left:6px}
+.ecard .ebars .eb i{border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--line2),var(--line))}
+.ecard .ebars .eb.now i{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 55%,#fff),color-mix(in srgb,var(--accent) 25%,transparent));box-shadow:0 0 24px -4px color-mix(in srgb,var(--accent) 60%,transparent)}
+.ecard .ebars .eb.now small{color:var(--accent)}
+.efoot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}.efoot b{color:var(--fg);font-weight:500}
+.ewlist{display:flex;flex-direction:column}
+.ewho{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 0;border:0;border-bottom:1px solid var(--line);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.ewho .txt{display:flex;flex-direction:column;gap:3px;min-width:0}.ewho .txt b{font-size:15px;font-weight:400;overflow-wrap:anywhere}.ewho .txt small{font-size:11.5px;color:var(--mut)}
+.ering{position:relative;width:44px;height:44px;display:grid;place-items:center;color:var(--accent)}
+.ering>svg:not(.i){position:absolute;inset:0;width:44px;height:44px}.ering .bg{fill:none;stroke:var(--line);stroke-width:2.5}
+.ering .fg{fill:none;stroke:var(--accent);stroke-opacity:.7;stroke-width:2.5;stroke-linecap:round}.ering .fg.lead{stroke-opacity:1}.ering .fg.est{stroke-dasharray:3 3}
+.ering>svg.i{position:relative;width:18px;height:18px}
+.ewv{text-align:right;font-size:17px;font-weight:300;white-space:nowrap}.ewv small{font-size:11px;color:var(--mut)}.ewv .pc{display:block;margin-top:3px}
+.ewv.lead{color:color-mix(in srgb,var(--accent) 55%,#fff)}
+.eidle{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:18px;background:var(--sunk);border:1px solid var(--line);color:var(--mut);font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
+.eidle .txt{flex:1;min-width:0}.eidle b{font-weight:400;color:var(--fg)}
+.edots{display:flex;flex:none}.edots i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:1px solid var(--line2);margin-left:-7px;color:var(--mut)}.edots i:first-child{margin-left:0}
+.edots .i{width:11px;height:11px}
+.erooms{display:flex;flex-direction:column;gap:10px}
+.erm{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,10fr) auto;gap:10px;align-items:center;font-size:12.5px}
+.erm .et{height:8px;border-radius:4px;background:var(--line)}.erm .et i{display:block;height:100%;border-radius:4px;background:var(--accent)}
+.erm b{font-weight:400;color:var(--mut);min-width:52px;text-align:right}
+@container (max-width:380px){.ecard{padding:18px}.eduo{gap:8px}.ecell{padding:13px}.ecell>b{font-size:24px}}
+@media (prefers-reduced-motion:reduce){.elive:before{animation:none}.edial .arc,.edial .glo{transition:none}}
+.esub{text-align:center;font-size:11.5px;color:var(--mut);margin-top:-6px}
 `;

@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.6.9';
-export const BUILD = 'AUREON-NOIR-20261121d';
+export const VERSION = '1.7.0';
+export const BUILD = 'AUREON-NOIR-20261121e';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -62,6 +62,8 @@ const P = {
   repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
   power: 'M12 3v9M6.3 7.3a8 8 0 1 0 11.4 0',
   mute: 'M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6',
+  fridge: 'M6 2h12v20H6zM6 10h12M9 5v2M9 13v3', wifi: 'M5 13a10 10 0 0 1 14 0M8.5 16.5a5 5 0 0 1 7 0M2 9.5a15 15 0 0 1 20 0M12 20h.01',
+  coffee: 'M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 2v3M12 2v3',
   minus: 'M5 12h14', plus: 'M12 5v14M5 12h14',
   tv: 'M3 6h18v11H3zM8 21h8M12 17v4',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
@@ -110,6 +112,12 @@ const binSvg = (c, open, key, cls = '') => {
 };
 // Owner 2026-11-21: doors and windows show as open/closed drawings. The door leaf swings on its hinge, the window
 // sashes open outwards; a warm light shows through the gap. CSS in styles.js (.opi); still under reduced motion.
+// Energy rows (owner 2026-11-21): a drawn icon per consumer, guessed from its name in any language; plug otherwise.
+const DEV_IC = [['tv', /\btv\b|fernseh|televis|ps5|playstation|xbox|beamer|projektor|projetor|monitor/i], ['fridge', /k(ü|ue)hl|gefrier|fridge|freezer|geladeira|congelador/i],
+  ['wifi', /router|fritz|modem|internet|wlan|wi-?fi|mesh|switch/i], ['washer', /wasch(?!becken)|washer|washing|lavar|lavadora|trockner|dryer|secadora/i], ['dish', /sp(ü|ue)l|dish|lou(ç|c)a/i],
+  ['coffee', /kaffee|coffee|caf(é|e)|espresso|nespresso/i], ['robot', /robo|roomba|saug|vacuum|aspirador|isg/i], ['speaker', /alexa|echo|sonos|speaker|lautsprecher|caixa de som|homepod/i],
+  ['bulb', /licht|lamp|led|light|luz|leuchte/i], ['flame', /heiz|heater|ofen|oven|airfryer|fritadeira|mikrow|microw|toaster|herd|kocher|fogão|forno/i], ['note', /klavier|piano|keyboard/i], ['wind', /f(ö|oe)hn|hair ?dryer|secador|ventil|fan\b/i]];
+const devIc = (name) => (DEV_IC.find(([, re]) => re.test(String(name || ''))) || ['plug'])[0];
 const opIc = (door, open, cls = 'i') => door
   ? svg`<svg class=${cls + ' opi door' + (open ? ' open' : '')} viewBox="0 0 24 24" aria-hidden="true"><rect class="gap" x="6" y="3.5" width="12" height="17" rx=".5"></rect><path d="M5 21V3h14v18M3 21h18"></path><g class="leaf"><path d="M6 20.5v-17h12v17z"></path><path d="M15.2 12.2h.01"></path></g></svg>`
   : svg`<svg class=${cls + ' opi win' + (open ? ' open' : '')} viewBox="0 0 24 24" aria-hidden="true"><rect class="gap" x="4.5" y="3.5" width="15" height="17"></rect><path d="M3.5 3h17v18h-17z"></path><g class="sl"><path d="M4.5 4h7.5v16H4.5zM4.5 12H12"></path></g><g class="sr"><path d="M12 4h7.5v16H12zM12 12h7.5"></path></g></svg>`;
@@ -1532,6 +1540,21 @@ class AureonDashboard extends LitElement {
       }).catch(() => {});
     return this._pEst || {};
   }
+  // Owner 2026-11-21 (Energy concept A premium): hour-by-hour kWh of every meter for yesterday and today, from HA's
+  // statistics. Gives the day curve, the peak hour, the average and the comparison with yesterday. Read-only, 10 min cache.
+  _energyHours(m) {
+    const ids = m.energyMeters.map((e) => e.id), sig = ids.join(',') + '|' + new Date().toDateString();
+    if (!ids.length || !this.hass?.callWS) return this._eHr || null;
+    if (this._hSig === sig && Date.now() - (this._hAt || 0) < 600000) return this._eHr || null;
+    this._hSig = sig; this._hAt = Date.now();
+    const n = new Date(), y0 = new Date(n.getFullYear(), n.getMonth(), n.getDate() - 1);
+    this.hass.callWS({ type: 'recorder/statistics_during_period', start_time: y0.toISOString(), statistic_ids: ids, period: 'hour', types: ['change'], units: { energy: 'kWh' } }).then((res) => {
+      const per = {};
+      for (const id of ids) per[id] = (res?.[id] || []).map((r) => ({ t: typeof r.start === 'number' ? r.start : Date.parse(r.start), v: typeof r.change === 'number' ? Math.max(0, r.change) : null })).filter((r) => Number.isFinite(r.t) && r.v != null);
+      this._eHr = { ok: ids.some((id) => per[id].length), per, y0: y0.getTime() }; this.requestUpdate();
+    }).catch(() => { this._eHr = { ok: false, per: {}, y0: y0.getTime() }; });
+    return this._eHr || null;
+  }
   // Owner 2026-11-18 ("mostra consumo no mês/ano?"): month-by-month (12) and day-by-day (30) sums of all meters, from
   // the long-term statistics Home Assistant already keeps. Refreshed every 30 minutes. Read-only.
   _energySeries(m) {
@@ -1557,12 +1580,12 @@ class AureonDashboard extends LitElement {
     return html`<div class=${'efold' + (closed ? ' closed' : '')}><button class="efh" aria-expanded=${closed ? 'false' : 'true'} @click=${() => this._save({ eFold: { ...(this._prefs.eFold || {}), [key]: !closed } })}>
       <span class="eyebrow" style="font-size:10px">${title}</span><span class="row" style="gap:8px">${closed ? nothing : right || nothing}${ic('down', 'i s')}</span></button>${closed ? nothing : content}</div>`;
   }
-  energyChart({ t, lang }, ser, price, cur) {
+  energyChart({ t, lang }, ser, price, cur, right = nothing) {
     if (!ser?.ok) return nothing;
     const mode = this._ui.eChart || 'months', list = mode === 'months' ? ser.months : ser.days, max = Math.max(0.001, ...list.map((x) => x.v || 0));
     const lbl = (d) => mode === 'months' ? d.toLocaleDateString(lang, { month: 'short' }).replace('.', '') : String(d.getDate());
     const fmt = (v) => v == null ? '—' : v.toLocaleString(lang, { maximumFractionDigits: v < 10 ? 1 : 0 }) + ' kWh' + (price != null ? ' · ' + (v * price).toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + cur : '');
-    return this.efold('chart', mode === 'months' ? t('last12m') : t('last30d'), nothing, html`<div class="echart">
+    return this.efold('chart', mode === 'months' ? t('last12m') : t('last30d'), right, html`<div class="echart">
       <div class="row" style="justify-content:flex-end"><span class="seg"><button aria-pressed=${mode === 'days' ? 'true' : 'false'} @click=${() => this._set({ eChart: 'days' })}>${t('days30')}</button><button aria-pressed=${mode === 'months' ? 'true' : 'false'} @click=${() => this._set({ eChart: 'months' })}>${t('months12')}</button></span></div>
       <div class=${'ebars ' + mode} role="img" aria-label=${(mode === 'months' ? t('last12m') : t('last30d')) + ': ' + list.map((x) => lbl(x.d) + ' ' + fmt(x.v)).join(', ')}>
         ${list.map((x, i) => html`<div class=${'eb' + (i === list.length - 1 ? ' now' : '') + (x.v == null ? ' none' : '')} title=${(mode === 'months' ? x.d.toLocaleDateString(lang, { month: 'long', year: 'numeric' }) : x.d.toLocaleDateString(lang, { day: 'numeric', month: 'short' })) + ' · ' + fmt(x.v)}>
@@ -1601,12 +1624,61 @@ class AureonDashboard extends LitElement {
     const yearV = yList.length ? yList.reduce((a2, x) => a2 + x.v, 0) : null;
     const setPrice = html`<button class="linkbtn" @click=${() => this._set({ settings: 'geral' })}>${t('setPrice')}</button>`;
     const flow = (on, rev, dur) => on ? `opacity:1;animation:flow ${dur}s linear infinite${rev ? ' reverse' : ''}` : 'opacity:0';
-    return html`<section class="sec">${this.secHead('energy', t('energy'), known ? t('devicesMeasuring', { n: known }) : '', known ? html`<span class="tag row" style="gap:6px;color:#7EE0A8"><span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#7EE0A8"></span>${t('live')}</span>` : nothing, t)}
-      <div class="wrapRow" style="align-items:stretch;gap:12px">
-        <div class="tile" style="flex:3 1 440px;padding:22px;gap:16px;border-radius:24px">
-          <span style="display:flex;flex-direction:column;gap:4px"><span class="eyebrow" style="font-size:10px">${t('monitoredNow')}</span>
-            <span class="row" style="align-items:baseline;gap:6px"><span class="ebig" style="font-size:56px;font-weight:200;letter-spacing:-.06em;line-height:.9">${known ? (eW && !mW ? '≈ ' : '') + total : '—'}</span>${known ? html`<span class="muted" style="font-size:16px">W</span>` : nothing}</span>
-            <span class="muted txt" style="font-size:12px">${sub}</span></span>
+    const money = (v) => v == null ? null : v.toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + cur;
+    // Owner 2026-11-21 chose Energy concept A (premium): a dial, the day curve, today / this month with forecast.
+    const hr = this._energyHours(m), now = new Date(), d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    let curve = [], peak = null, vsY = null, yTot = null;
+    if (hr?.ok) {
+      const tH = new Array(24).fill(null), yH = new Array(24).fill(null);
+      for (const e of meters) for (const r of hr.per[e.id] || []) { const h = Math.floor((r.t - (r.t >= d0 ? d0 : hr.y0)) / 3600000); if (h < 0 || h > 23) continue; const arr = r.t >= d0 ? tH : yH; arr[h] = (arr[h] || 0) + r.v; }
+      const done = tH.reduce((k, v, i) => (v != null ? i + 1 : k), 0);
+      curve = tH.slice(0, done).map((v) => Math.round((v || 0) * 1000));
+      if (curve.length) peak = Math.max(...curve);
+      if (yH.some((v) => v != null)) {
+        yTot = yH.reduce((x, v) => x + (v || 0), 0);
+        const a1 = tH.slice(0, done).reduce((x, v) => x + (v || 0), 0), b1 = yH.slice(0, done).reduce((x, v) => x + (v || 0), 0);
+        if (done >= 2 && b1 > 0.01) vsY = Math.round(100 * (a1 - b1) / b1);
+      }
+    }
+    if (known) peak = Math.max(peak || 0, total);
+    const hoursIn = (now.getTime() - d0) / 3600000, avgW = today != null && hoursIn >= 1 ? Math.round(today * 1000 / hoursIn) : null;
+    const nice = [100, 200, 300, 500, 800, 1000, 1500, 2000, 3000, 5000, 8000, 10000, 15000, 20000, 30000];
+    const scaleMax = nice.find((v) => v >= Math.max(total, peak || 0, 1) * 1.1) || Math.ceil(Math.max(total, peak || 0) / 10000) * 10000;
+    const pt = (f) => { const a2 = Math.PI * (1 - Math.min(1, Math.max(0, f))); return [150 + 120 * Math.cos(a2), 170 - 120 * Math.sin(a2)]; };
+    const fNow = known ? total / scaleMax : 0, [tx, ty] = pt(fNow), fPk = peak != null ? peak / scaleMax : null;
+    const arcTo = fNow > 0.004 ? `M30 170A120 120 0 0 1 ${tx.toFixed(1)} ${ty.toFixed(1)}` : '';
+    const ticks = Array.from({ length: 41 }, (_, i) => { const a2 = Math.PI * (1 - i / 40), r1 = i % 5 ? 136 : 131; return svg`<line x1=${(150 + r1 * Math.cos(a2)).toFixed(1)} y1=${(170 - r1 * Math.sin(a2)).toFixed(1)} x2=${(150 + 142 * Math.cos(a2)).toFixed(1)} y2=${(170 - 142 * Math.sin(a2)).toFixed(1)} class=${i / 40 <= fNow ? 'on' : ''}></line>`; });
+    const pk = fPk != null ? (() => { const a2 = Math.PI * (1 - Math.min(1, fPk)); return svg`<line class="pk" x1=${(150 + 104 * Math.cos(a2)).toFixed(1)} y1=${(170 - 104 * Math.sin(a2)).toFixed(1)} x2=${(150 + 112 * Math.cos(a2)).toFixed(1)} y2=${(170 - 112 * Math.sin(a2)).toFixed(1)}></line>`; })() : nothing;
+    // Day curve: the hourly averages of the meters (the live value comes from more devices, so it is not mixed in).
+    const cPts = curve, cMax = Math.max(1, ...cPts), cx = (i) => (cPts.length < 2 ? 0 : (i / (cPts.length - 1)) * 346), cy = (v) => 40 - (v / cMax) * 34;
+    const cLine = cPts.map((v, i) => (i ? 'L' : 'M') + cx(i).toFixed(1) + ' ' + cy(v).toFixed(1)).join(' ');
+    // Month forecast from the pace so far (from day 3 on).
+    const mLen = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), mFrac = (now.getDate() - 1 + hoursIn / 24) / mLen;
+    const fcast = month != null && now.getDate() >= 3 && mFrac > 0 ? month / mFrac : null;
+    // Consumers: the active ones as rows with a ring; the ones in standby (≤ 5 W) folded into one line.
+    const IDLE_W = 5, active = rows.length > 5 ? rows.filter((p) => p.w > IDLE_W) : rows, idle = rows.filter((p) => !active.includes(p)), idleW = Math.round(idle.reduce((x, p) => x + p.w, 0));
+    const ring = (p, i) => { const f = total ? p.w / total : 0; return html`<span class="ering" aria-hidden="true"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" class="bg"></circle>${f > 0.005 ? svg`<circle cx="22" cy="22" r="20" class=${'fg' + (p.est ? ' est' : '') + (i === 0 ? ' lead' : '')} stroke-dasharray=${`${Math.max(2, f * 125.7).toFixed(1)} 126`} transform="rotate(-90 22 22)"></circle>` : nothing}</svg>${ic(devIc(p.name), 'i')}</span>`; };
+    const row = (p, i) => html`<button class="ewho" @click=${() => this._moreInfo(p.powerId || p.id)}>${ring(p, i)}
+      <span class="txt"><b>${p.name}</b><small>${[p.areaName, kwhToday(p.device).replace(/^ · /, '')].filter(Boolean).join(' · ')}</small></span>
+      <span class=${'ewv' + (i === 0 && p.w > IDLE_W ? ' lead' : '')}>${p.est ? html`<span class="esttag">${t('estimated')}</span> ≈ ` : ''}${p.w} <small>W</small><small class="pc">${total ? Math.round(100 * p.w / total) : 0}%</small></span></button>`;
+    const showIdle = !!this._ui.eIdle;
+    const maxRoom = Math.max(1, ...byRoom.map((r) => r.w));
+    return html`<section class="sec">${this.secHead('energy', t('energy'), known ? t('devicesMeasuring', { n: known }) : '', known ? html`<span class="elive">${t('live')}</span>` : nothing, t)}
+      <div class="egrid">
+        <div class="ecard ehero">
+          <div class="edial">
+            <svg viewBox="0 0 300 190" aria-hidden="true"><defs><linearGradient id="aurEg" x1="0" x2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".25"></stop><stop offset=".7" stop-color="var(--accent)"></stop><stop offset="1" stop-color="#fff" stop-opacity=".85"></stop></linearGradient>
+              <radialGradient id="aurEt"><stop offset="0" stop-color="#fff"></stop><stop offset=".45" stop-color="var(--accent)" stop-opacity=".6"></stop><stop offset="1" stop-color="var(--accent)" stop-opacity="0"></stop></radialGradient></defs>
+              <g class="tk">${ticks}</g><path class="trk" d="M30 170A120 120 0 0 1 270 170"></path>
+              ${arcTo ? svg`<path class="glo" d=${arcTo}></path><path class="arc" d=${arcTo}></path><circle cx=${tx.toFixed(1)} cy=${ty.toFixed(1)} r="16" fill="url(#aurEt)" opacity=".7"></circle><circle cx=${tx.toFixed(1)} cy=${ty.toFixed(1)} r="5.5" fill="#fff"></circle>` : nothing}${pk}</svg>
+            <div class="edv"><b>${known ? (eW && !mW ? '≈' : '') + total : '—'}</b>${known ? html`<small>W</small>` : nothing}<span class="txt">${t('monitoredNow')}</span></div>
+          </div>
+          <div class="escale"><span>0</span>${peak != null && known ? html`<span class="pk">${t('peakToday', { w: peak + ' W' })}</span>` : html`<span></span>`}<span>${scaleMax >= 1000 ? scaleMax / 1000 + ' kW' : scaleMax}</span></div>
+          <span class="esub txt">${sub}</span>
+          ${vsY != null || avgW != null ? html`<div class="echips">${vsY != null ? html`<span class=${'echip' + (vsY > 10 ? ' up' : '')}><b>${vsY > 0 ? '↑' : vsY < 0 ? '↓' : '='} ${Math.abs(vsY)}%</b> ${t('vsYesterday')}</span>` : nothing}${avgW != null ? html`<span class="echip">${t('avgShort')} <b>${avgW} W</b></span>` : nothing}</div>` : nothing}
+          ${cPts.length >= 3 ? html`<div class="ecurve" role="img" aria-label=${t('dayCurve')}><svg viewBox="0 0 346 44" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="aurEa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".35"></stop><stop offset="1" stop-color="var(--accent)" stop-opacity="0"></stop></linearGradient></defs>
+            <path d=${cLine + ` L${cx(cPts.length - 1).toFixed(1)} 44 L0 44Z`} fill="url(#aurEa)"></path><path d=${cLine} class="ln"></path></svg>
+            <span class="eticks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>${t('nowShort')}</span></span></div>` : nothing}
           ${hasSolar || hasGrid ? html`<div class="flowbox" role="img" aria-label=${[hasSolar ? `${t('solar')} ${m.solarW} W` : '', hasGrid ? `${t('grid')} ${m.gridW} W` : '', `${t('home')} ${total} W`].filter(Boolean).join(' · ')}>
             ${svg`<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0" aria-hidden="true">
               ${hasSolar ? svg`<path d="M16 20 C 45 20, 50 50, 80 50" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="2" vector-effect="non-scaling-stroke"></path><path d="M16 20 C 45 20, 50 50, 80 50" fill="none" stroke="#F5D08A" stroke-width="2" stroke-dasharray="4 8" stroke-linecap="round" vector-effect="non-scaling-stroke" style=${flow(m.solarW > 0, false, 1.1)}></path>` : nothing}
@@ -1615,26 +1687,28 @@ class AureonDashboard extends LitElement {
             ${hasGrid ? html`<div class="node" style="left:16%;top:80%"><span class="o" style="background:#121826;border:1px solid #2A3A5A;color:#8FB8FF">${ic('grid')}</span><span style="font-size:13px">${Math.abs(m.gridW)} W</span><span class="tag muted" style="font-size:9px">${t('grid')}</span></div>` : nothing}
             <div class="node" style="left:80%;top:50%"><span class="o" style=${`width:92px;height:92px;background:var(--raise);border:1px solid var(--line2);flex-direction:column;gap:2px;box-shadow:0 0 60px -10px ${rgba(aRgb, Math.min(0.55, 0.12 + total / 3000))}`}>${ic('home')}<b style="font-size:14px;font-weight:500">${known ? total + ' W' : '—'}</b></span><span class="tag muted" style="font-size:9px">${t('home')}</span></div>
           </div>` : nothing}
-          <div class="ekv">
-            <div><span class="tag muted">${t('todayE')}</span><b>${nf(today)} <small>kWh</small></b></div>
-            <div><span class="tag muted">${t('costToday')}</span>${cost == null && price == null ? setPrice : html`<b>${nf(cost, 2)} <small>${cur}</small></b>`}</div>
-            <div><span class="tag muted">${t('thisMonth')}</span><b>${nf(month, month != null && month < 10 ? 1 : 0)} <small>kWh</small></b></div>
-            <div><span class="tag muted">${t('costMonth')}</span>${price == null ? setPrice : html`<b>${nf(mcost, 2)} <small>${cur}</small></b>`}</div>
-            ${ser?.ok && ui.room === 'all' ? html`<div><span class="tag muted">${t('lastMonth')}</span><b>${nf(lastM, lastM != null && lastM < 10 ? 1 : 0)} <small>kWh</small></b>${price != null && lastM != null ? html`<small class="dim">${nf(lastM * price, 2)} ${cur}</small>` : nothing}</div>
-            <div><span class="tag muted">${t('thisYear')}</span><b>${nf(yearV, yearV != null && yearV < 10 ? 1 : 0)} <small>kWh</small></b>${price != null && yearV != null ? html`<small class="dim">${nf(yearV * price, 2)} ${cur}</small>` : nothing}</div>` : nothing}
+          <div class="eduo">
+            <div class="ecell"><span class="eyebrow">${t('todayE')}</span><b>${nf(today)} <small>kWh</small></b>
+              ${price == null && cost == null ? setPrice : html`<span class="eur">${money(cost)}</span>`}
+              ${yTot != null && today != null ? html`<span class="eprog"><i style=${`width:${Math.min(100, Math.round(100 * today / Math.max(0.01, yTot)))}%`}></i></span><small class="esm">${t('yesterdayKwh', { v: nf(yTot) })}</small>` : nothing}</div>
+            <div class="ecell"><span class="eyebrow">${t('thisMonth')}</span><b>${nf(month, month != null && month < 10 ? 1 : 0)} <small>kWh</small></b>
+              ${price == null ? setPrice : html`<span class="eur">${money(mcost)}${fcast != null ? html`<small> → ~${Math.round(fcast * price)} ${cur}</small>` : nothing}</span>`}
+              ${month != null ? html`<span class="eprog"><i style=${`width:${Math.round(100 * Math.min(1, mFrac))}%`}></i></span><small class="esm">${fcast != null ? t('forecastTo', { d: mLen, v: nf(fcast, 0) }) : t('monthSoFar')}</small>` : nothing}</div>
           </div>
-          ${ui.room === 'all' ? this.energyChart({ t, lang }, ser, price, cur) : nothing}
           ${m.energyMeters.length ? html`<span class="dim txt" style="font-size:11px">${t(m.energyByLabel ? 'meterHintLabel' : 'meterHintAll', { n: m.energyMeters.length })}${m.mainMeters.length ? ' · ' + t('mainMeterApart', { n: m.mainMeters.length }) : ''}${price != null ? ' · ' + nf(price, 2) + ' ' + cur + '/kWh' : ''}</span>` : nothing}
         </div>
-        <div class="tile" style="flex:2 1 300px;padding:22px;border-radius:24px">
-          ${this.efold('who', t('whoNow'), html`<span class="dim" style="font-size:12px">${t('ofMonitored')}</span>`, html`
-          ${rows.length ? rows.map((p) => html`<div class="erow" style="display:flex;flex-direction:column;gap:6px">
-            <span class="row sp" style="gap:8px;font-size:13px;align-items:flex-start"><span class="txt">${p.name} <span class="dim" style="font-size:11px">${p.areaName}${kwhToday(p.device)}</span></span>
-              <span style="white-space:nowrap">${p.est ? html`<span class="esttag">${t('estimated')}</span> ≈ ` : ''}${p.w} W <span class="dim">· ${total ? Math.round(100 * p.w / total) : 0}%</span></span></span>
-            <span class="bar" style="height:4px"><i style=${`width:${Math.round(100 * p.w / maxW)}%;background:${p.est ? 'repeating-linear-gradient(90deg,var(--accent) 0 6px,transparent 6px 9px)' : p.locked ? '#8FB8FF' : 'var(--accent)'}`}></i></span></div>`)
-            : html`<span class="muted txt" style="font-size:13px">${t('noLivePowerLong')}</span>`}
-`)}
-          ${byRoom.length ? this.efold('rooms', t('byRoom'), nothing, html`<div class="kv" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">${byRoom.map((r) => html`<div><span class="muted txt" style="font-size:11px">${r.n}</span><b style="font-size:15px">${Math.round(r.w)} W</b></div>`)}</div>`) : nothing}
+        <div class="ecol">
+          ${ui.room === 'all' && ser?.ok ? html`<div class="ecard">${this.energyChart({ t, lang }, ser, price, cur, yearV != null ? html`<span class="etot">${nf(yearV, 0)} kWh${price != null ? html` <em>${money(yearV * price)}</em>` : nothing}</span>` : nothing)}
+            ${lastM != null ? html`<div class="efoot"><span>${t('lastMonth')} <b>${nf(lastM, lastM < 10 ? 1 : 0)} kWh${price != null ? ' · ' + money(lastM * price) : ''}</b></span>${price != null ? html`<span>${nf(price, 2)} ${cur}/kWh</span>` : nothing}</div>` : nothing}</div>` : nothing}
+          <div class="ecard">
+            ${this.efold('who', t('whoNow'), html`<span class="dim" style="font-size:12px">${t('ofMonitored')}</span>`, rows.length ? html`<div class="ewlist">
+              ${active.map((p, i) => row(p, i))}
+              ${idle.length ? html`<button class="eidle" aria-expanded=${showIdle ? 'true' : 'false'} @click=${() => this._set({ eIdle: !showIdle })}><span class="edots" aria-hidden="true">${idle.slice(0, 4).map((p) => html`<i>${ic(devIc(p.name), 'i s')}</i>`)}</span>
+                <span class="txt"><b>${t('idleN', { n: idle.length })}</b> · ${t('idleTogether', { w: idleW + ' W' })}</span>${ic(showIdle ? 'up' : 'down', 'i s')}</button>
+                ${showIdle ? idle.map((p) => row(p, 99)) : nothing}` : nothing}</div>`
+              : html`<span class="muted txt" style="font-size:13px">${t('noLivePowerLong')}</span>`)}
+            ${byRoom.length ? this.efold('rooms', t('byRoom'), nothing, html`<div class="erooms">${byRoom.sort((x, y) => y.w - x.w).map((r) => html`<div class="erm"><span class="txt">${r.n}</span><span class="et"><i style=${`width:${Math.max(1, Math.round(100 * r.w / maxRoom))}%`}></i></span><b>${Math.round(r.w)} W</b></div>`)}</div>`) : nothing}
+          </div>
         </div></div></section>`;
   }
   // Diagnosis (owner 2026-11-18): per device, what Home Assistant actually gives the dashboard — read-only.
