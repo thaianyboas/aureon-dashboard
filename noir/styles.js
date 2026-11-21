@@ -731,4 +731,25 @@ select.numin{text-align:left}
 .clpill b{font-size:20px;font-weight:300;text-align:center;letter-spacing:-.02em;line-height:1.1}.clpill b small{display:block;font:8px ui-monospace,monospace;color:var(--mut);letter-spacing:.24em;margin-top:2px;text-transform:uppercase}
 .clc.heat .clpill b{color:#F7C98E}
 @container (max-width:370px){.clc{grid-template-columns:118px minmax(0,1fr);gap:10px;padding:14px 14px 14px 8px}.cldial{width:118px;height:118px}.clv b{font-size:28px}}
+/* Tomadas — concept A "Painel" (owner 2026-11-22). */
+.pgrp.pgx{position:relative;border-radius:30px;border:1px solid color-mix(in srgb,var(--accent) 12%,var(--line));
+  background:radial-gradient(70% 60% at 0% 0%,color-mix(in srgb,var(--accent) 8%,transparent),transparent 60%),linear-gradient(165deg,var(--card),var(--card2) 75%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 34px 60px -30px rgba(0,0,0,.95)}
+.pgrp.pgx:before{content:'';position:absolute;top:0;left:16%;right:16%;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 70%,transparent),transparent);pointer-events:none}
+.pgx .phead{min-height:72px;padding:14px 18px}
+.pgx .pdot{width:40px;height:40px;border-radius:14px;color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent) 20%,transparent)}
+.pgx .pname{font-size:17px;font-weight:500}
+.pxw{display:flex;flex-direction:column;align-items:flex-end;gap:1px;text-align:right}.pxw b{font-size:19px;font-weight:300;letter-spacing:-.02em}.pxw small{font-size:10.5px;color:var(--mut)}
+.ptg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,148px),1fr));gap:8px;padding:0 12px 12px}
+.ptg .nahint{grid-column:1/-1}
+.ptl{position:relative;display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:20px;background:rgba(0,0,0,.25);border:1px solid var(--line);min-width:0;transition:border-color .3s,background .3s}
+.ptl.on{border-color:color-mix(in srgb,var(--accent) 28%,transparent);background:radial-gradient(90% 80% at 0% 0%,color-mix(in srgb,var(--accent) 13%,transparent),transparent 70%),rgba(0,0,0,.2)}
+.ptl.na{opacity:.5}
+.ptop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.pti{width:36px;height:36px;flex:none;border-radius:50%;display:grid;place-items:center;color:var(--mut);background:rgba(255,255,255,.03);border:1px solid var(--line2);transition:color .3s,box-shadow .3s}
+.pti .i{width:17px;height:17px}
+.ptl.on .pti{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent);box-shadow:0 0 18px -4px color-mix(in srgb,var(--accent) 70%,transparent)}
+.plk{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:4px 8px;border-radius:999px;border:1px solid var(--line2);color:var(--mut);white-space:nowrap}.plk .i{width:10px;height:10px}
+.pnx{display:flex;flex-direction:column;gap:3px;min-width:0}.pnx b{font-size:13.5px;font-weight:400;line-height:1.25;overflow-wrap:anywhere}
+.pnx small{font-size:11.5px;color:var(--mut)}.pnx em{font-style:normal;color:var(--fg)}
 `;

@@ -1578,3 +1578,7 @@ The Music browser suite passed again with that label and native transfer.
 ## Claude batch — 2026-11-21f (AUREON Noir 1.7.1)
 - Clima redesign (owner chose concept A premium, without the summary card). `sClimate` outside edit mode → `.clgrid/.clc(.heat/.off)/.cldial/.clv/.clinfo/.clst/.clmeta/.clspark/.clpill`; edit mode keeps old tiles. New `_climHist(ids)` (history 6 h with attributes, 10 min cache) → trend, mini chart, ETA.
 - Status from numbers: |cur−target| ≤ 0.5 → atTarget, else aboveTarget/belowTarget; heating/off from HA. Fixture mocks climate history. Energy unchanged (a shorter Energy variant was shown to the owner and NOT approved).
+
+## Claude batch — 2026-11-22a (AUREON Noir 1.7.2)
+- Tomadas redesign (owner chose concept A "Painel"). `roomGroups` got optional `grpCls`/`listCls`; plugs pass `pgx`/`ptg` and render `.ptl` tiles (`.pti` icon via `devIc`, `.plk` lock label, `.pnx` name/state). Lights still use `.plist/.prow`. Edit mode unchanged.
+- Fixture `day()` now uses the local date; Energy dial test tolerates 0–3 h (no hourly data yet). Tests PASS.

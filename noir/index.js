@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.7.1';
-export const BUILD = 'AUREON-NOIR-20261121f';
+export const VERSION = '1.7.2';
+export const BUILD = 'AUREON-NOIR-20261122a';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -1529,7 +1529,7 @@ class AureonDashboard extends LitElement {
   // ── plugs ────────────────────────────────────────────────────────────────
   // Room groups (owner 2026-11-16: long lists on the phone). Folded on phones, open on wide screens, open when one
   // room is filtered. rowFn renders one device; metaFn the right side of the room header.
-  roomGroups(key, list, m, t, { icon, lit, metaFn, rowFn, dotStyle }) {
+  roomGroups(key, list, m, t, { icon, lit, metaFn, rowFn, dotStyle, grpCls = '', listCls = 'plist' }) {
     const groups = [];
     for (const d of list) { let g = groups.find((x) => x.area === (d.area || '')); if (!g) groups.push(g = { area: d.area || '', name: d.areaName || t('noArea'), items: [] }); g.items.push(d); }
     const order = new Map(m.areas.map((a, i) => [a.id, i]));
@@ -1537,14 +1537,14 @@ class AureonDashboard extends LitElement {
     const st = this._ui[key + 'Open'] || {}, single = groups.length === 1 || this._ui.room !== 'all';
     return html`<div class="pgrid">${groups.map((g) => {
       const isOpen = single || (st[g.area] ?? (this.clientWidth >= 900)), on = g.items.filter(lit);
-      return html`<div class=${'pgrp' + (isOpen ? ' open' : '') + (on.length ? ' lit' : '')}>
+      return html`<div class=${'pgrp' + (grpCls ? ' ' + grpCls : '') + (isOpen ? ' open' : '') + (on.length ? ' lit' : '')}>
         <button class="phead" aria-expanded=${isOpen ? 'true' : 'false'} ?disabled=${single} @click=${() => this._set({ [key + 'Open']: { ...st, [g.area]: !isOpen } })}>
           <span class="pdot" aria-hidden="true" style=${dotStyle ? dotStyle(on) : ''}>${ic(icon, 'i s')}</span>
           <span class="pname txt">${g.name}</span>
           <span class="pmeta">${metaFn(g.items, on)}</span>
           ${single ? nothing : html`<span class="pchev" aria-hidden="true">${ic('down', 'i s')}</span>`}
         </button>
-        ${isOpen ? html`<div class="plist">${!g.items[0]?.areaName ? html`<span class="nahint">${ic('pin', 'i s')}${t('noAreaHint')}</span>` : nothing}${repeat(g.items, (d) => d.id, rowFn)}</div>` : nothing}
+        ${isOpen ? html`<div class=${listCls}>${!g.items[0]?.areaName ? html`<span class="nahint">${ic('pin', 'i s')}${t('noAreaHint')}</span>` : nothing}${repeat(g.items, (d) => d.id, rowFn)}</div>` : nothing}
       </div>`;
     })}</div>`;
   }
@@ -1554,14 +1554,18 @@ class AureonDashboard extends LitElement {
     const onN = list.filter((p) => p.on).length, prot = list.filter((p) => p.locked).length;
     const head = this.secHead('plugs', t('plugs'), t('plugsHead', { a: onN, b: list.length }), prot ? html`<span class="row muted" style="font-size:12px;gap:6px">${ic('lock', 'i s')}${t('protectedHint')}</span>` : null, t);
     // Owner 2026-11-16 ("no celular a lista está infinita"): outside edit mode, compact lists per room.
+    // Owner 2026-11-22 chose Tomadas concept A "Painel": per room a glass card, each device a tile with its own icon
+    // (lit when on), its watts and the switch; protected ones show a lock label instead of the switch.
     if (!this._ui.edit) return html`<section class="sec">${head}${this.roomGroups('plug', list, m, t, {
-      icon: 'plug', lit: (p) => p.on,
-      metaFn: (items, on) => { const w = Math.round(on.reduce((s2, p) => s2 + (p.w || 0), 0)); return html`${w ? html`<b>${w} W</b> · ` : nothing}${on.length}/${items.length}`; },
-      rowFn: (p) => html`<div class=${'prow' + (p.on ? ' on' : '') + (p.unavailable ? ' na' : '')}>
-          ${this.nmLink(p, html`<span class="pnm txt">${p.name}</span>`, t)}${!p.area || !p.areaName ? html`<span class="noarea">${t('setRoom')}</span>` : nothing}
-          <span class="pst">${p.unavailable ? t('notAvailable') : p.on ? (p.w != null ? p.w + ' W' : t('plugOn')) : t('plugOff')}</span>
-          ${p.locked && p.on ? html`<span class="plock" title=${t('protectedTitle')} aria-label=${t('protected')}>${ic('lock', 'i s')}</span>`
-            : html`<button class="switch" role="switch" aria-checked=${p.on ? 'true' : 'false'} ?disabled=${p.unavailable} aria-label=${p.name + ' · ' + p.areaName} @click=${() => this._call('switch', p.on ? 'turn_off' : 'turn_on', { entity_id: p.id })}><span><i></i></span></button>`}
+      icon: 'plug', lit: (p) => p.on, grpCls: 'pgx', listCls: 'ptg',
+      metaFn: (items, on) => { const w = Math.round(on.reduce((s2, p) => s2 + (p.w || 0), 0)); return html`<span class="pxw">${w ? html`<b>${w} W</b>` : nothing}<small>${t('plugsHead', { a: on.length, b: items.length })}</small></span>`; },
+      rowFn: (p) => html`<div class=${'ptl' + (p.on ? ' on' : '') + (p.unavailable ? ' na' : '')}>
+          <div class="ptop"><span class="pti" aria-hidden="true">${ic(devIc(p.name))}</span>
+            ${p.locked && p.on ? html`<span class="plk" title=${t('protectedTitle')}>${ic('lock', 'i s')}${t('protected')}</span>`
+              : html`<button class="switch" role="switch" aria-checked=${p.on ? 'true' : 'false'} ?disabled=${p.unavailable} aria-label=${p.name + ' · ' + p.areaName} @click=${() => this._call('switch', p.on ? 'turn_off' : 'turn_on', { entity_id: p.id })}><span><i></i></span></button>`}</div>
+          <span class="pnx">${this.nmLink(p, html`<b class="txt">${p.name}</b>`, t)}
+            <small>${p.unavailable ? t('notAvailable') : p.on ? (p.w != null ? html`<em>${p.w} W</em>` : t('plugOn')) : t('plugOff')}</small>
+            ${!p.area || !p.areaName ? html`<span class="noarea">${t('setRoom')}</span>` : nothing}</span>
         </div>` })}</section>`;
     return html`<section class="sec">${head}
       <div class="grid">${repeat(list, (p) => p.id, (p) => {

@@ -1,5 +1,11 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.7.2 — 2026-11-22
+
+- Tomadas e interruptores em novo visual premium ("Painel"): cada cômodo é um cartão de vidro com watts e "x de y ligadas"; cada aparelho é um bloco com o próprio ícone (brilha quando ligado), watts e interruptor.
+- Protegidas mostram "Protegida" com cadeado no lugar do interruptor e nunca desligam pelo painel. No celular os cômodos continuam abrindo com a seta.
+- Testes: dados de teste usam a data local (antes falhavam entre 0 h e 1 h).
+
 ## AUREON Noir 1.7.1 — 2026-11-21
 
 - Clima em novo visual premium: mostrador com risquinhos que acendem até a temperatura de agora, ponto branco no alvo, tendência da última hora, mini gráfico das últimas 6 horas com a linha do alvo, e botões − / + de vidro.
