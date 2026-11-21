@@ -1,5 +1,11 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.7.3 — 2026-11-22
+
+- Luzes em novo visual premium: cada luz acesa enche a linha com a própria cor até o brilho; porcentagem grande e interruptor na cor da luz. Arraste para o lado na linha para ajustar o brilho; um toque acende/apaga; tocar no nome abre os detalhes.
+- Cômodos com luz acesa ganham um brilho na cor da luz; apagados ficam neutros.
+- Clima: o título não diz mais "todos no alvo" quando um cômodo está acima do alvo ("nenhum aquecendo").
+
 ## AUREON Noir 1.7.2 — 2026-11-22
 
 - Tomadas e interruptores em novo visual premium ("Painel"): cada cômodo é um cartão de vidro com watts e "x de y ligadas"; cada aparelho é um bloco com o próprio ícone (brilha quando ligado), watts e interruptor.

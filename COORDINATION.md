@@ -1583,3 +1583,7 @@ The Music browser suite passed again with that label and native transfer.
 - Tomadas redesign (owner chose concept A "Painel"). `roomGroups` got optional `grpCls`/`listCls`; plugs pass `pgx`/`ptg` and render `.ptl` tiles (`.pti` icon via `devIc`, `.plk` lock label, `.pnx` name/state). Lights still use `.plist/.prow`. Edit mode unchanged.
 - Fixture `day()` now uses the local date; Energy dial test tolerates 0–3 h (no hourly data yet). Tests PASS.
 - Follow-up: fixture `day()` now formats dates in HA's time zone (Europe/Berlin, as `config.time_zone`), so unit + browser tests pass on UTC CI around midnight too (checked TZ=UTC, Europe/Berlin, America/Los_Angeles).
+
+## Claude batch — 2026-11-22b (AUREON Noir 1.7.3)
+- Luzes redesign (owner chose "linhas do C + A"). Lights use `roomGroups(..., { grpCls: 'pgx lgx', listCls: 'lbxs', grpStyle })` and render `.lbx` rows: `.lfl` fill = brightness in the light colour, `.lbi` bulb, `.lnx` name (button opens more-info), `.lpc` %, `.switch`; a hidden `.lrng.sr` range stays for keyboard. Pointer drag sideways sets `brightness_pct` on release; a tap toggles; `touch-action: pan-y` keeps scrolling.
+- `roomGroups` got optional `grpStyle(on)`. Clima header uses `noneHeating` unless every room is within 0.5° of target. Tests PASS.

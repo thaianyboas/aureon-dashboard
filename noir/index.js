@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.7.2';
-export const BUILD = 'AUREON-NOIR-20261122a';
+export const VERSION = '1.7.3';
+export const BUILD = 'AUREON-NOIR-20261122b';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -1388,20 +1388,36 @@ class AureonDashboard extends LitElement {
     if (!list.length) return nothing;
     const onN = list.filter((l) => l.on).length;
     const head = this.secHead('lights', t('lights'), t('ofOn', { a: onN, b: list.length }), onN ? html`<button class="btn sm" @click=${() => this._call('light', 'turn_off', { entity_id: list.filter((l) => l.on).map((l) => l.id) })}>${t('allOff')}</button>` : null, t);
+    // Owner 2026-11-22 chose Luzes "1 · linhas do C + A": each light is a full-width row that fills with its own
+    // colour up to its brightness; drag sideways on the row to dim, tap the row or the switch to turn it on/off.
     if (!this._ui.edit) return html`<section class="sec">${head}${this.roomGroups('light', list, m, t, {
-      icon: 'bulb', lit: (l) => l.on,
-      dotStyle: (on) => { if (!on.length) return ''; const top = on.slice().sort((x, y) => y.b - x.b)[0], rgb = top.rgb.join(','); return `background:rgb(${rgb});color:#1A1408;box-shadow:0 0 18px ${rgba(rgb, 0.45)}`; },
-      metaFn: (items, on) => html`${on.length}/${items.length}`,
+      icon: 'bulb', lit: (l) => l.on, grpCls: 'pgx lgx', listCls: 'lbxs',
+      grpStyle: (on) => { if (!on.length) return ''; const top = on.slice().sort((x, y) => y.b - x.b)[0]; return `--lc:${top.rgb.join(',')}`; },
+      dotStyle: (on) => { if (!on.length) return ''; const top = on.slice().sort((x, y) => y.b - x.b)[0], rgb = top.rgb.join(','); return `background:${rgba(rgb, 0.16)};color:rgb(${rgb});border-color:${rgba(rgb, 0.4)};box-shadow:0 0 20px -6px ${rgba(rgb, 0.9)}`; },
+      metaFn: (items, on) => html`<span class="pxw"><small>${t('ofOn', { a: on.length, b: items.length })}</small></span>`,
       rowFn: (l) => {
-        const rgb = l.rgb.join(','), b = this._local[l.id] ?? l.b;
-        return html`<div class=${'prow lrow' + (l.on ? ' on' : '') + (l.unavailable ? ' na' : '')} style=${l.on ? `--lc:${rgb}` : ''}>
-          <button class="lname" aria-label=${l.name + ' · ' + (l.areaName ? t('details') : t('setRoom'))} @click=${() => this._moreInfo(l.id, l.areaName ? undefined : 'settings')}><i class="lbulb" aria-hidden="true"></i><span class="pnm txt">${l.name}</span></button>
-          <span class="pst">${l.unavailable ? t('notAvailable') : l.on ? (l.dimmable ? b + '%' : t('on')) : t('off')}</span>
+        const rgb = l.rgb.join(','), b = this._local[l.id] ?? l.b, canDim = l.on && l.dimmable && !l.unavailable;
+        const send = (v) => this._call('light', 'turn_on', { entity_id: l.id, brightness_pct: v }).finally(() => { setTimeout(() => { delete this._local[l.id]; this.requestUpdate(); }, 1500); });
+        const down = (e) => {
+          if (l.unavailable || e.button > 0 || e.target.closest('button,input')) return;
+          const row = e.currentTarget, r = row.getBoundingClientRect(), x0 = e.clientX; let moved = false;
+          const pct = (x) => Math.max(1, Math.min(100, Math.round(((x - r.left) / r.width) * 100)));
+          const mv = (ev) => { if (!canDim) return; if (!moved && Math.abs(ev.clientX - x0) < 8) return; moved = true; this._local[l.id] = pct(ev.clientX); this.requestUpdate(); };
+          const up = (ev) => { row.removeEventListener('pointermove', mv); row.removeEventListener('pointerup', up); row.removeEventListener('pointercancel', cancel);
+            if (moved) send(pct(ev.clientX)); else this._call('light', 'toggle', { entity_id: l.id }); };
+          const cancel = () => { row.removeEventListener('pointermove', mv); row.removeEventListener('pointerup', up); row.removeEventListener('pointercancel', cancel); if (moved) { delete this._local[l.id]; this.requestUpdate(); } };
+          try { row.setPointerCapture(e.pointerId); } catch (_) {}
+          row.addEventListener('pointermove', mv); row.addEventListener('pointerup', up); row.addEventListener('pointercancel', cancel);
+        };
+        return html`<div class=${'lbx' + (l.on ? ' on' : '') + (l.unavailable ? ' na' : '') + (canDim ? ' dim' : '')} style=${`--lc:${rgb};--b:${l.on ? b / 100 : 0}`} @pointerdown=${down}>
+          ${l.on ? html`<span class="lfl" aria-hidden="true" style=${`width:${l.dimmable ? Math.max(7, b) : 100}%`}></span>` : nothing}
+          <span class="lbi" aria-hidden="true">${ic('bulb')}</span>
+          <span class="lnx"><button class="lname" aria-label=${l.name + ' · ' + (l.areaName ? t('details') : t('setRoom'))} @click=${() => this._moreInfo(l.id, l.areaName ? undefined : 'settings')}><b class="txt">${l.name}</b></button>
+            <small>${l.unavailable ? t('notAvailable') : l.on ? (canDim ? t('brightness') : t('on')) : t('off')}</small></span>
+          ${canDim ? html`<span class="lpc">${b}<small>%</small></span>` : nothing}
           <button class="switch" role="switch" aria-checked=${l.on ? 'true' : 'false'} ?disabled=${l.unavailable} aria-label=${l.name + ' · ' + l.areaName} @click=${() => this._call('light', 'toggle', { entity_id: l.id })}><span><i></i></span></button>
-          ${l.on && l.dimmable && !l.unavailable ? html`<input class="rng lrng" type="range" min="1" max="100" .value=${String(b)} aria-label=${t('brightness') + ' · ' + l.name}
-            style=${`background:linear-gradient(90deg, rgb(${rgb}) ${b}%, var(--line2) ${b}%)`}
-            @input=${(e) => { this._local[l.id] = Number(e.target.value); this.requestUpdate(); }}
-            @change=${(e) => { const v = Number(e.target.value); this._call('light', 'turn_on', { entity_id: l.id, brightness_pct: v }).finally(() => { setTimeout(() => { delete this._local[l.id]; this.requestUpdate(); }, 1500); }); }}>` : nothing}
+          ${canDim ? html`<input class="lrng sr" type="range" min="1" max="100" .value=${String(b)} aria-label=${t('brightness') + ' · ' + l.name}
+            @input=${(e) => { this._local[l.id] = Number(e.target.value); this.requestUpdate(); }} @change=${(e) => send(Number(e.target.value))}>` : nothing}
         </div>`;
       } })}</section>`;
     return html`<section class="sec">${head}
@@ -1449,7 +1465,8 @@ class AureonDashboard extends LitElement {
     const list = this._visible('climate', this._sorted('climate', m.climate)), ids = list.map((x) => x.id);
     if (!list.length) return nothing;
     const heatN = list.filter((c) => c.action === 'heating').length;
-    const head = this.secHead('climate', t('climate'), t('thermostats', { n: list.length }) + ' · ' + (heatN ? t('heatingN', { n: heatN }) : t('allAtTarget')), null, t);
+    const atT = (c) => c.mode === 'off' || c.unavailable || c.cur == null || c.target == null || Math.abs(c.cur - c.target) <= 0.5;
+    const head = this.secHead('climate', t('climate'), t('thermostats', { n: list.length }) + ' · ' + (heatN ? t('heatingN', { n: heatN }) : list.every(atT) ? t('allAtTarget') : t('noneHeating')), null, t);
     // Owner 2026-11-21 chose Clima concept A premium: a lit dial, the trend, a mini chart with the target line, a glass pill.
     if (!this._ui.edit) {
       const hist = this._climHist(ids), now = Date.now(), dec = (v) => Number(v).toFixed(1).replace('.', ',');
@@ -1529,7 +1546,7 @@ class AureonDashboard extends LitElement {
   // ── plugs ────────────────────────────────────────────────────────────────
   // Room groups (owner 2026-11-16: long lists on the phone). Folded on phones, open on wide screens, open when one
   // room is filtered. rowFn renders one device; metaFn the right side of the room header.
-  roomGroups(key, list, m, t, { icon, lit, metaFn, rowFn, dotStyle, grpCls = '', listCls = 'plist' }) {
+  roomGroups(key, list, m, t, { icon, lit, metaFn, rowFn, dotStyle, grpCls = '', listCls = 'plist', grpStyle }) {
     const groups = [];
     for (const d of list) { let g = groups.find((x) => x.area === (d.area || '')); if (!g) groups.push(g = { area: d.area || '', name: d.areaName || t('noArea'), items: [] }); g.items.push(d); }
     const order = new Map(m.areas.map((a, i) => [a.id, i]));
@@ -1537,7 +1554,7 @@ class AureonDashboard extends LitElement {
     const st = this._ui[key + 'Open'] || {}, single = groups.length === 1 || this._ui.room !== 'all';
     return html`<div class="pgrid">${groups.map((g) => {
       const isOpen = single || (st[g.area] ?? (this.clientWidth >= 900)), on = g.items.filter(lit);
-      return html`<div class=${'pgrp' + (grpCls ? ' ' + grpCls : '') + (isOpen ? ' open' : '') + (on.length ? ' lit' : '')}>
+      return html`<div class=${'pgrp' + (grpCls ? ' ' + grpCls : '') + (isOpen ? ' open' : '') + (on.length ? ' lit' : '')} style=${grpStyle ? grpStyle(on) : ''}>
         <button class="phead" aria-expanded=${isOpen ? 'true' : 'false'} ?disabled=${single} @click=${() => this._set({ [key + 'Open']: { ...st, [g.area]: !isOpen } })}>
           <span class="pdot" aria-hidden="true" style=${dotStyle ? dotStyle(on) : ''}>${ic(icon, 'i s')}</span>
           <span class="pname txt">${g.name}</span>
