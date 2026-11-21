@@ -2,7 +2,7 @@
 // Loaded into the page as a classic script; defines window.makeHass(lang).
 window.makeHass = function makeHass(lang) {
   const iso = (min) => new Date(Date.now() - min * 60000).toISOString();
-  const day = (d) => { const n = new Date(), x = new Date(n.getFullYear(), n.getMonth(), n.getDate() + d); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); }; // local date, not UTC
+  const day = (d) => new Date(Date.now() + d * 86400000).toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' }); // HA's time zone (config.time_zone), not the machine's
   const areas = { living: 'Living room', kitchen: 'Kitchen', bedroom: 'Bedroom', bath: 'Bathroom', hall: 'Hallway', balcony: 'Balcony', office: 'Study with a really long name for wrapping' };
   const H = { areas: {}, devices: {}, entities: {}, states: {}, services: {}, calls: [], ws: [] };
   for (const [id, name] of Object.entries(areas)) H.areas[id] = { area_id: id, name };

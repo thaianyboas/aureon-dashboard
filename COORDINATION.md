@@ -1582,3 +1582,4 @@ The Music browser suite passed again with that label and native transfer.
 ## Claude batch — 2026-11-22a (AUREON Noir 1.7.2)
 - Tomadas redesign (owner chose concept A "Painel"). `roomGroups` got optional `grpCls`/`listCls`; plugs pass `pgx`/`ptg` and render `.ptl` tiles (`.pti` icon via `devIc`, `.plk` lock label, `.pnx` name/state). Lights still use `.plist/.prow`. Edit mode unchanged.
 - Fixture `day()` now uses the local date; Energy dial test tolerates 0–3 h (no hourly data yet). Tests PASS.
+- Follow-up: fixture `day()` now formats dates in HA's time zone (Europe/Berlin, as `config.time_zone`), so unit + browser tests pass on UTC CI around midnight too (checked TZ=UTC, Europe/Berlin, America/Los_Angeles).
