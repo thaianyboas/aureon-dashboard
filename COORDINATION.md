@@ -1569,3 +1569,12 @@ The Music browser suite passed again with that label and native transfer.
 - Energy redesign (owner chose concept A premium). `sEnergy` render rewritten; data logic unchanged. New `_energyHours(m)` (recorder hourly `change`, yesterday+today, 10 min cache) → curve, peak, avg, vs-yesterday. Month forecast from pace (day ≥ 3).
 - Classes: `.egrid/.ecard/.ehero/.edial/.escale/.echips/.ecurve/.eduo/.ecell/.ewlist/.ewho/.ering/.ewv/.eidle/.erooms`. `.ekv/.erow` are gone (tests updated). Avoid `.top` (global flex class) → `.lead`.
 - `devIc(name)` maps consumer names to icons (new P icons fridge, wifi, coffee). Standby (≤ 5 W) grouped when > 5 rows; `_ui.eIdle`. Fixture mocks hourly stats.
+
+## Claude batch — 2026-11-21f (AUREON Noir 1.7.1)
+- Clima premium (owner approved mock, summary card removed): `sClimate` outside edit mode → `.clgrid/.clc(.heat/.cool/.off)/.cldial/.clv/.clinfo/.clst/.clmeta/.clspark/.clpill`. `_climHist(ids)` reads 6 h of `current_temperature` from history (10 min cache). Status from numbers (±0.5°). New i18n aboveTarget, belowTarget, trend1h, reachIn, humidity, targetShort, last6h.
+- Energy shorter: `efold` closes 'who', 'chart', 'rooms' by default; chart/who/rooms share one `.ecard.elist`; forecast as `forecastShort`.
+- Owner rule (2026-11-21): show screenshots and wait for approval before publishing anything.
+
+## Claude batch — 2026-11-21f (AUREON Noir 1.7.1)
+- Clima redesign (owner chose concept A premium, without the summary card). `sClimate` outside edit mode → `.clgrid/.clc(.heat/.off)/.cldial/.clv/.clinfo/.clst/.clmeta/.clspark/.clpill`; edit mode keeps old tiles. New `_climHist(ids)` (history 6 h with attributes, 10 min cache) → trend, mini chart, ETA.
+- Status from numbers: |cur−target| ≤ 0.5 → atTarget, else aboveTarget/belowTarget; heating/off from HA. Fixture mocks climate history. Energy unchanged (a shorter Energy variant was shown to the owner and NOT approved).

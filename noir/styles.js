@@ -704,4 +704,31 @@ select.numin{text-align:left}
 @container (max-width:380px){.ecard{padding:18px}.eduo{gap:8px}.ecell{padding:13px}.ecell>b{font-size:24px}}
 @media (prefers-reduced-motion:reduce){.elive:before{animation:none}.edial .arc,.edial .glo{transition:none}}
 .esub{text-align:center;font-size:11.5px;color:var(--mut);margin-top:-6px}
+/* Clima — concept A premium (owner 2026-11-21). */
+.clgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,370px),1fr));gap:10px}
+.clc{--k:143,184,255;position:relative;display:grid;grid-template-columns:142px minmax(0,1fr);gap:14px;align-items:center;padding:16px 18px 16px 12px;border-radius:30px;overflow:hidden;border:1px solid rgba(var(--k),.13);
+  background:radial-gradient(70% 90% at 0% 50%,rgba(var(--k),.10),transparent 60%),radial-gradient(60% 50% at 100% 0%,rgba(255,255,255,.035),transparent 70%),linear-gradient(165deg,var(--card),var(--card2) 75%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 34px 60px -30px rgba(0,0,0,.95)}
+.clc:before{content:'';position:absolute;top:0;left:16%;right:16%;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--k),.75),transparent)}
+.clc.heat{--k:242,163,94}.clc.off{--k:138,148,143}
+.cldial{position:relative;width:142px;height:142px}.cldial svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.clblur{filter:blur(4px)}.cllab{fill:var(--dim,#4F5D57);font:7.5px ui-monospace,monospace;text-anchor:middle}
+.clv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.clv b{font-size:33px;font-weight:200;letter-spacing:-.05em;line-height:1;background:linear-gradient(180deg,#fff 30%,rgb(var(--k)));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(var(--k),.25))}
+.clv small{font:8.5px ui-monospace,monospace;letter-spacing:.26em;color:var(--mut);margin-top:6px;text-transform:uppercase}
+.clv em{font-style:normal;font-size:10.5px;margin-top:5px;color:rgb(var(--k))}
+.clinfo{display:flex;flex-direction:column;gap:10px;min-width:0}
+.clnm{display:flex;justify-content:space-between;align-items:center;gap:8px;min-width:0}.clnm b{font-size:16.5px;font-weight:500;letter-spacing:-.01em}
+.clst{display:inline-flex;align-items:center;gap:6px;flex:none;font-size:10.5px;padding:5px 10px;border-radius:999px;background:rgba(var(--k),.1);border:1px solid rgba(var(--k),.22);color:rgb(var(--k));white-space:nowrap}
+.clst:before{content:'';width:5px;height:5px;border-radius:50%;background:rgb(var(--k));box-shadow:0 0 8px rgb(var(--k))}
+.clmeta{display:flex;flex-wrap:wrap;gap:2px 12px;font-size:11.5px;color:var(--mut)}.clmeta b{color:var(--fg);font-weight:400}
+.clspark{position:relative;height:38px}.clspark svg{display:block;width:100%;height:38px;overflow:visible}
+.clspark>i{position:absolute;right:-4px;width:8px;height:8px;border-radius:50%}
+.cltl{position:absolute;right:0;font:8px ui-monospace,monospace;opacity:.8}
+.clpill{display:flex;align-items:center;justify-content:space-between;padding:4px;border-radius:999px;border:1px solid rgba(var(--k),.18);background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.15));box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+.clpill button{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line2);background:radial-gradient(circle at 50% 25%,rgba(255,255,255,.12),rgba(255,255,255,.02) 65%);color:var(--fg);cursor:pointer;box-shadow:0 5px 12px -5px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.08)}
+.clpill button:disabled{opacity:.35;cursor:default}
+.clpill b{font-size:20px;font-weight:300;text-align:center;letter-spacing:-.02em;line-height:1.1}.clpill b small{display:block;font:8px ui-monospace,monospace;color:var(--mut);letter-spacing:.24em;margin-top:2px;text-transform:uppercase}
+.clc.heat .clpill b{color:#F7C98E}
+@container (max-width:370px){.clc{grid-template-columns:118px minmax(0,1fr);gap:10px;padding:14px 14px 14px 8px}.cldial{width:118px;height:118px}.clv b{font-size:28px}}
 `;

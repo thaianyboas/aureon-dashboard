@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.7.0';
-export const BUILD = 'AUREON-NOIR-20261121e';
+export const VERSION = '1.7.1';
+export const BUILD = 'AUREON-NOIR-20261121f';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -1425,11 +1425,87 @@ class AureonDashboard extends LitElement {
   }
 
   // ── climate ──────────────────────────────────────────────────────────────
-  sClimate({ m, t }) {
+  // Owner 2026-11-21 (Clima premium): the last 6 hours of each thermostat's measured temperature, from HA history,
+  // for the trend ("↑ 0,4° em 1 h"), the mini chart and the time to target while heating. Read-only, 10 min cache.
+  _climHist(ids) {
+    const sig = ids.join(',');
+    if (!ids.length || !this.hass?.callWS) return this._cH || {};
+    if (this._cHSig === sig && Date.now() - (this._cHAt || 0) < 600000) return this._cH || {};
+    this._cHSig = sig; this._cHAt = Date.now();
+    const end = new Date(), start = new Date(end.getTime() - 6 * 3600000);
+    this.hass.callWS({ type: 'history/history_during_period', start_time: start.toISOString(), end_time: end.toISOString(), entity_ids: ids, minimal_response: false, no_attributes: false, significant_changes_only: false })
+      .then((res) => {
+        const out = {};
+        for (const id of ids) {
+          let last;
+          out[id] = (res?.[id] || []).map((x) => { if (x.a) last = x.a; const a = x.a || x.attributes || last || {}; return { t: (x.lu ?? x.lc ?? 0) * 1000 || Date.parse(x.last_updated || x.last_changed || ''), v: Number(a.current_temperature) }; })
+            .filter((x) => Number.isFinite(x.t) && Number.isFinite(x.v));
+        }
+        this._cH = out; this.requestUpdate();
+      }).catch(() => {});
+    return this._cH || {};
+  }
+  sClimate({ m, t, lang }) {
     const list = this._visible('climate', this._sorted('climate', m.climate)), ids = list.map((x) => x.id);
     if (!list.length) return nothing;
     const heatN = list.filter((c) => c.action === 'heating').length;
-    return html`<section class="sec">${this.secHead('climate', t('climate'), t('thermostats', { n: list.length }) + ' · ' + (heatN ? t('heatingN', { n: heatN }) : t('allAtTarget')), null, t)}
+    const head = this.secHead('climate', t('climate'), t('thermostats', { n: list.length }) + ' · ' + (heatN ? t('heatingN', { n: heatN }) : t('allAtTarget')), null, t);
+    // Owner 2026-11-21 chose Clima concept A premium: a lit dial, the trend, a mini chart with the target line, a glass pill.
+    if (!this._ui.edit) {
+      const hist = this._climHist(ids), now = Date.now(), dec = (v) => Number(v).toFixed(1).replace('.', ',');
+      return html`<section class="sec">${head}<div class="clgrid">${repeat(list, (c) => c.id, (c) => {
+        const target = this._pendingTarget[c.id] ?? c.target, heating = c.action === 'heating', off = c.mode === 'off', na = c.unavailable;
+        const k = off || na ? 'off' : heating ? 'heat' : 'cool', col = k === 'heat' ? '#F2A35E' : k === 'off' ? '#8A948F' : '#8FB8FF', lite = k === 'heat' ? '#FCE1BD' : k === 'off' ? '#C4CAC7' : '#E2EBFC';
+        const setT = (v) => { const nv = Math.round(Math.max(c.min, Math.min(c.max, v)) / c.step) * c.step; this._pendingTarget[c.id] = nv; this.requestUpdate(); clearTimeout(this['_tt' + c.id]); this['_tt' + c.id] = setTimeout(() => { this._call('climate', 'set_temperature', { entity_id: c.id, temperature: nv }).finally(() => { setTimeout(() => { delete this._pendingTarget[c.id]; this.requestUpdate(); }, 2500); }); }, 700); };
+        // Status from the numbers (owner: "no alvo" was shown for a room far above its target).
+        const diff = c.cur != null && target != null ? c.cur - target : null;
+        const stTxt = na ? t('notAvailable') : off ? t('offMode') : heating ? t('heating') : diff == null ? t('atTarget') : Math.abs(diff) <= 0.5 ? t('atTarget') : diff > 0 ? t('aboveTarget') : t('belowTarget');
+        // History: trend over the last hour, mini chart, time to target.
+        const pts = (hist[c.id] || []).filter((p) => now - p.t <= 6 * 3600000);
+        const ago = (ms) => { let v = null; for (const p of pts) if (p.t <= now - ms) v = p.v; return v; };
+        const h1 = ago(3600000), trend = c.cur != null && h1 != null ? Math.round((c.cur - h1) * 10) / 10 : null;
+        let eta = null; if (heating && trend != null && trend >= 0.05 && diff != null && diff < 0) { const mins = Math.round((-diff / trend) * 60); if (mins <= 600) eta = mins < 60 ? mins + ' ' + t('min') : (Math.round(mins / 30) / 2).toLocaleString(lang) + ' h'; }
+        const series = []; if (pts.length) { for (let i = 0; i <= 24; i++) { const at = now - 6 * 3600000 + i * 900000; let v = null; for (const p of pts) if (p.t <= at) v = p.v; if (v == null && i === 0) v = pts[0].v; series.push(v ?? series[series.length - 1] ?? null); } if (c.cur != null) series[series.length - 1] = c.cur; }
+        const sv = series.filter((v) => v != null), showSpark = sv.length > 3 && Math.max(...sv) - Math.min(...sv) >= 0.05;
+        let spark = nothing;
+        if (showSpark) {
+          const tIn = target != null && Math.abs(target - (sv.reduce((a, b) => a + b, 0) / sv.length)) <= 2.5;
+          const mn = Math.min(...sv, tIn ? target : Infinity) - 0.15, mx = Math.max(...sv, tIn ? target : -Infinity) + 0.15, W = 200, H = 34;
+          const X = (i) => (i / (series.length - 1)) * W, Y = (v) => H - ((v - mn) / (mx - mn)) * (H - 6);
+          let d = ''; series.forEach((v, i) => { if (v == null) return; if (!d) { d = `M${X(i).toFixed(1)} ${Y(v).toFixed(1)}`; return; } const pv = series[i - 1] ?? v, xm = (X(i - 1) + X(i)) / 2; d += ` C${xm.toFixed(1)} ${Y(pv).toFixed(1)} ${xm.toFixed(1)} ${Y(v).toFixed(1)} ${X(i).toFixed(1)} ${Y(v).toFixed(1)}`; });
+          const ly = Y(series[series.length - 1]);
+          spark = html`<div class="clspark" role="img" aria-label=${t('last6h')}><svg viewBox="0 0 200 38" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id=${'clf' + k} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color=${col} stop-opacity=".28"></stop><stop offset="1" stop-color=${col} stop-opacity="0"></stop></linearGradient><linearGradient id=${'cll' + k} x1="0" x2="1"><stop offset="0" stop-color=${col} stop-opacity=".3"></stop><stop offset="1" stop-color=${lite}></stop></linearGradient></defs>
+            ${tIn ? svg`<line x1="0" x2="200" y1=${Y(target).toFixed(1)} y2=${Y(target).toFixed(1)} stroke=${col} stroke-opacity=".45" stroke-dasharray="2 4" vector-effect="non-scaling-stroke"></line>` : nothing}
+            <path d=${d + ' L200 38 L0 38Z'} fill=${`url(#clf${k})`}></path><path d=${d} fill="none" stroke=${`url(#cll${k})`} stroke-width="1.8" vector-effect="non-scaling-stroke"></path></svg>
+            ${tIn && Math.abs(Y(target) - ly) > 9 ? html`<span class="cltl" style=${`top:${(Y(target) / 38 * 100 - 32).toFixed(1)}%;color:${col}`}>${t('targetShort')}</span>` : nothing}
+            <i style=${`top:calc(${(ly / 38 * 100).toFixed(1)}% - 4px);background:#fff;box-shadow:0 0 10px ${col},0 0 0 3px ${col}44`}></i></div>`;
+        }
+        // Dial (thermostat's own min..max): ticks light up to the current temperature, target as a white dot.
+        const span = Math.max(1, c.max - c.min), f = (v) => Math.max(0, Math.min(1, (v - c.min) / span)), C = 71, pt = (fr, r) => { const a = (135 + 270 * fr) * Math.PI / 180; return [C + r * Math.cos(a), C + r * Math.sin(a)]; };
+        const fc = c.cur != null ? f(c.cur) : 0, [gx0, gy0] = pt(0, 58), [gx1, gy1] = pt(fc, 58);
+        const ticks = Array.from({ length: 61 }, (_, i) => { const fr = i / 60, on = c.cur != null && fr <= fc + 0.0001, near = on && fc - fr < 0.06, [x1, y1] = pt(fr, near ? 50 : i % 5 ? 54 : 52), [x2, y2] = pt(fr, 64), op = on ? 0.25 + 0.75 * Math.pow(fr / Math.max(0.01, fc), 1.6) : 1;
+          return svg`<line x1=${x1.toFixed(2)} y1=${y1.toFixed(2)} x2=${x2.toFixed(2)} y2=${y2.toFixed(2)} stroke=${on ? (near ? lite : col) : 'var(--line2)'} stroke-opacity=${op.toFixed(2)} stroke-width=${i % 5 ? 1.6 : 2.2} stroke-linecap="round"></line>`; });
+        const [tx, ty] = target != null ? pt(f(target), 71) : [0, 0];
+        const glow = fc > 0.01 ? `M${gx0.toFixed(2)} ${gy0.toFixed(2)}A58 58 0 ${fc * 270 > 180 ? 1 : 0} 1 ${gx1.toFixed(2)} ${gy1.toFixed(2)}` : '';
+        const [lx0, ly0] = pt(0, 72), [lx1, ly1] = pt(1, 72);
+        return html`<div class=${'clc ' + k}>
+          <div class="cldial" aria-hidden="true"><svg viewBox="0 0 142 142"><defs><radialGradient id=${'clin' + k} cx=".5" cy=".38"><stop offset="0" stop-color=${col} stop-opacity=${k === 'heat' ? '.2' : '.12'}></stop><stop offset=".7" stop-color=${col} stop-opacity="0"></stop></radialGradient></defs>
+            <circle cx="71" cy="71" r="47" fill=${`url(#clin${k})`}></circle><circle cx="71" cy="71" r="47" fill="none" stroke="rgba(255,255,255,.05)"></circle>
+            ${glow ? svg`<path d=${glow} fill="none" stroke=${col} stroke-width="12" opacity=".22" class="clblur"></path>` : nothing}${ticks}
+            ${target != null ? svg`<circle cx=${tx.toFixed(1)} cy=${ty.toFixed(1)} r="10" fill="none" stroke=${col} stroke-opacity=".35"></circle><circle cx=${tx.toFixed(1)} cy=${ty.toFixed(1)} r="12" fill=${col} opacity=".3" class="clblur"></circle><circle cx=${tx.toFixed(1)} cy=${ty.toFixed(1)} r="4.5" fill="#fff"></circle>` : nothing}
+            <text x=${lx0.toFixed(1)} y=${(ly0 + 10).toFixed(1)} class="cllab">${Math.round(c.min)}</text><text x=${lx1.toFixed(1)} y=${(ly1 + 10).toFixed(1)} class="cllab">${Math.round(c.max)}</text></svg>
+            <div class="clv"><b>${c.cur != null ? dec(c.cur) + '°' : '—'}</b><small>${t('nowShort')}</small>${trend != null ? html`<em>${t('trend1h', { d: (trend > 0 ? '↑ ' : trend < 0 ? '↓ ' : '= ') + dec(Math.abs(trend)) + '°' })}</em>` : nothing}</div></div>
+          <div class="clinfo">
+            <div class="clnm">${this.nmLink(c, html`<b class="txt">${c.areaName || c.name}</b>`, t)}<span class="clst">${stTxt}</span></div>
+            ${eta || c.hum != null ? html`<span class="clmeta">${eta ? html`<span>${t('reachIn')} <b>~${eta}</b></span>` : nothing}${c.hum != null ? html`<span>${t('humidity')} <b>${Math.round(c.hum)}%</b></span>` : nothing}</span>` : nothing}
+            ${spark}
+            <div class="clpill"><button ?disabled=${target == null || na} aria-label=${t('lower') + ' · ' + (c.areaName || c.name)} @click=${() => setT((target ?? c.cur ?? 20) - c.step)}>${ic('minus', 'i s')}</button>
+              <b aria-live="polite">${target != null ? dec(target) + '°' : '—'}<small>${t('targetShort')}</small></b>
+              <button ?disabled=${target == null || na} aria-label=${t('raise') + ' · ' + (c.areaName || c.name)} @click=${() => setT((target ?? c.cur ?? 20) + c.step)}>${ic('plus', 'i s')}</button></div>
+          </div></div>`;
+      })}</div></section>`;
+    }
+    return html`<section class="sec">${head}
       <div class="grid w">${repeat(list, (c) => c.id, (c) => {
         const target = this._pendingTarget[c.id] ?? c.target, heating = c.action === 'heating', off = c.mode === 'off', ta = this.tileAttrs('climate', c, ids);
         const span = Math.max(1, c.max - c.min), fr = target != null ? Math.max(0, Math.min(1, (target - c.min) / span)) : 0, fc = c.cur != null ? Math.max(0, Math.min(1, (c.cur - c.min) / span)) : 0;

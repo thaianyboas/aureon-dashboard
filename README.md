@@ -1,5 +1,18 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.7.1 — 2026-11-21
+
+- Clima em novo visual premium: mostrador com risquinhos que acendem até a temperatura de agora, ponto branco no alvo, tendência da última hora, mini gráfico das últimas 6 horas com a linha do alvo, e botões − / + de vidro.
+- Etiqueta honesta: "No alvo" só quando está a até 0,5° do alvo; "Acima do alvo" / "Abaixo do alvo" quando não; "Aquecendo" e "Desligado" como antes.
+- "Chega ao alvo em" (estimativa) quando está aquecendo e a temperatura sobe; umidade quando o termostato informa.
+- No modo "Editar painel" o Clima continua com os blocos antigos. Energia sem mudanças.
+
+## AUREON Noir 1.7.1 — 2026-11-21
+
+- Clima em novo visual premium: mostrador que acende até a temperatura de agora, ponto branco no alvo, tendência da última hora, mini gráfico das últimas 6 horas com a linha do alvo, umidade e "chega ao alvo em" quando aquece; botões − / + de vidro.
+- Etiqueta do termostato pelos números: "No alvo" (até 0,5°), "Acima do alvo", "Abaixo do alvo", "Aquecendo" ou "Desligado".
+- Energia mais curta: mostrador menor, Hoje / Este mês enxutos; "Últimos 12 meses", "Quem consome agora" e "Por cômodo" ficam num cartão só e começam fechados.
+
 ## AUREON Noir 1.7.0 — 2026-11-21
 
 - Energia em novo visual premium ("Medidor"): mostrador com escala e brilho, pico do dia em dourado, comparação com ontem e média do dia, curva de consumo hora a hora, Hoje e Este mês com previsão do fim do mês.
