@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.6.7 — 2026-11-21
+
+- Mapa 3D e planta: o cômodo "Sem cômodo" só aparece se houver um aparelho sem área que funciona e não está escondido (aparelhos indisponíveis, como Echo Dots antigas, não contam mais).
+
 ## AUREON Noir 1.6.6 — 2026-11-21
 
 - Em todo o painel, tocar no nome de um aparelho abre os detalhes do Home Assistant; aparelhos sem cômodo abrem direto nas configurações do HA para escolher a área ("Definir cômodo").

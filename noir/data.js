@@ -399,7 +399,9 @@ export function buildModel(hass, opts = {}) {
   const visibleLists = ['lights', 'plugs', 'climate', 'covers', 'openings', 'locks', 'cams', 'speakers'];
   for (const k of visibleLists) for (const d of m[k]) (domainsInArea[d.area || '_none'] ||= []).push(d);
   m.areas = areas.filter((a) => domainsInArea[a.id]?.length);
-  if (domainsInArea._none?.length) m.areas.push({ id: '_none', name: opts.noAreaName || '—', outdoor: false, none: true });
+  // Owner 2026-11-21 ("não consigo tirar o Sem cômodo do 3D e da planta"): only devices that work and are not hidden
+  // make a "no room" tile — old unavailable devices (e.g. retired Echo Dots) or hidden ones no longer do.
+  if ((domainsInArea._none || []).some((d) => !d.unavailable && !d.hidden)) m.areas.push({ id: '_none', name: opts.noAreaName || '—', outdoor: false, none: true });
   m.byArea = domainsInArea;
   for (const k of visibleLists) for (const d of m[k]) if (!d.area) d.area = '_none';
   m.total = visibleLists.reduce((s, k) => s + m[k].length, 0) + m.vacuums.length + m.appliances.length;

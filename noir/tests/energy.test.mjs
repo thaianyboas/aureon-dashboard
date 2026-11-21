@@ -87,3 +87,15 @@ test('owner case: Meross "Power" labelled no_dboard still measures its shown plu
   assert.equal(p.w, 3); assert.equal(p.wSrc, 'sensor');
   assert.ok(!m.loosePower.some((x) => x.device === 'tech'));
 });
+
+test('map: unavailable or hidden devices without a room do not create a "no room" tile', () => {
+  const H = home();
+  H.states['media_player.old_echo'] = { entity_id: 'media_player.old_echo', state: 'unavailable', attributes: { friendly_name: 'Old Echo Dot' } };
+  H.entities['media_player.old_echo'] = { entity_id: 'media_player.old_echo', platform: 'alexa_media' };
+  for (const id of Object.keys(H.entities)) { const e = H.entities[id]; if (!e.device_id && !e.area_id && id.startsWith('switch.')) { delete H.states[id]; delete H.entities[id]; } }
+  let m = buildModel(H, { noAreaName: 'Sem cômodo' });
+  assert.ok(!m.areas.some((a) => a.id === '_none'), 'only an unavailable device without room → no tile');
+  H.states['media_player.old_echo'].state = 'idle';
+  m = buildModel(H, { noAreaName: 'Sem cômodo' });
+  assert.ok(m.areas.some((a) => a.id === '_none'), 'a working device without room still shows the tile');
+});

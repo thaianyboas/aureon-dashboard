@@ -1554,3 +1554,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-21a (AUREON Noir 1.6.6)
 - `nmLink()` on device names (plugs rows/tiles, lights, climate, openings, locks, speakers) → hass-more-info; no areaName → view 'settings'. `.nahint` in the no-room group. Browser test PASS.
+
+## Claude batch — 2026-11-21b (AUREON Noir 1.6.7)
+- `_none` map area only when a no-area item is available and not hidden. Unit test in energy.test.mjs. Tests PASS.
