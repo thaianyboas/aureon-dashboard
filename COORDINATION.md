@@ -1551,3 +1551,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-20b (AUREON Noir 1.6.5)
 - `.overlay` padding and `.sheet` max-height use env(safe-area-inset-*) (100dvh). Settings sheet back-to-top `.shtop`. Browser test PASS (safe area itself cannot be emulated in headless Chrome).
+
+## Claude batch — 2026-11-21a (AUREON Noir 1.6.6)
+- `nmLink()` on device names (plugs rows/tiles, lights, climate, openings, locks, speakers) → hass-more-info; no areaName → view 'settings'. `.nahint` in the no-room group. Browser test PASS.

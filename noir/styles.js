@@ -590,4 +590,10 @@ select.numin{text-align:left}
 @container (max-width:460px){.thgal{grid-template-columns:repeat(2,minmax(0,1fr))}.thpv{height:80px}.thclock{font-size:17px}}
 .stfoot{position:sticky}
 .shtop{position:absolute;right:2px;bottom:calc(100% - 4px);width:44px;height:44px;border-radius:50%;background:var(--raise);border:1px solid var(--line2);box-shadow:0 10px 26px -8px rgba(0,0,0,.7);color:var(--fg)}
+.nmlink{cursor:pointer;border-radius:6px;outline-offset:3px;min-width:0}
+.nmlink:hover>*{text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 60%,transparent);text-underline-offset:3px}
+.nmlink:focus-visible{outline:2px solid var(--accent)}
+.noarea{flex:none;font-size:10px;padding:2px 7px;border-radius:999px;border:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);margin-left:6px}
+.nahint{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;color:var(--mut);line-height:1.4;border-bottom:1px solid var(--line)}
+.nahint .i{color:var(--accent);flex:none}
 `;

@@ -156,6 +156,12 @@ console.log('behaviour');
   check(await page.evaluate(() => Object.keys(localStorage).some((k) => /aureon\.noir/.test(k) && /oceano/.test(localStorage[k]))), 'theme choice is saved');
   await page.screenshot({ path: 'build/noir/theme-oceano.png' });
   // edit + rename
+  await page.evaluate(() => { window.__mi = []; document.addEventListener('hass-more-info', (e) => window.__mi.push(e.detail)); });
+  await shadow(page, `root.querySelector('.prow .nmlink') && 0; [...root.querySelectorAll('.pgrp')].forEach((g)=>{ if (!g.classList.contains('open')) g.querySelector('.phead').click(); })`); await new Promise((r) => setTimeout(r, 300));
+  await shadow(page, `[...root.querySelectorAll('.prow .nmlink')].find((x)=>/Screen/.test(x.textContent)).click()`); await new Promise((r) => setTimeout(r, 100));
+  await shadow(page, `[...root.querySelectorAll('.prow .nmlink')].find((x)=>!/Screen/.test(x.textContent)).click()`); await new Promise((r) => setTimeout(r, 100));
+  check(await page.evaluate(() => window.__mi.length === 2 && window.__mi[0].entityId === 'switch.screen_plug' && window.__mi[0].view === 'settings' && !window.__mi[1].view), 'tapping a device name opens HA details; without a room it opens HA settings to set the area');
+  check(await shadow(page, `return [...root.querySelectorAll('.pgrp')].some((g)=>/Sem cômodo/.test(g.textContent) && g.querySelector('.nahint') && g.querySelector('.noarea'))`), '"Sem cômodo" explains how to set the room');
   await shadow(page, `[...root.querySelectorAll('.btn')].find((b)=>/Editar painel/.test(b.textContent)).click()`);
   await new Promise((r) => setTimeout(r, 300));
   await shadow(page, `root.querySelector('.editbar button[aria-label^="Renomear"]').click()`);

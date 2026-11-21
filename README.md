@@ -1,5 +1,10 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.6.6 — 2026-11-21
+
+- Em todo o painel, tocar no nome de um aparelho abre os detalhes do Home Assistant; aparelhos sem cômodo abrem direto nas configurações do HA para escolher a área ("Definir cômodo").
+- "Sem cômodo" explica o que fazer; cômodos apagados no HA também contam como sem cômodo.
+
 ## AUREON Noir 1.6.5 — 2026-11-20
 
 - iPhone: janelas (Configurações, baterias, cartões, modo da casa) não sobem mais até o relógio/notch nem descem até a barra de baixo.

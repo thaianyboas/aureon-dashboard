@@ -38,6 +38,7 @@ window.makeHass = function makeHass(lang) {
   // vacuum
   dev('dvac', 'Robot', 'hall', 'X60');
   ent('vacuum.robot', 'cleaning', { friendly_name: 'Robot', selected_map: 1, rooms: { 1: [{ id: 1, name: 'Living room', order: 1 }, { id: 2, name: 'Kitchen', order: 2 }, { id: 3, name: 'Hallway', order: 3 }, { id: 4, name: 'Bedroom', order: 4 }, { id: 5, name: 'Bathroom', order: 5 }] }, current_segment: 2, cleaning_sequence: [1, 2, 3, 4, 5], active_segments: [] }, { device_id: 'dvac' });
+  ent('switch.screen_plug', 'off', { friendly_name: 'Screen' }, {});
   dev('dkwh1', 'Zähler Bad', 'bath', 'Meter'); ent('sensor.wm_energy_total', '412.6', { device_class: 'energy', unit_of_measurement: 'kWh', state_class: 'total_increasing', friendly_name: 'Energie gesamt' }, { device_id: 'dkwh1', labels: ['verbrauch'] });
   dev('dkwh2', 'Kühlschrank Stecker', 'kitchen', 'Plug'); ent('sensor.fridge_energy', '88.1', { device_class: 'energy', unit_of_measurement: 'kWh', state_class: 'total_increasing' }, { device_id: 'dkwh2', labels: ['verbrauch'] });
   dev('dkwh3', 'Stromzähler Haus', 'hall', 'Meter'); ent('sensor.grid_import_total', '9000', { device_class: 'energy', unit_of_measurement: 'kWh', state_class: 'total_increasing' }, { device_id: 'dkwh3' });

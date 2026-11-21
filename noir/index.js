@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.6.5';
-export const BUILD = 'AUREON-NOIR-20261120b';
+export const VERSION = '1.6.6';
+export const BUILD = 'AUREON-NOIR-20261121a';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -68,6 +68,7 @@ const P = {
   plug: 'M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4', lock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3', unlock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 7.5-2',
   pencil: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4', eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   undo: 'M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
+  pin: 'M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21zM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5',
   eyeOff: 'M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.1A10 10 0 0 1 22 12a13 13 0 0 1-2.4 3.4M6.6 6.6A13 13 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 4.4-1',
   left: 'M15 6l-6 6 6 6', right: 'M9 6l6 6-6 6', up: 'M6 15l6-6 6 6', down: 'M6 9l6 6 6-6', check: 'M5 12l5 5 9-10', x: 'M6 6l12 12M18 6 6 18',
   bolt: 'M13 2 4 14h7l-1 8 9-12h-7z', cloud: 'M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6 11a3.5 3.5 0 0 0 1 7z',
@@ -1054,7 +1055,13 @@ class AureonDashboard extends LitElement {
     requestAnimationFrame(() => { (this.closest?.('hui-view') || window).scrollTo?.({ top: 0 }); window.scrollTo({ top: 0 }); });
   }
   _onPop = () => { const want = location.hash === '#aureon-music'; if (want !== !!this._ui.musicPage) { this._set({ musicPage: want, libMore: want }); this.requestUpdate(); } };
-  _moreInfo(id) { this.dispatchEvent(new CustomEvent('hass-more-info', { detail: { entityId: id }, bubbles: true, composed: true })); }
+  _moreInfo(id, view) { this.dispatchEvent(new CustomEvent('hass-more-info', { detail: view ? { entityId: id, view } : { entityId: id }, bubbles: true, composed: true })); }
+  // Owner 2026-11-21 ("quando eu clico na tomada … colocar algum cômodo … para tudo no dashboard"): every device name
+  // opens Home Assistant's details; without a room it opens straight on HA's settings, where the area is chosen.
+  nmLink(d, inner, t) {
+    const noArea = !d.area || !d.areaName, go = (e) => { e.stopPropagation(); this._moreInfo(d.id, noArea ? 'settings' : undefined); };
+    return html`<span class="nmlink" role="button" tabindex="0" aria-label=${d.name + ' · ' + (noArea ? t('setRoom') : t('details'))} @click=${go} @keydown=${(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(e); } }}>${inner}</span>`;
+  }
   _loadLabels() {
     this.hass.callWS({ type: 'config/label_registry/list' }).then((list) => {
       const o = {}, c = {}, meta = {};
@@ -1374,7 +1381,7 @@ class AureonDashboard extends LitElement {
       rowFn: (l) => {
         const rgb = l.rgb.join(','), b = this._local[l.id] ?? l.b;
         return html`<div class=${'prow lrow' + (l.on ? ' on' : '') + (l.unavailable ? ' na' : '')} style=${l.on ? `--lc:${rgb}` : ''}>
-          <button class="lname" aria-label=${l.name + ' · ' + t('details')} @click=${() => this._moreInfo(l.id)}><i class="lbulb" aria-hidden="true"></i><span class="pnm txt">${l.name}</span></button>
+          <button class="lname" aria-label=${l.name + ' · ' + (l.areaName ? t('details') : t('setRoom'))} @click=${() => this._moreInfo(l.id, l.areaName ? undefined : 'settings')}><i class="lbulb" aria-hidden="true"></i><span class="pnm txt">${l.name}</span></button>
           <span class="pst">${l.unavailable ? t('notAvailable') : l.on ? (l.dimmable ? b + '%' : t('on')) : t('off')}</span>
           <button class="switch" role="switch" aria-checked=${l.on ? 'true' : 'false'} ?disabled=${l.unavailable} aria-label=${l.name + ' · ' + l.areaName} @click=${() => this._call('light', 'toggle', { entity_id: l.id })}><span><i></i></span></button>
           ${l.on && l.dimmable && !l.unavailable ? html`<input class="rng lrng" type="range" min="1" max="100" .value=${String(b)} aria-label=${t('brightness') + ' · ' + l.name}
@@ -1393,7 +1400,7 @@ class AureonDashboard extends LitElement {
           ${this.editBar('lights', l, ids, t)}
           <button class="tbtn" aria-pressed=${l.on ? 'true' : 'false'} ?disabled=${l.unavailable} aria-label=${l.name + ' · ' + l.areaName} @click=${() => this._call('light', 'toggle', { entity_id: l.id })}>
             <span class="ic" style=${l.on ? `background:rgb(${rgb});color:#1A1408;box-shadow:0 0 24px ${rgba(rgb, 0.1 + 0.45 * k)}` : ''}>${ic('bulb')}</span>
-            <span class="nm"><b>${l.name}</b><span>${l.areaName ? l.areaName + ' · ' : ''}${l.unavailable ? t('notAvailable') : l.on ? (l.dimmable ? b + '%' : t('on')) : t('off')}</span></span></button>
+            <span class="nm">${this.nmLink(l, html`<b>${l.name}</b>`, t)}<span>${l.areaName ? l.areaName + ' · ' : ''}${l.unavailable ? t('notAvailable') : l.on ? (l.dimmable ? b + '%' : t('on')) : t('off')}</span></span></button>
           ${l.dimmable && !l.unavailable ? html`<input class="rng" type="range" min="1" max="100" .value=${String(b)} aria-label=${t('brightness') + ' · ' + l.name}
             style=${`background:linear-gradient(90deg, ${l.on ? `rgb(${rgb})` : 'var(--dim)'} ${b}%, var(--line2) ${b}%)`}
             @input=${(e) => { this._local[l.id] = Number(e.target.value); this.requestUpdate(); }}
@@ -1417,7 +1424,7 @@ class AureonDashboard extends LitElement {
         return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${heating ? 'border-color:rgba(255,150,90,.28)' : ''}>
           <span class="orb" style=${`left:auto;top:auto;right:-70px;bottom:-110px;width:200px;height:200px;background:radial-gradient(circle, rgba(${col},.4) 0%, rgba(${col},0) 65%);opacity:${heating ? 1 : 0.35}`}></span>
           ${this.editBar('climate', c, ids, t)}
-          <div class="row sp" style="position:relative;align-items:flex-start"><span class="nm"><b>${c.areaName || c.name}</b><span>${c.name}${c.hum != null ? ' · ' + Math.round(c.hum) + '%' : ''}</span></span>
+          <div class="row sp" style="position:relative;align-items:flex-start"><span class="nm">${this.nmLink(c, html`<b>${c.areaName || c.name}</b>`, t)}<span>${c.name}${c.hum != null ? ' · ' + Math.round(c.hum) + '%' : ''}</span></span>
             <span class="badge" style=${heating ? 'background:rgba(255,150,90,.14);color:#FFB48A;border-color:transparent' : off ? '' : 'background:rgba(143,184,255,.12);color:#B5CCFF;border-color:transparent'}>${heating ? ic('flame', 'i s f') : nothing}${off ? t('offMode') : heating ? t('heating') : t('atTarget')}</span></div>
           <div class="row sp" style="position:relative;gap:10px">
             <div class="dial"><div class="t" style=${`background:repeating-conic-gradient(from 225deg, transparent 0deg 3deg, var(--card) 3deg 6deg), conic-gradient(from 225deg, rgb(${col}) 0deg ${dc}deg, rgba(${col},.35) ${dc}deg ${dg}deg, var(--line2) ${dg}deg 270deg, transparent 270deg 360deg)`}></div>
@@ -1447,7 +1454,7 @@ class AureonDashboard extends LitElement {
           <span class="pmeta">${metaFn(g.items, on)}</span>
           ${single ? nothing : html`<span class="pchev" aria-hidden="true">${ic('down', 'i s')}</span>`}
         </button>
-        ${isOpen ? html`<div class="plist">${repeat(g.items, (d) => d.id, rowFn)}</div>` : nothing}
+        ${isOpen ? html`<div class="plist">${!g.items[0]?.areaName ? html`<span class="nahint">${ic('pin', 'i s')}${t('noAreaHint')}</span>` : nothing}${repeat(g.items, (d) => d.id, rowFn)}</div>` : nothing}
       </div>`;
     })}</div>`;
   }
@@ -1461,7 +1468,7 @@ class AureonDashboard extends LitElement {
       icon: 'plug', lit: (p) => p.on,
       metaFn: (items, on) => { const w = Math.round(on.reduce((s2, p) => s2 + (p.w || 0), 0)); return html`${w ? html`<b>${w} W</b> · ` : nothing}${on.length}/${items.length}`; },
       rowFn: (p) => html`<div class=${'prow' + (p.on ? ' on' : '') + (p.unavailable ? ' na' : '')}>
-          <span class="pnm txt">${p.name}</span>
+          ${this.nmLink(p, html`<span class="pnm txt">${p.name}</span>`, t)}${!p.area || !p.areaName ? html`<span class="noarea">${t('setRoom')}</span>` : nothing}
           <span class="pst">${p.unavailable ? t('notAvailable') : p.on ? (p.w != null ? p.w + ' W' : t('plugOn')) : t('plugOff')}</span>
           ${p.locked && p.on ? html`<span class="plock" title=${t('protectedTitle')} aria-label=${t('protected')}>${ic('lock', 'i s')}</span>`
             : html`<button class="switch" role="switch" aria-checked=${p.on ? 'true' : 'false'} ?disabled=${p.unavailable} aria-label=${p.name + ' · ' + p.areaName} @click=${() => this._call('switch', p.on ? 'turn_off' : 'turn_on', { entity_id: p.id })}><span><i></i></span></button>`}
@@ -1475,7 +1482,7 @@ class AureonDashboard extends LitElement {
             <span class="ic" style=${p.on ? 'background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)' : ''}>${ic('plug')}</span>
             ${p.locked && p.on ? html`<span class="badge" title=${t('protectedTitle')}>${ic('lock', 'i s')}${t('protected')}</span>`
               : html`<button class="switch" role="switch" aria-checked=${p.on ? 'true' : 'false'} ?disabled=${p.unavailable} aria-label=${p.name + ' · ' + p.areaName} @click=${() => this._call('switch', p.on ? 'turn_off' : 'turn_on', { entity_id: p.id })}><span><i></i></span></button>`}</div>
-          <div class="row sp" style="align-items:flex-end;gap:8px"><span class="nm"><b>${p.name}</b><span>${p.areaName}</span></span>
+          <div class="row sp" style="align-items:flex-end;gap:8px"><span class="nm">${this.nmLink(p, html`<b>${p.name}</b>`, t)}<span>${p.areaName || t('noArea')}</span></span>
             <span style=${`font-size:18px;font-weight:300;letter-spacing:-.03em;white-space:nowrap;color:${p.on ? 'var(--fg)' : 'var(--dim)'}`}>${p.unavailable ? t('notAvailable') : p.on ? (p.w != null ? p.w + ' W' : t('plugOn')) : t('plugOff')}</span></div></div>`;
       })}</div></section>`;
   }
@@ -1674,7 +1681,7 @@ class AureonDashboard extends LitElement {
         return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${(o.open ? 'border-color:var(--accent);' : '') + 'padding:14px 16px'}>
           ${this.editBar('openings', o, ids, t)}
           <div class="row" style="gap:12px"><span class="ic" style=${'width:36px;height:36px;' + (o.open ? 'background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)' : '')}>${ic(o.door ? 'door' : 'win', 'i s')}</span>
-            <span class="nm grow"><b>${o.name}</b><span>${o.areaName}</span></span>
+            <span class="nm grow">${this.nmLink(o, html`<b>${o.name}</b>`, t)}<span>${o.areaName || t('noArea')}</span></span>
             <span class="pill" style=${o.open ? 'background:var(--accent);color:var(--on-accent);border-color:var(--accent)' : ''}>${o.unavailable ? t('notAvailable') : o.open ? t('open') + ' · ' + ago(o.st.last_changed) : t('shut')}</span></div></div>`;
       })}</div></section>`;
   }
@@ -1704,7 +1711,7 @@ class AureonDashboard extends LitElement {
             ${this.editBar('locks', l, lockIds, t)}
             <button class="tbtn" style="flex-direction:column;align-items:flex-start;gap:16px" aria-pressed=${l.locked ? 'true' : 'false'} ?disabled=${l.unavailable} @click=${tap}>
               <span style=${l.locked ? 'color:#7EE0A8' : 'color:#FF8A80'}>${svg`<svg class="i" style="width:36px;height:36px;stroke-width:1.3" viewBox="0 0 24 24" aria-hidden="true"><path d=${l.locked ? P.lock : P.unlock}></path></svg>`}</span>
-              <span class="nm"><span class="tag muted">${l.name}</span><b style="font-size:24px;font-weight:300;letter-spacing:-.03em">${l.locked ? t('locked') : t('unlocked')}</b><span>${armed ? t('confirmUnlock') : l.locked ? t('tapUnlock') : t('tapLock')}</span></span></button></div>`; })}
+              <span class="nm">${this.nmLink(l, html`<span class="tag muted">${l.name}</span>`, t)}<b style="font-size:24px;font-weight:300;letter-spacing:-.03em">${l.locked ? t('locked') : t('unlocked')}</b><span>${armed ? t('confirmUnlock') : l.locked ? t('tapUnlock') : t('tapLock')}</span></span></button></div>`; })}
       </div></section>`;
   }
 
@@ -1770,7 +1777,7 @@ class AureonDashboard extends LitElement {
           ${this.editBar('tv', d, ids, t)}
           <div class="row" style="gap:12px">
             <span class="ic" style=${on ? 'background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)' : ''}>${ic('tv', 'i')}</span>
-            <button class="lname grow" aria-label=${d.name + ' · ' + t('details')} @click=${() => this._moreInfo(d.id)}><span class="txt" style="display:flex;flex-direction:column;gap:2px"><b class="txt" style="font-weight:500">${d.name}</b><span class="muted txt" style="font-size:12px">${[d.areaName, d.unavailable ? t('notAvailable') : on ? (d.attrs?.source || t('plugOn')) : t('plugOff')].filter(Boolean).join(' · ')}</span></span></button>
+            <button class="lname grow" aria-label=${d.name + ' · ' + (d.areaName ? t('details') : t('setRoom'))} @click=${() => this._moreInfo(d.id, d.areaName ? undefined : 'settings')}><span class="txt" style="display:flex;flex-direction:column;gap:2px"><b class="txt" style="font-weight:500">${d.name}</b><span class="muted txt" style="font-size:12px">${[d.areaName, d.unavailable ? t('notAvailable') : on ? (d.attrs?.source || t('plugOn')) : t('plugOff')].filter(Boolean).join(' · ')}</span></span></button>
             ${(d.features & (F.ON | F.OFF)) && !d.unavailable ? html`<button class="ib sm" aria-label=${(on ? t('plugOff') : t('plugOn')) + ' · ' + d.name} style=${on ? 'color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)' : ''} @click=${() => this._call('media_player', on ? 'turn_off' : 'turn_on', { entity_id: d.id })}>${ic('power', 'i s')}</button>` : nothing}
           </div>
           ${on && (d.features & (F.VOL_STEP | F.VOL_SET)) ? html`<div class="row" style="gap:8px">
@@ -1903,7 +1910,7 @@ class AureonDashboard extends LitElement {
           ${this.editBar('speakers', s, ids, t)}
           <div class="tbtn" style="cursor:default">
             <span class="ic" style=${s.playing ? 'background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)' : ''}>${ic(s.tv ? 'tv' : 'speaker')}</span>
-            <span class="nm grow"><b>${s.name}</b><span>${[s.areaName, s.unavailable ? t('notAvailable') : s.playing ? (s.attrs.media_title || t('playing')) : s.state === 'paused' ? t('paused') : ''].filter(Boolean).join(' · ')}</span></span>
+            <span class="nm grow">${this.nmLink(s, html`<b>${s.name}</b>`, t)}<span>${[s.areaName, s.unavailable ? t('notAvailable') : s.playing ? (s.attrs.media_title || t('playing')) : s.state === 'paused' ? t('paused') : ''].filter(Boolean).join(' · ')}</span></span>
             ${s.features & (F.PAUSE | F.PLAY) && !s.unavailable ? html`<button class="ib sm" aria-label=${(s.playing ? t('pause') : t('play')) + ' · ' + s.name} @click=${() => this._call('media_player', 'media_play_pause', { entity_id: s.id })}>${ic(s.playing ? 'pause' : 'play', 'i s f')}</button>` : nothing}</div>
           ${v != null && s.features & F.VOL && (s.playing || s.state === 'paused' || this._local['vol:' + s.id] != null) ? html`<div class="row">${ic('vol', 'i s')}<input class="rng" type="range" min="0" max="100" .value=${String(v)} aria-label=${t('volume') + ' · ' + s.name} style=${`background:linear-gradient(90deg, ${s.playing ? 'var(--accent)' : 'var(--dim)'} ${v}%, var(--line2) ${v}%)`}
             @input=${(e) => { this._local['vol:' + s.id] = Number(e.target.value); this.requestUpdate(); }}
