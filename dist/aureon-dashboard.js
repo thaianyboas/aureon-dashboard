@@ -604,7 +604,7 @@ select.numin{text-align:left}
 .shhd small{font-size:12px;color:var(--mut)}
 .shrooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px}
 .shr{display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px 4px 10px;border-radius:16px;background:var(--sunk);border:1px solid var(--line);color:var(--accent);font:inherit;cursor:pointer;min-width:0}
-.shr .txt{font-size:10px;color:var(--mut);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shr .txt{font-size:10px;line-height:1.25;color:var(--mut);max-width:100%;text-align:center;overflow-wrap:break-word;hyphens:auto}
 .shr small{font-size:9.5px;color:#F2C14E}
 .shr.open{color:#F2C14E;border-color:rgba(242,193,78,.5);background:linear-gradient(180deg,rgba(242,193,78,.12),var(--sunk))}.shr.open .txt{color:#F2C14E}
 .shr.na{opacity:.45}
