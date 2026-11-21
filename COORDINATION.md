@@ -1557,3 +1557,7 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-21b (AUREON Noir 1.6.7)
 - `_none` map area only when a no-area item is available and not hidden. Unit test in energy.test.mjs. Tests PASS.
+
+## Claude batch — 2026-11-21c (AUREON Noir 1.6.8)
+- Owner picked concept A for both: `sOpenings` → `.shieldc` "Escudo" card, `sTV` → `.cinegrid/.cine` "Cinema" cards (outside edit mode; edit mode keeps old tiles). New icon `mute`; i18n `tvOff`, `sensorsN`, `lastChange`, `tvSource`.
+- Note: `.shtop` is the settings back-to-top button — Escudo header uses `.shhd`. Browser checks for both cards + no cut-off at 1440/390. Tests PASS.

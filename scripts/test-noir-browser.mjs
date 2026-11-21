@@ -388,8 +388,14 @@ console.log('behaviour');
   await page.evaluate(() => document.querySelector('.aureon-top').click()); await new Promise((r) => setTimeout(r, 1200));
   check(await page.evaluate(() => window.scrollY < 5), 'back-to-top scrolls to the top');
   check(await shadow(page, `const secs=[...root.querySelectorAll('.sec')]; const tv=secs.find((x)=>/Televisão/.test(x.querySelector('.sech')?.textContent||'')); const mu=secs.find((x)=>/Caixas de som|AUREON/.test(x.textContent)&&x.querySelector('.mcard')); return !!tv && /TV/.test(tv.textContent) && !(mu && [...mu.querySelectorAll('.tile b')].some((b)=>b.textContent.trim()==='TV'))`), 'the TV is its own device, not a speaker');
-  await shadow(page, `[...root.querySelectorAll('.sec')].find((x)=>/Televisão/.test(x.querySelector('.sech')?.textContent||'')).querySelector('.ib[aria-label^="ligada"]').click()`); await new Promise((r) => setTimeout(r, 200));
+  await shadow(page, `[...root.querySelectorAll('.sec')].find((x)=>/Televisão/.test(x.querySelector('.sech')?.textContent||'')).querySelector('.cine .cpow').click()`); await new Promise((r) => setTimeout(r, 200));
   check(await page.evaluate(() => H.calls.some((c) => c[0] === 'media_player' && c[1] === 'turn_on' && c[2].entity_id === 'media_player.s4')), 'TV power button turns it on');
+  check(await shadow(page, `const c=root.querySelector('.cine'); const st=c&&getComputedStyle(c.querySelector('.csrc')); return !!c && !!c.querySelector('.cpow') && st.fontStyle==='italic' && /Georgia|Iowan|Palatino/.test(st.fontFamily)`), 'TV shows as a Cinema card (large serif source, power button)');
+  check(await shadow(page, `const c=root.querySelector('.shieldc'); return !!c && c.classList.contains('warn') && /2/.test(c.querySelector('.shbig').textContent) && c.querySelectorAll('.shr').length===4 && c.querySelectorAll('.shr.open').length===2 && /4 sensores/.test(c.textContent)`), 'openings show as the Escudo card (2 open of 4, amber)');
+  for (const w of [1440, 390]) { await page.setViewport({ width: w, height: 900 }); await new Promise((r) => setTimeout(r, 300));
+    for (const [cls, n] of [['.shieldc', 'escudo'], ['.cinegrid', 'cinema']]) { const el = await page.evaluateHandle((c) => { const r = document.getElementById('d').shadowRoot.querySelector(c).closest('.sec'); r.scrollIntoView({ block: 'center' }); return r; }, cls); await new Promise((r) => setTimeout(r, 700)); await el.screenshot({ path: `build/noir/${n}-${w}.png` }); }
+    check(await shadow(page, `const els=[...root.querySelectorAll('.shieldc,.cine')]; return els.every((e)=>e.scrollWidth<=e.clientWidth+1)`), `Escudo/Cinema not cut off at ${w}px`); }
+  await page.setViewport({ width: 1440, height: 900 });
   check(await shadow(page, `const pp=[...root.querySelectorAll('.ppl .pp')]; return pp.length===2 && /Alex.*em casa/.test(pp[0].textContent.replace(/\\s+/g,' ')) && /Sam/.test(pp[1].textContent)`), 'people show where they are');
   await new Promise((r) => setTimeout(r, 1300));
   check(await shadow(page, `return [...root.querySelectorAll('.push')].some((x)=>/Sam chega em casa em ~[4-7] min/.test(x.textContent))`), 'arrival push: "Sam chega em casa em ~5 min"');

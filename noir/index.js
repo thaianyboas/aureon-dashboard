@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.6.7';
-export const BUILD = 'AUREON-NOIR-20261121b';
+export const VERSION = '1.6.8';
+export const BUILD = 'AUREON-NOIR-20261121c';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -61,6 +61,7 @@ const F = { PAUSE: 1, SEEK: 2, VOL: 4, PREV: 16, NEXT: 32, SOURCE: 2048, PLAY: 1
 const P = {
   repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
   power: 'M12 3v9M6.3 7.3a8 8 0 1 0 11.4 0',
+  mute: 'M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6',
   minus: 'M5 12h14', plus: 'M12 5v14M5 12h14',
   tv: 'M3 6h18v11H3zM8 21h8M12 17v4',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
@@ -1675,7 +1676,22 @@ class AureonDashboard extends LitElement {
     if (!list.length) return nothing;
     const openN = list.filter((o) => o.open).length;
     const ago = (iso) => { const mins = Math.max(0, Math.round((now - Date.parse(iso)) / 60000)); return mins < 60 ? mins + ' ' + t('min') : mins < 1440 ? Math.round(mins / 60) + ' h' : Math.round(mins / 1440) + ' d'; };
-    return html`<section class="sec">${this.secHead('openings', t('openings'), openN ? t('openHead', { a: openN, b: list.length }) : t('allClosed'), null, t)}
+    const head = this.secHead('openings', t('openings'), openN ? t('openHead', { a: openN, b: list.length }) : t('allClosed'), null, t);
+    // Owner 2026-11-21 chose concept A "Escudo": one card, a shield that glows, one small tile per door/window.
+    if (!this._ui.edit) {
+      const last = list.map((o) => Date.parse(o.st?.last_changed || '')).filter(Number.isFinite).sort((a, b) => b - a)[0];
+      const opened = list.filter((o) => o.open);
+      return html`<section class="sec">${head}
+        <div class=${'shieldc' + (openN ? ' warn' : '')}>
+          <div class="shhd"><span class="shring" aria-hidden="true">${ic(openN ? 'door' : 'shield', 'i')}</span>
+            <span class="grow txt">
+              <b class="shbig">${openN ? (openN === 1 ? opened[0].name + ' · ' + (opened[0].areaName || '') : t('openHead', { a: openN, b: list.length })) : t('allClosed')}</b>
+              <small>${t('sensorsN', { n: list.length })}${last ? ' · ' + t('lastChange', { t: ago(new Date(last).toISOString()) }) : ''}</small></span></div>
+          <div class="shrooms">${repeat(list, (o) => o.id, (o) => html`<button class=${'shr' + (o.open ? ' open' : '') + (o.unavailable ? ' na' : '')} aria-label=${o.name + ' · ' + (o.areaName || t('noArea')) + ' · ' + (o.unavailable ? t('notAvailable') : o.open ? t('open') : t('shut'))} @click=${() => this._moreInfo(o.id, o.areaName ? undefined : 'settings')}>
+            ${ic(o.door ? 'door' : 'win', 'i s')}<span class="txt">${o.areaName || o.name}</span>${o.open ? html`<small>${ago(o.st.last_changed)}</small>` : nothing}</button>`)}</div>
+        </div></section>`;
+    }
+    return html`<section class="sec">${head}
       <div class="grid w">${repeat(list, (o) => o.id, (o) => {
         const ta = this.tileAttrs('openings', o, ids);
         return html`<div class=${'tile' + ta.cls} draggable=${ta.draggable} @dragstart=${ta.h.start} @dragover=${ta.h.over} @drop=${ta.h.drop} @dragend=${ta.h.end} style=${(o.open ? 'border-color:var(--accent);' : '') + 'padding:14px 16px'}>
@@ -1769,7 +1785,29 @@ class AureonDashboard extends LitElement {
     const list = this._visible('tv', this._sorted('tv', m.tvs)), ids = list.map((x) => x.id);
     if (!list.length) return nothing;
     const F = { VOL_SET: 4, MUTE: 8, ON: 128, OFF: 256, VOL_STEP: 1024 };
-    return html`<section class="sec">${this.secHead('tv', t('tvs'), t('plugsHead', { a: list.filter((x) => x.state !== 'off' && !x.unavailable && x.state !== 'standby').length, b: list.length }), null, t)}
+    const head = this.secHead('tv', t('tvs'), t('plugsHead', { a: list.filter((x) => x.state !== 'off' && !x.unavailable && x.state !== 'standby').length, b: list.length }), null, t);
+    // Owner 2026-11-21 chose concept A "Cinema": the source in large italic, a glowing power button, volume line and
+    // source chips. Every button is a direct tap by the owner.
+    if (!this._ui.edit) return html`<section class="sec">${head}<div class="cinegrid">${repeat(list, (d) => d.id, (d) => {
+      const on = !d.unavailable && !['off', 'standby'].includes(d.state), muted = !!d.attrs?.is_volume_muted;
+      const src = d.attrs?.source || d.attrs?.app_name || d.attrs?.media_title || '', srcs = (d.attrs?.source_list || []).slice(0, 8);
+      const canPow = (d.features & (F.ON | F.OFF)) && !d.unavailable, canVol = on && (d.features & (F.VOL_STEP | F.VOL_SET));
+      return html`<div class=${'cine' + (on ? ' on' : '') + (d.unavailable ? ' ghosted' : '')}>
+        <div class="cart">
+          ${this.nmLink(d, html`<span class="eyebrow" style="font-size:10px">${d.name}${d.areaName ? ' · ' + d.areaName : ''}</span>`, t)}
+          <span class="csrc">${d.unavailable ? t('notAvailable') : on ? (src || t('on')) : t('tvOff')}</span>
+          ${canPow ? html`<button class="cpow" aria-pressed=${on ? 'true' : 'false'} aria-label=${(on ? t('plugOff') : t('plugOn')) + ' · ' + d.name} @click=${() => this._call('media_player', on ? 'turn_off' : 'turn_on', { entity_id: d.id })}>${ic('power', 'i')}</button>` : nothing}
+        </div>
+        ${canVol ? html`<div class="cbody"><div class="cvol">
+          ${d.features & F.MUTE ? html`<button class="vpm" aria-pressed=${muted ? 'true' : 'false'} aria-label=${t('mute') + ' · ' + d.name} style=${muted ? 'color:var(--accent);border-color:var(--accent)' : ''} @click=${() => this._call('media_player', 'volume_mute', { entity_id: d.id, is_volume_muted: !muted })}>${ic(muted ? 'mute' : 'vol', 'i s')}</button>` : nothing}
+          <button class="vpm" aria-label=${t('volume') + ' − · ' + d.name} @click=${() => this._call('media_player', 'volume_down', { entity_id: d.id })}>${ic('minus', 'i s')}</button>
+          <span class="cline" role=${d.features & F.VOL_SET ? 'slider' : 'presentation'} aria-label=${t('volume') + ' · ' + d.name} aria-valuemin="0" aria-valuemax="100" aria-valuenow=${d.vol ?? 0} @click=${(e) => { if (!(d.features & F.VOL_SET)) return; const r = e.currentTarget.getBoundingClientRect(), v = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); this._call('media_player', 'volume_set', { entity_id: d.id, volume_level: Math.round(v * 100) / 100 }); }}><i style=${`width:${Math.max(0, Math.min(100, d.vol ?? 0))}%`}></i></span>
+          <button class="vpm" aria-label=${t('volume') + ' + · ' + d.name} @click=${() => this._call('media_player', 'volume_up', { entity_id: d.id })}>${ic('plus', 'i s')}</button>
+          ${d.vol != null ? html`<span class="mono vnum">${d.vol}</span>` : nothing}</div>
+          ${srcs.length ? html`<div class="csrcs" role="group" aria-label=${t('tvSource')}>${srcs.map((x) => html`<button class=${'chipb' + (x === d.attrs?.source ? ' on' : '')} aria-pressed=${x === d.attrs?.source ? 'true' : 'false'} @click=${() => this._call('media_player', 'select_source', { entity_id: d.id, source: x })}>${x}</button>`)}</div>` : nothing}
+        </div>` : nothing}
+      </div>`; })}</div></section>`;
+    return html`<section class="sec">${head}
       <div class="grid sgrid">${repeat(list, (d) => d.id, (d) => {
         const ta = this.tileAttrs('tv', d, ids), on = !d.unavailable && !['off', 'standby'].includes(d.state);
         const muted = !!d.attrs?.is_volume_muted;

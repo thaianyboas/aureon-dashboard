@@ -596,4 +596,36 @@ select.numin{text-align:left}
 .noarea{flex:none;font-size:10px;padding:2px 7px;border-radius:999px;border:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);margin-left:6px}
 .nahint{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px;color:var(--mut);line-height:1.4;border-bottom:1px solid var(--line)}
 .nahint .i{color:var(--accent);flex:none}
+/* Openings — concept A "Escudo" (owner 2026-11-21). */
+.shieldc{--sc:var(--accent);display:flex;flex-direction:column;gap:18px;padding:18px;border-radius:26px;border:1px solid var(--line);background:linear-gradient(160deg,var(--card),var(--card2))}
+.shieldc.warn{--sc:#F2C14E;border-color:rgba(242,193,78,.35)}
+.shhd{display:flex;align-items:center;gap:14px}
+.shring{width:58px;height:58px;flex:none;border-radius:50%;display:grid;place-items:center;color:var(--sc);border:1px solid color-mix(in srgb,var(--sc) 40%,transparent);background:radial-gradient(circle,color-mix(in srgb,var(--sc) 20%,transparent),transparent 70%);box-shadow:0 0 30px -6px color-mix(in srgb,var(--sc) 55%,transparent)}
+.shieldc .txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.shbig{font-size:22px;font-weight:300;letter-spacing:-.02em}
+.shhd small{font-size:12px;color:var(--mut)}
+.shrooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px}
+.shr{display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px 4px 10px;border-radius:16px;background:var(--sunk);border:1px solid var(--line);color:var(--accent);font:inherit;cursor:pointer;min-width:0}
+.shr .txt{font-size:10px;color:var(--mut);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shr small{font-size:9.5px;color:#F2C14E}
+.shr.open{color:#F2C14E;border-color:rgba(242,193,78,.5);background:linear-gradient(180deg,rgba(242,193,78,.12),var(--sunk))}.shr.open .txt{color:#F2C14E}
+.shr.na{opacity:.45}
+/* TV — concept A "Cinema" (owner 2026-11-21). */
+.cinegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:12px}
+.cine{border-radius:28px;border:1px solid var(--line);background:linear-gradient(160deg,var(--card) 0%,var(--card2) 60%);overflow:hidden;display:flex;flex-direction:column}
+.cart{position:relative;min-height:132px;padding:18px 84px 22px 18px;display:flex;flex-direction:column;gap:18px}
+.cine.on{background:radial-gradient(120% 90% at 90% 0%,color-mix(in srgb,var(--accent) 30%,transparent),transparent 60%),linear-gradient(135deg,color-mix(in srgb,var(--accent) 10%,var(--card)) 0%,var(--card2) 70%)}
+.csrc{font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;font-style:italic;font-size:clamp(26px,6vw,36px);line-height:1.1;letter-spacing:-.01em;color:var(--fg);overflow-wrap:anywhere}
+.cine:not(.on) .csrc{color:var(--mut)}
+.cpow{position:absolute;right:18px;top:18px;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line2);background:var(--raise);color:var(--mut);cursor:pointer}
+.cine.on .cpow{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 50%,transparent);background:color-mix(in srgb,var(--accent) 12%,transparent);box-shadow:0 0 24px -4px color-mix(in srgb,var(--accent) 60%,transparent)}
+.cbody{display:flex;flex-direction:column;gap:14px;padding:4px 18px 18px}
+.cvol{display:flex;align-items:center;gap:10px}
+.cline{position:relative;flex:1;height:22px;cursor:pointer}
+.cline:before{content:'';position:absolute;left:0;right:0;top:10px;height:3px;border-radius:2px;background:var(--line2)}
+.cline i{position:absolute;left:0;top:10px;height:3px;border-radius:2px;background:var(--accent)}
+.cline i:after{content:'';position:absolute;right:-6px;top:-5px;width:13px;height:13px;border-radius:50%;background:var(--fg);box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.csrcs{display:flex;gap:6px;flex-wrap:wrap}
+.chipb{padding:8px 13px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--mut);font:inherit;font-size:12px;cursor:pointer}
+.chipb.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
 `;

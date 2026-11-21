@@ -1,5 +1,11 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.6.8 — 2026-11-21
+
+- Portas e janelas: novo cartão "Escudo" — anel com brilho, "tudo fechado" ou quantas estão abertas (âmbar), e um bloco por cômodo com o tempo aberto.
+- Televisão: novo cartão "Cinema" — a fonte em letra grande itálica, botão de ligar com brilho, linha de volume (toque para ajustar), mudo e fontes como chips.
+- No modo "Editar painel" as duas seções continuam com os blocos antigos para mover, esconder e renomear.
+
 ## AUREON Noir 1.6.7 — 2026-11-21
 
 - Mapa 3D e planta: o cômodo "Sem cômodo" só aparece se houver um aparelho sem área que funciona e não está escondido (aparelhos indisponíveis, como Echo Dots antigas, não contam mais).
