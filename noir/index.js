@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.6.8';
-export const BUILD = 'AUREON-NOIR-20261121c';
+export const VERSION = '1.6.9';
+export const BUILD = 'AUREON-NOIR-20261121d';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -108,6 +108,11 @@ const binSvg = (c, open, key, cls = '') => {
     <g class="lid"><path d="M6.5 13.6V9.8a3 3 0 0 1 3-3h41a3 3 0 0 1 3 3v3.8z" fill=${'url(#' + id + 'l)'}></path><rect x="23" y="3.4" width="14" height="3.4" rx="1.6" style=${'fill:' + md}></rect></g>
   </svg>`;
 };
+// Owner 2026-11-21: doors and windows show as open/closed drawings. The door leaf swings on its hinge, the window
+// sashes open outwards; a warm light shows through the gap. CSS in styles.js (.opi); still under reduced motion.
+const opIc = (door, open, cls = 'i') => door
+  ? svg`<svg class=${cls + ' opi door' + (open ? ' open' : '')} viewBox="0 0 24 24" aria-hidden="true"><rect class="gap" x="6" y="3.5" width="12" height="17" rx=".5"></rect><path d="M5 21V3h14v18M3 21h18"></path><g class="leaf"><path d="M6 20.5v-17h12v17z"></path><path d="M15.2 12.2h.01"></path></g></svg>`
+  : svg`<svg class=${cls + ' opi win' + (open ? ' open' : '')} viewBox="0 0 24 24" aria-hidden="true"><rect class="gap" x="4.5" y="3.5" width="15" height="17"></rect><path d="M3.5 3h17v18h-17z"></path><g class="sl"><path d="M4.5 4h7.5v16H4.5zM4.5 12H12"></path></g><g class="sr"><path d="M12 4h7.5v16H12zM12 12h7.5"></path></g></svg>`;
 const ic = (n, cls = 'i') => svg`<svg class=${cls} viewBox="0 0 24 24" aria-hidden="true"><path d=${P[n]}></path></svg>`;
 const WX = { 'clear-night': 'moon', cloudy: 'cloud', exceptional: 'sun', fog: 'fog', hail: 'snow', lightning: 'storm', 'lightning-rainy': 'storm', partlycloudy: 'partly', pouring: 'rain', rainy: 'rain', snowy: 'snow', 'snowy-rainy': 'snow', sunny: 'sun', windy: 'wind', 'windy-variant': 'wind' };
 const WXC = { sun: '#F5D08A', moon: '#C9D8F5', partly: '#F5D08A', rain: '#8FB8FF', storm: '#B9A8FF', snow: '#E6F0FF', fog: '#A1A1AA', wind: '#C9D8F5', cloud: '#C9D8F5' };
@@ -1683,12 +1688,12 @@ class AureonDashboard extends LitElement {
       const opened = list.filter((o) => o.open);
       return html`<section class="sec">${head}
         <div class=${'shieldc' + (openN ? ' warn' : '')}>
-          <div class="shhd"><span class="shring" aria-hidden="true">${ic(openN ? 'door' : 'shield', 'i')}</span>
+          <div class="shhd"><span class="shring" aria-hidden="true">${openN ? opIc(!!opened[0].door, true, 'i') : ic('shield', 'i')}</span>
             <span class="grow txt">
               <b class="shbig">${openN ? (openN === 1 ? opened[0].name + ' · ' + (opened[0].areaName || '') : t('openHead', { a: openN, b: list.length })) : t('allClosed')}</b>
               <small>${t('sensorsN', { n: list.length })}${last ? ' · ' + t('lastChange', { t: ago(new Date(last).toISOString()) }) : ''}</small></span></div>
           <div class="shrooms">${repeat(list, (o) => o.id, (o) => html`<button class=${'shr' + (o.open ? ' open' : '') + (o.unavailable ? ' na' : '')} aria-label=${o.name + ' · ' + (o.areaName || t('noArea')) + ' · ' + (o.unavailable ? t('notAvailable') : o.open ? t('open') : t('shut'))} @click=${() => this._moreInfo(o.id, o.areaName ? undefined : 'settings')}>
-            ${ic(o.door ? 'door' : 'win', 'i s')}<span class="txt">${o.areaName || o.name}</span>${o.open ? html`<small>${ago(o.st.last_changed)}</small>` : nothing}</button>`)}</div>
+            ${opIc(!!o.door, o.open && !o.unavailable, 'i s')}<span class="txt">${o.areaName || o.name}</span>${o.open ? html`<small>${ago(o.st.last_changed)}</small>` : nothing}</button>`)}</div>
         </div></section>`;
     }
     return html`<section class="sec">${head}

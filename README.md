@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.6.9 — 2026-11-21
+
+- Portas e janelas: os ícones mostram o estado de verdade — porta aberta gira na dobradiça e janela aberta abre as folhas, com uma luz por trás e um leve balanço. Fechou, volta ao desenho fechado. Sem animação se o aparelho pedir menos movimento.
+
 ## AUREON Noir 1.6.8 — 2026-11-21
 
 - Portas e janelas: novo cartão "Escudo" — anel com brilho, "tudo fechado" ou quantas estão abertas (âmbar), e um bloco por cômodo com o tempo aberto.

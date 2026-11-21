@@ -1561,3 +1561,6 @@ The Music browser suite passed again with that label and native transfer.
 ## Claude batch — 2026-11-21c (AUREON Noir 1.6.8)
 - Owner picked concept A for both: `sOpenings` → `.shieldc` "Escudo" card, `sTV` → `.cinegrid/.cine` "Cinema" cards (outside edit mode; edit mode keeps old tiles). New icon `mute`; i18n `tvOff`, `sensorsN`, `lastChange`, `tvSource`.
 - Note: `.shtop` is the settings back-to-top button — Escudo header uses `.shhd`. Browser checks for both cards + no cut-off at 1440/390. Tests PASS.
+
+## Claude batch — 2026-11-21d (AUREON Noir 1.6.9)
+- `opIc(door, open)` in index.js: inline SVG door/window with `.leaf`/`.sl`/`.sr` groups animated via CSS (`.opi`), used in the Escudo ring and tiles. Respects prefers-reduced-motion. Browser check added. Tests PASS.

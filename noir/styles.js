@@ -628,4 +628,21 @@ select.numin{text-align:left}
 .csrcs{display:flex;gap:6px;flex-wrap:wrap}
 .chipb{padding:8px 13px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--mut);font:inherit;font-size:12px;cursor:pointer}
 .chipb.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+/* Openings — animated door/window drawings (owner 2026-11-21). */
+.opi{overflow:visible}
+.opi .gap{fill:currentColor;stroke:none;opacity:0;transition:opacity .5s ease}
+.opi.open .gap{opacity:.22}
+.opi .leaf,.opi .sl,.opi .sr{transform-box:fill-box;transition:transform .7s cubic-bezier(.34,1.45,.5,1)}
+.opi .leaf path:first-child,.opi .sl path,.opi .sr path{fill:var(--card2)}
+.opi .leaf{transform-origin:0 50%}
+.opi.door.open .leaf{transform:scaleX(.42) skewY(-14deg);animation:opDoor 4.5s ease-in-out .8s infinite}
+.opi .sl{transform-origin:0 50%}.opi .sr{transform-origin:100% 50%}
+.opi.win.open .sl{transform:scaleX(.5) skewY(-12deg);animation:opWinL 5s ease-in-out .8s infinite}
+.opi.win.open .sr{transform:scaleX(.5) skewY(12deg);animation:opWinR 5s ease-in-out .8s infinite}
+@keyframes opDoor{0%,100%{transform:scaleX(.42) skewY(-14deg)}50%{transform:scaleX(.5) skewY(-12deg)}}
+@keyframes opWinL{0%,100%{transform:scaleX(.5) skewY(-12deg)}50%{transform:scaleX(.58) skewY(-10deg)}}
+@keyframes opWinR{0%,100%{transform:scaleX(.5) skewY(12deg)}50%{transform:scaleX(.58) skewY(10deg)}}
+.shr.open .opi{filter:drop-shadow(0 0 6px rgba(242,193,78,.55))}
+.shr svg.opi.i.s{width:30px;height:30px;stroke-width:1.5}.shring .opi{width:30px;height:30px;stroke-width:1.5}
+@media (prefers-reduced-motion:reduce){.opi .leaf,.opi .sl,.opi .sr{animation:none!important;transition:none}}
 `;
