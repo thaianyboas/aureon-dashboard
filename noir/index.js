@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.7.8';
-export const BUILD = 'AUREON-NOIR-20261122g';
+export const VERSION = '1.7.9';
+export const BUILD = 'AUREON-NOIR-20261122h';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -1102,12 +1102,25 @@ class AureonDashboard extends LitElement {
     return html`<span class="alw">
       <button class=${'alp' + (armed ? ' on' : '') + (alert ? ' alert' : '')} aria-haspopup="menu" aria-expanded=${open ? 'true' : 'false'} aria-label=${t('modeTitle') + ' · ' + cur.name} @click=${(e) => { e.stopPropagation(); this._set({ alarmOpen: open ? false : slot }); }}>
         ${ic(a ? 'shield' : cur.icon, 'i s')}<span class="txt"><small>${t('modeTitle')}</small><b>${cur.name}${sub ? ' · ' + sub : ''}</b></span>${ic('down', 'i s alc')}</button>
-      ${open ? html`<div class="alm rise" role="menu" @click=${(e) => e.stopPropagation()}>
-        <span class="eyebrow" style="font-size:10px;padding:4px 8px 2px">${t('modeTitle')}${a ? ' · ' + a.name : ''}</span>
-        ${defs.map((d) => html`<button role="menuitemradio" aria-checked=${d.id === active ? 'true' : 'false'} @click=${() => this._set({ alarmOpen: false, modeSheet: d.id, modeCode: '' })}>
-          <span class="alic">${ic(d.icon, 'i s')}</span><span class="grow txt"><b>${d.name}</b><small>${this._modeEffect(ctx, d)}</small></span>${d.id === active ? ic('check', 'i s') : nothing}</button>`)}
-        <button class="alset" @click=${() => this._set({ alarmOpen: false, settings: 'modos' })}>${ic('gear', 'i s')}${t('stHintModes')}</button>
-      </div>` : nothing}</span>`;
+      ${open ? (() => {
+        // Owner 2026-11-22 chose the "abas + detalhe" menu: a glass tab bar with the 4 modes; below, what the shown mode
+        // does (alarm, lights, plugs). Tapping a tab only shows it; "Ativar" opens the same confirmation as before.
+        const view = defs.find((d) => d.id === this._ui.alarmView) || cur, c = this._modeCfg(view), isOn = view.id === active;
+        const nPl = (c.plugs || []).filter((id) => m.plugs.some((p) => p.id === id && !p.locked)).length;
+        const rows = [
+          a ? ['shield', t('rowAlarm'), view.id === 'home' ? t('valOff') : view.id === 'night' ? t('valNight') : t('valOn')] : null,
+          ['bulb', t('rowLights'), c.lightsOff ? t('lightsAllOff') : t('lightsAsIs')],
+          ['plug', t('rowPlugs'), nPl ? t('plugsOffN', { n: nPl }) : view.id === 'home' && c.restore && (this._prefs.modeOff || []).length ? t('effRestore') : t('plugsNone')]
+        ].filter(Boolean);
+        return html`<div class="alm almc rise" role="menu" @click=${(e) => e.stopPropagation()}>
+        <span class="eyebrow" style="font-size:10px;padding:4px 6px 2px">${t('modeTitle')}${a ? ' · ' + a.name : ''}</span>
+        <div class="almtabs">${defs.map((d) => html`<button role="menuitemradio" aria-checked=${d.id === active ? 'true' : 'false'} class=${d.id === view.id ? 'sel' : ''} @click=${() => this._set({ alarmView: d.id })}>
+          ${ic(d.icon, 'i s')}<span class="txt">${d.name}</span>${d.id === active ? html`<i aria-hidden="true"></i>` : nothing}</button>`)}</div>
+        <div class="almdet"><span class="eyebrow" style="font-size:10px">${isOn ? t('activeNow') : t('whenOn')}</span><b class="almn">${view.name}</b>
+          ${rows.map(([icn, k, v]) => html`<div class="almr"><span class="almi">${ic(icn, 'i s')}</span><span class="grow">${k}</span><em>${v}</em></div>`)}
+          ${!isOn ? html`<button class="btn pri almgo" @click=${() => this._set({ alarmOpen: false, alarmView: null, modeSheet: view.id, modeCode: '' })}>${t('activateX', { n: view.name })}</button>` : nothing}</div>
+        <button class="alset" @click=${() => this._set({ alarmOpen: false, alarmView: null, settings: 'modos' })}>${ic('gear', 'i s')}${t('adjustModes')}</button>
+      </div>`; })() : nothing}</span>`;
   }
   // "Back to top" (owner 2026-11-18): a round button pinned bottom-right once the page is scrolled. It lives in
   // document.body because the dashboard host is a size container, which would trap position:fixed.

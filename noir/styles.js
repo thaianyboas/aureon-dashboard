@@ -901,4 +901,22 @@ select.numin{text-align:left}
 .hr.now{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.015));border-color:rgba(255,255,255,.09)}
 .hr svg{filter:drop-shadow(0 0 6px rgba(230,200,142,.35))}
 @media (prefers-reduced-motion:reduce){.ccol,.hero.wx-fog .hmist{animation:none}}
+/* House mode menu — "abas + detalhe" (owner 2026-11-22). */
+.alm.almc{width:min(360px,calc(100vw - 32px));gap:10px;padding:14px;border-radius:26px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(170deg,rgba(26,28,27,.97),rgba(10,11,11,.98));box-shadow:0 40px 80px -20px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.07)}
+.almtabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:5px;border-radius:20px;background:rgba(0,0,0,.35);border:1px solid var(--line)}
+.alm .almtabs button{position:relative;flex-direction:column;justify-content:center;gap:6px;min-height:64px;padding:8px 2px;border-radius:15px;font-size:11px;color:var(--mut);text-align:center;cursor:pointer}
+.alm .almtabs button .i{width:18px;height:18px}.alm .almtabs button .txt{max-width:100%}
+.alm .almtabs button[aria-checked="true"]{color:var(--mut);cursor:pointer}
+.alm .almtabs button.sel{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 22%,transparent),color-mix(in srgb,var(--accent) 6%,transparent));color:var(--fg);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 20px -8px var(--accent)}
+.alm .almtabs button.sel .i{color:var(--accent)}
+.alm .almtabs button>i{position:absolute;top:7px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.alm .almtabs button[aria-checked="true"]>.i{margin-left:0}
+.almdet{display:flex;flex-direction:column;padding:14px 16px;border-radius:20px;border:1px solid var(--line);background:rgba(255,255,255,.02)}
+.almn{font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;font-style:italic;font-weight:400;font-size:26px;margin:4px 0 6px}
+.almr{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:13px}.almr:first-of-type{border-top:0}
+.almi{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.04);color:var(--mut)}
+.almr em{font-style:normal;font-size:12px;color:var(--mut);text-align:right}
+.alm .almgo{justify-content:center;margin-top:10px;min-height:46px;border-radius:14px;background:var(--fg);color:#111;font-weight:600}
+.alm .alset{border-top:0;border:1px solid var(--line);border-radius:16px;min-height:44px;padding:0 14px}
+.ccol{color:#E8EEEB;-webkit-text-fill-color:#E8EEEB}
 `;

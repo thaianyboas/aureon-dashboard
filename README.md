@@ -1,5 +1,10 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.7.9 — 2026-11-22
+
+- Menu do modo da casa redesenhado: abas em vidro com os 4 modos e um painel mostrando o que cada modo faz (alarme, luzes, tomadas). Tocar numa aba só mostra; "Ativar" abre a confirmação de sempre.
+- Relógio: os dois pontos não somem mais no iPhone.
+
 ## AUREON Noir 1.7.8 — 2026-11-22
 
 - Topo do painel com acabamento premium (mesmo layout): relógio fino com degradê e dois pontos piscando, saudação em itálico, modo da casa em vidro com brilho, fotos com anel e luz verde quando em casa, barra mínima→máxima no tempo, hora atual destacada na previsão e um fundo que acompanha o céu (névoa, sol, chuva).

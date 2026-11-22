@@ -1605,3 +1605,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22g (AUREON Noir 1.7.8)
 - Hero premium (owner kept the original layout): `.hero.wx-{fog,cloud,sun,night,wet}` + `.hmist`; clock colon `.ccol`; serif greeting; `.alp` glass; `.pp.home .ppav` ring + dot; weather `.wxr/.wxb` min→max bar; first hour `.hr.now`. Tests PASS.
+
+## Claude batch — 2026-11-22h (AUREON Noir 1.7.9)
+- Mode menu concept C: `.alm.almc` with `.almtabs` (role=menuitemradio, preview via `_ui.alarmView`), `.almdet` rows from `_modeCfg` + alarm, `.almgo` opens existing `modeSheet`; `.alset` footer. iOS clock colon: `.ccol` own text-fill color. Tests updated, PASS.
