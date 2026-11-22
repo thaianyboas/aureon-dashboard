@@ -1,5 +1,10 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.7.5 — 2026-11-22
+
+- Máquinas pela tomada: o painel aprende quanto tempo uma lavagem costuma durar (últimos 10 dias da tomada, mediana de pelo menos 2 ciclos) e mostra no visor o horário estimado de término (≈), com a barra de progresso. Somente leitura.
+- Cartões das máquinas mais limpos: os detalhes ficam num botão "i" (canto esquerdo); o aviso da Alexa é um sino pequeno no canto direito, com luz verde quando ligado (um toque liga/desliga).
+
 ## AUREON Noir 1.7.4 — 2026-11-22
 
 - "Acontecendo agora" em visual rico: máquinas desenhadas (água e anel azul quando lavando, ✓ e brilho quando terminam); o visor mostra o horário de término (ou há quanto tempo está ligada, nas máquinas pela tomada).

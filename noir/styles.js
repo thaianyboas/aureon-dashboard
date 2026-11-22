@@ -813,4 +813,16 @@ select.numin{text-align:left}
 .wsi{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}.wsi b{font-size:11.5px;font-weight:400;max-width:100%}.wsi .mono{font-size:9.5px;color:var(--mut)}
 .act.wst .wbins svg.wb{width:78px;height:auto}.act.wst .wbins svg.wb.back{width:60px}
 .act.ap .byplug{font-size:11px}
+/* Machine cards: info "i" (left) and Alexa bell (right) in the corners (owner 2026-11-22). */
+.act.ap{position:relative}
+.apinfo,.alx{position:absolute;top:12px;z-index:2;width:32px;height:32px;padding:0;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--mut);cursor:pointer;backdrop-filter:blur(6px)}
+.apinfo{left:12px;font:italic 600 14px Georgia,'Iowan Old Style',serif}.apinfo.on{color:var(--fg);border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.1)}
+.alx{right:12px;gap:0}.alx .i{width:14px;height:14px}
+.alx>i{position:absolute;right:1px;top:1px;width:8px;height:8px;border-radius:50%;background:var(--line2);border:2px solid var(--card2)}
+.alx.on{color:var(--fg);border-color:rgba(126,224,168,.4)}.alx.on>i{background:#7EE0A8;box-shadow:0 0 8px #7EE0A8}
+.alx.setup{opacity:.6}.alx.setup .pl{position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:50%;background:var(--card2)}
+.act.ap.done .apok{right:auto;left:50%;top:auto;bottom:-8px;transform:translateX(-50%)}
+.apmore{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-size:12px;color:var(--mut);animation:apfade .2s ease}
+@keyframes apfade{from{opacity:0;transform:translateY(-4px)}}
+.apgrid{align-items:start}.act.ap .apbox{width:min(118px,58%);margin-top:6px}
 `;

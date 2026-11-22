@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.7.4';
-export const BUILD = 'AUREON-NOIR-20261122c';
+export const VERSION = '1.7.5';
+export const BUILD = 'AUREON-NOIR-20261122d';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -1022,10 +1022,36 @@ class AureonDashboard extends LitElement {
     this._loadAlexaAutos();
     const au = this._alexaFind(a);
     const st = au && this.hass.states[au.id], on = st?.state === 'on';
-    // Owner 2026-11-22: a glass pill ("Alexa avisa"), green dot when on; same automation switch as before.
-    return html`<div class="alexa">
-      ${au ? html`<button class=${'alx' + (on ? ' on' : '')} role="switch" aria-checked=${on ? 'true' : 'false'} aria-label=${t('alexaDone') + ' · ' + a.name} @click=${() => this._call('automation', on ? 'turn_off' : 'turn_on', { entity_id: au.id })}><i aria-hidden="true"></i>${ic('bell', 'i s')}${t('alexaShort')}</button>`
-        : html`<button class="btn sm" @click=${() => { history.pushState(null, '', '/config/blueprint/dashboard'); window.dispatchEvent(new CustomEvent('location-changed')); }}>${t('alexaSetup')}</button>`}</div>`;
+    // Owner 2026-11-22: a small round bell in the card's corner; green light = Alexa speaks when the cycle ends.
+    // Tap = turn that automation on/off. Without an automation: a dim bell that opens the blueprints.
+    return au ? html`<button class=${'alx' + (on ? ' on' : '')} role="switch" aria-checked=${on ? 'true' : 'false'} title=${t('alexaDone') + ': ' + t(on ? 'on' : 'off')} aria-label=${t('alexaDone') + ' · ' + a.name} @click=${() => this._call('automation', on ? 'turn_off' : 'turn_on', { entity_id: au.id })}>${ic('bell', 'i s')}<i aria-hidden="true"></i></button>`
+      : html`<button class="alx setup" title=${t('alexaSetup')} aria-label=${t('alexaSetup') + ' · ' + a.name} @click=${() => { history.pushState(null, '', '/config/blueprint/dashboard'); window.dispatchEvent(new CustomEvent('location-changed')); }}>${ic('bell', 'i s')}${ic('plus', 'i s pl')}</button>`;
+  }
+  // Owner 2026-11-22 ("a sua ideia é ótima"): a machine measured only by a plug has no end time. The panel learns
+  // how long a cycle usually takes from the plug's own statistics (5-minute means, last 10 days): every stretch above
+  // the working power that ends with ≥ 10 min of rest is one cycle; the median of cycles ≥ 20 min is "typical".
+  // Needs ≥ 2 cycles; re-read every 6 h. Read-only.
+  _plugLearn(a) {
+    const pid = a.powerIds?.[0]; if (!pid || !this.hass?.callWS) return null;
+    this._pl ||= {}; const h = this._pl[a.id];
+    if ((!h || Date.now() - h.at > 6 * 3600000) && !h?.busy) {
+      this._pl[a.id] = { ...(h || {}), at: Date.now(), busy: true };
+      const end = new Date(), start = new Date(end.getTime() - 10 * 86400000);
+      this.hass.callWS({ type: 'recorder/statistics_during_period', start_time: start.toISOString(), end_time: end.toISOString(), statistic_ids: [pid], period: '5minute', types: ['mean', 'max'] })
+        .then((res) => {
+          const pts = (res?.[pid] || []).map((r) => ({ t: typeof r.start === 'number' ? r.start : Date.parse(r.start), v: Math.max(Number(r.mean) || 0, Number(r.max) >= PLUG_RUN_W * 3 ? PLUG_RUN_W : 0) })).filter((x) => Number.isFinite(x.t)).sort((x, y) => x.t - y.t);
+          const runs = []; let run = null, low = 0;
+          for (const p of pts) {
+            if (p.v >= PLUG_RUN_W) { if (!run) run = { s: p.t, e: p.t + 300000 }; else run.e = p.t + 300000; low = 0; }
+            else if (run) { low += 1; if (low >= 2) { runs.push(run); run = null; low = 0; } }
+          }
+          const mins = runs.map((r) => (r.e - r.s) / 60000).filter((d) => d >= 20 && d <= 360).sort((x, y) => x - y);
+          const med = mins.length >= 2 ? mins[Math.floor(mins.length / 2)] : null;
+          this._pl[a.id] = { at: Date.now(), busy: false, mins: med != null ? Math.round(med / 5) * 5 : null, n: mins.length };
+        }).catch(() => { this._pl[a.id] = { at: Date.now(), busy: false, mins: null, n: 0 }; })
+        .finally(() => this.requestUpdate());
+    }
+    const r = this._pl[a.id]; return r?.mins ? r : null;
   }
   // Older machines measured by a plug: the cycle is read from the plug's power history (start, and the end once the
   // power stayed low for 3 minutes). "Terminou" stays until acknowledged or for 3 hours.
@@ -1053,7 +1079,11 @@ class AureonDashboard extends LitElement {
       }
       const r = this._pc[a.id]?.run;
       if (!r) continue;
-      if (a.running && !r.end) { a.startAt = new Date(r.start); a.mins = null; }
+      if (a.running && !r.end) {
+        a.startAt = new Date(r.start); a.mins = null;
+        const L = this._plugLearn(a);
+        if (L) { const endMs = r.start + L.mins * 60000; a.estEnd = new Date(Math.max(endMs, now.getTime() + 60000)); a.estN = L.n; a.pct = Math.min(97, Math.max(2, Math.round(100 * (now - r.start) / (L.mins * 60000)))); }
+      }
       else if (!a.running && r.end && now - r.end < 3 * 3600000 && (this._prefs.cycleAck || {})[a.id] !== r.end) { a.done = true; a.idle = false; a.endedAt = new Date(r.end); a.runEnd = r.end; a.status = 'plugdone'; }
     }
   }
@@ -1301,25 +1331,26 @@ class AureonDashboard extends LitElement {
       const dev = { ...a, isDevice: true };
       const hm = (d) => d.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
       const idle = !a.running && !a.done;
-      const detail = idle ? (a.plug ? [t('applIdle'), a.w ? a.w + ' W' : null].filter(Boolean).join(' · ') : [t('applIdle'), a.status && !/^(off|aus|inactive|ready|bereit)$/i.test(a.status) ? a.status : null].filter(Boolean).join(' · ')) : a.plug ? (a.done ? t('plugDone', { t: hm(a.endedAt) }) : [a.startAt ? t('plugSince', { m: Math.max(1, Math.round((now - a.startAt) / 60000)) }) : t('running'), a.w + ' W ' + t('nowS')].join(' · ')) : a.done ? [a.program, t('cycleDone')].filter(Boolean).join(' · ') : [a.program || null, a.mins != null ? t('remaining', { m: Math.round(a.mins) }) : null, a.endAt ? t('endsAt', { t: a.endAt.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : null, !a.mins && !a.endAt ? a.status : null].filter(Boolean).join(' · ');
+      const detail = idle ? (a.plug ? [t('applIdle'), a.w ? a.w + ' W' : null].filter(Boolean).join(' · ') : [t('applIdle'), a.status && !/^(off|aus|inactive|ready|bereit)$/i.test(a.status) ? a.status : null].filter(Boolean).join(' · ')) : a.plug ? (a.done ? t('plugDone', { t: hm(a.endedAt) }) : [a.startAt ? t('plugSince', { m: Math.max(1, Math.round((now - a.startAt) / 60000)) }) : t('running'), a.estEnd ? t('endsAbout', { t: hm(a.estEnd) }) : null, a.w + ' W ' + t('nowS')].filter(Boolean).join(' · ')) : a.done ? [a.program, t('cycleDone')].filter(Boolean).join(' · ') : [a.program || null, a.mins != null ? t('remaining', { m: Math.round(a.mins) }) : null, a.endAt ? t('endsAt', { t: a.endAt.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : null, !a.mins && !a.endAt ? a.status : null].filter(Boolean).join(' · ');
       // Owner 2026-11-22 ("mais rico e visual"): the machine itself is drawn; working = water / light, progress ring,
       // the remaining or elapsed time in its display; done = accent glow + OK.
       const elapsed = a.plug && a.running && a.startAt ? Math.max(1, Math.round((now - a.startAt) / 60000)) : null;
       // Owner 2026-11-22: the little display shows WHEN it finishes (end time); a plug machine has no end time, so it
       // shows how long it has been running.
       const endT = a.endAt || (a.mins != null ? new Date(now.getTime() + a.mins * 60000) : null);
-      const disp = a.done ? 'END' : a.running ? (endT ? hm(endT) : elapsed != null ? elapsed + ' min' : '') : '';
+      const disp = a.done ? 'END' : a.running ? (endT ? hm(endT) : a.estEnd ? '≈' + hm(a.estEnd) : elapsed != null ? elapsed + ' min' : '') : '';
       const fr = a.running && pct != null ? pct / 100 : null, key = String(a.id).replace(/\W/g, '');
       appl.push(html`<article class=${'act ap' + (a.running ? ' run' : '') + (a.done ? ' done' : '')}>
         ${this.editBar('appliances', dev, [], t)}
+        <button class=${'apinfo' + (this._ui.apInfo === a.id ? ' on' : '')} aria-expanded=${this._ui.apInfo === a.id ? 'true' : 'false'} aria-label=${t('details') + ' · ' + a.name} @click=${() => this._set({ apInfo: this._ui.apInfo === a.id ? null : a.id })}>i</button>
+        ${this.alexaRow(a, t)}
         <span class="apbox">${icon === 'dish' ? dishSvg(a.running, fr, disp, key) : washerSvg(a.running, fr, disp, key)}${a.done ? html`<span class="apok" aria-hidden="true">${ic('check', 'i s')}</span>` : nothing}</span>
         <span class="aptx"><span class="ttl txt">${a.name}</span>
           <span class="apst txt">${a.done ? [a.areaName, t('cycleDone')].filter(Boolean).join(' · ') : [a.areaName, idle ? t('applIdleTag').toLowerCase() : null].filter(Boolean).join(' · ')}</span>
-          ${(!idle || !a.plug) && !(a.done && !a.program) ? html`<span class="muted txt" style="font-size:12px">${a.done ? a.program : detail}</span>` : nothing}
-          ${a.plug ? html`<span class="byplug">${ic('plug', 'i s')}${t('byPlug')}</span>` : nothing}</span>
+          ${this._ui.apInfo === a.id ? html`<span class="apmore" role="note">${!(a.done && !a.program) ? html`<span>${a.done ? a.program : detail}</span>` : nothing}${a.plug ? html`<span class="byplug">${ic('plug', 'i s')}${t('byPlug')}</span>` : nothing}</span>` : nothing}</span>
         ${a.running && pct != null ? html`<span class="approg" aria-hidden="true"><i style=${`width:${Math.round(pct)}%`}></i></span>` : nothing}
         ${a.plug && a.done ? html`<button class="btn sm" @click=${() => this._save({ cycleAck: { ...(this._prefs.cycleAck || {}), [a.id]: a.runEnd } })}>${ic('check', 'i s')}${t('okS')}</button>` : nothing}
-        ${this.alexaRow(a, t)}</article>`);
+      </article>`);
     }
     if (appl.length) cards.unshift(html`<div class=${'apgrid' + (appl.length === 1 ? ' one' : '')}>${appl}</div>`);
     if (m.waste.length) {

@@ -1591,3 +1591,7 @@ The Music browser suite passed again with that label and native transfer.
 ## Claude batch — 2026-11-22c (AUREON Noir 1.7.4)
 - Activity ("Acontecendo agora") redesign: `washerSvg/dishSvg/robotSvg`; appliances in `.apgrid` of `.act.ap(.run/.done)` cards; display shows end time (`endAt` or now+mins) or elapsed for plug machines. Alexa row → `.alx` pill (role=switch). Waste: `.wcd` countdown ring, mini bins on the shelf. Robot `.act.rob` with `.robbox`.
 - Blueprints appliance_done_power/status: input `announce_volume` (0 = off). Volume set only on media players whose volume HA knows (`old_volumes`), restored after the message. Templates tested with Jinja; not tested on a real Echo.
+
+## Claude batch — 2026-11-22d (AUREON Noir 1.7.5)
+- `_plugLearn(a)`: recorder 5-minute mean/max of the plug power (10 days, 6 h cache) → cycles (≥ PLUG_RUN_W, end after 2 low buckets), median of 20–360 min cycles, needs ≥ 2. Running plug cycle gets `estEnd`, `estN`, `pct`; display "≈HH:MM", detail "termina ≈ … (estimado)". Fixture mocks 5-minute stats for sensor.old_washer_power.
+- Machine cards: `.apinfo` (top-left, toggles `_ui.apInfo` → `.apmore`) and `alexaRow` now returns the corner `.alx` bell (role=switch, green dot) or `.alx.setup`. Tests PASS.

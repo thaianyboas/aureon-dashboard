@@ -272,11 +272,17 @@ console.log('behaviour');
   await shadow(page, `root.querySelector('.act.wst .wbtn').click()`);
   await new Promise((r) => setTimeout(r, 150));
   check(await shadow(page, `return !!root.querySelector('.act.wst .wok')`), 'waste "Já coloquei" is remembered');
+  await shadow(page, `const a=[...root.querySelectorAll('.act.ap')].find((x)=>/^\\s*Washing machine/.test(x.querySelector('.ttl').textContent)); a.querySelector('.apinfo').click()`); await new Promise((r) => setTimeout(r, 150));
   check(await shadow(page, `return [...root.querySelectorAll('.act')].some((a)=>/Washing machine/.test(a.textContent) && /Cotton 40°/.test(a.textContent))`), 'washer shows program and temperature');
-  const al = await shadow(page, `const a=[...root.querySelectorAll('.act')].find((x)=>/Washing machine/.test(x.textContent)); const sw=a&&a.querySelector('.alexa [role=switch]'); if(!sw) return 'no switch'; sw.click(); return sw.getAttribute('aria-checked')`);
+  const al = await shadow(page, `const a=[...root.querySelectorAll('.act')].find((x)=>/Washing machine/.test(x.textContent)); const sw=a&&a.querySelector('.alx[role=switch]'); if(!sw) return 'no switch'; sw.click(); return sw.getAttribute('aria-checked')`);
   await new Promise((r) => setTimeout(r, 200));
   check(al === 'true' && await page.evaluate(() => H.calls.some((c) => c[0] === 'automation' && c[1] === 'turn_off' && c[2].entity_id === 'automation.washer_alexa')), 'Alexa row finds the blueprint automation and switches it (' + al + ')');
-  check(await shadow(page, `const a=[...root.querySelectorAll('.act')].find((x)=>/Dishwasher/.test(x.querySelector('.ttl')?.textContent||'')); return !!a?.querySelector('.alexa [role=switch]')`), 'Alexa automation watching the machine plug is found for the smart dishwasher');
+  check(await shadow(page, `const a=[...root.querySelectorAll('.act')].find((x)=>/Dishwasher/.test(x.querySelector('.ttl')?.textContent||'')); return !!a?.querySelector('.alx[role=switch]')`), 'Alexa automation watching the machine plug is found for the smart dishwasher');
+  { let ok = false; for (let k = 0; k < 30 && !ok; k++) { await new Promise((r) => setTimeout(r, 150)); ok = await shadow(page, `const c=[...root.querySelectorAll('.act.ap')].find((x)=>/Old washing/.test(x.textContent)); if (c && !c.querySelector('.apmore')) c.querySelector('.apinfo').click(); return !!c && /termina ≈ \\d\\d:\\d\\d \\(estimado\\)/.test(c.textContent) && /≈\\d\\d:\\d\\d/.test(c.querySelector('.apill text').textContent)`); }
+    check(ok, 'plug washer: end time learned from past cycles (≈, marked as estimate)'); }
+  await shadow(page, `[...root.querySelectorAll('.act.ap')].find((x)=>/Old washing/.test(x.textContent)).querySelector('.apinfo').click()`); await new Promise((r) => setTimeout(r, 200));
+  check(await shadow(page, `const c=[...root.querySelectorAll('.act.ap')].find((x)=>/Old washing/.test(x.textContent)); return !c.querySelector('.apmore') && !/ligada há/.test(c.textContent)`), 'machine details stay hidden until the "i" is tapped');
+  await shadow(page, `const a=[...root.querySelectorAll('.act.ap')].find((x)=>/Old washing/.test(x.textContent)); a.querySelector('.apinfo').click()`); await new Promise((r) => setTimeout(r, 150));
   check(await shadow(page, `const a=[...root.querySelectorAll('.act')].find((x)=>/Old washing machine/.test(x.textContent)); return !!a && /ligada há 3[45] min/.test(a.textContent) && /450 W/.test(a.textContent) && !!a.querySelector('.byplug')`), 'old machine on a plug: running since the power went up');
   check(await shadow(page, `return root.querySelectorAll('.vrooms .vr').length===5 && root.querySelector('.vr.now').textContent.trim()==='Kitchen' && /cômodo 2 de 5/.test(root.textContent)`), 'robot shows room-by-room progress');
   await page.evaluate(() => { document.getElementById('d')._save({ energyPrice: 0.4 }); }); await new Promise((r) => setTimeout(r, 300));
