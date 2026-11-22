@@ -755,9 +755,9 @@ class AureonDashboard extends LitElement {
       <span class="row grow"><span class="ic" style="background:var(--accent);color:var(--on-accent)">${ic('pencil', 'i s')}</span>
         <span class="grow"><b style="display:block;font-size:14px;font-weight:500">${t('editTitle')}</b><span class="muted txt" style="font-size:12px;line-height:1.45">${t('editHint')}</span></span></span>
       <span class="wrapRow">
-        <button class="btn sm pri" @click=${() => this._set({ cardEd: { id: null, step: 'pick', q: '' } })}>${ic('plus', 'i s')}${t('addCard')}</button>
-        <button class="btn sm" @click=${() => this._set({ showHidden: !ui.showHidden })}>${ic(ui.showHidden ? 'eyeOff' : 'eye', 'i s')}${ui.showHidden ? t('hideHidden') : t('showHidden')}</button>
-        <button class="btn sm" @click=${() => { if (confirm(t('layoutResetQ'))) this._save({ order: {}, secOrder: SECTIONS.slice(), hidden: [], layout: {} }); }}>${ic('undo', 'i s')}${t('reset')}</button>
+        <button class="btn sm pri" aria-label=${t('addCard')} title=${t('addCard')} @click=${() => this._set({ cardEd: { id: null, step: 'pick', q: '' } })}>${ic('plus', 'i s')}<span class="bl">${t('addCard')}</span></button>
+        <button class="btn sm" aria-label=${ui.showHidden ? t('hideHidden') : t('showHidden')} title=${ui.showHidden ? t('hideHidden') : t('showHidden')} @click=${() => this._set({ showHidden: !ui.showHidden })}>${ic(ui.showHidden ? 'eyeOff' : 'eye', 'i s')}<span class="bl">${ui.showHidden ? t('hideHidden') : t('showHidden')}</span></button>
+        <button class="btn sm" aria-label=${t('reset')} title=${t('reset')} @click=${() => { if (confirm(t('layoutResetQ'))) this._save({ order: {}, secOrder: SECTIONS.slice(), hidden: [], layout: {} }); }}>${ic('undo', 'i s')}<span class="bl">${t('reset')}</span></button>
         <button class="btn sm pri" @click=${() => this._set({ edit: false, editing: null, confirm: null })}>${t('done')}</button></span></div>`;
   }
 

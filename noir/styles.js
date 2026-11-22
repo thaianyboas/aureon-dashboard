@@ -1056,11 +1056,23 @@ select.numin{text-align:left}
 @keyframes tdot{50%{opacity:.35}}
 .tspark{width:38px;height:16px;flex:none}.tspark path{fill:none;stroke:var(--accent);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
 .tbar .bchip{min-height:40px;border:0;background:none;padding:0 8px}
-.tbtn{width:40px;min-width:40px;height:40px;min-height:40px;padding:0;justify-content:center;border-radius:50%;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
-.tbtn.on{width:auto;padding:0 14px;border-radius:999px;gap:6px}
+.tbar .tbtn{width:40px;min-width:40px;height:40px;min-height:40px;padding:0;justify-content:center;border-radius:50%;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.tbar .tbtn.on{width:auto;padding:0 14px;border-radius:999px;gap:6px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (prefers-reduced-motion:reduce){.tdot{animation:none}}
-.tbtn.on span{white-space:nowrap}.tbar .bchip .hideNarrow{display:inline}
+.tbar .tbtn.on span{white-space:nowrap}.tbar .bchip .hideNarrow{display:inline}
 .tbar:has(.tbtn.on) .tspark,.tbar:has(.tbtn.on) .bchip .hideNarrow{display:none}
 @container (max-width:370px){.tspark{display:none}}
+/* Edit banner on phones (owner 2026-11-22: it covered a quarter of the screen): one slim sticky row — title, icon
+   buttons, Concluir; the hint stays out of the way. */
+@container (max-width:600px){
+  .banner{gap:8px;padding:8px 8px 8px 10px;border-radius:999px;flex-wrap:nowrap}
+  .banner .row.grow{min-width:0;gap:8px}.banner .row.grow>.ic{width:32px;height:32px;border-radius:50%}
+  .banner .muted{display:none}.banner b{white-space:nowrap}
+  .banner .wrapRow{flex-wrap:nowrap;gap:4px}
+  .banner .wrapRow .btn{min-width:36px;min-height:36px;padding:0 10px;justify-content:center}
+  .banner .wrapRow .btn .bl{display:none}
+  .banner .wrapRow .btn:not(:has(.bl)){padding:0 14px}
+}
+.editbar .ent{flex:1 1 60px;order:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal;padding:0 6px}
 `;

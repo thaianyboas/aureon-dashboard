@@ -209,6 +209,7 @@ console.log('behaviour');
   await shadow(page, `const i=root.querySelector('.hero .rnbox input');i.value='Oi {nome}, tudo certo?';i.dispatchEvent(new Event('input',{bubbles:true,composed:true}));i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,composed:true}))`); await new Promise((r) => setTimeout(r, 200));
   await shadow(page, `[...root.querySelectorAll('.blk')].find((b)=>/Cenas/.test(b.querySelector('.blkbar').textContent)).querySelector('button[aria-label^="Esconder"]').click()`); await new Promise((r) => setTimeout(r, 150));
   // Owner 2026-11-18: own HA / HACS cards.
+  check(await shadow(page, `const t=[...root.querySelectorAll('.tile')].find((x)=>x.querySelector('.editbar') && x.querySelector('.nm b')); return !!t && t.querySelector('.nm').getBoundingClientRect().width > 120 && t.querySelector('.tbtn').getBoundingClientRect().width > 200`), 'edit mode: light tiles keep their name readable (no squeezed column)');
   check(await shadow(page, `return !!root.querySelector('.addcard') && [...root.querySelectorAll('.banner .btn')].some((b)=>/Adicionar cartão/.test(b.textContent))`), 'edit mode offers "Adicionar cartão" at the top and in Meus cartões');
   await shadow(page, `root.querySelector('.addcard').click()`); await new Promise((r) => setTimeout(r, 200));
   check(await shadow(page, `return [...root.querySelectorAll('.cpick')].some((b)=>/Fake Mushroom/.test(b.textContent)) && [...root.querySelectorAll('.cpick')].some((b)=>/Tile/.test(b.textContent))`), 'card picker lists installed HACS cards and HA built-ins');
