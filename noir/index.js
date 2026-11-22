@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.7.7';
-export const BUILD = 'AUREON-NOIR-20261122f';
+export const VERSION = '1.7.8';
+export const BUILD = 'AUREON-NOIR-20261122g';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -691,12 +691,13 @@ class AureonDashboard extends LitElement {
     const maxN = Math.max(1, ...m.areas.map((a) => (m.byArea[a.id] || []).length));
     const layout = roomLayout(m.areas, (a) => Math.max(maxN * 0.45, (m.byArea[a.id] || []).length));
     const is3d = prefs.view !== '2d';
-    return html`<section class="hero" aria-label=${t('house3d')}>
+    return html`<section class=${'hero' + (m.weather ? ' wx-' + (/fog/.test(m.weather.state) ? 'fog' : /rain|pour|snow|hail|lightning/.test(m.weather.state) ? 'wet' : /sunny|clear/.test(m.weather.state) ? (now.getHours() >= 7 && now.getHours() < 18 ? 'sun' : 'night') : 'cloud') : '')} aria-label=${t('house3d')}>
+      <span class="hmist" aria-hidden="true"></span>
       <div class="glow" style=${`background:radial-gradient(circle, ${rgba(aRgb, (0.05 + 0.25 * L).toFixed(3))} 0%, ${rgba(aRgb, 0)} 65%)`}></div>
       <div class="heroL">
         <div class="hmL">${this.hp('house', this.houseMenu(ctx, 'L'), t)}</div>
         <div style="display:flex;flex-direction:column;gap:12px">
-          ${this.hp('date', html`<span class="eyebrow">${date}</span>`, t)}${this.hp('clock', html`<span class="clock">${time}</span>`, t)}
+          ${this.hp('date', html`<span class="eyebrow">${date}</span>`, t)}${this.hp('clock', html`<span class="clock" aria-label=${time}>${(() => { const i = time.search(/[:.]/); return i > 0 ? html`${time.slice(0, i)}<span class="ccol" aria-hidden="true">${time[i]}</span>${time.slice(i + 1)}` : time; })()}</span>`, t)}
           ${this.hp('greet', ui.renaming === 'greet' ? html`<span class="row" style="gap:8px;flex-wrap:wrap">${this.renameField('greet', '', t)}<span class="dim" style="font-size:11px">${t('greetHint')}</span></span>` : html`<h1 class="greet txt">${greet}</h1>`, t, ui.edit && ui.renaming !== 'greet' ? html`<button class="ib sm" aria-label=${t('rename') + ' · ' + t('hp_greet')} @click=${() => this._set({ renaming: 'greet', rdraft: custom || autoGreet.replace(user, '{nome}') })}>${ic('pencil', 'i s')}</button>` : nothing)}
           ${m.people.length ? this.hp('people', html`<div class="ppl" role="list" aria-label=${t('homePeople')}>${m.people.slice(0, 6).map((p) => { const pic = p.attrs.entity_picture, home = p.state === 'home';
             const where = home ? t('homeS') : p.etaMin != null && p.etaMin <= 60 ? t('onTheWay', { m: p.etaMin }) : p.state === 'not_home' ? t('awayS') : p.state === 'unknown' || p.state === 'unavailable' ? '—' : p.state;
@@ -784,10 +785,11 @@ class AureonDashboard extends LitElement {
       <div class="row" style="gap:12px;align-items:center">
         ${wxIcon(w.state, now)}
         <span style="font-size:30px;font-weight:200;letter-spacing:-.05em;line-height:1">${deg(w.attrs.temperature)}</span>
-        <span class="txt" style="font-size:13px;line-height:1.35;min-width:0"><b style="font-weight:500">${t('wx_' + w.state)}</b><span class="muted"> · ${city}${hi != null ? ' · ' + t('maxmin', { h: Math.round(hi), l: lo != null ? Math.round(lo) : '—' }) : ''}</span></span>
+        <span class="txt" style="font-size:13px;line-height:1.35;min-width:0;display:flex;flex-direction:column;gap:5px"><span><b style="font-weight:500">${t('wx_' + w.state)}</b><span class="muted"> · ${city}</span></span>
+          ${hi != null && lo != null ? (() => { const cur = Number(w.attrs.temperature), f = Number.isFinite(cur) && hi > lo ? Math.max(0, Math.min(1, (cur - lo) / (hi - lo))) : 0.5; return html`<span class="wxr" aria-label=${t('maxmin', { h: Math.round(hi), l: Math.round(lo) })}><span>${Math.round(lo)}°</span><span class="wxb"><i style=${`left:${(f * 100).toFixed(0)}%`}></i></span><span>${Math.round(hi)}°</span></span>`; })() : hi != null ? html`<span class="muted">${t('maxmin', { h: Math.round(hi), l: '—' })}</span>` : nothing}</span>
       </div>
-      ${hourly.length > 1 ? html`<div class="hours" role="list" aria-label=${t('forecastT')}>${hourly.slice(1, 7).map((f) => { const d = new Date(f.datetime); const p = Number(f.precipitation_probability);
-        return html`<span class="hr" role="listitem"><span class="mono muted" style="font-size:10px">${d.toLocaleTimeString(lang, { hour: '2-digit' })}</span>${wxIcon(f.condition, d)}<b style="font-size:13px;font-weight:400">${deg(f.temperature)}</b><span class="mono" style=${'font-size:9px;color:#8FB8FF;' + (p >= 20 ? '' : 'visibility:hidden')}>${Math.round(p || 0)}%</span></span>`; })}</div>` : nothing}
+      ${hourly.length > 1 ? html`<div class="hours" role="list" aria-label=${t('forecastT')}>${hourly.slice(1, 7).map((f, hi2) => { const d = new Date(f.datetime); const p = Number(f.precipitation_probability);
+        return html`<span class=${'hr' + (hi2 === 0 ? ' now' : '')} role="listitem"><span class="mono muted" style="font-size:10px">${d.toLocaleTimeString(lang, { hour: '2-digit' })}</span>${wxIcon(f.condition, d)}<b style="font-size:13px;font-weight:400">${deg(f.temperature)}</b><span class="mono" style=${'font-size:9px;color:#8FB8FF;' + (p >= 20 ? '' : 'visibility:hidden')}>${Math.round(p || 0)}%</span></span>`; })}</div>` : nothing}
     </div>`;
   }
 

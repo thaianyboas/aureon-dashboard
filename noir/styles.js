@@ -872,4 +872,33 @@ select.numin{text-align:left}
 .mchips.mdock{padding:6px 4px;gap:0}.mdock .dc.dk{padding:8px 0}.mdock .dk .dkl{font-size:9.5px;letter-spacing:-.01em}
 @container (max-width:380px){.mdock .dk .dkl{display:none}.mdock .dc.dk{min-height:48px}}
 .mcard.jzc.cmp>.mlib{grid-column:1/-1;margin:0 16px!important;padding:12px 0 16px!important}.mchips.mdock{width:100%;max-width:620px;margin:0 auto}
+/* Hero — original layout, premium finish (owner 2026-11-22). */
+.hero{border-color:rgba(255,255,255,.07);background:radial-gradient(80% 50% at 85% 0%,rgba(185,200,210,.10),transparent 60%),radial-gradient(70% 40% at 0% 100%,color-mix(in srgb,var(--accent) 6%,transparent),transparent 70%),linear-gradient(170deg,var(--card),var(--card2) 70%);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 40px 70px -34px rgba(0,0,0,.95)}
+.hero:before{content:'';position:absolute;top:0;left:14%;right:14%;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 55%,#E6C88E),transparent);pointer-events:none;z-index:1}
+.hmist{position:absolute;left:-20%;right:-20%;top:38%;height:110px;pointer-events:none;opacity:0;filter:blur(18px);transition:opacity 1s}
+.hero.wx-fog .hmist{opacity:1;background:linear-gradient(90deg,transparent,rgba(210,220,225,.07) 40%,rgba(210,220,225,.05) 60%,transparent);animation:hmist 18s ease-in-out infinite alternate}
+.hero.wx-cloud .hmist{opacity:.6;background:linear-gradient(90deg,transparent,rgba(200,210,220,.05),transparent)}
+.hero.wx-sun{background:radial-gradient(70% 45% at 90% 0%,rgba(242,193,78,.12),transparent 60%),linear-gradient(170deg,var(--card),var(--card2) 70%)}
+.hero.wx-wet{background:radial-gradient(80% 50% at 85% 0%,rgba(143,184,255,.12),transparent 60%),linear-gradient(170deg,var(--card),var(--card2) 70%)}
+@keyframes hmist{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
+.clock{font-weight:100;background:linear-gradient(180deg,#fff 35%,color-mix(in srgb,var(--accent) 25%,#9AA8A2));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 24px rgba(255,255,255,.08))}
+.ccol{animation:ccol 2s steps(1) infinite}@keyframes ccol{50%{opacity:.35}}
+.greet{font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;font-style:italic;font-weight:400;letter-spacing:-.01em;font-size:clamp(22px,2vw,28px)}
+.alp{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 10%,transparent),color-mix(in srgb,var(--accent) 3%,transparent))!important;border-color:color-mix(in srgb,var(--accent) 28%,transparent)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 24px -10px color-mix(in srgb,var(--accent) 60%,transparent)}
+.alp>.i:first-child{width:30px;height:30px;padding:7px;border-radius:50%;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+.pp{padding:4px 12px 4px 4px;min-height:44px;border-color:rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015))}
+.ppav{width:36px;height:36px;position:relative}
+.pp.home .ppav{box-shadow:0 0 0 2px var(--card2),0 0 0 3.5px color-mix(in srgb,#7EE0A8 70%,transparent)}
+.pp.home .ppav:after{content:'';position:absolute;right:-2px;bottom:-2px;width:10px;height:10px;border-radius:50%;background:#7EE0A8;border:2px solid var(--card2);box-shadow:0 0 6px #7EE0A8}
+.pp.home small{color:#7EE0A8}.pp b{font-size:13px}
+.ppmap{width:26px;height:26px;border-radius:50%;align-items:center;justify-content:center;border:1px solid var(--line2);margin-left:4px}
+.wx{border-top:0;position:relative}
+.wx:before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)}
+.wxr{display:inline-flex;align-items:center;gap:8px;font-size:11px;color:var(--mut)}
+.wxb{position:relative;width:90px;height:4px;border-radius:2px;background:linear-gradient(90deg,#8FB8FF,#F2C14E)}
+.wxb i{position:absolute;top:-3px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:#fff;box-shadow:0 0 8px rgba(143,184,255,.9)}
+.hours{gap:6px}.hr{padding:8px 0;border-radius:16px;border:1px solid transparent}
+.hr.now{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.015));border-color:rgba(255,255,255,.09)}
+.hr svg{filter:drop-shadow(0 0 6px rgba(230,200,142,.35))}
+@media (prefers-reduced-motion:reduce){.ccol,.hero.wx-fog .hmist{animation:none}}
 `;

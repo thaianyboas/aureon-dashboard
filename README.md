@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.7.8 — 2026-11-22
+
+- Topo do painel com acabamento premium (mesmo layout): relógio fino com degradê e dois pontos piscando, saudação em itálico, modo da casa em vidro com brilho, fotos com anel e luz verde quando em casa, barra mínima→máxima no tempo, hora atual destacada na previsão e um fundo que acompanha o céu (névoa, sol, chuva).
+
 ## AUREON Noir 1.7.7 — 2026-11-22
 
 - AUREON Music mais rápido: o play muda na hora e vai direto para a caixa padrão (a lista de caixas é lida antes); escolher uma caixa já começa a tocar nela; depois de cada toque o player é atualizado logo em seguida.

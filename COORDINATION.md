@@ -1602,3 +1602,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22f (AUREON Noir 1.7.7)
 - Music latency: `_prefetchDevices()` (on render, 5 min), `_defaultTarget()` uses cached devices (no await before play), optimistic play state, `_musicTo(d)` transfers with play:true, `_musicRefresh()` calls homeassistant.update_entity on the account entity at 0.7/2.2/5 s after taps. Controller module untouched. Tests PASS.
+
+## Claude batch — 2026-11-22g (AUREON Noir 1.7.8)
+- Hero premium (owner kept the original layout): `.hero.wx-{fog,cloud,sun,night,wet}` + `.hmist`; clock colon `.ccol`; serif greeting; `.alp` glass; `.pp.home .ppav` ring + dot; weather `.wxr/.wxb` min→max bar; first hour `.hr.now`. Tests PASS.
