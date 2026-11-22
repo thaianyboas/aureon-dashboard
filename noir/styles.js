@@ -825,4 +825,51 @@ select.numin{text-align:left}
 .apmore{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-size:12px;color:var(--mut);animation:apfade .2s ease}
 @keyframes apfade{from{opacity:0;transform:translateY(-4px)}}
 .apgrid{align-items:start}.act.ap .apbox{width:min(118px,58%);margin-top:6px}
+/* Music compact + speaker window (owner 2026-11-22). */
+.mcard.jzc.cmp .sctl{gap:8px;flex-wrap:wrap}.mcard.jzc.cmp .sctl .ghost{width:34px;height:34px}
+.mcard.jzc.cmp .stg{min-height:0}
+.dc.spk{border-color:color-mix(in srgb,var(--accent) 45%,transparent);color:var(--accent);gap:7px}.dc.spk .txt{max-width:150px}.dc.spk.on{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.spks{display:flex;flex-direction:column;gap:8px}
+.spkh{font-size:10px;margin:6px 2px 0}
+.spr{display:grid;grid-template-columns:38px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:11px 12px;border-radius:18px;border:1px solid var(--line);background:rgba(0,0,0,.25);cursor:pointer;text-align:left}
+.spr.on{border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:radial-gradient(90% 90% at 0% 50%,color-mix(in srgb,var(--accent) 10%,transparent),transparent 70%),rgba(0,0,0,.2)}
+.spr.na{opacity:.5;cursor:default}
+.spi{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line2);color:var(--mut)}.spr.on .spi{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
+.spn{display:flex;flex-direction:column;gap:2px;min-width:0}.spn b{font-size:14px;font-weight:400}.spn small{font-size:11px;color:var(--mut)}
+.spv{margin-top:8px;width:100%}
+.spdef{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--mut);font:inherit;font-size:11px;cursor:pointer;white-space:nowrap}
+.spdef .i{width:13px;height:13px}.spdef.on{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 50%,transparent)}.spdef.on .i{fill:currentColor}
+@container (max-width:420px){.spdef span{display:none}.spdef{padding:7px}}
+.spvl{display:block;margin-top:8px}
+.stl{display:flex;align-items:center;gap:8px}.sheart{width:30px!important;height:30px!important;margin-left:-4px}
+.mcard.jzc.cmp:has(.msheet.tall){min-height:540px}
+.mchips .dc.spk{border-color:color-mix(in srgb,var(--accent) 45%,transparent);color:var(--accent)}
+.mcard.jzc.cmp .sctl{position:relative;z-index:3}
+/* Music: glass dock (owner 2026-11-22 "quero premium") and a short tone-arm on phones that rests on the record's edge. */
+.mchips.mdock{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;overflow-x:auto;margin:0;padding:6px;border-radius:22px;border:1px solid rgba(255,255,255,.07);
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.01));box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 30px -18px rgba(0,0,0,.9)}
+.mdock .dc.dk{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:62px;padding:8px 2px;border:0!important;border-radius:16px;background:none;color:var(--mut);font-size:10.5px;letter-spacing:.01em;min-width:0}
+.mdock .dk .dki{position:relative;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--fg);transition:background .2s,box-shadow .2s}
+.mdock .dk .dki .i{width:19px;height:19px}
+.mdock .dk .dkl{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
+.mdock .dk:hover .dki{background:rgba(255,255,255,.06)}
+.mdock .dk.on{color:var(--fg)}.mdock .dk.on .dki{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent);box-shadow:0 0 18px -4px color-mix(in srgb,var(--accent) 70%,transparent)}
+.mdock .dk.spk .dki{color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent)}.mdock .dk.spk .dkl{color:var(--accent)}
+.dkdot{position:absolute;right:0;top:0;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);border:2px solid #0b0b0c}
+@container (max-width:760px){.mcard.jzc.cmp .mchips.mdock{flex-wrap:nowrap;overflow-x:auto}}
+@container (max-width:460px){.mcard.jzc.cmp .stg .arm{--k:.6;right:6px;top:8px}}
+/* Premium record (owner 2026-11-22 "quero um disco premium"): fine grooves, two light reflections, a glossy rim, a gold
+   ring round the cover label and a soft shadow under the record. Same spin animation as before. */
+.bigv{filter:drop-shadow(0 30px 40px rgba(0,0,0,.85))}
+.bigv .vinyl{background:
+  radial-gradient(circle,transparent 0 33%,rgba(255,255,255,.05) 33.3%,transparent 34.2%),
+  radial-gradient(circle,transparent 0 47.6%,rgba(255,255,255,.10) 48%,rgba(0,0,0,.6) 48.8%,#050505 49.4%,rgba(255,255,255,.16) 49.7%,transparent 50%),
+  repeating-radial-gradient(circle,#0a0a0b 0 1.1px,#141416 1.1px 1.9px,#0c0c0d 1.9px 2.6px),
+  #0b0b0c!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset 0 0 40px rgba(0,0,0,.9)}
+.bigv .sheen{background:conic-gradient(from 200deg,transparent 0 6%,rgba(255,255,255,.16) 11%,transparent 17% 52%,rgba(255,255,255,.10) 57%,transparent 63% 100%)!important;opacity:1}
+.bigv .label{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 70%,#000),0 0 0 6px rgba(0,0,0,.55),0 0 22px color-mix(in srgb,var(--accent) 30%,transparent),inset 0 0 18px rgba(0,0,0,.45)!important}
+.bigv .spindle{background:radial-gradient(circle at 35% 35%,#fff,color-mix(in srgb,var(--accent) 60%,#888) 55%,#2a2a2e)}
+.mchips.mdock{padding:6px 4px;gap:0}.mdock .dc.dk{padding:8px 0}.mdock .dk .dkl{font-size:9.5px;letter-spacing:-.01em}
+@container (max-width:380px){.mdock .dk .dkl{display:none}.mdock .dc.dk{min-height:48px}}
+.mcard.jzc.cmp>.mlib{grid-column:1/-1;margin:0 16px!important;padding:12px 0 16px!important}.mchips.mdock{width:100%;max-width:620px;margin:0 auto}
 `;

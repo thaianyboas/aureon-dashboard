@@ -1595,3 +1595,7 @@ The Music browser suite passed again with that label and native transfer.
 ## Claude batch — 2026-11-22d (AUREON Noir 1.7.5)
 - `_plugLearn(a)`: recorder 5-minute mean/max of the plug power (10 days, 6 h cache) → cycles (≥ PLUG_RUN_W, end after 2 low buckets), median of 20–360 min cycles, needs ≥ 2. Running plug cycle gets `estEnd`, `estN`, `pct`; display "≈HH:MM", detail "termina ≈ … (estimado)". Fixture mocks 5-minute stats for sensor.old_washer_power.
 - Machine cards: `.apinfo` (top-left, toggles `_ui.apInfo` → `.apmore`) and `alexaRow` now returns the corner `.alx` bell (role=switch, green dot) or `.alx.setup`. Tests PASS.
+
+## Claude batch — 2026-11-22e (AUREON Noir 1.7.6)
+- Music: `speakerSheet()` renders the devices panel (`.spks/.spr/.spdef`), synced pref `musicDefault` (Spotify Connect name). `_musicPlay()/_musicItem()` transfer to the default speaker first when nothing is active (`_toDefaultSpeaker`). Volume (volLine) lives in the active speaker row; `.mctl` row removed; shuffle/repeat in `.sctl`, like-heart next to the time (`.stl`).
+- Chips → `.mchips.mdock` glass dock with `.dk` buttons (icons mlist/mclock/mdisc/mheart/mmic). Speaker grid under the player only in edit mode or without a Spotify account. Phone arm smaller (--k:.6). Premium vinyl CSS overrides. Tests PASS.

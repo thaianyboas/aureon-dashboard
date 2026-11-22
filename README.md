@@ -1,5 +1,12 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.7.6 — 2026-11-22
+
+- AUREON Music mais compacto e premium: disco com sulcos finos, reflexos e anel no selo (continua girando); braço menor que não passa pelos botões; todos os controles numa fila.
+- Opções numa barra de vidro com ícones: Caixa, Playlists, Recentes, Álbuns, Curtidas, Podcasts, Buscar.
+- Botão "Caixa" abre a janela das caixas de som: Alexas do Spotify (a que toca com equalizador e volume) e as outras caixas do HA. ⭐ deixa uma caixa como padrão — o play vai para ela quando nada está tocando (salvo para todos os aparelhos).
+- "Caixas de som por cômodo" sai de baixo do player (continua no modo Editar painel).
+
 ## AUREON Noir 1.7.5 — 2026-11-22
 
 - Máquinas pela tomada: o painel aprende quanto tempo uma lavagem costuma durar (últimos 10 dias da tomada, mediana de pelo menos 2 ciclos) e mostra no visor o horário estimado de término (≈), com a barra de progresso. Somente leitura.
