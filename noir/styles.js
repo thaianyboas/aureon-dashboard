@@ -936,4 +936,8 @@ select.numin{text-align:left}
 .tvi{width:36px;height:36px;flex:none;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.05);color:var(--mut)}.tvrow.on .tvi{color:var(--accent)}
 .tvstar{width:40px;height:40px;flex:none;display:grid;place-items:center;border:0;background:none;color:color-mix(in srgb,var(--mut) 55%,transparent);cursor:pointer}
 .tvstar.on{color:var(--accent)}.tvstar.on .i{fill:currentColor}
+/* Music: volume in the controls row (owner 2026-11-22: "falta um botão de volume"). */
+.sctl.svol{gap:8px;max-width:min(380px,100%);min-height:62px}
+.sctl.svol .vline{flex:1 1 auto;max-width:none;margin-left:0;gap:8px;padding:4px 10px 4px 6px;border-radius:999px;background:rgba(9,9,10,.55);border:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.sctl.svol .vline .vrange{min-width:0;flex:1}
 `;

@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.8.2 — 2026-11-22
+
+- AUREON Music: botão de volume ao lado do repetir; ao tocar, a fileira de controles vira uma barra de volume (−, arrastar, +, número) e o ✕ volta aos controles. O cartão não muda de altura.
+
 ## AUREON Noir 1.8.1 — 2026-11-22
 
 - AUREON Music: o Play com nada carregado (Spotify parado há um tempo) agora toca a última música ouvida, dentro da playlist/álbum dela, na caixa ativa ou na caixa padrão.

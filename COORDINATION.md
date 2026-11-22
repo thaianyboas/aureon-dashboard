@@ -1614,3 +1614,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22j (AUREON Noir 1.8.1)
 - `_musicPlay`: when `!relevantMedia(state)`, `_musicResume()` reads `get_player_recent_tracks` (limit 1) and plays `player_media_play_context` (context + offset_uri) or `player_media_play_tracks` on the active/default Connect device; falls back to media_play. Fixture + browser test added. Not verified on a real Echo.
+
+## Claude batch — 2026-11-22k (AUREON Noir 1.8.2)
+- Music player: `.svbtn` volume button in `.sctl`; ui `mVol` swaps the row for `.sctl.svol` (close + `volLine`), min-height 62px keeps card height. Browser tests added; older volume test scoped to its own calls.

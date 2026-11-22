@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position, relevantMedia, re
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.8.1';
-export const BUILD = 'AUREON-NOIR-20261122j';
+export const VERSION = '1.8.2';
+export const BUILD = 'AUREON-NOIR-20261122k';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -2249,13 +2249,15 @@ class AureonDashboard extends LitElement {
             <span class="stl">${pos.duration ? html`<span class="mono stime">${mmss(pos.value)} / ${mmss(pos.duration)}</span>` : nothing}
             ${mc.advanced('save_track_favorites') && a.media_title ? html`<button class="ib sm ghost sheart" aria-pressed=${mc.favorite ? 'true' : 'false'} aria-label=${t('likedS')} style=${mc.favorite ? 'color:#FF8FA3' : 'color:var(--mut)'} @click=${() => mc.toggleFavorite()}>${svg`<svg class="i" viewBox="0 0 24 24" aria-hidden="true" style=${mc.favorite ? 'fill:currentColor' : ''}><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>`}</button>` : nothing}</span>
           </div>
-          <div class="sctl">
+          ${ui.mVol && vol != null && mc.can('volume') ? html`<div class="sctl svol">
+            <button class="ib sm ghost" aria-label=${t('closeS')} style="color:var(--mut)" @click=${() => this._set({ mVol: false })}>${ic('x', 'i s')}</button>${this.volLine(vol, t)}</div>` : html`<div class="sctl">
             ${mc.can('shuffle') ? html`<button class="ib sm ghost" aria-pressed=${a.shuffle ? 'true' : 'false'} aria-label=${t('shuffle')} style=${a.shuffle ? 'color:var(--accent)' : 'color:var(--mut)'} @click=${() => mc.command('shuffle')}>${ic('shuffle', 'i s')}</button>` : nothing}
             ${mc.can('previous') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('prev')} ?disabled=${mc.pending.has('transport:previous')} @click=${() => { this._skip('previous'); this._musicRefresh(); }}>${ic('prev', 'i s f')}</button>` : nothing}
             <button class="play jplay" aria-label=${playing ? t('pause') : t('play')} ?disabled=${!mc.ready} @click=${() => this._musicPlay()}>${ic(playing ? 'pause' : 'play', 'i f')}</button>
             ${mc.can('next') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('next')} ?disabled=${mc.pending.has('transport:next')} @click=${() => { this._skip('next'); this._musicRefresh(); }}>${ic('next', 'i s f')}</button>` : nothing}
             ${mc.can('repeat') ? html`<button class="ib sm ghost" aria-pressed=${a.repeat && a.repeat !== 'off' ? 'true' : 'false'} aria-label=${t('repeat') + ': ' + t('repeat_' + (a.repeat || 'off'))} title=${t('repeat_' + (a.repeat || 'off'))} style=${'position:relative;' + (a.repeat && a.repeat !== 'off' ? 'color:var(--accent)' : 'color:var(--mut)')} @click=${() => mc.command('repeat')}>${ic('repeat', 'i s')}${a.repeat === 'one' ? html`<b style="position:absolute;right:6px;top:5px;font-size:9px;font-weight:600">1</b>` : nothing}</button>` : nothing}
-          </div>
+            ${vol != null && mc.can('volume') ? html`<button class="ib sm ghost svbtn" aria-label=${t('volume') + ' · ' + vol} style="color:var(--mut)" @click=${() => this._set({ mVol: true })}>${ic('vol', 'i s')}</button>` : nothing}
+          </div>`}
           ${pos.duration ? html`<input class="sprog" type="range" min="0" max=${String(Math.round(pos.duration))} .value=${String(Math.round(pos.value))} ?disabled=${!mc.can('seek')} aria-label=${a.media_title || 'position'} style=${`--p:${(fr * 100).toFixed(1)}%`} @change=${(e) => mc.command('seek', Number(e.target.value))}>` : nothing}
         </div>
 

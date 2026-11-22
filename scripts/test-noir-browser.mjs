@@ -270,6 +270,12 @@ console.log('behaviour');
     check(await page.evaluate((n0) => H.calls.slice(n0).some((c) => c[1] === 'player_media_play_context' && c[2].context_uri === 'spotify:playlist:CTX9' && c[2].offset_uri === 'spotify:track:LAST1'), n0), 'Play with nothing loaded resumes the last played song in its playlist');
     await page.evaluate(([id, k]) => { H.states[id] = JSON.parse(k); document.getElementById('d').hass = { ...H, states: { ...H.states } }; }, [id, keep]); await new Promise((r) => setTimeout(r, 250)); }
   await new Promise((r) => setTimeout(r, 200));
+  await shadow(page, `root.querySelector('.svbtn').click()`); await new Promise((r) => setTimeout(r, 200));
+  check(await shadow(page, `const v=root.querySelector('.sctl.svol'); return !!v && /42/.test(v.querySelector('.vnum').textContent) && !root.querySelector('.jplay')`), 'volume button swaps the controls for a volume line');
+  { const n0 = await page.evaluate(() => H.calls.length); await shadow(page, `root.querySelector('.svol .vpm[aria-label$="+"]').click()`); await new Promise((r) => setTimeout(r, 800));
+    check(await page.evaluate((n0) => H.calls.slice(n0).some((c) => /volume_set/.test(c[1]) && Math.abs(c[2].volume_level - 0.47) < 0.001), n0), 'volume + raises the music volume by 5'); }
+  await shadow(page, `root.querySelector('.svol .ib').click()`); await new Promise((r) => setTimeout(r, 200));
+  check(await shadow(page, `return !root.querySelector('.svol') && !!root.querySelector('.jplay')`), 'closing the volume line brings the controls back');
   // next / previous: an Alexa speaker as Spotify source gets the skip itself; otherwise Spotify does
   const nCalls = () => page.evaluate(() => H.calls.filter((c) => c[0] === 'media_player' && /next_track|previous_track/.test(c[1])).map((c) => c[1] + '>' + c[2].entity_id));
   await shadow(page, `root.querySelector('.sctl button[aria-label="Próxima"]').click()`);
@@ -346,9 +352,10 @@ console.log('behaviour');
   check(await shadow(page, `return !!root.querySelector('.sctl button[aria-label^="Repetir"]')`), 'repeat button shows the repeat mode');
   await shadow(page, `root.querySelector('.mlib .dc.spk').click()`); await page.evaluate(() => { const id = 'media_player.spotifyplus_demo'; }); await new Promise((r) => setTimeout(r, 500));
   check(await shadow(page, `return !!root.querySelector('.msheet .spr.on .vline')`), 'volume of the playing speaker is in the speaker window');
+  const v0 = await page.evaluate(() => H.calls.length);
   await shadow(page, `root.querySelector('.msheet .spr.on .vline .vpm[aria-label$="+"]').click(); root.querySelector('.msheet .spr.on .vline .vpm[aria-label$="+"]').click();`);
   await new Promise((r) => setTimeout(r, 800));
-  const vs = await page.evaluate(() => H.calls.filter((c) => c[0] === 'media_player' && c[1] === 'volume_set' && c[2].entity_id === 'media_player.spotifyplus_demo').map((c) => c[2].volume_level));
+  const vs = await page.evaluate((v0) => H.calls.slice(v0).filter((c) => c[0] === 'media_player' && c[1] === 'volume_set' && c[2].entity_id === 'media_player.spotifyplus_demo').map((c) => c[2].volume_level), v0);
   check(vs.length === 1 && Math.abs(vs[0] - 0.52) < 0.001, 'volume + twice sends one change to 52 (' + vs.join(',') + ')');
   await shadow(page, `root.querySelector('.msheet .mshead .ib').click()`); await new Promise((r) => setTimeout(r, 200));
   await page.screenshot({ path: 'build/noir/music.png', fullPage: false, clip: undefined });
