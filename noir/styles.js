@@ -1038,4 +1038,11 @@ select.numin{text-align:left}
 .pricerow{flex-wrap:wrap;row-gap:8px}.pricerow>.txt{flex:1 1 150px;min-width:0}.pricerow>.row{margin-left:auto}
 .pricerow .numin{width:78px;text-align:right}.pricerow select.numin{width:auto}
 .sheet .thtx small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Premium jewel themes (owner 2026-11-22): fills become polished metal from the light to the mid tone, glows use the
+   mid tone, cards carry a whisper of the deep tone. */
+.prem [style*="background:var(--accent)"],.prem .btn.pri,.prem .sttabs button[aria-selected="true"]{background:linear-gradient(180deg,var(--a1),var(--a2))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 8px 18px -10px var(--a2)}
+.prem .switch[aria-checked="true"] span{background:linear-gradient(180deg,var(--a1),var(--a2))}
+.prem .card,.prem .sheet{background-image:radial-gradient(120% 80% at 100% 0%,color-mix(in srgb,var(--a3) 22%,transparent),transparent 60%)}
+.prem .clock{background:linear-gradient(180deg,var(--fg) 30%,var(--a2) 150%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.prem .ccol{color:var(--fg);-webkit-text-fill-color:var(--fg)}
 `;

@@ -1626,3 +1626,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22n (AUREON Noir 1.8.5)
 - Settings "lista de vidro": home (`.stprof`, `.stlist`, `sh_*` hints, values) + inner pages: `grp(..., list)` → `.stgb.gl` glass groups, `tile()` icon tiles, `.stback` round back, serif title, `.sttabs` removed (tests navigate via `_set({settings})`). Themes: current family + `.thall`. `energyDiag` rows `.edh` with dot/value, `.edx` details on tap (`ui.edOpen`). `modeConfig` rewritten (eyebrows, glass groups, `.offchk` check circles, `.stnote`). Modos tab `.mseg` with icons. Aparelhos `.selrow` with transparent native select. Sections drag `_secDrag` (pointer) + keyboard arrows on `.grip`. Switch knob uses `--on-accent` when on. Tests added; time-based plug test made tolerant (33–39 min).
+
+## Claude batch — 2026-11-22o (AUREON Noir 1.8.6)
+- 18 premium themes (`a2`/`a3`/`fg`/`mut`/`onA` per theme, generated from 3 tones); families famLux/famAtelier first. Page gets `.prem` + `--a1/--a2/--a3`; CSS turns `background:var(--accent)` fills, `.btn.pri`, switches into a1→a2 metal gradients; pagebg glows from a2/a3. Theme test now expects 42 themes / 7 families; Oceano click matches exact name.

@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position, relevantMedia, re
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.8.5';
-export const BUILD = 'AUREON-NOIR-20261122n';
+export const VERSION = '1.8.6';
+export const BUILD = 'AUREON-NOIR-20261122o';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -44,10 +44,32 @@ export const THEMES = [
   { id: 'terracota', name: 'Terracota', desc: 'Barro · areia', accent: '#E0957A', bg: '#0A0706', card: '#17110E', card2: '#130E0B', sunk: '#0D0A08', raise: '#1E1713', line: '#291F1A', line2: '#382A23' },
   { id: 'petroleo', name: 'Petróleo', desc: 'Azul-petróleo · profundo', accent: '#5FC2CE', bg: '#03080A', card: '#0B1518', card2: '#081114', sunk: '#060C0E', raise: '#101D21', line: '#16282D', line2: '#1F363C' },
   { id: 'indigo', name: 'Índigo', desc: 'Violeta azulado · noite', accent: '#9FA8FF', bg: '#06060C', card: '#10101C', card2: '#0C0C17', sunk: '#090912', raise: '#161627', line: '#1D1D33', line2: '#282845' },
+  // Owner 2026-11-22 ("temas premium… todos diferentes"): jewel palettes in three tones — a light metal (accent),
+  // a mid tone (a2) for fills and bars, a deep tone (a3) that tints the background; text and grey take a hint of it.
+  { id: 'rubimp', name: 'Rubi Imperial', desc: 'Quartzo rosa · vinho profundo', accent: '#F6D9D0', a2: '#C97C80', a3: '#7A1E2C', fg: '#F5ECEB', mut: '#AE959D', onA: '#330D12', bg: '#100406', card: '#20080B', card2: '#1A0609', sunk: '#140507', raise: '#280A0F', line: '#3D151B', line2: '#521E25' },
+  { id: 'esmreal', name: 'Esmeralda Real', desc: 'Verde joia · veludo', accent: '#D9F0E2', a2: '#5FAF8C', a3: '#0F4A36', fg: '#ECF3F0', mut: '#8CA5A0', onA: '#061F17', bg: '#020A07', card: '#04130E', card2: '#03100B', sunk: '#020C09', raise: '#051812', line: '#0E281F', line2: '#15372B' },
+  { id: 'safnoite', name: 'Safira Noturna', desc: 'Azul real · prata', accent: '#E0E7FF', a2: '#7F98E6', a3: '#1B2B6B', fg: '#EEF0F8', mut: '#969EBD', onA: '#0B122D', bg: '#04060E', card: '#070B1C', card2: '#060916', sunk: '#040711', raise: '#090E23', line: '#131A36', line2: '#1C254A' },
+  { id: 'champnoir', name: 'Champagne Noir', desc: 'Champanhe · ônix · latão', accent: '#F5E8CA', a2: '#BE9A5C', a3: '#4A3A1E', fg: '#F4F1E9', mut: '#AA9F91', onA: '#1F180D', bg: '#0A0804', card: '#130F08', card2: '#100C06', sunk: '#0C0905', raise: '#18130A', line: '#282115', line2: '#372E1E' },
+  { id: 'ametvel', name: 'Ametista Veludo', desc: 'Lavanda · ameixa', accent: '#EBE1FF', a2: '#A088E3', a3: '#3A2466', fg: '#F1EFF8', mut: '#A199BC', onA: '#180F2B', bg: '#08050D', card: '#0F091B', card2: '#0C0815', sunk: '#090610', raise: '#130C22', line: '#211734', line2: '#2E2247' },
+  { id: 'ouronegro', name: 'Ouro Negro', desc: 'Ouro 24k · preto absoluto', accent: '#F7E3A1', a2: '#C99A2E', a3: '#5A400D', fg: '#F5EFDD', mut: '#AE9F82', onA: '#261B05', bg: '#0C0802', card: '#171103', card2: '#130D03', sunk: '#0E0A02', raise: '#1E1504', line: '#2E240D', line2: '#403114' },
+  { id: 'bordcout', name: 'Bordeaux Couture', desc: 'Merlot · ouro rosé', accent: '#F3D3C6', a2: '#B96B6E', a3: '#5E1626', fg: '#F4EBE8', mut: '#A99097', onA: '#270910', bg: '#0C0305', card: '#18060A', card2: '#140508', sunk: '#0F0406', raise: '#1F070D', line: '#301118', line2: '#421923' },
+  { id: 'oceprof', name: 'Oceano Profundo', desc: 'Pérola · azul-petróleo', accent: '#D3F2F0', a2: '#4FA3A6', a3: '#0E3D44', fg: '#EBF3F4', mut: '#87A2A9', onA: '#061A1D', bg: '#020809', card: '#041012', card2: '#030D0E', sunk: '#020A0B', raise: '#051416', line: '#0D2226', line2: '#143034' },
+  { id: 'cobrebrun', name: 'Cobre Brunido', desc: 'Cobre · espresso', accent: '#F6D2B8', a2: '#C2734A', a3: '#5A2C17', fg: '#F5EAE4', mut: '#AC928B', onA: '#26120A', bg: '#0C0603', card: '#170B06', card2: '#130905', sunk: '#0E0704', raise: '#1E0F08', line: '#2E1B11', line2: '#40251A' },
+  { id: 'titazul', name: 'Titânio Azul', desc: 'Aço frio · grafite', accent: '#E3E9F0', a2: '#8C9AAD', a3: '#2C3440', fg: '#EFF1F4', mut: '#9A9FAB', onA: '#12161B', bg: '#060708', card: '#0B0E11', card2: '#090B0D', sunk: '#07080A', raise: '#0F1115', line: '#1B1E24', line2: '#252A31' },
+  { id: 'ambmel', name: 'Âmbar Mel', desc: 'Mel dourado · cacau', accent: '#FBE3B0', a2: '#E0A23C', a3: '#6B4512', fg: '#F6EFE2', mut: '#B5A187', onA: '#2D1D08', bg: '#0E0902', card: '#1C1205', card2: '#160E04', sunk: '#110B03', raise: '#231706', line: '#36260F', line2: '#4A3417' },
+  { id: 'orquidea', name: 'Orquídea', desc: 'Orquídea · ameixa', accent: '#F7D6EC', a2: '#C76AA8', a3: '#5B1D4B', fg: '#F5ECF2', mut: '#AD8FA9', onA: '#260C20', bg: '#0C040A', card: '#180814', card2: '#130610', sunk: '#0F050C', raise: '#1E0A19', line: '#2F1429', line2: '#411D38' },
+  { id: 'turqart', name: 'Turquesa Ártica', desc: 'Água gelada · noite polar', accent: '#D9FBF7', a2: '#5ACFC3', a3: '#0F4F4C', fg: '#ECF6F6', mut: '#8AB0B2', onA: '#062120', bg: '#020A0A', card: '#041514', card2: '#031110', sunk: '#020D0C', raise: '#051A19', line: '#0E2B29', line2: '#153938' },
+  { id: 'musgolat', name: 'Musgo & Latão', desc: 'Latão · musgo', accent: '#EDE6BE', a2: '#A79A55', a3: '#3B3A1A', fg: '#F2F0E6', mut: '#A39F8F', onA: '#19180B', bg: '#080803', card: '#0F0F07', card2: '#0C0C05', sunk: '#090904', raise: '#131309', line: '#222113', line2: '#2E2E1C' },
+  { id: 'coralcrep', name: 'Coral Crepúsculo', desc: 'Pêssego · ameixa do entardecer', accent: '#FFDCCB', a2: '#E78A6E', a3: '#5E2230', fg: '#F7EDE9', mut: '#B79A97', onA: '#270E14', bg: '#0C0406', card: '#18090C', card2: '#14070A', sunk: '#0F0508', raise: '#1F0B10', line: '#30161D', line2: '#422028' },
+  { id: 'areia', name: 'Areia do Deserto', desc: 'Areia · couro · taupe', accent: '#F2E4CF', a2: '#B89B7A', a3: '#4E3C2B', fg: '#F3F0EA', mut: '#A89F9B', onA: '#211912', bg: '#0A0806', card: '#14100B', card2: '#100D09', sunk: '#0C0A07', raise: '#1A140E', line: '#2A221A', line2: '#392F25' },
+  { id: 'cerejanoir', name: 'Cereja Noir', desc: 'Cereja · carmim', accent: '#FFD1D6', a2: '#E0435A', a3: '#5C0B18', fg: '#F7EAEC', mut: '#B58390', onA: '#27050A', bg: '#0C0103', card: '#180306', card2: '#130205', sunk: '#0F0204', raise: '#1E0408', line: '#2F0C12', line2: '#41131A' },
+  { id: 'pavao', name: 'Pavão', desc: 'Azul-pavão · ouro', accent: '#CFEFF5', a2: '#2F9DB5', a3: '#0B3442', fg: '#EAF3F5', mut: '#7DA0AE', onA: '#05161C', bg: '#010709', card: '#030E11', card2: '#020B0E', sunk: '#02080B', raise: '#041116', line: '#0C1E25', line2: '#132A33' },
   { id: 'ha', name: 'Home Assistant', desc: 'Segue o tema do HA', ha: true }
 ];
 // Theme gallery families (owner 2026-11-20: "uma visualização melhor").
 const THEME_FAMS = [
+  ['famLux', ['rubimp', 'esmreal', 'safnoite', 'champnoir', 'ametvel', 'ouronegro', 'bordcout', 'oceprof', 'cerejanoir']],
+  ['famAtelier', ['cobrebrun', 'titazul', 'ambmel', 'orquidea', 'turqart', 'musgolat', 'coralcrep', 'areia', 'pavao']],
   ['famClassic', ['aureon', 'champagne', 'onix', 'platina', 'perola', 'grafite']],
   ['famMetal', ['ambar', 'cobre', 'ourorose', 'titanio', 'oliva', 'terracota']],
   ['famStone', ['ametista', 'jade', 'esmeralda', 'safira', 'rubi', 'bordo']],
@@ -581,9 +603,10 @@ class AureonDashboard extends LitElement {
     const aRgb = th.ha ? this._accentRgb : hexRgb(th.accent);
     const vars = th.ha
       ? `--bg:var(--primary-background-color);--card:var(--card-background-color,var(--ha-card-background,#1c1c1c));--card2:var(--secondary-background-color,var(--card-background-color));--sunk:var(--primary-background-color);--raise:var(--secondary-background-color,var(--card-background-color));--line:var(--divider-color);--line2:var(--divider-color);--fg:var(--primary-text-color);--fg2:var(--primary-text-color);--mut:var(--secondary-text-color);--dim:var(--disabled-text-color,var(--secondary-text-color));--accent:var(--primary-color);--on-accent:var(--text-primary-color,#fff);`
-      : `--bg:${th.bg};--card:${th.card};--card2:${th.card2};--sunk:${th.sunk};--raise:${th.raise};--line:${th.line};--line2:${th.line2};--fg:#F2F2F3;--fg2:#D4D4D8;--mut:#A1A1AA;--dim:#8A8A94;--accent:${th.accent};--on-accent:#1A1408;`;
+      : `--bg:${th.bg};--card:${th.card};--card2:${th.card2};--sunk:${th.sunk};--raise:${th.raise};--line:${th.line};--line2:${th.line2};--fg:${th.fg || '#F2F2F3'};--fg2:#D4D4D8;--mut:${th.mut || '#A1A1AA'};--dim:#8A8A94;--accent:${th.accent};--on-accent:${th.onA || '#1A1408'};${th.a2 ? `--a1:${th.accent};--a2:${th.a2};--a3:${th.a3};` : ''}`;
     const L = m.lights.length ? m.lights.reduce((s, l) => s + (l.on ? l.b / 100 : 0), 0) / m.lights.length : 0;
-    const pagebg = `--pagebg:radial-gradient(70% 40% at 20% 0%, ${rgba(aRgb, (0.02 + 0.12 * L).toFixed(3))} 0%, ${rgba(aRgb, 0)} 70%), var(--bg);`;
+    const pagebg = th.a2 ? `--pagebg:radial-gradient(70% 40% at 20% 0%, ${rgba(hexRgb(th.a2), (0.08 + 0.1 * L).toFixed(3))} 0%, transparent 70%), radial-gradient(60% 45% at 100% 100%, ${rgba(hexRgb(th.a3), 0.35)} 0%, transparent 70%), var(--bg);`
+      : `--pagebg:radial-gradient(70% 40% at 20% 0%, ${rgba(aRgb, (0.02 + 0.12 * L).toFixed(3))} 0%, ${rgba(aRgb, 0)} 70%), var(--bg);`;
     const ctx = { m, t, lang, now, aRgb, L };
     const show = {
       lights: m.lights.length, climate: m.climate.length, plugs: m.plugs.length, energy: m.metered.length || m.loosePower.length || m.energyMeters.length || m.solarW != null || m.energyToday != null,
@@ -593,7 +616,7 @@ class AureonDashboard extends LitElement {
     const secs = prefs.secOrder.filter((k) => show[k] && !(prefs.secHidden || []).includes(k) && (ui.domain === 'all' || ui.domain === k));
     // Owner 2026-11-18: AUREON Music sits above the room / device chips — the chips belong to the device sections.
     const musicTop = show.music && !(prefs.secHidden || []).includes('music');
-    return html`<div lang=${lang} class="page ${ui.edit ? 'editing' : ''}" style=${vars + pagebg} @click=${(e) => { if (ui.themeOpen && !e.composedPath().some((n) => n.classList?.contains('themeWrap'))) this._set({ themeOpen: false }); if (ui.alarmOpen && !e.composedPath().some((n) => n.classList?.contains('alw'))) this._set({ alarmOpen: false, alarmCode: '' }); }}>
+    return html`<div lang=${lang} class="page ${ui.edit ? 'editing' : ''} ${th.a2 ? 'prem' : ''}" style=${vars + pagebg} @click=${(e) => { if (ui.themeOpen && !e.composedPath().some((n) => n.classList?.contains('themeWrap'))) this._set({ themeOpen: false }); if (ui.alarmOpen && !e.composedPath().some((n) => n.classList?.contains('alw'))) this._set({ alarmOpen: false, alarmCode: '' }); }}>
       <div class="wrap">
         ${ui.musicPage ? html`<div class="mpage">
           <div class="mpbar"><button class="btn sm" @click=${() => this._musicPage(false)}>${ic('left', 'i s')}${t('backHome')}</button></div>
@@ -2399,7 +2422,7 @@ class AureonMusicCard extends AureonDashboard {
     const m = buildModel(this.hass, { now, labels: this._labels, aliases: this._prefs.aliases, hidden: this._prefs.hidden, forceShow: this._prefs.forceShow, noAreaName: t('noArea') });
     const th = this._theme(), aRgb = th.ha ? this._accentRgb : hexRgb(th.accent);
     const vars = th.ha ? '--bg:var(--primary-background-color);--card:var(--card-background-color);--card2:var(--secondary-background-color);--sunk:var(--primary-background-color);--raise:var(--secondary-background-color);--line:var(--divider-color);--line2:var(--divider-color);--fg:var(--primary-text-color);--fg2:var(--primary-text-color);--mut:var(--secondary-text-color);--dim:var(--secondary-text-color);--accent:var(--primary-color);--on-accent:#fff;'
-      : `--bg:${th.bg};--card:${th.card};--card2:${th.card2};--sunk:${th.sunk};--raise:${th.raise};--line:${th.line};--line2:${th.line2};--fg:#F2F2F3;--fg2:#D4D4D8;--mut:#A1A1AA;--dim:#8A8A94;--accent:${th.accent};--on-accent:#1A1408;`;
+      : `--bg:${th.bg};--card:${th.card};--card2:${th.card2};--sunk:${th.sunk};--raise:${th.raise};--line:${th.line};--line2:${th.line2};--fg:${th.fg || '#F2F2F3'};--fg2:#D4D4D8;--mut:${th.mut || '#A1A1AA'};--dim:#8A8A94;--accent:${th.accent};--on-accent:${th.onA || '#1A1408'};${th.a2 ? `--a1:${th.accent};--a2:${th.a2};--a3:${th.a3};` : ''}`;
     return html`<div style=${vars + 'padding:12px;background:var(--bg);border-radius:24px'}>${this.sMusic({ m, t, now, aRgb })}</div>`;
   }
 }

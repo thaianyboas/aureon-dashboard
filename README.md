@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.8.6 — 2026-11-22
+
+- 18 temas premium novos em paleta de joia (3 tons): Joias premium (Rubi Imperial, Esmeralda Real, Safira Noturna, Champagne Noir, Ametista Veludo, Ouro Negro, Bordeaux Couture, Oceano Profundo, Cereja Noir) e Ateliê (Cobre Brunido, Titânio Azul, Âmbar Mel, Orquídea, Turquesa Ártica, Musgo & Latão, Coral Crepúsculo, Areia do Deserto, Pavão). Botões em metal polido, fundo com brilho no tom profundo, texto levemente tingido. Os 24 temas anteriores continuam.
+
 ## AUREON Noir 1.8.5 — 2026-11-22
 
 - Configurações em "lista de vidro": tela inicial com cartão AUREON (tema · versão) e uma lista com ícones coloridos e o valor atual (tema, modo, máquinas).
