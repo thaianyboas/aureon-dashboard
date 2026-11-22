@@ -1075,4 +1075,8 @@ select.numin{text-align:left}
   .banner .wrapRow .btn:not(:has(.bl)){padding:0 14px}
 }
 .editbar .ent{flex:1 1 60px;order:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal;padding:0 6px}
+.rcw{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px}
+.rcmv{display:flex;gap:6px}.rcmv .ib{width:34px;height:30px;min-height:30px;border-radius:10px}
+.editing .fh .rc{outline:1px dashed rgba(242,242,243,.18);outline-offset:3px}
+.editing .fh .rcs{align-items:flex-start}
 `;

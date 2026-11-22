@@ -1582,9 +1582,13 @@ class AureonDashboard extends LitElement {
         const lit = c.id === 'all' ? m.lights.some((l) => l.on) : m.lights.some((l) => l.on && l.area === c.id);
         const th = c.id === 'all' ? null : m.climate.find((x) => x.area === c.id && x.cur != null);
         const temps = m.climate.filter((x) => x.cur != null), avg = c.id === 'all' && temps.length ? temps.reduce((a, x) => a + x.cur, 0) / temps.length : th?.cur;
-        return html`<button class="rc" aria-pressed=${ui.room === c.id ? 'true' : 'false'} @click=${() => this._set({ room: c.id })}>
+        const card = html`<button class="rc" aria-pressed=${ui.room === c.id ? 'true' : 'false'} @click=${() => this._set({ room: c.id })}>
           <span class="rav">${ic(c.id === 'all' ? 'home' : roomIc(c.name), 'i s')}${lit ? html`<i></i>` : nothing}</span>
           <span class="rtx"><b>${c.name}</b>${avg != null ? html`<small>${avg.toFixed(1).replace('.', ',') + '°'}</small>` : nothing}</span></button>`;
+        // Owner 2026-11-22: in edit mode the rooms can be put in any order (‹ ›), saved for every device.
+        if (!ui.edit || c.id === 'all') return card;
+        const rids = roomsOrd.map((r) => r.id), i = rids.indexOf(c.id);
+        return html`<span class="rcw">${card}<span class="rcmv"><button class="ib sm" ?disabled=${i === 0} aria-label=${t('moveBack') + ' · ' + c.name} @click=${() => this._move('rooms', c.id, -1, rids)}>${ic('left', 'i s')}</button><button class="ib sm" ?disabled=${i === rids.length - 1} aria-label=${t('moveFwd') + ' · ' + c.name} @click=${() => this._move('rooms', c.id, 1, rids)}>${ic('right', 'i s')}</button></span></span>`;
       })}</div>
       <div class="cbar" role="group" aria-label=${t('devices')}>${doms.map(([k, n]) => { const on = ui.domain === k, c = k === 'all' ? total.all : counts[k];
         return html`<button class=${'cbt' + (on ? ' on' : '')} aria-pressed=${on ? 'true' : 'false'} aria-label=${n + (c != null ? ' · ' + c : '')} title=${n} @click=${() => this._set({ domain: k })}>${ic(dIc[k] || 'apps', 'i s')}${on ? html`<span class="txt">${n}</span>` : nothing}</button>`; })}</div>
