@@ -84,7 +84,7 @@ window.makeHass = function makeHass(lang) {
   ent('sensor.waste_collection', '0', { friendly_name: 'Waste collection', [day(1)]: 'Schwarze Restmülltonne', [day(2)]: 'Blaue Papiertonne', [day(3)]: 'Grüne Biotonne', [day(4)]: 'Schwarze Restmülltonne', [day(9)]: 'Gelbe Tonne' }, {});
   ent('switch.hidden_thing', 'on', { friendly_name: 'Hidden' }, { area_id: 'living', labels: ['no_dboard'] });
   const sp = ['get_playlist_favorites', 'get_player_recent_tracks', 'get_album_favorites', 'get_track_favorites', 'get_show_favorites', 'search_tracks', 'get_spotify_connect_devices', 'player_transfer_playback', 'player_media_play_context', 'player_media_play_tracks', 'check_track_favorites', 'save_track_favorites', 'remove_track_favorites'];
-  H.services = { light: { toggle: {}, turn_on: {}, turn_off: {} }, media_player: { media_play: {}, media_pause: {}, media_play_pause: {}, volume_set: {}, media_seek: {}, shuffle_set: {}, repeat_set: {}, media_next_track: {}, media_previous_track: {}, join: {}, unjoin: {}, select_source: {}, play_media: {} }, spotifyplus: Object.fromEntries(sp.map((x) => [x, {}])) };
+  H.services = { homeassistant: { update_entity: {} }, light: { toggle: {}, turn_on: {}, turn_off: {} }, media_player: { media_play: {}, media_pause: {}, media_play_pause: {}, volume_set: {}, media_seek: {}, shuffle_set: {}, repeat_set: {}, media_next_track: {}, media_previous_track: {}, join: {}, unjoin: {}, select_source: {}, play_media: {} }, spotifyplus: Object.fromEntries(sp.map((x) => [x, {}])) };
   const hass = {
     ...H, language: lang || 'pt', locale: { language: lang || 'pt', time_zone: 'local' }, config: { time_zone: 'Europe/Berlin' },
     user: { id: 'u1', name: 'Alex Fixture', is_admin: true },

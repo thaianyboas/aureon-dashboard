@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.7.6';
-export const BUILD = 'AUREON-NOIR-20261122e';
+export const VERSION = '1.7.7';
+export const BUILD = 'AUREON-NOIR-20261122f';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -2078,16 +2078,41 @@ class AureonDashboard extends LitElement {
   }
   // Owner 2026-11-22: the standard speaker. When nothing is active on Spotify, Play (or a playlist) is sent to it.
   // Stored in the synced prefs (musicDefault = Spotify Connect name). Returns true when it already started playback.
-  async _toDefaultSpeaker(play = true) {
-    const mc = this._mc, name = this._prefs.musicDefault, st = mc?.state?.state;
-    if (!name || !mc?.advanced('player_transfer_playback') || !mc.advanced('get_spotify_connect_devices') || st === 'playing' || st === 'paused') return false;
-    try { await mc.loadDevices(false); } catch (_) { return false; }
-    if (mc.devices.some((d) => d.active)) return false;
-    const d = mc.devices.find((x) => x.name === name); if (!d) return false;
-    try { await mc.callSpotify('player_transfer_playback', { device_id: d.id, play }); return true; } catch (_) { return false; }
+  // Owner 2026-11-22 ("demora pra tocar"): the speaker list is read ahead (when Music is on screen, every 5 min), so
+  // Play never waits for it; the button changes at once; the HA entity is refreshed right after each tap.
+  _prefetchDevices() {
+    const mc = this._mc; if (!mc?.advanced?.('get_spotify_connect_devices') || mc.pending?.has('devices')) return;
+    if (Date.now() - (this._devAt || 0) < 300000) return;
+    this._devAt = Date.now(); mc.loadDevices(false).catch(() => {});
   }
-  _musicPlay() { const mc = this._mc; if (mc.isPlaying) return mc.command('pause'); this._toDefaultSpeaker(true).then((done) => { if (!done) mc.command('play'); }); }
-  _musicItem(it) { const mc = this._mc; this._toDefaultSpeaker(false).finally(() => mc.playItem(it)); }
+  _musicRefresh() {
+    const id = this._mc?.entityId; if (!id || !this.hass?.services?.homeassistant?.update_entity) return;
+    for (const ms of [700, 2200, 5000]) setTimeout(() => this.hass.callService('homeassistant', 'update_entity', { entity_id: id }).catch(() => {}), ms);
+  }
+  _defaultTarget() {
+    const mc = this._mc, name = this._prefs.musicDefault, st = mc?.state?.state;
+    if (!name || !mc?.advanced('player_transfer_playback') || st === 'playing' || st === 'paused' || mc.devices.some((d) => d.active)) return null;
+    return mc.devices.find((x) => x.name === name) || null;
+  }
+  _musicPlay() {
+    const mc = this._mc;
+    if (mc.isPlaying) { mc.command('pause'); this._musicRefresh(); return; }
+    const d = this._defaultTarget();
+    if (d) { mc.optimistic = { playing: true, entity: mc.entityId, until: Date.now() + 10000 }; mc.emit?.(); this.requestUpdate(); mc.callSpotify('player_transfer_playback', { device_id: d.id, play: true }).catch(() => mc.command('play')).finally(() => this._musicRefresh()); return; }
+    mc.command('play'); this._musicRefresh();
+  }
+  _musicItem(it) {
+    const mc = this._mc, d = this._defaultTarget();
+    const go = () => Promise.resolve(mc.playItem(it)).finally(() => this._musicRefresh());
+    if (d) mc.callSpotify('player_transfer_playback', { device_id: d.id, play: false }).catch(() => {}).finally(go); else go();
+  }
+  // Choosing a speaker always starts the music there (owner: "coloco numa caixa e demora pra música sair").
+  _musicTo(d) {
+    const mc = this._mc; if (d.active) return;
+    mc.devices = mc.devices.map((x) => ({ ...x, active: x.id === d.id }));
+    mc.optimistic = { playing: true, entity: mc.entityId, until: Date.now() + 10000 }; mc.emit?.(); this.requestUpdate();
+    mc.callSpotify('player_transfer_playback', { device_id: d.id, play: true }).catch((e) => { mc.error = String(e?.message || e); }).finally(() => { this._devAt = 0; this._musicRefresh(); });
+  }
   // Owner 2026-11-22: the speaker window (speaker button). Spotify Connect speakers (the Alexas) with the one playing
   // in gold (equalizer + volume); a star makes one the standard speaker. Other HA speakers follow; unavailable last.
   speakerSheet({ t, all, vol, playing, full }) {
@@ -2099,7 +2124,7 @@ class AureonDashboard extends LitElement {
     return html`<div class="spks">
       ${mc.pending.has('devices') && !devs.length ? html`<span class="muted" style="font-size:13px">${t('loadingS')}</span>` : nothing}
       ${devs.length ? html`<span class="eyebrow spkh">Spotify</span>` : nothing}
-      ${devs.map((d) => { const on = d.active && playing; return html`<div class=${'spr' + (d.active ? ' on' : '')} role="button" tabindex="0" aria-pressed=${d.active ? 'true' : 'false'} @click=${() => { if (!d.active) { mc.transfer(d.id); if (!full) setTimeout(() => this._set({ libSheet: false }), 700); } }} @keydown=${(e) => { if ((e.key === 'Enter' || e.key === ' ') && !d.active) { e.preventDefault(); mc.transfer(d.id); } }}>
+      ${devs.map((d) => { const on = d.active && playing; return html`<div class=${'spr' + (d.active ? ' on' : '')} role="button" tabindex="0" aria-pressed=${d.active ? 'true' : 'false'} @click=${() => { if (!d.active) { this._musicTo(d); if (!full) setTimeout(() => this._set({ libSheet: false }), 500); } }} @keydown=${(e) => { if ((e.key === 'Enter' || e.key === ' ') && !d.active) { e.preventDefault(); this._musicTo(d); } }}>
         <span class="spi">${ic(/tv|fernseh/i.test(d.name) ? 'tv' : 'speaker', 'i s')}</span>
         <span class="spn"><b class="txt">${d.name}</b><small class="txt">${d.active ? (playing ? t('playing') : t('paused')) : d.ready ? t('readyS') : t('openSpotify')}</small>
           ${d.active && vol != null && mc.can('volume') ? html`<span class="spvl" @click=${(e) => e.stopPropagation()}>${this.volLine(vol, t)}</span>` : nothing}</span>
@@ -2122,6 +2147,7 @@ class AureonDashboard extends LitElement {
     const all = this._sorted('speakers', m.speakers.filter((s) => !spIds.has(s.id)));
     const list = this._visible('speakers', all), ids = list.map((x) => x.id);
     if (!acct && !all.length) return nothing;
+    if (acct) this._prefetchDevices();
     const a = acct?.attributes || {}, playing = mc.isPlaying, pos = position(acct, now.getTime());
     const art = artworkUrl(a.entity_picture_local || a.entity_picture || a.sp_nowplaying_image_url, this.hass);
     const mmss = (x) => Math.floor(x / 60) + ':' + p2(Math.floor(x % 60));
@@ -2159,9 +2185,9 @@ class AureonDashboard extends LitElement {
           </div>
           <div class="sctl">
             ${mc.can('shuffle') ? html`<button class="ib sm ghost" aria-pressed=${a.shuffle ? 'true' : 'false'} aria-label=${t('shuffle')} style=${a.shuffle ? 'color:var(--accent)' : 'color:var(--mut)'} @click=${() => mc.command('shuffle')}>${ic('shuffle', 'i s')}</button>` : nothing}
-            ${mc.can('previous') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('prev')} ?disabled=${mc.pending.has('transport:previous')} @click=${() => this._skip('previous')}>${ic('prev', 'i s f')}</button>` : nothing}
+            ${mc.can('previous') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('prev')} ?disabled=${mc.pending.has('transport:previous')} @click=${() => { this._skip('previous'); this._musicRefresh(); }}>${ic('prev', 'i s f')}</button>` : nothing}
             <button class="play jplay" aria-label=${playing ? t('pause') : t('play')} ?disabled=${!mc.ready} @click=${() => this._musicPlay()}>${ic(playing ? 'pause' : 'play', 'i f')}</button>
-            ${mc.can('next') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('next')} ?disabled=${mc.pending.has('transport:next')} @click=${() => this._skip('next')}>${ic('next', 'i s f')}</button>` : nothing}
+            ${mc.can('next') ? html`<button class="ib sm" style="border-radius:50%" aria-label=${t('next')} ?disabled=${mc.pending.has('transport:next')} @click=${() => { this._skip('next'); this._musicRefresh(); }}>${ic('next', 'i s f')}</button>` : nothing}
             ${mc.can('repeat') ? html`<button class="ib sm ghost" aria-pressed=${a.repeat && a.repeat !== 'off' ? 'true' : 'false'} aria-label=${t('repeat') + ': ' + t('repeat_' + (a.repeat || 'off'))} title=${t('repeat_' + (a.repeat || 'off'))} style=${'position:relative;' + (a.repeat && a.repeat !== 'off' ? 'color:var(--accent)' : 'color:var(--mut)')} @click=${() => mc.command('repeat')}>${ic('repeat', 'i s')}${a.repeat === 'one' ? html`<b style="position:absolute;right:6px;top:5px;font-size:9px;font-weight:600">1</b>` : nothing}</button>` : nothing}
           </div>
           ${pos.duration ? html`<input class="sprog" type="range" min="0" max=${String(Math.round(pos.duration))} .value=${String(Math.round(pos.value))} ?disabled=${!mc.can('seek')} aria-label=${a.media_title || 'position'} style=${`--p:${(fr * 100).toFixed(1)}%`} @change=${(e) => mc.command('seek', Number(e.target.value))}>` : nothing}

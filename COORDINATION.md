@@ -1599,3 +1599,6 @@ The Music browser suite passed again with that label and native transfer.
 ## Claude batch — 2026-11-22e (AUREON Noir 1.7.6)
 - Music: `speakerSheet()` renders the devices panel (`.spks/.spr/.spdef`), synced pref `musicDefault` (Spotify Connect name). `_musicPlay()/_musicItem()` transfer to the default speaker first when nothing is active (`_toDefaultSpeaker`). Volume (volLine) lives in the active speaker row; `.mctl` row removed; shuffle/repeat in `.sctl`, like-heart next to the time (`.stl`).
 - Chips → `.mchips.mdock` glass dock with `.dk` buttons (icons mlist/mclock/mdisc/mheart/mmic). Speaker grid under the player only in edit mode or without a Spotify account. Phone arm smaller (--k:.6). Premium vinyl CSS overrides. Tests PASS.
+
+## Claude batch — 2026-11-22f (AUREON Noir 1.7.7)
+- Music latency: `_prefetchDevices()` (on render, 5 min), `_defaultTarget()` uses cached devices (no await before play), optimistic play state, `_musicTo(d)` transfers with play:true, `_musicRefresh()` calls homeassistant.update_entity on the account entity at 0.7/2.2/5 s after taps. Controller module untouched. Tests PASS.

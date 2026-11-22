@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.7.7 — 2026-11-22
+
+- AUREON Music mais rápido: o play muda na hora e vai direto para a caixa padrão (a lista de caixas é lida antes); escolher uma caixa já começa a tocar nela; depois de cada toque o player é atualizado logo em seguida.
+
 ## AUREON Noir 1.7.6 — 2026-11-22
 
 - AUREON Music mais compacto e premium: disco com sulcos finos, reflexos e anel no selo (continua girando); braço menor que não passa pelos botões; todos os controles numa fila.

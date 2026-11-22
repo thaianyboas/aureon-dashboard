@@ -255,7 +255,12 @@ console.log('behaviour');
   await shadow(page, `[...root.querySelectorAll('.msheet .spr')].find((b)=>/Living room speaker/.test(b.textContent)).querySelector('.spdef').click()`); await new Promise((r) => setTimeout(r, 200));
   check(await page.evaluate(() => document.getElementById('d')._prefs.musicDefault === 'Living room speaker') && await shadow(page, `return !!root.querySelector('.msheet .spdef.on')`), 'a speaker can be made the default (synced pref)');
   check(await shadow(page, `return !root.querySelector('.sgrid')`), '"Caixas de som por cômodo" no longer shown under the player');
-  await shadow(page, `root.querySelector('.msheet .mshead .ib').click()`);
+  { const n0 = await page.evaluate(() => H.calls.length);
+    await shadow(page, `[...root.querySelectorAll('.msheet .spr')].find((b)=>/Living room speaker/.test(b.textContent)).click()`); await new Promise((r) => setTimeout(r, 300));
+    check(await page.evaluate((n0) => H.calls.slice(n0).some((c) => c[0] === 'spotifyplus' && c[1] === 'player_transfer_playback' && c[2].device_id === 'x2' && c[2].play === true), n0), 'choosing a speaker starts the music there at once (play:true)');
+    await new Promise((r) => setTimeout(r, 900));
+    check(await page.evaluate((n0) => H.calls.slice(n0).some((c) => c[0] === 'homeassistant' && c[1] === 'update_entity'), n0), 'after a music tap the player is refreshed right away'); }
+  if (await shadow(page, `return !!root.querySelector('.msheet')`)) { await shadow(page, `root.querySelector('.msheet .mshead .ib').click()`); await new Promise((r) => setTimeout(r, 200)); }
   await new Promise((r) => setTimeout(r, 200));
   // next / previous: an Alexa speaker as Spotify source gets the skip itself; otherwise Spotify does
   const nCalls = () => page.evaluate(() => H.calls.filter((c) => c[0] === 'media_player' && /next_track|previous_track/.test(c[1])).map((c) => c[1] + '>' + c[2].entity_id));
