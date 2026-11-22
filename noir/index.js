@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position, relevantMedia, re
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.8.7';
-export const BUILD = 'AUREON-NOIR-20261122p';
+export const VERSION = '1.8.8';
+export const BUILD = 'AUREON-NOIR-20261122q';
 
 export const THEMES = [
   // Owner 2026-11-22 ("tirar os antigos e colocar mais temas"): only the jewel themes remain; old ids map below.
@@ -673,13 +673,38 @@ class AureonDashboard extends LitElement {
     }
     return html`<header class="top">
       <span class="wordmark">AUREON</span>
-      <div class="wrapRow" style="justify-content:flex-end">
-        <button class="btn" aria-label=${t('settings')} @click=${() => this._set({ settings: 'home', themeOpen: false })}>${ic('gear', 'i s')}<span class="hideNarrow">${t('settings')}</span></button>
-        <button class=${'btn' + (ui.edit ? ' pri' : '')} aria-pressed=${ui.edit ? 'true' : 'false'} @click=${() => this._set({ edit: !ui.edit, editing: null, confirm: null })}>${ic('pencil', 'i s')}${ui.edit ? t('doneEdit') : t('edit')}</button>
+      <div class="tbar">
+        ${m.metered.length || m.loosePower.length ? html`<button class="tlive" aria-label=${t('energy') + ' · ' + m.liveW + ' W'} @click=${() => this._goEnergy()}><i class="tdot" aria-hidden="true"></i>${ic('bolt', 'i s')}<b>${m.liveW} W</b>${this._wSpark(m)}</button>` : nothing}
         ${m.batteries.length ? this.battChip({ m, t }) : nothing}
-        ${m.metered.length || m.loosePower.length ? html`<span class="chip">${svg`<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--accent)"><path d=${P.bolt}></path></svg>`}${m.liveW} W</span>` : nothing}
+        <span class="grow"></span>
+        <button class=${'btn tbtn' + (ui.edit ? ' pri on' : '')} aria-pressed=${ui.edit ? 'true' : 'false'} aria-label=${ui.edit ? t('doneEdit') : t('edit')} title=${ui.edit ? t('doneEdit') : t('edit')} @click=${() => this._set({ edit: !ui.edit, editing: null, confirm: null })}>${ic(ui.edit ? 'check' : 'pencil', 'i s')}${ui.edit ? html`<span>${t('doneShort')}</span>` : nothing}</button>
+        <button class="btn tbtn" aria-label=${t('settings')} title=${t('settings')} @click=${() => this._set({ settings: 'home', themeOpen: false })}>${ic('gear', 'i s')}</button>
       </div>
     </header>`;
+  }
+  // Owner 2026-11-22 chose the glass capsule: live power with a sparkline of the last hour (5-minute statistics of the
+  // measured plugs, then live samples).
+  _wSpark(m) {
+    const now = Date.now(), buf = (this._wBuf ||= []);
+    if (!buf.length || now - buf[buf.length - 1].t > 20000) { buf.push({ t: now, w: m.liveW }); while (buf.length && now - buf[0].t > 3600000) buf.shift(); }
+    const ids = [...m.metered, ...m.loosePower].map((p) => p.powerId).filter((x) => x && x.startsWith('sensor.'));
+    if (this.hass.callWS && ids.length && now - (this._wSeedAt || 0) > 600000) {
+      this._wSeedAt = now;
+      this.hass.callWS({ type: 'recorder/statistics_during_period', start_time: new Date(now - 3600000).toISOString(), statistic_ids: ids, period: '5minute', types: ['mean'] }).then((res) => {
+        const sum = {}; for (const id of ids) for (const r of res?.[id] || []) { const k = typeof r.start === 'number' ? r.start : Date.parse(r.start); if (Number.isFinite(r.mean)) sum[k] = (sum[k] || 0) + r.mean; }
+        this._wSeed = Object.entries(sum).map(([k, w]) => ({ t: Number(k) + 150000, w })).sort((a, b) => a.t - b.t); this.requestUpdate();
+      }).catch(() => {});
+    }
+    const first = buf[0]?.t ?? now, raw = [...(this._wSeed || []).filter((x) => x.t < first), ...buf];
+    const pts = raw.map((x, i) => ({ t: x.t, w: (raw[Math.max(0, i - 1)].w + x.w + raw[Math.min(raw.length - 1, i + 1)].w) / 3 }));
+    if (pts.length < 3) return nothing;
+    const t0 = pts[0].t, t1 = pts[pts.length - 1].t, lo = Math.min(...pts.map((x) => x.w)), hi = Math.max(...pts.map((x) => x.w)), span = hi - lo || 1;
+    const d = pts.map((x, i) => (i ? 'L' : 'M') + (1 + 36 * (x.t - t0) / Math.max(1, t1 - t0)).toFixed(1) + ' ' + (14 - 12 * (x.w - lo) / span).toFixed(1)).join(' ');
+    return svg`<svg class="tspark" viewBox="0 0 38 16" aria-hidden="true"><path d=${d}></path></svg>`;
+  }
+  _goEnergy() {
+    const h = this.renderRoot.querySelector('.ehero'); if (!h) return;
+    h.closest('.sec')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   }
   // Arrival estimate from the proximity distance: speed over the last ~15 minutes (history + live samples).
   _peopleEta(m, now) {

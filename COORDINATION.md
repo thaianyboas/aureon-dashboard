@@ -1632,3 +1632,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22p (AUREON Noir 1.8.7)
 - Old 24 themes removed; `THEME_ALIAS` maps old ids → jewel ids, `themeId()`/`DEFAULT_THEME` ('champnoir') used by `_theme()`, defaults and gallery. 25 new jewel themes; families famLux, famAtelier, famNeutral, famVivid, famSoft, famDeep, famHa. Gallery preview uses a2 + a3 glow. Tests: 44 cards / 7 families, alias migration check.
+
+## Claude batch — 2026-11-22q (AUREON Noir 1.8.8)
+- Header `.tbar` capsule: `.tlive` (live W, `.tdot`, `_wSpark()` sparkline from 5-minute mean statistics of measured power sensors + live samples, tap → `_goEnergy()`), `battChip`, `.tbtn` edit (aria-label; shows "Concluir" when editing) and settings. Tests updated to find edit by aria-label; capsule check added.

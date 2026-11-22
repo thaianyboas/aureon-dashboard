@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.8.8 — 2026-11-22
+
+- Barra do topo em cápsula de vidro: consumo ao vivo com pontinho pulsando e mini gráfico da última hora (toque leva à Energia), bateria, e editar/configurações como botões redondos de vidro. No modo edição aparece "✓ Concluir". AUREON com degradê metálico do tema.
+
 ## AUREON Noir 1.8.7 — 2026-11-22
 
 - Só temas premium: os 24 temas antigos saíram (quem usava um passa automaticamente para o tema novo mais parecido; padrão Champagne Noir).

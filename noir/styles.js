@@ -1045,4 +1045,22 @@ select.numin{text-align:left}
 .prem .card,.prem .sheet{background-image:radial-gradient(120% 80% at 100% 0%,color-mix(in srgb,var(--a3) 22%,transparent),transparent 60%)}
 .prem .clock{background:linear-gradient(180deg,var(--fg) 30%,var(--a2) 150%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .prem .ccol{color:var(--fg);-webkit-text-fill-color:var(--fg)}
+/* Top bar — glass capsule (owner 2026-11-22). */
+.top{flex-direction:column;align-items:stretch;gap:14px}
+.top .wordmark{background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 55%,var(--mut)));-webkit-background-clip:text;background-clip:text;color:transparent}
+.prem .top .wordmark{background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text}
+.tbar{display:flex;align-items:center;gap:6px;padding:6px;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 20px 40px -20px #000;max-width:620px}
+.tlive{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 14px 0 12px;border:0;border-radius:999px;background:rgba(0,0,0,.35);color:var(--fg);font:inherit;font-size:14px;cursor:pointer}
+.tlive b{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}.tlive>.i{color:var(--accent)}
+.tdot{width:6px;height:6px;border-radius:50%;background:#7EE0A8;box-shadow:0 0 8px #7EE0A8;animation:tdot 2.4s ease-in-out infinite}
+@keyframes tdot{50%{opacity:.35}}
+.tspark{width:38px;height:16px;flex:none}.tspark path{fill:none;stroke:var(--accent);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.tbar .bchip{min-height:40px;border:0;background:none;padding:0 8px}
+.tbtn{width:40px;min-width:40px;height:40px;min-height:40px;padding:0;justify-content:center;border-radius:50%;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.12),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.tbtn.on{width:auto;padding:0 14px;border-radius:999px;gap:6px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.tdot{animation:none}}
+.tbtn.on span{white-space:nowrap}.tbar .bchip .hideNarrow{display:inline}
+.tbar:has(.tbtn.on) .tspark,.tbar:has(.tbtn.on) .bchip .hideNarrow{display:none}
+@container (max-width:370px){.tspark{display:none}}
 `;
