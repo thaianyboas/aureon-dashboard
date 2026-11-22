@@ -270,6 +270,7 @@ console.log('behaviour');
     check(await page.evaluate((n0) => H.calls.slice(n0).some((c) => c[1] === 'player_media_play_context' && c[2].context_uri === 'spotify:playlist:CTX9' && c[2].offset_uri === 'spotify:track:LAST1'), n0), 'Play with nothing loaded resumes the last played song in its playlist');
     await page.evaluate(([id, k]) => { H.states[id] = JSON.parse(k); document.getElementById('d').hass = { ...H, states: { ...H.states } }; }, [id, keep]); await new Promise((r) => setTimeout(r, 250)); }
   await new Promise((r) => setTimeout(r, 200));
+  check(await shadow(page, `const g=root.querySelector('.stg.on'); return !!g && getComputedStyle(g.querySelector('.bigv .vlamp')).opacity !== '' && !!g.querySelector('.vfx')`) && await shadow(page, `return new Promise((r)=>setTimeout(()=>r(Number(getComputedStyle(root.querySelector('.stg.on .bigv .vwarm')).opacity) > 0.9), 1800))`), 'warm studio light glows on the record while playing');
   await shadow(page, `root.querySelector('.svbtn').click()`); await new Promise((r) => setTimeout(r, 200));
   check(await shadow(page, `const v=root.querySelector('.sctl.svol'); return !!v && /42/.test(v.querySelector('.vnum').textContent) && !root.querySelector('.jplay')`), 'volume button swaps the controls for a volume line');
   { const n0 = await page.evaluate(() => H.calls.length); await shadow(page, `root.querySelector('.svol .vpm[aria-label$="+"]').click()`); await new Promise((r) => setTimeout(r, 800));

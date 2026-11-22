@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.8.3 — 2026-11-22
+
+- AUREON Music: luz quente "Estúdio" no disco enquanto a música toca — borda dourada polida, dois reflexos quentes girando nos sulcos e um brilho âmbar por baixo. Apaga ao pausar.
+
 ## AUREON Noir 1.8.2 — 2026-11-22
 
 - AUREON Music: botão de volume ao lado do repetir; ao tocar, a fileira de controles vira uma barra de volume (−, arrastar, +, número) e o ✕ volta aos controles. O cartão não muda de altura.

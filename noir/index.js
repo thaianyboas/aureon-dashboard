@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position, relevantMedia, re
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.8.2';
-export const BUILD = 'AUREON-NOIR-20261122k';
+export const VERSION = '1.8.3';
+export const BUILD = 'AUREON-NOIR-20261122l';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -2235,7 +2235,8 @@ class AureonDashboard extends LitElement {
       ${acct ? html`<div class=${'mcard jzc' + (full ? '' : ' cmp')}>
         <div class=${'stg' + (playing ? ' on' : '')}>
           <span class="sglow" aria-hidden="true"></span>
-          <div class="bigv" aria-hidden="true"><div class="vinyl"><span class="label" style=${art ? `background:center/cover url("${art}")` : `background:radial-gradient(circle at 35% 30%, ${rgba(aRgb, 0.95)} 0%, ${rgba(aRgb, 0.5)} 100%)`}></span></div><span class="sheen"></span><span class="spindle"></span></div>
+          <div class="bigv" aria-hidden="true"><div class="vinyl"><span class="label" style=${art ? `background:center/cover url("${art}")` : `background:radial-gradient(circle at 35% 30%, ${rgba(aRgb, 0.95)} 0%, ${rgba(aRgb, 0.5)} 100%)`}></span></div><span class="sheen"></span><span class="vwarm"></span><span class="spindle"></span><span class="vlamp"></span></div>
+          <span class="vfx" aria-hidden="true"></span>
           <svg class="arm" aria-hidden="true" viewBox="0 0 120 230">
             <rect class="cw" x="104" y="-16" width="13" height="14" rx="3"></rect>
             <circle class="base" cx="110" cy="10" r="10"></circle><circle class="hub" cx="110" cy="10" r="4"></circle>

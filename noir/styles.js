@@ -940,4 +940,15 @@ select.numin{text-align:left}
 .sctl.svol{gap:8px;max-width:min(380px,100%);min-height:62px}
 .sctl.svol .vline{flex:1 1 auto;max-width:none;margin-left:0;gap:8px;padding:4px 10px 4px 6px;border-radius:999px;background:rgba(9,9,10,.55);border:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .sctl.svol .vline .vrange{min-width:0;flex:1}
+/* Warm "estúdio" light on the record while music plays (owner 2026-11-22 chose E): a polished golden rim catching a
+   key light, two warm reflections turning over the grooves, an amber glow spilling under the record. */
+.bigv .vlamp,.bigv .vwarm,.stg .vfx{position:absolute;pointer-events:none;opacity:0;transition:opacity 1.6s ease}
+.stg.on .bigv .vlamp,.stg.on .bigv .vwarm,.stg.on .vfx{opacity:1}
+.bigv .vlamp{inset:0;border-radius:50%;background:radial-gradient(circle,transparent 0 49%,rgba(255,214,160,.95) 49.6%,rgba(255,170,90,.25) 50.4%,transparent 51.5%);-webkit-mask:conic-gradient(from 230deg,transparent 0 2%,#000 14%,#000 30%,transparent 46% 100%);mask:conic-gradient(from 230deg,transparent 0 2%,#000 14%,#000 30%,transparent 46% 100%);filter:drop-shadow(0 0 6px rgba(255,180,100,.8))}
+.bigv .vwarm{inset:0;border-radius:50%;mix-blend-mode:screen;background:conic-gradient(from 0deg,transparent 0 6%,rgba(255,196,128,.32) 9%,rgba(255,170,100,.1) 12%,transparent 16% 56%,rgba(255,196,128,.26) 59%,rgba(255,170,100,.08) 62%,transparent 66% 100%);animation:vlspin 18s linear infinite;animation-play-state:paused}
+.stg.on .bigv .vwarm{animation-play-state:running}
+.stg .vfx{inset:0;mix-blend-mode:screen;border-radius:inherit;background:radial-gradient(42% 30% at 92% 104%,rgba(255,160,80,.32),transparent 70%),radial-gradient(30% 40% at 70% 0%,rgba(255,210,160,.12),transparent 70%);animation:vlbr 6s ease-in-out infinite}
+@keyframes vlbr{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
+@keyframes vlspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.bigv .vwarm,.stg .vfx{animation:none!important}}
 `;

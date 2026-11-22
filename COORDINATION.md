@@ -1617,3 +1617,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22k (AUREON Noir 1.8.2)
 - Music player: `.svbtn` volume button in `.sctl`; ui `mVol` swaps the row for `.sctl.svol` (close + `volLine`), min-height 62px keeps card height. Browser tests added; older volume test scoped to its own calls.
+
+## Claude batch — 2026-11-22l (AUREON Noir 1.8.3)
+- Music stage warm light (concept E): `.bigv .vlamp` golden rim (masked arc), `.bigv .vwarm` twin rotating conic reflections, `.stg .vfx` amber underglow; all fade in on `.stg.on`, rotation paused when not playing, reduced-motion respected. Browser test added.
