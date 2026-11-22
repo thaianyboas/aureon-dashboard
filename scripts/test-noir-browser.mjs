@@ -263,6 +263,12 @@ console.log('behaviour');
     await new Promise((r) => setTimeout(r, 900));
     check(await page.evaluate((n0) => H.calls.slice(n0).some((c) => c[0] === 'homeassistant' && c[1] === 'update_entity'), n0), 'after a music tap the player is refreshed right away'); }
   if (await shadow(page, `return !!root.querySelector('.msheet')`)) { await shadow(page, `root.querySelector('.msheet .mshead .ib').click()`); await new Promise((r) => setTimeout(r, 200)); }
+  { const id = 'media_player.spotifyplus_demo', keep = await page.evaluate((id) => JSON.stringify(H.states[id]), id);
+    await page.evaluate((id) => { const st = H.states[id], at = { ...st.attributes }; delete at.media_title; delete at.media_artist; delete at.media_content_id; H.states[id] = { ...st, state: 'idle', attributes: at }; document.getElementById('d').hass = { ...H, states: { ...H.states } }; }, id); await new Promise((r) => setTimeout(r, 250));
+    const n0 = await page.evaluate(() => H.calls.length);
+    await shadow(page, `root.querySelector('.jplay').click()`); await new Promise((r) => setTimeout(r, 500));
+    check(await page.evaluate((n0) => H.calls.slice(n0).some((c) => c[1] === 'player_media_play_context' && c[2].context_uri === 'spotify:playlist:CTX9' && c[2].offset_uri === 'spotify:track:LAST1'), n0), 'Play with nothing loaded resumes the last played song in its playlist');
+    await page.evaluate(([id, k]) => { H.states[id] = JSON.parse(k); document.getElementById('d').hass = { ...H, states: { ...H.states } }; }, [id, keep]); await new Promise((r) => setTimeout(r, 250)); }
   await new Promise((r) => setTimeout(r, 200));
   // next / previous: an Alexa speaker as Spotify source gets the skip itself; otherwise Spotify does
   const nCalls = () => page.evaluate(() => H.calls.filter((c) => c[0] === 'media_player' && /next_track|previous_track/.test(c[1])).map((c) => c[1] + '>' + c[2].entity_id));

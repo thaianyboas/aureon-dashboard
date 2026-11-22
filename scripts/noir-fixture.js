@@ -93,6 +93,7 @@ window.makeHass = function makeHass(lang) {
       H.calls.push([d, s, data]);
       if (d === 'spotifyplus' && s === 'get_playlist_favorites') return { response: { result: { items: [1, 2, 3, 4, 5, 6].map((i) => ({ name: 'Playlist number ' + i + (i === 2 ? ' with an unusually long title' : ''), uri: 'spotify:playlist:P' + i, images: [] })), total: 6 } } };
       if (d === 'spotifyplus' && s === 'get_spotify_connect_devices') return { response: { result: { Items: [{ Id: 'x1', Name: 'Kitchen speaker', IsActiveDevice: true }, { Id: 'x2', Name: 'Living room speaker', IsInDeviceList: true }] } } };
+      if (d === 'spotifyplus' && s === 'get_player_recent_tracks') return { response: { result: { items: [{ track: { name: 'Last Song', uri: 'spotify:track:LAST1' }, context: { type: 'playlist', uri: 'spotify:playlist:CTX9' } }] } } };
       if (d === 'spotifyplus' && s === 'check_track_favorites') return { response: { result: { abc123: false } } };
       return { response: { result: {} } };
     },

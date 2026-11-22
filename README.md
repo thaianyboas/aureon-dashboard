@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.8.1 — 2026-11-22
+
+- AUREON Music: o Play com nada carregado (Spotify parado há um tempo) agora toca a última música ouvida, dentro da playlist/álbum dela, na caixa ativa ou na caixa padrão.
+
 ## AUREON Noir 1.8.0 — 2026-11-22
 
 - Fontes da TV redesenhadas: uma barra com 4 fontes favoritas com ícones (a que está passando fica verde e sempre aparece) e "Mais fontes" com a lista completa; toque na ★ para escolher suas 4 favoritas (salvas em todos os aparelhos).

@@ -1611,3 +1611,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22i (AUREON Noir 1.8.0)
 - TV sources concept C: `.tvfav` 4 slots from `_tvFavs(d)` (pref `tvFav[id]`, else ranked by `SRC_IC`; current source always shown), `srcIc()` icons, `tvSrcSheet` (ui `tvSrc`) lists all sources, `.tvstar` toggles favourites (max 4). Fixture s4 has source_list. Tests PASS.
+
+## Claude batch — 2026-11-22j (AUREON Noir 1.8.1)
+- `_musicPlay`: when `!relevantMedia(state)`, `_musicResume()` reads `get_player_recent_tracks` (limit 1) and plays `player_media_play_context` (context + offset_uri) or `player_media_play_tracks` on the active/default Connect device; falls back to media_play. Fixture + browser test added. Not verified on a real Echo.

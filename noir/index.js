@@ -9,14 +9,14 @@ import { styles } from './styles.js';
 import { buildModel, roomLayout, binColor, shortBin, vacuumRooms, labelRoles, applianceKind, PLUG_RUN_W, PLUG_IDLE_W } from './data.js';
 import { translator, localeOf } from './i18n.js';
 import { BUILTIN_CARDS, installedCards, stubConfig, configElement, createCard, toYaml, fromYaml } from './cards.js';
-import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-studio/dashboard/music/controller.mjs';
+import { MusicController, isSpotifyPlus, artworkUrl, position, relevantMedia, resultOf } from '../floor-studio/dashboard/music/controller.mjs';
 
 // Owner 2026-11-18: lights on and waste day are already visible on the map and in the waste card, so they are no
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.8.0';
-export const BUILD = 'AUREON-NOIR-20261122i';
+export const VERSION = '1.8.1';
+export const BUILD = 'AUREON-NOIR-20261122j';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -2147,9 +2147,25 @@ class AureonDashboard extends LitElement {
   _musicPlay() {
     const mc = this._mc;
     if (mc.isPlaying) { mc.command('pause'); this._musicRefresh(); return; }
+    // Owner 2026-11-22: with nothing loaded (Spotify idle after a while), Play did nothing. Start the last thing she
+    // listened to (its playlist/album from the right track, else the track) on the active / standard speaker.
+    if (!relevantMedia(mc.state) && mc.advanced('get_player_recent_tracks') && (mc.advanced('player_media_play_context') || mc.advanced('player_media_play_tracks'))) { this._musicResume(); return; }
     const d = this._defaultTarget();
     if (d) { mc.optimistic = { playing: true, entity: mc.entityId, until: Date.now() + 10000 }; mc.emit?.(); this.requestUpdate(); mc.callSpotify('player_transfer_playback', { device_id: d.id, play: true }).catch(() => mc.command('play')).finally(() => this._musicRefresh()); return; }
     mc.command('play'); this._musicRefresh();
+  }
+  async _musicResume() {
+    const mc = this._mc, name = this._prefs.musicDefault;
+    mc.optimistic = { playing: true, entity: mc.entityId, until: Date.now() + 12000 }; mc.emit?.(); this.requestUpdate();
+    try {
+      const r = resultOf(await mc.callSpotify('get_player_recent_tracks', { limit: 1 }, true));
+      const it = (Array.isArray(r) ? r : r.items || [])[0] || {}, tr = it.track || it, ctx = it.context?.uri || '';
+      if (!/^spotify:track:/.test(tr.uri || '')) throw new Error('no recent track');
+      const dev = mc.devices.find((x) => x.active) || mc.devices.find((x) => x.name === name) || null, at = dev ? { device_id: dev.id } : {};
+      if (/^spotify:(playlist|album|artist|show):/.test(ctx) && mc.advanced('player_media_play_context')) await mc.callSpotify('player_media_play_context', { context_uri: ctx, offset_uri: tr.uri, ...at });
+      else await mc.callSpotify('player_media_play_tracks', { uris: tr.uri, ...at });
+    } catch (e) { mc.optimistic = null; mc.command('play'); }
+    this._devAt = 0; this._musicRefresh();
   }
   _musicItem(it) {
     const mc = this._mc, d = this._defaultTarget();
