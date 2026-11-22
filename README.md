@@ -1,5 +1,11 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.8.7 — 2026-11-22
+
+- Só temas premium: os 24 temas antigos saíram (quem usava um passa automaticamente para o tema novo mais parecido; padrão Champagne Noir).
+- 25 temas novos: Neutros (Platina Noir, Fumê, Ártico, Sálvia, Azul Marinho, Névoa Lilás, Concreto, Ouro Branco), Cores vivas (Absinto, Tangerina, Fúcsia Noir, Cobalto, Rosso Corsa, Limão Siciliano, Menta Neon, Ciano Elétrico, Rosa Chiclete, Magma), Suaves (Glicínia, Blush, Caramelo) e Profundos (Berinjela, Bosque, Anil, Vinho do Porto). Total: 43 temas + Home Assistant.
+- A galeria mostra a cor real de cada tema.
+
 ## AUREON Noir 1.8.6 — 2026-11-22
 
 - 18 temas premium novos em paleta de joia (3 tons): Joias premium (Rubi Imperial, Esmeralda Real, Safira Noturna, Champagne Noir, Ametista Veludo, Ouro Negro, Bordeaux Couture, Oceano Profundo, Cereja Noir) e Ateliê (Cobre Brunido, Titânio Azul, Âmbar Mel, Orquídea, Turquesa Ártica, Musgo & Latão, Coral Crepúsculo, Areia do Deserto, Pavão). Botões em metal polido, fundo com brilho no tom profundo, texto levemente tingido. Os 24 temas anteriores continuam.

@@ -15,35 +15,22 @@ import { MusicController, isSpotifyPlus, artworkUrl, position, relevantMedia, re
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.8.6';
-export const BUILD = 'AUREON-NOIR-20261122o';
+export const VERSION = '1.8.7';
+export const BUILD = 'AUREON-NOIR-20261122p';
 
 export const THEMES = [
-  { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
-  { id: 'ambar', name: 'Âmbar', desc: 'Vela · café', accent: '#F5B65C', bg: '#0A0806', card: '#15110D', card2: '#110E0A', sunk: '#0C0A07', raise: '#1C1712', line: '#241E17', line2: '#30281F' },
-  { id: 'oceano', name: 'Oceano', desc: 'Azul gelo · noite', accent: '#8FB8FF', bg: '#06080C', card: '#0F131A', card2: '#0B0F15', sunk: '#080B10', raise: '#151B24', line: '#1B2230', line2: '#253144' },
-  { id: 'ametista', name: 'Ametista', desc: 'Lilás · ameixa', accent: '#B9A8FF', bg: '#08070C', card: '#121019', card2: '#0E0C14', sunk: '#0A0910', raise: '#18151F', line: '#211D2C', line2: '#2D2740' },
-  { id: 'jade', name: 'Jade', desc: 'Menta · floresta', accent: '#7EE0A8', bg: '#060A08', card: '#0F1512', card2: '#0B110E', sunk: '#080D0A', raise: '#141C18', line: '#1B2721', line2: '#25362D' },
-  { id: 'rose', name: 'Rosé', desc: 'Rosa antigo · vinho', accent: '#F2A7B5', bg: '#0B0708', card: '#161012', card2: '#120C0E', sunk: '#0D090A', raise: '#1D1517', line: '#271C20', line2: '#36282C' },
-  { id: 'platina', name: 'Platina', desc: 'Preto · branco', accent: '#F2F2F3', bg: '#070707', card: '#111111', card2: '#0D0D0D', sunk: '#0A0A0A', raise: '#171717', line: '#1E1E1E', line2: '#2A2A2A' },
-  // Owner 2026-11-18 ("mais temas elegantes"): eight more, same calm dark base, each with its own metal or stone.
-  { id: 'champagne', name: 'Champagne', desc: 'Marfim · ônix', accent: '#EBD9B4', bg: '#090807', card: '#131210', card2: '#0F0E0C', sunk: '#0B0A09', raise: '#191714', line: '#221F1B', line2: '#2E2A24' },
-  { id: 'cobre', name: 'Cobre', desc: 'Cobre · carvão', accent: '#E39468', bg: '#0A0706', card: '#15100E', card2: '#110D0B', sunk: '#0C0908', raise: '#1C1512', line: '#261C18', line2: '#342620' },
-  { id: 'bordo', name: 'Bordô', desc: 'Vinho · ouro velho', accent: '#E2B57A', bg: '#0C0608', card: '#180D11', card2: '#130A0D', sunk: '#0E0709', raise: '#201117', line: '#2B1820', line2: '#3B212C' },
-  { id: 'esmeralda', name: 'Esmeralda', desc: 'Verde joia · veludo', accent: '#4FD1A5', bg: '#040A08', card: '#0C1612', card2: '#09120E', sunk: '#060D0A', raise: '#111D18', line: '#172821', line2: '#20372D' },
-  { id: 'safira', name: 'Safira', desc: 'Azul real · meia-noite', accent: '#7FA2FF', bg: '#05060D', card: '#0E1120', card2: '#0B0D19', sunk: '#080A13', raise: '#141829', line: '#1B2036', line2: '#262C49' },
-  { id: 'aurora', name: 'Aurora', desc: 'Turquesa · noite polar', accent: '#86E3DC', bg: '#04090B', card: '#0C1518', card2: '#091114', sunk: '#060C0E', raise: '#111C20', line: '#17262B', line2: '#20343A' },
-  { id: 'oliva', name: 'Oliva', desc: 'Latão · musgo', accent: '#CDBE7E', bg: '#080906', card: '#12140F', card2: '#0E100B', sunk: '#0A0B08', raise: '#181B14', line: '#21251B', line2: '#2D3224' },
-  { id: 'grafite', name: 'Grafite', desc: 'Aço azulado · grafite', accent: '#AEB9CC', bg: '#08090B', card: '#111317', card2: '#0D0F12', sunk: '#0A0B0E', raise: '#171A1F', line: '#1E2228', line2: '#2A2F37' },
-  // Owner 2026-11-20 ("mais temas bonitos e elegantes").
-  { id: 'onix', name: 'Ônix', desc: 'Preto profundo · prata', accent: '#D8D4CC', bg: '#030303', card: '#0C0C0C', card2: '#090909', sunk: '#060606', raise: '#121212', line: '#191919', line2: '#242424' },
-  { id: 'perola', name: 'Pérola', desc: 'Nácar · cinza lunar', accent: '#E9E2F2', bg: '#09090B', card: '#141418', card2: '#101014', sunk: '#0C0C0F', raise: '#1A1A20', line: '#23232A', line2: '#303038' },
-  { id: 'ourorose', name: 'Ouro rosé', desc: 'Rosé gold · cacau', accent: '#E9B49E', bg: '#0A0707', card: '#161011', card2: '#120D0E', sunk: '#0D0A0A', raise: '#1D1516', line: '#271D1E', line2: '#352829' },
-  { id: 'titanio', name: 'Titânio', desc: 'Metal frio · aço', accent: '#C9D2DC', bg: '#070809', card: '#101214', card2: '#0C0E10', sunk: '#090A0C', raise: '#16191C', line: '#1D2125', line2: '#292E33' },
-  { id: 'rubi', name: 'Rubi', desc: 'Vermelho joia · ônix', accent: '#FF7A88', bg: '#0A0506', card: '#160C0E', card2: '#12090B', sunk: '#0D0708', raise: '#1E1013', line: '#29161A', line2: '#381E24' },
-  { id: 'terracota', name: 'Terracota', desc: 'Barro · areia', accent: '#E0957A', bg: '#0A0706', card: '#17110E', card2: '#130E0B', sunk: '#0D0A08', raise: '#1E1713', line: '#291F1A', line2: '#382A23' },
-  { id: 'petroleo', name: 'Petróleo', desc: 'Azul-petróleo · profundo', accent: '#5FC2CE', bg: '#03080A', card: '#0B1518', card2: '#081114', sunk: '#060C0E', raise: '#101D21', line: '#16282D', line2: '#1F363C' },
-  { id: 'indigo', name: 'Índigo', desc: 'Violeta azulado · noite', accent: '#9FA8FF', bg: '#06060C', card: '#10101C', card2: '#0C0C17', sunk: '#090912', raise: '#161627', line: '#1D1D33', line2: '#282845' },
+  // Owner 2026-11-22 ("tirar os antigos e colocar mais temas"): only the jewel themes remain; old ids map below.
+  { id: 'platnoir', name: 'Platina Noir', desc: 'Prata · preto absoluto', accent: '#F4F4F6', a2: '#A7A9B0', a3: '#2A2B30', fg: '#F4F4F5', mut: '#A3A4AC', onA: '#121214', bg: '#050606', card: '#0B0B0C', card2: '#09090A', sunk: '#070708', raise: '#0E0E10', line: '#1A1A1D', line2: '#242528' },
+  { id: 'fume', name: 'Fumê', desc: 'Cinza quente · fumaça', accent: '#ECE7E2', a2: '#9C948C', a3: '#332E2A', fg: '#F2F0F0', mut: '#9F9DA0', onA: '#151312', bg: '#070605', card: '#0D0C0B', card2: '#0B0A09', sunk: '#080707', raise: '#110F0E', line: '#1E1C1A', line2: '#2A2724' },
+  { id: 'artico', name: 'Ártico', desc: 'Gelo · azul glacial', accent: '#EEF6FF', a2: '#A9C6E6', a3: '#22344A', fg: '#F2F5F8', mut: '#A4ADBD', onA: '#0E161F', bg: '#04070A', card: '#090E13', card2: '#070B10', sunk: '#05080C', raise: '#0B1118', line: '#161E28', line2: '#202A37' },
+  { id: 'salvia', name: 'Sálvia', desc: 'Verde-sálvia · pedra', accent: '#E4EEE6', a2: '#8FA898', a3: '#2C3A31', fg: '#F0F2F1', mut: '#9BA3A4', onA: '#121815', bg: '#060806', card: '#0B0F0D', card2: '#090C0A', sunk: '#070908', raise: '#0F1310', line: '#1B211D', line2: '#252E28' },
+  { id: 'marinho', name: 'Azul Marinho', desc: 'Marinho · névoa', accent: '#DCE6F2', a2: '#5E7FA8', a3: '#142640', fg: '#EDF0F4', mut: '#8C96A9', onA: '#08101B', bg: '#030508', card: '#050A11', card2: '#04080D', sunk: '#03060A', raise: '#070D15', line: '#101824', line2: '#182331' },
+  { id: 'absinto', name: 'Absinto', desc: 'Verde-limão · musgo escuro', accent: '#EEF7C8', a2: '#A9C84A', a3: '#34420E', fg: '#F2F5E8', mut: '#A4AD8B', onA: '#161C06', bg: '#070902', card: '#0E1104', card2: '#0B0E03', sunk: '#080B02', raise: '#111605', line: '#1E250D', line2: '#2A3314' },
+  { id: 'tangerina', name: 'Tangerina', desc: 'Laranja vivo · brasa', accent: '#FFE2C4', a2: '#F08A3C', a3: '#5A2A0C', fg: '#F7EFE7', mut: '#BA9A87', onA: '#261205', bg: '#0C0502', card: '#170B03', card2: '#130903', sunk: '#0E0702', raise: '#1E0E04', line: '#2E1A0C', line2: '#402413' },
+  { id: 'fucsia', name: 'Fúcsia Noir', desc: 'Fúcsia · ameixa', accent: '#FFD3EF', a2: '#E04FA8', a3: '#5A0F3E', fg: '#F7EBF3', mut: '#B587A9', onA: '#26061A', bg: '#0C0208', card: '#170410', card2: '#13030D', sunk: '#0E020A', raise: '#1E0514', line: '#2E0E23', line2: '#401530' },
+  { id: 'cobalto', name: 'Cobalto', desc: 'Azul elétrico · noite', accent: '#D6E4FF', a2: '#3D7BFF', a3: '#0D2466', fg: '#ECF0F8', mut: '#8195C5', onA: '#050F2B', bg: '#02050D', card: '#03091B', card2: '#030815', sunk: '#020610', raise: '#040C22', line: '#0D1734', line2: '#142247' },
+  { id: 'rosso', name: 'Rosso Corsa', desc: 'Vermelho corrida · carbono', accent: '#FFD6CF', a2: '#E8352B', a3: '#5C0B08', fg: '#F7ECEA', mut: '#B87E81', onA: '#270503', bg: '#0C0101', card: '#180302', card2: '#130202', sunk: '#0F0201', raise: '#1E0403', line: '#2F0C0C', line2: '#411312' },
+  { id: 'limao', name: 'Limão Siciliano', desc: 'Amarelo · oliva escura', accent: '#FFF6C8', a2: '#E2C93A', a3: '#4E4410', fg: '#F7F5E8', mut: '#B6AE86', onA: '#211D07', bg: '#0A0902', card: '#141204', card2: '#100E03', sunk: '#0C0B03', raise: '#1A1605', line: '#2A260E', line2: '#393416' },
   // Owner 2026-11-22 ("temas premium… todos diferentes"): jewel palettes in three tones — a light metal (accent),
   // a mid tone (a2) for fills and bars, a deep tone (a3) that tints the background; text and grey take a hint of it.
   { id: 'rubimp', name: 'Rubi Imperial', desc: 'Quartzo rosa · vinho profundo', accent: '#F6D9D0', a2: '#C97C80', a3: '#7A1E2C', fg: '#F5ECEB', mut: '#AE959D', onA: '#330D12', bg: '#100406', card: '#20080B', card2: '#1A0609', sunk: '#140507', raise: '#280A0F', line: '#3D151B', line2: '#521E25' },
@@ -64,16 +51,35 @@ export const THEMES = [
   { id: 'areia', name: 'Areia do Deserto', desc: 'Areia · couro · taupe', accent: '#F2E4CF', a2: '#B89B7A', a3: '#4E3C2B', fg: '#F3F0EA', mut: '#A89F9B', onA: '#211912', bg: '#0A0806', card: '#14100B', card2: '#100D09', sunk: '#0C0A07', raise: '#1A140E', line: '#2A221A', line2: '#392F25' },
   { id: 'cerejanoir', name: 'Cereja Noir', desc: 'Cereja · carmim', accent: '#FFD1D6', a2: '#E0435A', a3: '#5C0B18', fg: '#F7EAEC', mut: '#B58390', onA: '#27050A', bg: '#0C0103', card: '#180306', card2: '#130205', sunk: '#0F0204', raise: '#1E0408', line: '#2F0C12', line2: '#41131A' },
   { id: 'pavao', name: 'Pavão', desc: 'Azul-pavão · ouro', accent: '#CFEFF5', a2: '#2F9DB5', a3: '#0B3442', fg: '#EAF3F5', mut: '#7DA0AE', onA: '#05161C', bg: '#010709', card: '#030E11', card2: '#020B0E', sunk: '#02080B', raise: '#041116', line: '#0C1E25', line2: '#132A33' },
+  // Owner 2026-11-22 ("adicione ainda mais temas").
+  { id: 'nevoalilas', name: 'Névoa Lilás', desc: 'Lilás acinzentado · ardósia', accent: '#EEEAF4', a2: '#A49CB6', a3: '#302B3A', fg: '#F2F1F5', mut: '#A29FAE', onA: '#141218', bg: '#060608', card: '#0C0B0F', card2: '#0A090C', sunk: '#080709', raise: '#100E13', line: '#1D1A21', line2: '#28252E' },
+  { id: 'concreto', name: 'Concreto', desc: 'Cinza frio · cimento', accent: '#ECEEEF', a2: '#9AA0A3', a3: '#2D3133', fg: '#F2F2F3', mut: '#9FA1A8', onA: '#131515', bg: '#060607', card: '#0C0D0D', card2: '#090A0B', sunk: '#070808', raise: '#0F1011', line: '#1B1D1E', line2: '#26282A' },
+  { id: 'ourobranco', name: 'Ouro Branco', desc: 'Marfim · ouro claro', accent: '#FFF8EA', a2: '#D9CBA8', a3: '#3A3326', fg: '#F7F5F2', mut: '#B3AEA9', onA: '#181510', bg: '#080705', card: '#0F0D0A', card2: '#0C0B08', sunk: '#090806', raise: '#13110D', line: '#211E18', line2: '#2E2A23' },
+  { id: 'mentaneon', name: 'Menta Neon', desc: 'Menta viva · verde noite', accent: '#D8FFE9', a2: '#2FE08A', a3: '#0A4A2A', fg: '#ECF7F2', mut: '#7DB5A0', onA: '#041F12', bg: '#010A05', card: '#03130B', card2: '#021009', sunk: '#020C07', raise: '#03180E', line: '#0C281A', line2: '#123724' },
+  { id: 'ciano', name: 'Ciano Elétrico', desc: 'Ciano · abismo', accent: '#D3FBFF', a2: '#22D3EE', a3: '#083A44', fg: '#EBF6F8', mut: '#78B1C0', onA: '#03181D', bg: '#010809', card: '#020F12', card2: '#020C0E', sunk: '#01090B', raise: '#031316', line: '#0C2126', line2: '#122E34' },
+  { id: 'chiclete', name: 'Rosa Chiclete', desc: 'Rosa vivo · framboesa', accent: '#FFE0EE', a2: '#FF7EB6', a3: '#5A1033', fg: '#F7EEF3', mut: '#BF96AE', onA: '#260715', bg: '#0C0207', card: '#17040D', card2: '#13030B', sunk: '#0E0308', raise: '#1E0511', line: '#2E0E1E', line2: '#40162A' },
+  { id: 'magma', name: 'Magma', desc: 'Lava · basalto', accent: '#FFE0C9', a2: '#FF5A1F', a3: '#4A1206', fg: '#F7EEE9', mut: '#BF8A7E', onA: '#1F0803', bg: '#0A0201', card: '#130502', card2: '#100401', sunk: '#0C0301', raise: '#180602', line: '#280F0B', line2: '#371711' },
+  { id: 'glicinia', name: 'Glicínia', desc: 'Lavanda azulada · crepúsculo', accent: '#E6E6FF', a2: '#8E92F0', a3: '#26286A', fg: '#F0F0F8', mut: '#9B9CC0', onA: '#10112D', bg: '#05050E', card: '#0A0A1C', card2: '#080816', sunk: '#060611', raise: '#0D0D23', line: '#181936', line2: '#23244A' },
+  { id: 'blush', name: 'Blush', desc: 'Pêssego rosado · cacau', accent: '#FFE6E0', a2: '#F0A8A0', a3: '#4E2228', fg: '#F7F0EF', mut: '#BAA3A7', onA: '#210E11', bg: '#0A0405', card: '#14090A', card2: '#100708', sunk: '#0C0506', raise: '#1A0B0D', line: '#2A1619', line2: '#392024' },
+  { id: 'caramelo', name: 'Caramelo', desc: 'Caramelo · chocolate', accent: '#F8E0C2', a2: '#C98A4A', a3: '#4A2C12', fg: '#F5EEE7', mut: '#AE9A8B', onA: '#1F1208', bg: '#0A0602', card: '#130B05', card2: '#100904', sunk: '#0C0703', raise: '#180F06', line: '#281B0F', line2: '#372517' },
+  { id: 'berinjela', name: 'Berinjela', desc: 'Roxo profundo · vinho', accent: '#EED6F2', a2: '#9A4FB0', a3: '#33103D', fg: '#F2ECF4', mut: '#9F87AC', onA: '#15071A', bg: '#070208', card: '#0D0410', card2: '#0B030D', sunk: '#08030A', raise: '#110514', line: '#1E0E22', line2: '#2A1630' },
+  { id: 'bosque', name: 'Bosque', desc: 'Verde floresta · musgo', accent: '#DDEBDD', a2: '#5E8F64', a3: '#152A18', fg: '#EEF1EE', mut: '#8C9B94', onA: '#09120A', bg: '#030503', card: '#050B06', card2: '#040905', sunk: '#030704', raise: '#070E08', line: '#101A12', line2: '#19241A' },
+  { id: 'anil', name: 'Anil', desc: 'Anil · violeta noturno', accent: '#E2DCFF', a2: '#6A5CF0', a3: '#1E1660', fg: '#EFEDF8', mut: '#8F8BC0', onA: '#0D0928', bg: '#04030C', card: '#080619', card2: '#060514', sunk: '#05040F', raise: '#0A0720', line: '#151131', line2: '#1E1944' },
+  { id: 'porto', name: 'Vinho do Porto', desc: 'Vinho · carvalho', accent: '#F2D4D0', a2: '#9E3B3B', a3: '#3E0F12', fg: '#F3EBEB', mut: '#A08086', onA: '#1A0608', bg: '#080202', card: '#100405', card2: '#0D0304', sunk: '#0A0203', raise: '#140506', line: '#230E0F', line2: '#301517' },
   { id: 'ha', name: 'Home Assistant', desc: 'Segue o tema do HA', ha: true }
 ];
 // Theme gallery families (owner 2026-11-20: "uma visualização melhor").
+// Old theme ids (before 2026-11-22) → their closest jewel theme, so nobody's choice breaks.
+const THEME_ALIAS = { aureon: 'champnoir', ambar: 'ambmel', oceano: 'safnoite', ametista: 'ametvel', jade: 'esmreal', rose: 'bordcout', platina: 'platnoir', champagne: 'champnoir', cobre: 'cobrebrun', bordo: 'bordcout', esmeralda: 'esmreal', safira: 'safnoite', aurora: 'turqart', oliva: 'musgolat', grafite: 'titazul', onix: 'platnoir', perola: 'artico', ourorose: 'coralcrep', titanio: 'titazul', rubi: 'rubimp', terracota: 'coralcrep', petroleo: 'oceprof', indigo: 'ametvel' };
+const DEFAULT_THEME = 'champnoir';
+const themeId = (id) => THEME_ALIAS[id] || id || DEFAULT_THEME;
 const THEME_FAMS = [
   ['famLux', ['rubimp', 'esmreal', 'safnoite', 'champnoir', 'ametvel', 'ouronegro', 'bordcout', 'oceprof', 'cerejanoir']],
   ['famAtelier', ['cobrebrun', 'titazul', 'ambmel', 'orquidea', 'turqart', 'musgolat', 'coralcrep', 'areia', 'pavao']],
-  ['famClassic', ['aureon', 'champagne', 'onix', 'platina', 'perola', 'grafite']],
-  ['famMetal', ['ambar', 'cobre', 'ourorose', 'titanio', 'oliva', 'terracota']],
-  ['famStone', ['ametista', 'jade', 'esmeralda', 'safira', 'rubi', 'bordo']],
-  ['famNight', ['oceano', 'aurora', 'petroleo', 'indigo', 'rose']],
+  ['famNeutral', ['platnoir', 'fume', 'artico', 'salvia', 'marinho', 'nevoalilas', 'concreto', 'ourobranco']],
+  ['famVivid', ['absinto', 'tangerina', 'fucsia', 'cobalto', 'rosso', 'limao', 'mentaneon', 'ciano', 'chiclete', 'magma']],
+  ['famSoft', ['glicinia', 'blush', 'caramelo']],
+  ['famDeep', ['berinjela', 'bosque', 'anil', 'porto']],
   ['famHa', ['ha']]
 ];
 const SECTIONS = ['lights', 'climate', 'plugs', 'energy', 'covers', 'openings', 'security', 'tv', 'music'];
@@ -236,7 +242,7 @@ class AureonDashboard extends LitElement {
   _loadPrefs() {
     let p = {};
     try { p = JSON.parse(localStorage.getItem(this._key) || '{}') || {}; } catch { p = {}; }
-    this._prefs = { theme: 'aureon', view: '3d', secOrder: SECTIONS.slice(), order: {}, aliases: {}, hidden: [], wasteAck: {}, ...p };
+    this._prefs = { theme: DEFAULT_THEME, view: '3d', secOrder: SECTIONS.slice(), order: {}, aliases: {}, hidden: [], wasteAck: {}, ...p };
     const so = (this._prefs.secOrder || []).filter((k) => SECTIONS.includes(k));
     this._prefs.secOrder = so.concat(SECTIONS.filter((k) => !so.includes(k)));
   }
@@ -265,7 +271,7 @@ class AureonDashboard extends LitElement {
   }
   _applyRemote(v) {
     const so = (v.secOrder || []).filter((k) => SECTIONS.includes(k));
-    this._prefs = { theme: 'aureon', view: '3d', order: {}, aliases: {}, hidden: [], wasteAck: {}, ...v, secOrder: so.concat(SECTIONS.filter((k) => !so.includes(k))) };
+    this._prefs = { theme: DEFAULT_THEME, view: '3d', order: {}, aliases: {}, hidden: [], wasteAck: {}, ...v, secOrder: so.concat(SECTIONS.filter((k) => !so.includes(k))) };
     try { localStorage.setItem(this._key, JSON.stringify(this._prefs)); } catch { /* ok */ }
     this.requestUpdate();
   }
@@ -353,7 +359,7 @@ class AureonDashboard extends LitElement {
     }
     stage.classList.add('ready');
   }
-  _theme() { return THEMES.find((t) => t.id === this._prefs?.theme) || THEMES[0]; }
+  _theme() { const id = themeId(this._prefs?.theme); return THEMES.find((t) => t.id === id) || THEMES.find((t) => t.id === DEFAULT_THEME); }
   _toast(title, body) { this._toasts = [...this._toasts, { id: Math.random().toString(36).slice(2), title, body, exp: Date.now() + 9000 }]; this.requestUpdate(); }
   _call(domain, service, data) { return this.hass.callService(domain, service, data).catch((e) => this._toast(domain + '.' + service, String(e?.message || e))); }
 
@@ -1291,13 +1297,13 @@ class AureonDashboard extends LitElement {
       const kinds = prefs.reminderKinds || {};
       body = html`
         ${grp('theme', t('theme'), html`
-        ${(ui.thAll ? THEME_FAMS : THEME_FAMS.filter(([, ids]) => ids.includes(prefs.theme || 'aureon')).concat(THEME_FAMS.some(([, ids]) => ids.includes(prefs.theme || 'aureon')) ? [] : [THEME_FAMS[0]])).map(([fk, ids]) => html`<span class="thfam">${t(fk)}</span>
-        <div class="thgal">${ids.map((id) => THEMES.find((x) => x.id === id)).filter(Boolean).map((x) => { const on = (prefs.theme || 'aureon') === x.id;
-          const pv = x.ha ? '--pb:var(--primary-background-color,#111);--pc:var(--card-background-color,#1c1c1c);--pa:var(--primary-color,#03a9f4);--pl:rgba(255,255,255,.08)' : `--pb:${x.bg};--pc:${x.card};--pa:${x.accent};--pl:${x.line2}`;
+        ${(ui.thAll ? THEME_FAMS : THEME_FAMS.filter(([, ids]) => ids.includes(themeId(prefs.theme))).concat(THEME_FAMS.some(([, ids]) => ids.includes(themeId(prefs.theme))) ? [] : [THEME_FAMS[0]])).map(([fk, ids]) => html`<span class="thfam">${t(fk)}</span>
+        <div class="thgal">${ids.map((id) => THEMES.find((x) => x.id === id)).filter(Boolean).map((x) => { const on = (themeId(prefs.theme)) === x.id;
+          const pv = x.ha ? '--pb:var(--primary-background-color,#111);--pc:var(--card-background-color,#1c1c1c);--pa:var(--primary-color,#03a9f4);--pl:rgba(255,255,255,.08)' : `--pb:${x.a3 ? `radial-gradient(90% 90% at 100% 0%,${x.a3},${x.bg} 70%)` : x.bg};--pc:${x.card};--pa:${x.a2 || x.accent};--pl:${x.line2}`;
           return html`<button class=${'thc' + (on ? ' on' : '')} aria-pressed=${on ? 'true' : 'false'} aria-label=${x.name + ' · ' + x.desc} style=${pv} @click=${() => this._save({ theme: x.id })}>
             <span class="thpv" aria-hidden="true"><span class="thglow"></span><span class="thcard"><i class="thclock">21:39</i><i class="thline"></i><i class="thdots"><b></b><b></b><b></b></i></span><span class="thpill"></span></span>
             <span class="thtx"><b>${x.name}</b><small>${x.desc}</small></span>${on ? html`<span class="thok">${ic('check', 'i s')}</span>` : nothing}</button>`; })}</div>`)}
-        <button class="thall" @click=${() => this._set({ thAll: !ui.thAll })}><span>${ui.thAll ? t('thFewer') : THEME_FAMS.filter(([, ids]) => !ids.includes(prefs.theme || 'aureon')).map(([fk]) => t(fk)).join(' · ')}</span><b>${ui.thAll ? t('thFewerB') : t('thAll')}${ic(ui.thAll ? 'up' : 'right', 'i s')}</b></button>`, false, false)}
+        <button class="thall" @click=${() => this._set({ thAll: !ui.thAll })}><span>${ui.thAll ? t('thFewer') : THEME_FAMS.filter(([, ids]) => !ids.includes(themeId(prefs.theme))).map(([fk]) => t(fk)).join(' · ')}</span><b>${ui.thAll ? t('thFewerB') : t('thAll')}${ic(ui.thAll ? 'up' : 'right', 'i s')}</b></button>`, false, false)}
         ${grp('mapw', t('stMapWeather'), html`<div class="chk">${tile('mapI', TINT.blue)}<span class="grow txt"><b>${t('stDefaultView')}</b></span><span class="seg"><button aria-pressed=${prefs.view !== '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button><button aria-pressed=${prefs.view === '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></div>
         ${weathers.length > 1 ? html`<div class="chk">${tile('cloud', TINT.silver)}<span class="grow txt"><b>${t('forecastT')}</b></span><select style="min-height:40px;border-radius:10px;background:var(--sunk);color:var(--fg);border:1px solid var(--line2);padding:0 10px;font:inherit" @change=${(e) => { this._save({ weather: e.target.value }); this._fcFor = null; this.requestUpdate(); }}>${weathers.map((w) => html`<option value=${w} ?selected=${(prefs.weather || weathers[0]) === w}>${this.hass.states[w].attributes.friendly_name || w}</option>`)}</select></div>` : nothing}`)}
         ${grp('energy', t('energy'), html`

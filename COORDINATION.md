@@ -1629,3 +1629,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22o (AUREON Noir 1.8.6)
 - 18 premium themes (`a2`/`a3`/`fg`/`mut`/`onA` per theme, generated from 3 tones); families famLux/famAtelier first. Page gets `.prem` + `--a1/--a2/--a3`; CSS turns `background:var(--accent)` fills, `.btn.pri`, switches into a1→a2 metal gradients; pagebg glows from a2/a3. Theme test now expects 42 themes / 7 families; Oceano click matches exact name.
+
+## Claude batch — 2026-11-22p (AUREON Noir 1.8.7)
+- Old 24 themes removed; `THEME_ALIAS` maps old ids → jewel ids, `themeId()`/`DEFAULT_THEME` ('champnoir') used by `_theme()`, defaults and gallery. 25 new jewel themes; families famLux, famAtelier, famNeutral, famVivid, famSoft, famDeep, famHa. Gallery preview uses a2 + a3 glow. Tests: 44 cards / 7 families, alias migration check.
