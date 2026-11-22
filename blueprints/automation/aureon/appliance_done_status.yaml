@@ -37,6 +37,15 @@ blueprint:
       default: A máquina de lavar terminou.
       selector:
         text: {}
+    announce_volume:
+      name: Volume do aviso
+      description: >
+        A Alexa fala neste volume só para este aviso e depois volta ao volume que estava. 0 = não mexer
+        no volume (fala no volume atual). Funciona com a Echo como media player (Alexa Devices recente
+        ou Alexa Media Player).
+      default: 60
+      selector:
+        number: {min: 0, max: 100, step: 5, unit_of_measurement: "%", mode: slider}
     quiet_start:
       name: Silêncio a partir de
       default: "22:00:00"
@@ -51,6 +60,8 @@ mode: single
 variables:
   finished_states: !input finished_states
   speakers: !input speakers
+  announce_volume: !input announce_volume
+  message_text: !input message
 triggers:
   - trigger: state
     entity_id: !input status_entity
@@ -70,6 +81,33 @@ actions:
   - variables:
       alexa_notify: "{{ speakers | select('match', '^notify\\.') | list }}"
       alexa_media: "{{ speakers | select('match', '^media_player\\.') | list }}"
+      # The Echo(s) as media players: the chosen ones, or the media player of the same device as each
+      # "Anunciar" entity. Only these get the temporary volume.
+      vol_players: >
+        {% set ns = namespace(p=[]) %}
+        {% for s in speakers %}
+          {% if s.startswith('media_player.') %}{% set ns.p = ns.p + [s] %}
+          {% else %}{% set d = device_id(s) %}{% if d %}{% set ns.p = ns.p + (device_entities(d) | select('match', '^media_player\\.') | list) %}{% endif %}{% endif %}
+        {% endfor %}
+        {{ ns.p | unique | list if (announce_volume | float(0)) > 0 else [] }}
+      old_volumes: >
+        {% set ns = namespace(v={}) %}
+        {% for p in vol_players %}{% set x = state_attr(p, 'volume_level') %}
+          {% if x is number %}{% set ns.v = dict(ns.v, **{p: x}) %}{% endif %}
+        {% endfor %}
+        {{ ns.v }}
+  # Only Echos whose current volume Home Assistant knows get the temporary volume, so it can always be put back.
+  - if:
+      - condition: template
+        value_template: "{{ old_volumes | count > 0 }}"
+    then:
+      - action: media_player.volume_set
+        continue_on_error: true
+        target:
+          entity_id: "{{ old_volumes | list }}"
+        data:
+          volume_level: "{{ (announce_volume | float(60)) / 100 }}"
+      - delay: "00:00:01"
   - if:
       - condition: template
         value_template: "{{ alexa_notify | count > 0 }}"
@@ -89,3 +127,19 @@ actions:
           target: "{{ alexa_media }}"
           data:
             type: announce
+  # Back to the volume it had before (only where Home Assistant knew it).
+  - if:
+      - condition: template
+        value_template: "{{ old_volumes | count > 0 }}"
+    then:
+      - delay:
+          seconds: "{{ (6 + (message_text | length) / 14) | int }}"
+      - repeat:
+          for_each: "{{ old_volumes | list }}"
+          sequence:
+            - action: media_player.volume_set
+              continue_on_error: true
+              target:
+                entity_id: "{{ repeat.item }}"
+              data:
+                volume_level: "{{ old_volumes[repeat.item] }}"

@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.7.3';
-export const BUILD = 'AUREON-NOIR-20261122b';
+export const VERSION = '1.7.4';
+export const BUILD = 'AUREON-NOIR-20261122c';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -95,6 +95,35 @@ const P = {
 };
 // A refined wheelie bin in the bin's colour (owner 2026-11-16: "algo como a opção A, porém mais elegante").
 let binSeq = 0;
+// Owner 2026-11-22 ("mais rico e visual"): drawn machines and robot for "Acontecendo agora". run = working;
+// f = progress 0..1 (null = unknown → a soft spinning arc); disp = text in the little display.
+const washerSvg = (run, f, disp, key) => svg`<svg class="apill" viewBox="0 0 128 150" aria-hidden="true"><defs>
+  <linearGradient id=${'wb' + key} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F2F3F1"></stop><stop offset=".55" stop-color="#D7DAD6"></stop><stop offset="1" stop-color="#AEB2AE"></stop></linearGradient>
+  <radialGradient id=${'wg' + key} cx=".4" cy=".35"><stop offset="0" stop-color=${run ? '#9CC2FF' : '#3A4146'}></stop><stop offset="1" stop-color=${run ? '#1E3A66' : '#0E1214'}></stop></radialGradient>
+  <clipPath id=${'wc' + key}><circle cx="64" cy="88" r="29"></circle></clipPath></defs>
+  <rect x="6" y="4" width="116" height="142" rx="12" fill=${'url(#wb' + key + ')'}></rect><rect x="6" y="4" width="116" height="28" rx="12" fill="#E9EBE8"></rect><rect x="6" y="26" width="116" height="2" fill="#C4C8C4"></rect>
+  <rect x="16" y="12" width="34" height="9" rx="2" fill="#1A1E20"></rect><text x="33" y="19" fill=${run ? '#9CC2FF' : '#5B6266'} font-size="7" font-family="ui-monospace,monospace" text-anchor="middle">${disp || '--:--'}</text>
+  <circle cx="102" cy="16" r="7" fill="#CDD1CD" stroke="#9EA39F"></circle><circle cx="64" cy="88" r="42" fill="#C9CDC9" stroke="#A4A9A5"></circle>
+  ${run ? (f != null ? svg`<circle class="apr" cx="64" cy="88" r="40" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray=${(Math.max(0.02, f) * 251).toFixed(0) + ' 252'} transform="rotate(-90 64 88)"></circle>` : svg`<circle class="apr spin" cx="64" cy="88" r="40" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="70 252"></circle>`) : nothing}
+  <circle cx="64" cy="88" r="33" fill="#2A2F32"></circle><circle cx="64" cy="88" r="29" fill=${'url(#wg' + key + ')'}></circle>
+  ${run ? svg`<g clip-path=${'url(#wc' + key + ')'}><path class="wave" d="M20 96 Q38 84 56 94 T92 90 T128 94 L128 124 L20 124Z" fill="#6E9BE8" opacity=".55"></path></g><path d="M48 80 a16 16 0 0 1 28 -4" stroke="#CFE0FF" stroke-width="2" fill="none" opacity=".6"></path>` : svg`<circle cx="64" cy="88" r="20" fill="none" stroke="#1C2124" stroke-width="2" stroke-dasharray="2 5"></circle>`}
+  <path d="M44 70 A28 28 0 0 1 70 60" stroke="#fff" stroke-opacity=".35" stroke-width="4" fill="none" stroke-linecap="round"></path></svg>`;
+const dishSvg = (run, f, disp, key) => svg`<svg class="apill" viewBox="0 0 128 150" aria-hidden="true"><defs>
+  <linearGradient id=${'db' + key} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E4E6E3"></stop><stop offset=".5" stop-color="#C3C7C3"></stop><stop offset="1" stop-color="#8F948F"></stop></linearGradient></defs>
+  <rect x="10" y="4" width="108" height="142" rx="10" fill=${'url(#db' + key + ')'}></rect><rect x="10" y="4" width="108" height="22" rx="10" fill="#2A2E30"></rect><rect x="10" y="18" width="108" height="8" fill="#2A2E30"></rect>
+  <rect x="20" y="10" width="38" height="8" rx="2" fill="#121516"></rect><text x="39" y="16.5" fill=${run ? '#9CC2FF' : '#5B6266'} font-size="6.5" font-family="ui-monospace,monospace" text-anchor="middle">${disp || '--:--'}</text>
+  ${[0, 1, 2, 3].map((i) => svg`<circle cx=${72 + i * 11} cy="14" r="2.6" fill=${run && i === 1 ? '#8FB8FF' : '#4A5054'}></circle>`)}
+  <rect x="40" y="36" width="48" height="6" rx="3" fill="#9DA29E" stroke="#7E837F"></rect><path d="M14 30 H114" stroke="#fff" stroke-opacity=".25"></path>
+  ${run ? svg`<rect x="20" y="132" width="88" height="3" rx="1.5" fill="#25292B"></rect>${f != null ? svg`<rect class="apb" x="20" y="132" width=${(88 * Math.max(0.03, f)).toFixed(0)} height="3" rx="1.5"></rect>` : svg`<rect class="apb spinb" x="20" y="132" width="26" height="3" rx="1.5"></rect>`}<path class="apglow" d="M12 146 h104" stroke-width="2"></path>` : nothing}
+  <path d="M20 50 L40 140" stroke="#fff" stroke-opacity=".12" stroke-width="10"></path></svg>`;
+const robotSvg = (bat, on, key) => { const f = bat != null ? Math.max(0, Math.min(1, bat / 100)) : 0; return svg`<svg class="robill" viewBox="0 0 128 128" aria-hidden="true"><defs>
+  <radialGradient id=${'rb' + key} cx=".4" cy=".3"><stop offset="0" stop-color="#3A3F42"></stop><stop offset="1" stop-color="#121516"></stop></radialGradient>
+  <radialGradient id=${'rt' + key} cx=".4" cy=".35"><stop offset="0" stop-color="#5A6064"></stop><stop offset="1" stop-color="#1E2224"></stop></radialGradient></defs>
+  <circle cx="64" cy="64" r="60" fill="none" stroke="var(--line2)" stroke-width="4"></circle>
+  ${bat != null ? svg`<circle class=${'rbat' + (f <= 0.2 ? ' low' : '')} cx="64" cy="64" r="60" fill="none" stroke-width="4" stroke-linecap="round" stroke-dasharray=${(f * 377).toFixed(0) + ' 378'} transform="rotate(-90 64 64)"></circle>` : nothing}
+  <g class=${on ? 'rspin' : ''}><circle cx="64" cy="64" r="48" fill=${'url(#rb' + key + ')'} stroke="#2C3133" stroke-width="2"></circle><path d="M28 50 A40 40 0 0 1 100 50" stroke="#fff" stroke-opacity=".12" stroke-width="5" fill="none" stroke-linecap="round"></path>
+  <circle cx="64" cy="56" r="13" fill=${'url(#rt' + key + ')'} stroke="#33393C"></circle><circle class="reye" cx="64" cy="56" r="4"></circle>
+  <path d="M36 82 Q64 96 92 82" stroke="#2E3436" stroke-width="3" fill="none"></path><circle class="reye" cx="54" cy="86" r="2"></circle><circle cx="64" cy="88" r="2" fill="#4A5054"></circle><circle cx="74" cy="86" r="2" fill="#4A5054"></circle></g></svg>`; };
 const binSvg = (c, open, key, cls = '') => {
   const id = 'b' + (++binSeq % 100000) + key, dk = `color-mix(in srgb,${c} 45%,#000)`, md = `color-mix(in srgb,${c} 80%,#000)`, lt = `color-mix(in srgb,${c} 70%,#fff)`;
   return svg`<svg class=${'wb ' + cls + (open ? ' open' : '')} viewBox="0 0 60 78"><defs>
@@ -993,8 +1022,9 @@ class AureonDashboard extends LitElement {
     this._loadAlexaAutos();
     const au = this._alexaFind(a);
     const st = au && this.hass.states[au.id], on = st?.state === 'on';
-    return html`<div class="alexa">${ic('speaker', 'i s')}<span class="grow txt">${t('alexaDone')}</span>
-      ${au ? html`<button class="switch" role="switch" aria-checked=${on ? 'true' : 'false'} aria-label=${t('alexaDone') + ' · ' + a.name} @click=${() => this._call('automation', on ? 'turn_off' : 'turn_on', { entity_id: au.id })}><span><i></i></span></button>`
+    // Owner 2026-11-22: a glass pill ("Alexa avisa"), green dot when on; same automation switch as before.
+    return html`<div class="alexa">
+      ${au ? html`<button class=${'alx' + (on ? ' on' : '')} role="switch" aria-checked=${on ? 'true' : 'false'} aria-label=${t('alexaDone') + ' · ' + a.name} @click=${() => this._call('automation', on ? 'turn_off' : 'turn_on', { entity_id: au.id })}><i aria-hidden="true"></i>${ic('bell', 'i s')}${t('alexaShort')}</button>`
         : html`<button class="btn sm" @click=${() => { history.pushState(null, '', '/config/blueprint/dashboard'); window.dispatchEvent(new CustomEvent('location-changed')); }}>${t('alexaSetup')}</button>`}</div>`;
   }
   // Older machines measured by a plug: the cycle is read from the plug's power history (start, and the end once the
@@ -1264,6 +1294,7 @@ class AureonDashboard extends LitElement {
           <div class="grow" style="display:flex;flex-direction:column;gap:3px"><span class="tag" style="color:var(--mut)">${t('notSetUp')}</span><span class="ttl">${t('kind_' + a.placeholder)}</span><span class="muted txt" style="font-size:13px">${t('notSetUpHint')}</span></div></div>
         <button class="btn" style="align-self:flex-start" @click=${() => this._set({ settings: 'aparelhos' })}>${ic('gear', 'i s')}${t('setUp')}</button></article>`);
     }
+    const appl = [];
     for (const a of applCards.filter((x) => !x.placeholder)) {
       const C = 2 * Math.PI * 31, pct = a.done ? 100 : a.pct != null ? a.pct : null;
       const icon = a.kind === 'dish' ? 'dish' : 'washer';
@@ -1271,16 +1302,26 @@ class AureonDashboard extends LitElement {
       const hm = (d) => d.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
       const idle = !a.running && !a.done;
       const detail = idle ? (a.plug ? [t('applIdle'), a.w ? a.w + ' W' : null].filter(Boolean).join(' · ') : [t('applIdle'), a.status && !/^(off|aus|inactive|ready|bereit)$/i.test(a.status) ? a.status : null].filter(Boolean).join(' · ')) : a.plug ? (a.done ? t('plugDone', { t: hm(a.endedAt) }) : [a.startAt ? t('plugSince', { m: Math.max(1, Math.round((now - a.startAt) / 60000)) }) : t('running'), a.w + ' W ' + t('nowS')].join(' · ')) : a.done ? [a.program, t('cycleDone')].filter(Boolean).join(' · ') : [a.program || null, a.mins != null ? t('remaining', { m: Math.round(a.mins) }) : null, a.endAt ? t('endsAt', { t: a.endAt.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : null, !a.mins && !a.endAt ? a.status : null].filter(Boolean).join(' · ');
-      cards.push(html`<article class="act" style=${a.done ? `border-color:var(--accent);box-shadow:0 24px 70px -30px ${rgba(ctx.aRgb, 0.6)}` : ''}>
+      // Owner 2026-11-22 ("mais rico e visual"): the machine itself is drawn; working = water / light, progress ring,
+      // the remaining or elapsed time in its display; done = accent glow + OK.
+      const elapsed = a.plug && a.running && a.startAt ? Math.max(1, Math.round((now - a.startAt) / 60000)) : null;
+      // Owner 2026-11-22: the little display shows WHEN it finishes (end time); a plug machine has no end time, so it
+      // shows how long it has been running.
+      const endT = a.endAt || (a.mins != null ? new Date(now.getTime() + a.mins * 60000) : null);
+      const disp = a.done ? 'END' : a.running ? (endT ? hm(endT) : elapsed != null ? elapsed + ' min' : '') : '';
+      const fr = a.running && pct != null ? pct / 100 : null, key = String(a.id).replace(/\W/g, '');
+      appl.push(html`<article class=${'act ap' + (a.running ? ' run' : '') + (a.done ? ' done' : '')}>
         ${this.editBar('appliances', dev, [], t)}
-        <div class="row" style="gap:16px;align-items:center"><div class="ring">${svg`<svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="31" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="5"></circle>${pct != null ? svg`<circle cx="36" cy="36" r="31" fill="none" stroke-width="5" stroke-linecap="round" stroke=${a.done ? 'var(--accent)' : '#8FB8FF'} stroke-dasharray=${(C * pct / 100).toFixed(1) + ' ' + C.toFixed(1)}></circle>` : a.running ? svg`<circle class="spinarc" cx="36" cy="36" r="31" fill="none" stroke-width="5" stroke-linecap="round" stroke="#8FB8FF" stroke-dasharray=${(C * 0.28).toFixed(1) + ' ' + C.toFixed(1)}></circle>` : nothing}</svg>`}
-          <span style=${a.done ? 'color:var(--accent)' : idle ? 'color:var(--mut)' : 'color:#C9D8F5'}>${ic(icon)}</span></div>
-          <div class="grow" style="display:flex;flex-direction:column;gap:3px"><span class="tag" style=${a.done ? 'color:var(--accent)' : 'color:var(--mut)'}>${a.done ? '● ' + t('cycleDone') : (a.areaName ? a.areaName + ' · ' : '') + (idle ? t('applIdleTag') : pct != null ? Math.round(pct) + '%' : t('running'))}</span>
-            <span class="ttl">${a.name}</span><span class="muted txt" style="font-size:13px">${detail}</span>
-            ${a.plug ? html`<span class="byplug">${ic('plug', 'i s')}${t('byPlug')}</span>` : nothing}</div></div>
-        ${a.plug && a.done ? html`<button class="btn sm" style="align-self:flex-start" @click=${() => this._save({ cycleAck: { ...(this._prefs.cycleAck || {}), [a.id]: a.runEnd } })}>${ic('check', 'i s')}${t('okS')}</button>` : nothing}
+        <span class="apbox">${icon === 'dish' ? dishSvg(a.running, fr, disp, key) : washerSvg(a.running, fr, disp, key)}${a.done ? html`<span class="apok" aria-hidden="true">${ic('check', 'i s')}</span>` : nothing}</span>
+        <span class="aptx"><span class="ttl txt">${a.name}</span>
+          <span class="apst txt">${a.done ? [a.areaName, t('cycleDone')].filter(Boolean).join(' · ') : [a.areaName, idle ? t('applIdleTag').toLowerCase() : null].filter(Boolean).join(' · ')}</span>
+          ${(!idle || !a.plug) && !(a.done && !a.program) ? html`<span class="muted txt" style="font-size:12px">${a.done ? a.program : detail}</span>` : nothing}
+          ${a.plug ? html`<span class="byplug">${ic('plug', 'i s')}${t('byPlug')}</span>` : nothing}</span>
+        ${a.running && pct != null ? html`<span class="approg" aria-hidden="true"><i style=${`width:${Math.round(pct)}%`}></i></span>` : nothing}
+        ${a.plug && a.done ? html`<button class="btn sm" @click=${() => this._save({ cycleAck: { ...(this._prefs.cycleAck || {}), [a.id]: a.runEnd } })}>${ic('check', 'i s')}${t('okS')}</button>` : nothing}
         ${this.alexaRow(a, t)}</article>`);
     }
+    if (appl.length) cards.unshift(html`<div class=${'apgrid' + (appl.length === 1 ? ' one' : '')}>${appl}</div>`);
     if (m.waste.length) {
       // Owner 2026-11-16: the next pickup as a big, refined bin; today is always stated; the next days on a shelf.
       const ack = this._prefs.wasteAck || {};
@@ -1307,8 +1348,9 @@ class AureonDashboard extends LitElement {
             ${sub ? html`<span class="wsub txt">${sub}</span>` : nothing}
             ${hero.days <= 1 ? (out ? html`<span class="wok">${ic('check', 'i s')}${t('wasteOut')}</span>` : html`<button class="wbtn" @click=${() => this._save({ wasteAck: { ...ack, ...Object.fromEntries(keys.map((k) => [k, true])) } })}>${ic('check', 'i s')}${t('wasteDoneS')}</button>`) : nothing}
           </div>
+            ${hero.days >= 1 ? html`<span class="wcd" aria-label=${t('inDays', { n: hero.days })}><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" class="bg"></circle><circle cx="32" cy="32" r="28" class="fg" stroke-dasharray=${(Math.max(0.08, 1 - hero.days / 7) * 176).toFixed(0) + ' 176'} transform="rotate(-90 32 32)"></circle></svg><b>${hero.days}</b><small>${t(hero.days === 1 ? 'dayS' : 'daysS')}</small></span>` : nothing}
         </div>
-        ${shelf.length ? html`<div class="wshelf">${shelf.map((w, i) => html`<span class="wsi"><i class="wdot" style=${'background:' + binColor(w.type)}></i><b class="txt">${shortBin(w.type)}</b><span class="mono">${dayLabel(w)}</span></span>`)}</div>` : nothing}
+        ${shelf.length ? html`<div class="wshelf">${shelf.map((w, i) => html`<span class="wsi">${binSvg(binColor(w.type), false, 's' + i, 'mini')}<b class="txt">${shortBin(w.type)}</b><span class="mono">${dayLabel(w)}</span></span>`)}</div>` : nothing}
       </div></article>`);
     }
     for (const v of m.vacuums) {
@@ -1317,13 +1359,11 @@ class AureonDashboard extends LitElement {
       // Owner 2026-11-18: every live card the same size; the map opens in the Home Assistant dialog.
       const curRoom = vr && vr.cur >= 0 ? vr.list[vr.cur] : null;
       const label = { cleaning: t('cleaning'), docked: t('docked'), returning: t('returning'), paused: t('vPaused'), error: t('vError'), idle: t('idle') }[st] || st;
-      cards.push(html`<article class="act" style=${cleaning ? 'border-color:rgba(126,224,168,.35)' : ''}>
-        <div class="row sp" style="align-items:flex-start;gap:12px"><div class="grow" style="display:flex;flex-direction:column;gap:3px">
+      cards.push(html`<article class=${'act rob' + (cleaning ? ' on' : '')}>
+        <div class="robrow"><div class="grow" style="display:flex;flex-direction:column;gap:3px;min-width:0">
           <span class="tag" style=${cleaning ? 'color:#7EE0A8' : 'color:var(--mut)'}>${cleaning ? '● ' : ''}${label}${curRoom && active ? ' · ' + curRoom : v.areaName ? ' · ' + v.areaName : ''}</span>
           <span class="ttl">${v.name}</span><span class="muted txt" style="font-size:13px">${vr && active ? [vr.whole ? t('wholeHome') : null, vr.cur >= 0 ? t('roomOf', { a: vr.cur + 1, b: vr.list.length }) : null, bat != null ? t('battery') + ' ' + Math.round(bat) + '%' : null].filter(Boolean).join(' · ') : [bat != null ? t('battery') + ' ' + Math.round(bat) + '%' : null, ...(v.facts || [])].filter(Boolean).join(' · ')}</span></div>
-          <span style="position:relative;width:56px;height:56px;flex:none" aria-hidden="true"><span style="position:absolute;inset:0;border-radius:50%;border:1px dashed var(--line2)"></span>
-            <span class="orbit" style=${'position:absolute;inset:0;' + (cleaning ? 'animation:orbit 5s linear infinite' : 'opacity:0')}><span style="position:absolute;left:50%;top:-6px;margin-left:-9px;width:18px;height:18px;border-radius:50%;background:var(--card);border:1.5px solid var(--accent)"></span></span>
-            <span style=${`position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:${cleaning ? 'var(--accent)' : '#7EE0A8'}`}></span></span></div>
+          <span class="robbox">${robotSvg(bat, cleaning, String(v.id).replace(/\W/g, ''))}</span></div>
         ${vr && active ? html`<div class="vrooms" role="list" aria-label=${t('roomOf', { a: vr.cur + 1, b: vr.list.length })}>${vr.list.map((r, i) => html`<span role="listitem" class=${'vr' + (i < vr.cur ? ' done' : i === vr.cur ? ' now' : '')}><i></i><span class="txt">${r}</span></span>`)}</div>` : nothing}
         <div class="wrapRow">
           ${cleaning ? html`<button class="btn" @click=${() => this._call('vacuum', 'pause', { entity_id: v.id })}>${ic('pause', 'i s f')}${t('stop')}</button>` : html`<button class="btn pri" @click=${() => this._call('vacuum', 'start', { entity_id: v.id })}>${ic('play', 'i s f')}${t('start')}</button>`}

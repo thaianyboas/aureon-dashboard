@@ -1587,3 +1587,7 @@ The Music browser suite passed again with that label and native transfer.
 ## Claude batch — 2026-11-22b (AUREON Noir 1.7.3)
 - Luzes redesign (owner chose "linhas do C + A"). Lights use `roomGroups(..., { grpCls: 'pgx lgx', listCls: 'lbxs', grpStyle })` and render `.lbx` rows: `.lfl` fill = brightness in the light colour, `.lbi` bulb, `.lnx` name (button opens more-info), `.lpc` %, `.switch`; a hidden `.lrng.sr` range stays for keyboard. Pointer drag sideways sets `brightness_pct` on release; a tap toggles; `touch-action: pan-y` keeps scrolling.
 - `roomGroups` got optional `grpStyle(on)`. Clima header uses `noneHeating` unless every room is within 0.5° of target. Tests PASS.
+
+## Claude batch — 2026-11-22c (AUREON Noir 1.7.4)
+- Activity ("Acontecendo agora") redesign: `washerSvg/dishSvg/robotSvg`; appliances in `.apgrid` of `.act.ap(.run/.done)` cards; display shows end time (`endAt` or now+mins) or elapsed for plug machines. Alexa row → `.alx` pill (role=switch). Waste: `.wcd` countdown ring, mini bins on the shelf. Robot `.act.rob` with `.robbox`.
+- Blueprints appliance_done_power/status: input `announce_volume` (0 = off). Volume set only on media players whose volume HA knows (`old_volumes`), restored after the message. Templates tested with Jinja; not tested on a real Echo.

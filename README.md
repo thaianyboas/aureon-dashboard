@@ -1,5 +1,12 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.7.4 — 2026-11-22
+
+- "Acontecendo agora" em visual rico: máquinas desenhadas (água e anel azul quando lavando, ✓ e brilho quando terminam); o visor mostra o horário de término (ou há quanto tempo está ligada, nas máquinas pela tomada).
+- Aviso da Alexa vira o botão "Alexa avisa" (pontinho verde quando ligado).
+- Lixo: lixeira grande, anel com os dias que faltam e as próximas lixeiras coloridas. Robô desenhado com anel de bateria.
+- Blueprints "Alexa avisa o fim do ciclo": nova opção **Volume do aviso** (padrão 60%). A Alexa fala nesse volume e depois volta ao volume anterior. Reimporte os blueprints no HA para usar.
+
 ## AUREON Noir 1.7.3 — 2026-11-22
 
 - Luzes em novo visual premium: cada luz acesa enche a linha com a própria cor até o brilho; porcentagem grande e interruptor na cor da luz. Arraste para o lado na linha para ajustar o brilho; um toque acende/apaga; tocar no nome abre os detalhes.
