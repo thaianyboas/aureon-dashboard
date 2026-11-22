@@ -1,5 +1,12 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.8.9 — 2026-11-22
+
+- Modo edição corrigido: os nomes das luzes não ficam mais espremidos em uma letra por linha.
+- No celular, o aviso do modo edição virou uma barra fina presa no topo (ícones + Concluir).
+- A barra de edição de cada cartão ficou mais baixa (nome técnico na mesma linha dos botões).
+- Novo: no modo edição, setas ‹ › embaixo de cada cômodo para mudar a ordem (Casa toda fica em primeiro); salvo em todos os aparelhos.
+
 ## AUREON Noir 1.8.8 — 2026-11-22
 
 - Barra do topo em cápsula de vidro: consumo ao vivo com pontinho pulsando e mini gráfico da última hora (toque leva à Energia), bateria, e editar/configurações como botões redondos de vidro. No modo edição aparece "✓ Concluir". AUREON com degradê metálico do tema.

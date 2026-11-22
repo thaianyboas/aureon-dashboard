@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position, relevantMedia, re
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.8.8';
-export const BUILD = 'AUREON-NOIR-20261122q';
+export const VERSION = '1.8.9';
+export const BUILD = 'AUREON-NOIR-20261122r';
 
 export const THEMES = [
   // Owner 2026-11-22 ("tirar os antigos e colocar mais temas"): only the jewel themes remain; old ids map below.

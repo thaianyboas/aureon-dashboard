@@ -1635,3 +1635,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22q (AUREON Noir 1.8.8)
 - Header `.tbar` capsule: `.tlive` (live W, `.tdot`, `_wSpark()` sparkline from 5-minute mean statistics of measured power sensors + live samples, tap → `_goEnergy()`), `battChip`, `.tbtn` edit (aria-label; shows "Concluir" when editing) and settings. Tests updated to find edit by aria-label; capsule check added.
+
+## Claude batch — 2026-11-22r (AUREON Noir 1.8.9)
+- Fix: top-bar `.tbtn` rules scoped to `.tbar` (they squeezed light tiles' `.tbtn` in edit mode). Phone edit banner one slim row (`.bl` labels hidden ≤600px). `.editbar .ent` inline. Room reorder in edit mode: `.rcw/.rcmv` ‹ › via `_move('rooms', …)`. Tests: readable light tiles in edit mode, room move.
