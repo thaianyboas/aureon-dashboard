@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position, relevantMedia, re
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.8.3';
-export const BUILD = 'AUREON-NOIR-20261122l';
+export const VERSION = '1.8.4';
+export const BUILD = 'AUREON-NOIR-20261122m';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -97,6 +97,14 @@ const P = {
   hdmi: 'M3 8h18v6l-2 2H5l-2-2zM7 11h.01M10 11h.01M14 11h.01M17 11h.01', camv: 'M3 7h12v10H3zM15 11l6-3v8l-6-3',
   apps: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z', gallery: 'M3 5h18v14H3zM3 16l5-5 5 5 3-3 5 5M15.5 8.5h.01',
   stream: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 8.5l5 3.5-5 3.5z', star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z',
+  therm: 'M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z', blind: 'M4 4h16M5 4v11h14V4M5 8h14M5 11h14M12 15v3M11 20h2',
+  sofa: 'M5 11V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3M3 13a2 2 0 0 1 4 0v1h10v-1a2 2 0 0 1 4 0v5H3zM5 18v2M19 18v2',
+  bed: 'M3 18V7M3 13h18v5M21 18v-3a3 3 0 0 0-3-3h-7v1M7 11.5a1.5 1.5 0 1 0 0-.01',
+  pot: 'M4 10h16v4a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6zM2 10h2M20 10h2M9 7c0-1 1-1.5 1-3M14 7c0-1 1-1.5 1-3',
+  bath: 'M4 12h16v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM6 12V6a2 2 0 0 1 4 0M7 20l-1 1.5M17 20l1 1.5',
+  desk: 'M3 9h18M5 9v11M19 9v11M14 9v6h5M9 9V4h6v5', leaf: 'M5 19c0-8 5-14 15-15-1 10-7 15-15 15zM5 19l7-7',
+  car: 'M5 16h14M3 16v-4l2-5h14l2 5v4h-2v2M5 16v2M7 13h.01M17 13h.01', child: 'M12 4a3 3 0 1 0 0 .01M8 21v-6l-2-4M16 21v-6l2-4M8 11h8M12 21v-4',
+  stairs: 'M4 20h5v-5h5v-5h5V5h2',
   mapI: 'M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14',
   palette: 'M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 21 9.8C21 6 17 3 12 3zM7.5 12.5h.01M9.5 8h.01M14.5 8h.01'
 };
@@ -161,6 +169,11 @@ const opIc = (door, open, cls = 'i') => door
 const SRC_IC = [['gamepad', 5, /ps[345]|playstation|xbox|switch|spiel|game|konsole|console/i], ['stream', 4, /netflix|youtube|disney|prime|google|apple|ott|plex|spotify|dazn|joyn|zdf|ard|hbo|max\b|paramount|wow|magenta/i],
   ['hdmi', 3, /hdmi|av\b|component|scart|dvi/i], ['tv', 2, /tv|channel|kanal|live|antenna|antenne|kabel|sat/i], ['mmic', 0, /alexa|assistant|voice/i],
   ['camv', 0, /kamera|camera|câmera/i], ['gallery', 0, /galer|gallery|photo|foto|art/i], ['apps', 0, /app|store|home|menu/i]];
+// Room → icon (owner chose "constelação" room cards, 2026-11-22). Names in pt/de/en.
+const ROOM_IC = [['sofa', /wohn|living|sala|lounge|stube/i], ['bed', /schlaf|bed|quarto|suite|suíte|gäste|guest/i], ['pot', /küche|kitchen|cozinha|ess|dining|jantar/i],
+  ['bath', /bad|bath|banheiro|wc|toilet|dusch|lavabo/i], ['leaf', /balkon|balcon|varanda|terras|garten|garden|jardim|patio|pátio|quintal/i], ['desk', /büro|office|escrit|arbeit|study/i],
+  ['child', /kind|kid|criança|baby|bebê/i], ['car', /garage|carport/i], ['stairs', /flur|hall|corredor|entrada|diele|treppe|stair|eingang/i]];
+const roomIc = (n) => (ROOM_IC.find(([, re]) => re.test(n)) || ['door'])[0];
 const srcIc = (n) => (SRC_IC.find(([, , re]) => re.test(n)) || ['tv', 1])[0];
 const srcRank = (n) => (SRC_IC.find(([, , re]) => re.test(n)) || [0, 1])[1];
 const ic = (n, cls = 'i') => svg`<svg class=${cls} viewBox="0 0 24 24" aria-hidden="true"><path d=${P[n]}></path></svg>`;
@@ -1474,14 +1487,21 @@ class AureonDashboard extends LitElement {
     const doms = [['all', t('all')], ['lights', t('lightsShort')], ['climate', t('climateShort')], ['plugs', t('plugsShort')], ['energy', t('energyShort')], ['covers', t('coversShort')], ['openings', t('openingsShort')], ['security', t('securityShort')], ['tv', t('tvs')], ['music', t('musicShort')]].filter(([k]) => k === 'all' || show[k]);
     const inR = (list) => list.filter((d) => ui.room === 'all' || d.area === ui.room).length;
     const counts = { lights: inR(m.lights), climate: inR(m.climate), plugs: inR(m.plugs), energy: Math.max(inR(m.metered) + inR(m.loosePower), m.energyMeters.filter((e) => ui.room === 'all' || e.area === ui.room).length), covers: inR(m.covers), openings: inR(m.openings), security: inR(m.cams) + inR(m.locks) + m.alarms.length, tv: inR(m.tvs), music: inR(m.speakers) };
-    return html`<div class="filters">
-      <div class="scroller" role="group" aria-label=${t('room')}>${chips.map((c) => {
+    const dIc = { all: 'apps', lights: 'bulb', climate: 'therm', plugs: 'plug', energy: 'bolt', covers: 'blind', openings: 'door', security: 'shield', tv: 'tv', music: 'note' };
+    const total = { all: m.total };
+    // Owner 2026-11-22 chose "constelação": rooms as small glass cards (icon, devices · temperature, amber dot when a
+    // light is on); categories in one bar where the chosen one opens with its name, the others are icons.
+    return html`<div class="filters fh">
+      <div class="scroller rcs" role="group" aria-label=${t('room')}>${chips.map((c) => {
         const lit = c.id === 'all' ? m.lights.some((l) => l.on) : m.lights.some((l) => l.on && l.area === c.id);
-        const th = m.climate.find((x) => x.area === c.id);
-        const meta = c.id === 'all' ? String(m.total) : th?.cur != null ? th.cur.toFixed(1).replace('.', ',') + '°' : String((m.byArea[c.id] || []).length);
-        return html`<button class="rc" aria-pressed=${ui.room === c.id ? 'true' : 'false'} @click=${() => this._set({ room: c.id })}><i style=${lit ? 'background:var(--accent);box-shadow:0 0 8px var(--accent)' : 'background:var(--line2)'}></i>${c.name}<small>${meta}</small></button>`;
+        const th = c.id === 'all' ? null : m.climate.find((x) => x.area === c.id && x.cur != null);
+        const temps = m.climate.filter((x) => x.cur != null), avg = c.id === 'all' && temps.length ? temps.reduce((a, x) => a + x.cur, 0) / temps.length : th?.cur;
+        return html`<button class="rc" aria-pressed=${ui.room === c.id ? 'true' : 'false'} @click=${() => this._set({ room: c.id })}>
+          <span class="rav">${ic(c.id === 'all' ? 'home' : roomIc(c.name), 'i s')}${lit ? html`<i></i>` : nothing}</span>
+          <span class="rtx"><b>${c.name}</b>${avg != null ? html`<small>${avg.toFixed(1).replace('.', ',') + '°'}</small>` : nothing}</span></button>`;
       })}</div>
-      <div class="scroller" role="group" aria-label=${t('devices')}>${doms.map(([k, n]) => html`<button class="dc" aria-pressed=${ui.domain === k ? 'true' : 'false'} style=${ui.domain === k ? `border-color:var(--accent);background:${rgba(this._theme().ha ? this._accentRgb : hexRgb(this._theme().accent), 0.12)}` : ''} @click=${() => this._set({ domain: k })}>${n} <span class="mono" style="opacity:.7">${k === 'all' ? '' : counts[k]}</span></button>`)}</div>
+      <div class="cbar" role="group" aria-label=${t('devices')}>${doms.map(([k, n]) => { const on = ui.domain === k, c = k === 'all' ? total.all : counts[k];
+        return html`<button class=${'cbt' + (on ? ' on' : '')} aria-pressed=${on ? 'true' : 'false'} aria-label=${n + (c != null ? ' · ' + c : '')} title=${n} @click=${() => this._set({ domain: k })}>${ic(dIc[k] || 'apps', 'i s')}${on ? html`<span class="txt">${n}</span>` : nothing}</button>`; })}</div>
     </div>`;
   }
   // Owner 2026-11-18 ("quando eu toco nao abre nada"): the room was filtered far below the map, out of sight —

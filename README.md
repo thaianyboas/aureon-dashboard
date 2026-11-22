@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.8.4 — 2026-11-22
+
+- Filtros "constelação": cômodos em cartões de vidro com ícone próprio, temperatura e um pontinho âmbar quando há luz acesa; categorias numa barra só, a escolhida abre com o nome e as outras ficam só no ícone. Sem contagem de aparelhos. Corrigida a caixa escura atrás do cômodo escolhido.
+
 ## AUREON Noir 1.8.3 — 2026-11-22
 
 - AUREON Music: luz quente "Estúdio" no disco enquanto a música toca — borda dourada polida, dois reflexos quentes girando nos sulcos e um brilho âmbar por baixo. Apaga ao pausar.

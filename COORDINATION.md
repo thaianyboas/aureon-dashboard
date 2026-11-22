@@ -1620,3 +1620,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22l (AUREON Noir 1.8.3)
 - Music stage warm light (concept E): `.bigv .vlamp` golden rim (masked arc), `.bigv .vwarm` twin rotating conic reflections, `.stg .vfx` amber underglow; all fade in on `.stg.on`, rotation paused when not playing, reduced-motion respected. Browser test added.
+
+## Claude batch — 2026-11-22m (AUREON Noir 1.8.4)
+- `filters()` → `.filters.fh`: `.rc` room cards (`.rav` icon via `roomIc()` + lit dot, `.rtx` name + temperature/avg; no device counts per owner), `.cbar/.cbt` category bar (icons via `dIc`, chosen shows name). New icons therm/blind/sofa/bed/pot/bath/desk/leaf/car/child/stairs. Scroller padding fixes clipped glow box. Test added.
