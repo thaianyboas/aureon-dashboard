@@ -1623,3 +1623,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22m (AUREON Noir 1.8.4)
 - `filters()` → `.filters.fh`: `.rc` room cards (`.rav` icon via `roomIc()` + lit dot, `.rtx` name + temperature/avg; no device counts per owner), `.cbar/.cbt` category bar (icons via `dIc`, chosen shows name). New icons therm/blind/sofa/bed/pot/bath/desk/leaf/car/child/stairs. Scroller padding fixes clipped glow box. Test added.
+
+## Claude batch — 2026-11-22n (AUREON Noir 1.8.5)
+- Settings "lista de vidro": home (`.stprof`, `.stlist`, `sh_*` hints, values) + inner pages: `grp(..., list)` → `.stgb.gl` glass groups, `tile()` icon tiles, `.stback` round back, serif title, `.sttabs` removed (tests navigate via `_set({settings})`). Themes: current family + `.thall`. `energyDiag` rows `.edh` with dot/value, `.edx` details on tap (`ui.edOpen`). `modeConfig` rewritten (eyebrows, glass groups, `.offchk` check circles, `.stnote`). Modos tab `.mseg` with icons. Aparelhos `.selrow` with transparent native select. Sections drag `_secDrag` (pointer) + keyboard arrows on `.grip`. Switch knob uses `--on-accent` when on. Tests added; time-based plug test made tolerant (33–39 min).

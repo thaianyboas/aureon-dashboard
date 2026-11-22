@@ -982,4 +982,60 @@ select.numin{text-align:left}
 .stval{font-style:normal;font-size:12.5px;color:var(--mut);white-space:nowrap;flex:none}
 .sthi .stval+.i{margin-left:-6px}
 .stlist .sthi small,.stprof small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stlist .sthi .txt,.stprof .txt{min-width:0}
+/* Settings inner pages — "lista de vidro" (owner 2026-11-22). */
+.switch[aria-checked="true"] span i{background:var(--on-accent);box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.switch[aria-checked="true"] span{box-shadow:0 0 14px -3px color-mix(in srgb,var(--accent) 70%,transparent)}
+.stback{width:40px;height:40px;flex:none;border-radius:50%}
+.sttl2 b{font-size:30px}
+.sheet .stgh{border-bottom:0;min-height:30px;padding:10px 6px 2px}
+.sheet .sgrp{gap:8px}
+.stey{display:block;font-size:10px;padding:14px 6px 2px}
+.sthint{font-size:12px;line-height:1.5;padding:0 6px}
+.stgb.gl{gap:0;border-radius:22px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);overflow:hidden}
+.stgb.gl>.chk,.stgb.gl .applcfg>.chk{position:relative;min-height:58px;padding:11px 14px;border:0;border-radius:0;background:none;gap:12px}
+.stgb.gl>.chk+.chk:before,.stgb.gl .applcfg>.chk+.chk:before{content:'';position:absolute;top:0;left:60px;right:0;height:1px;background:rgba(255,255,255,.06)}
+.stgb.gl>span.muted,.stgb.gl>.muted{padding:12px 16px 4px}
+.chk>.ti{width:32px;height:32px;flex:none;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.06);color:var(--mut)}
+.chk>.ti[style]{color:#111;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 4px 10px -4px rgba(0,0,0,.8)}
+.chk>.ti .i{width:17px;height:17px}
+.stgb.gl .chk small{font-size:12px}
+.stgb.gl .numin{background:rgba(0,0,0,.45);border-color:rgba(255,255,255,.1);border-radius:12px}
+/* mode segment with icons */
+.mseg{display:flex;padding:4px;border-radius:18px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.07)}
+.mseg button{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 0;border:0;border-radius:14px;background:none;color:var(--mut);font:inherit;font-size:11.5px;cursor:pointer}
+.mseg button .i{width:18px;height:18px}
+.mseg button[aria-selected="true"]{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));color:var(--fg);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.offchk{min-width:0;width:28px;height:28px;padding:0;border-radius:50%;border:1.5px solid rgba(255,255,255,.22)}
+.offchk .i{width:15px;height:15px}
+.offchk.on{border-color:var(--accent);background:var(--accent);color:var(--on-accent);box-shadow:0 0 12px -2px color-mix(in srgb,var(--accent) 70%,transparent)}
+.stnote{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);font-size:12.5px;color:var(--mut)}
+.stnote .i{flex:none}
+.willoff{border-radius:18px}
+/* appliances */
+.stgb.gl .applcfg{padding:0;border:0;border-radius:0;background:none;gap:0}
+.selrow{cursor:pointer}.selrow>.i{color:var(--mut);flex:none}
+.selrow select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+/* sections */
+.grip{width:24px;height:40px;flex:none;display:grid;place-items:center;color:var(--mut);cursor:grab;touch-action:none;margin-right:-4px}
+.secrow{transition:transform .18s ease}.secrow.drag{transition:none;z-index:2;background:color-mix(in srgb,var(--raise) 92%,#fff 4%)!important;box-shadow:0 14px 30px -12px #000}
+/* themes, compact */
+.sheet .thgal{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.sheet .thpv{height:64px}.sheet .thcard{left:8px;right:22px;top:9px;bottom:9px;border-radius:9px;padding:0 8px;gap:4px}
+.sheet .thclock{font-size:13px}.sheet .thtx{padding:8px 9px 10px}.sheet .thtx b{font-size:12.5px}.sheet .thtx small{font-size:10px}
+.thall{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;padding:10px 6px;border:0;background:none;color:var(--mut);font:inherit;font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;text-align:left}
+.thall span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.thall b{display:inline-flex;align-items:center;gap:4px;font-weight:500;color:var(--fg);flex:none}
+/* energy diagnosis */
+.ediag.stgb{padding:0}
+.ediag .edr{position:relative;padding:0;border-radius:0;background:none;border:0;gap:0;font-size:12px}
+.ediag .edr+.edr:before{content:'';position:absolute;top:0;left:34px;right:0;height:1px;background:rgba(255,255,255,.06)}
+.edh{width:100%;display:flex;align-items:center;gap:12px;min-height:58px;padding:10px 14px;border:0;background:none;color:var(--fg);font:inherit;text-align:left;cursor:pointer}
+.edh b{display:block;font-size:14px;font-weight:500}.edh small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.edh em{font-style:normal;font-size:12.5px;color:var(--mut);white-space:nowrap}.edh>.i{color:var(--mut);flex:none}
+.edd{width:8px;height:8px;flex:none;border-radius:50%;background:#7EE0A8;box-shadow:0 0 6px #7EE0A8}
+.edr.bad .edd{background:#F2C66D;box-shadow:0 0 6px #F2C66D}.edr.bad em{color:#F2C66D}
+.ediag .edr.bad{border-left:0}
+.edx{display:block;padding:0 14px 8px 34px;color:var(--mut);font-size:11.5px;overflow-wrap:anywhere}.edr.open{padding-bottom:6px}
+.pricerow{flex-wrap:wrap;row-gap:8px}.pricerow>.txt{flex:1 1 150px;min-width:0}.pricerow>.row{margin-left:auto}
+.pricerow .numin{width:78px;text-align:right}.pricerow select.numin{width:auto}
+.sheet .thtx small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 `;

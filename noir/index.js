@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position, relevantMedia, re
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.8.4';
-export const BUILD = 'AUREON-NOIR-20261122m';
+export const VERSION = '1.8.5';
+export const BUILD = 'AUREON-NOIR-20261122n';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -359,6 +359,19 @@ class AureonDashboard extends LitElement {
     this._save({ order: { ...this._prefs.order, [dom]: full.concat(ord.filter((x) => !full.includes(x))) } });
   }
   _toggleHidden(id) { const h = new Set(this._prefs.hidden); h.has(id) ? h.delete(id) : h.add(id); this._save({ hidden: [...h] }); }
+  // Owner 2026-11-22: drag ≡ to reorder sections (pointer: mouse and touch).
+  _secDrag(e, k) {
+    const grip = e.currentTarget, row = grip.closest('.secrow'), box = row?.parentElement; if (!row || !box) return;
+    e.preventDefault(); grip.setPointerCapture?.(e.pointerId);
+    const rows = [...box.querySelectorAll('.secrow')], y0 = e.clientY, h = row.getBoundingClientRect().height, from = rows.indexOf(row);
+    let to = from; row.classList.add('drag');
+    const move = (ev) => { const dy = ev.clientY - y0; row.style.transform = `translateY(${dy}px)`; to = Math.max(0, Math.min(rows.length - 1, from + Math.round(dy / h)));
+      rows.forEach((r, i) => { if (r === row) return; r.style.transform = from < to && i > from && i <= to ? `translateY(${-h}px)` : from > to && i < from && i >= to ? `translateY(${h}px)` : ''; }); };
+    const up = () => { grip.removeEventListener('pointermove', move); grip.removeEventListener('pointerup', up); grip.removeEventListener('pointercancel', up);
+      rows.forEach((r) => { r.style.transform = ''; r.classList.remove('drag'); });
+      if (to !== from) { const so = this._prefs.secOrder.filter((x) => x !== k); so.splice(to, 0, k); this._save({ secOrder: so }); } };
+    grip.addEventListener('pointermove', move); grip.addEventListener('pointerup', up); grip.addEventListener('pointercancel', up);
+  }
   _moveSection(k, dir) { const so = this._prefs.secOrder.slice(), i = so.indexOf(k), j = i + dir; if (j < 0 || j >= so.length) return; [so[i], so[j]] = [so[j], so[i]]; this._save({ secOrder: so }); }
 
   // ── renaming ─────────────────────────────────────────────────────────────
@@ -937,15 +950,21 @@ class AureonDashboard extends LitElement {
     const restoreList = (this._prefs.modeOff || []).filter((id) => m.plugs.some((p) => p.id === id));
     const sw = (on, fn, label) => html`<button class="switch" role="switch" aria-checked=${on ? 'true' : 'false'} aria-label=${label} @click=${fn}><span><i></i></span></button>`;
     const byRoom = {}; for (const p of free) (byRoom[p.areaName || t('noArea')] ||= []).push(p);
+    const nSel = m.plugs.filter((p) => sel.has(p.id) && !p.locked).length;
+    // Owner 2026-11-22 approved "lista de vidro" for Modo da casa: what changes in one glass list, then the plugs as a
+    // list with a check circle each (room under the name).
     return html`
-        ${alarm ? html`<div class="chk"><span class="ic" style="width:36px;height:36px">${ic('shield', 'i s')}</span><span class="grow txt"><b>${alarm.name}</b><span class="muted" style="display:block;font-size:12px">${t('alarmTo', { s: alarmTarget })}</span></span></div>
-          ${alarm.needsCode ? html`<input type="password" inputmode="numeric" autocomplete="off" .value=${this._ui.modeCode || ''} placeholder=${t('code')} aria-label=${t('code')} @input=${(e) => this._set({ modeCode: e.target.value })} style="min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line2);background:var(--sunk);color:var(--fg);font:inherit">` : nothing}` : html`<span class="muted" style="font-size:13px">${t('noAlarm')}</span>`}
-        <div class="chk"><span class="ic" style="width:36px;height:36px">${ic('bulb', 'i s')}</span><span class="grow txt"><b>${t('lightsOffAll')}</b></span>${sw(c.lightsOff, () => setCfg({ lightsOff: !c.lightsOff }), t('lightsOffAll'))}</div>
-        ${d.id === 'home' && restoreList.length ? html`<div class="chk"><span class="ic" style="width:36px;height:36px">${ic('plug', 'i s')}</span><span class="grow txt"><b>${t('restorePlugs')}</b><span class="muted" style="display:block;font-size:12px">${restoreList.map((id) => m.plugs.find((p) => p.id === id)?.name).join(' · ')}</span></span>${sw(c.restore, () => setCfg({ restore: !c.restore }), t('restorePlugs'))}</div>` : nothing}
-        ${d.id !== 'home' && free.length ? html`<span class="eyebrow" style="font-size:10px;padding-top:6px">${t('plugsOffSel')}</span>
-          ${Object.entries(byRoom).map(([room, ps]) => html`<span class="dim" style="font-size:11px;padding:4px 2px 0">${room}</span>${ps.map((p) => html`<div class="chk"><span class="ic" style=${'width:36px;height:36px;' + (sel.has(p.id) ? 'color:var(--accent)' : '')}>${ic('plug', 'i s')}</span><span class="grow txt"><b>${p.name}</b><span class="muted" style="display:block;font-size:12px">${p.on ? (p.w != null ? p.w + ' W' : t('plugOn')) : t('plugOff')}</span></span>
-            <button class=${'offchk' + (sel.has(p.id) ? ' on' : '')} role="checkbox" aria-checked=${sel.has(p.id) ? 'true' : 'false'} aria-label=${t('plugsOffSel') + ' · ' + p.name} @click=${() => { sel.has(p.id) ? sel.delete(p.id) : sel.add(p.id); setCfg({ plugs: [...sel] }); }}>${sel.has(p.id) ? html`${ic('power', 'i s')}<span>${t('plugOff')}</span>` : nothing}</button></div>`)}`)}
-          <span class="row muted" style="font-size:12px;gap:6px">${ic('lock', 'i s')}${t('essentialHint')}</span>` : nothing}
+        <span class="eyebrow stey">${t('whenOnX', { n: d.name })}</span>
+        <div class="stgb gl">
+        ${alarm ? html`<div class="chk"><span class="ti" style="background:linear-gradient(160deg,#C9F2DA,#6FC796)">${ic('shield', 'i s')}</span><span class="grow txt"><b>${t('rowAlarm')}</b><small>${alarm.name} → ${alarmTarget}</small></span></div>
+          ${alarm.needsCode ? html`<div class="chk"><input type="password" inputmode="numeric" autocomplete="off" .value=${this._ui.modeCode || ''} placeholder=${t('code')} aria-label=${t('code')} @input=${(e) => this._set({ modeCode: e.target.value })} class="numin" style="flex:1;text-align:left"></div>` : nothing}` : html`<div class="chk"><span class="grow txt"><small style="margin:0">${t('noAlarm')}</small></span></div>`}
+        <div class="chk"><span class="ti" style="background:linear-gradient(160deg,#F2E2BF,#C6A76F)">${ic('bulb', 'i s')}</span><span class="grow txt"><b>${t('lightsOffAll')}</b></span>${sw(c.lightsOff, () => setCfg({ lightsOff: !c.lightsOff }), t('lightsOffAll'))}</div>
+        ${d.id === 'home' && restoreList.length ? html`<div class="chk"><span class="ti">${ic('plug', 'i s')}</span><span class="grow txt"><b>${t('restorePlugs')}</b><small>${restoreList.map((id) => m.plugs.find((p) => p.id === id)?.name).join(' · ')}</small></span>${sw(c.restore, () => setCfg({ restore: !c.restore }), t('restorePlugs'))}</div>` : nothing}
+        </div>
+        ${d.id !== 'home' && free.length ? html`<span class="eyebrow stey">${t('plugsOffN2', { n: nSel })}</span>
+          <div class="stgb gl">${Object.entries(byRoom).map(([room, ps]) => ps.map((p) => html`<div class="chk"><span class="ti">${ic('plug', 'i s')}</span><span class="grow txt"><b>${p.name}</b><small>${[p.on ? (p.w != null ? p.w + ' W' : t('plugOn')) : t('plugOff'), room].join(' · ')}</small></span>
+            <button class=${'offchk' + (sel.has(p.id) ? ' on' : '')} role="checkbox" aria-checked=${sel.has(p.id) ? 'true' : 'false'} aria-label=${t('plugsOffSel') + ' · ' + p.name} @click=${() => { sel.has(p.id) ? sel.delete(p.id) : sel.add(p.id); setCfg({ plugs: [...sel] }); }}>${sel.has(p.id) ? ic('check', 'i s') : nothing}</button></div>`))}</div>
+          <div class="stnote">${ic('lock', 'i s')}<span>${t('essentialHint')}</span></div>` : nothing}
         ${d.id !== 'home' ? (() => { const off = m.plugs.filter((p) => sel.has(p.id) && !p.locked); return html`<div class=${'willoff' + (off.length ? ' some' : '')}>${off.length ? t('willOff', { n: off.length, list: off.map((p) => p.name).join(', ') }) : t('willOffNone')}</div>`; })() : nothing}
 `;
   }
@@ -1224,8 +1243,11 @@ class AureonDashboard extends LitElement {
     // Owner 2026-11-18 ("cada título tem que ter drop down … em todo lugar da configuração"): every settings heading
     // folds; what is folded is remembered (synced) per tab and heading.
     const fold = prefs.stFold || {};
-    const grp = (key, title, content, defClosed = false) => { const k = tab + ':' + key, closed = fold[k] ?? defClosed;
-      return html`<div class=${'sgrp' + (closed ? ' closed' : '')}><button class="stgh" aria-expanded=${closed ? 'false' : 'true'} @click=${() => this._save({ stFold: { ...(this._prefs.stFold || {}), [k]: !closed } })}><span class="eyebrow">${title}</span>${ic('down', 'i s')}</button>${closed ? nothing : html`<div class="stgb">${content}</div>`}</div>`; };
+    // Owner 2026-11-22 ("lista de vidro" everywhere): a group's rows sit in one glass list with hairlines.
+    const grp = (key, title, content, defClosed = false, list = true) => { const k = tab + ':' + key, closed = fold[k] ?? defClosed;
+      return html`<div class=${'sgrp' + (closed ? ' closed' : '')}><button class="stgh" aria-expanded=${closed ? 'false' : 'true'} @click=${() => this._save({ stFold: { ...(this._prefs.stFold || {}), [k]: !closed } })}><span class="eyebrow">${title}</span>${ic('down', 'i s')}</button>${closed ? nothing : html`<div class=${'stgb' + (list ? ' gl' : '')}>${content}</div>`}</div>`; };
+    const tile = (n, tint) => html`<span class="ti" style=${tint ? `background:linear-gradient(160deg,${tint})` : ''}>${ic(n, 'i s')}</span>`;
+    const TINT = { gold: '#F2E2BF,#C6A76F', green: '#C9F2DA,#6FC796', blue: '#D6E6FF,#7FA4E0', violet: '#EAD9FF,#A98AD8', coral: '#FFE0D0,#E39D7B', silver: '#ECECEE,#9C9CA2' };
     const hints = { geral: t('stHintGeneral'), modos: t('stHintModes'), aparelhos: t('stHintAppl'), secoes: t('stHintSections'), etiquetas: t('stHintLabels'), dispositivos: t('stHintDevices'), sobre: t('stHintAbout') };
     const icons = { geral: 'palette', modos: 'home', aparelhos: 'washer', secoes: 'sections', etiquetas: 'eye', dispositivos: 'plug', sobre: 'gear' };
     if (tab === 'home') {
@@ -1242,49 +1264,53 @@ class AureonDashboard extends LitElement {
     } else if (tab === 'geral') {
       const weathers = Object.keys(this.hass.states).filter((e) => e.startsWith('weather.'));
       const rk = { arrivals: t('rkArrivals'), lights: t('lights'), openings: t('openings'), locks: t('locked'), appliances: t('cycleDone'), waste: t('waste'), ...{} };
+      const rkIc = { arrivals: 'home', lights: 'bulb', openings: 'door', locks: 'lock', appliances: 'washer', waste: 'trash' };
       const kinds = prefs.reminderKinds || {};
       body = html`
         ${grp('theme', t('theme'), html`
-        ${THEME_FAMS.map(([fk, ids]) => html`<span class="thfam">${t(fk)}</span>
+        ${(ui.thAll ? THEME_FAMS : THEME_FAMS.filter(([, ids]) => ids.includes(prefs.theme || 'aureon')).concat(THEME_FAMS.some(([, ids]) => ids.includes(prefs.theme || 'aureon')) ? [] : [THEME_FAMS[0]])).map(([fk, ids]) => html`<span class="thfam">${t(fk)}</span>
         <div class="thgal">${ids.map((id) => THEMES.find((x) => x.id === id)).filter(Boolean).map((x) => { const on = (prefs.theme || 'aureon') === x.id;
           const pv = x.ha ? '--pb:var(--primary-background-color,#111);--pc:var(--card-background-color,#1c1c1c);--pa:var(--primary-color,#03a9f4);--pl:rgba(255,255,255,.08)' : `--pb:${x.bg};--pc:${x.card};--pa:${x.accent};--pl:${x.line2}`;
           return html`<button class=${'thc' + (on ? ' on' : '')} aria-pressed=${on ? 'true' : 'false'} aria-label=${x.name + ' · ' + x.desc} style=${pv} @click=${() => this._save({ theme: x.id })}>
             <span class="thpv" aria-hidden="true"><span class="thglow"></span><span class="thcard"><i class="thclock">21:39</i><i class="thline"></i><i class="thdots"><b></b><b></b><b></b></i></span><span class="thpill"></span></span>
             <span class="thtx"><b>${x.name}</b><small>${x.desc}</small></span>${on ? html`<span class="thok">${ic('check', 'i s')}</span>` : nothing}</button>`; })}</div>`)}
-        <div class="chk"><span class="grow txt"><b>${t('stDefaultView')}</b></span><span class="seg"><button aria-pressed=${prefs.view !== '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button><button aria-pressed=${prefs.view === '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></div>
-        ${weathers.length > 1 ? html`<div class="chk"><span class="grow txt"><b>${t('forecastT')}</b></span><select style="min-height:40px;border-radius:10px;background:var(--sunk);color:var(--fg);border:1px solid var(--line2);padding:0 10px;font:inherit" @change=${(e) => { this._save({ weather: e.target.value }); this._fcFor = null; this.requestUpdate(); }}>${weathers.map((w) => html`<option value=${w} ?selected=${(prefs.weather || weathers[0]) === w}>${this.hass.states[w].attributes.friendly_name || w}</option>`)}</select></div>` : nothing}
-        `)}
+        <button class="thall" @click=${() => this._set({ thAll: !ui.thAll })}><span>${ui.thAll ? t('thFewer') : THEME_FAMS.filter(([, ids]) => !ids.includes(prefs.theme || 'aureon')).map(([fk]) => t(fk)).join(' · ')}</span><b>${ui.thAll ? t('thFewerB') : t('thAll')}${ic(ui.thAll ? 'up' : 'right', 'i s')}</b></button>`, false, false)}
+        ${grp('mapw', t('stMapWeather'), html`<div class="chk">${tile('mapI', TINT.blue)}<span class="grow txt"><b>${t('stDefaultView')}</b></span><span class="seg"><button aria-pressed=${prefs.view !== '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '3d' })}>3D</button><button aria-pressed=${prefs.view === '2d' ? 'true' : 'false'} @click=${() => this._save({ view: '2d' })}>${t('plan').toUpperCase()}</button></span></div>
+        ${weathers.length > 1 ? html`<div class="chk">${tile('cloud', TINT.silver)}<span class="grow txt"><b>${t('forecastT')}</b></span><select style="min-height:40px;border-radius:10px;background:var(--sunk);color:var(--fg);border:1px solid var(--line2);padding:0 10px;font:inherit" @change=${(e) => { this._save({ weather: e.target.value }); this._fcFor = null; this.requestUpdate(); }}>${weathers.map((w) => html`<option value=${w} ?selected=${(prefs.weather || weathers[0]) === w}>${this.hass.states[w].attributes.friendly_name || w}</option>`)}</select></div>` : nothing}`)}
         ${grp('energy', t('energy'), html`
-        <div class="chk"><span class="grow txt"><b>${t('stPrice')}</b><small>${t('stPriceHint')}</small></span>
+        <div class="chk pricerow">${tile('bolt', TINT.gold)}<span class="grow txt"><b>${t('stPrice')}</b><small>${t('stPriceShort')}</small></span>
           <span class="row" style="gap:6px"><input class="numin" type="number" inputmode="decimal" min="0" step="0.01" aria-label=${t('stPrice')} .value=${prefs.energyPrice != null ? String(prefs.energyPrice) : ''} placeholder="0.35"
             @change=${(e) => { const v = parseFloat(String(e.target.value).replace(',', '.')); this._save({ energyPrice: Number.isFinite(v) && v >= 0 ? v : null }); }}>
           <select class="numin" style="width:auto" aria-label=${t('currency')} @change=${(e) => this._save({ energyCur: e.target.value })}>${['€', 'R$', '$', 'CHF', '£'].map((c) => html`<option ?selected=${(prefs.energyCur || '€') === c}>${c}</option>`)}</select><span class="dim">/kWh</span></span></div>
         `)}
-        ${grp('ediag', t('diagShow'), this.energyDiag(ctx), true)}
+        ${grp('ediag', t('diagShow'), this.energyDiag(ctx), true, false)}
         ${grp('rem', t('reminders'), html`
-        <div class="chk"><span class="grow txt"><b>${t('stPushMin')}</b></span>${sw(!!prefs.pushMin, () => this._save({ pushMin: !prefs.pushMin }), t('stPushMin'))}</div>
-        ${Object.entries(rk).map(([k, n]) => html`<div class="chk"><span class="grow txt"><b>${n}</b></span>${sw(reminderOn(kinds, k), () => this._save({ reminderKinds: { ...kinds, [k]: !reminderOn(kinds, k) } }), n)}</div>`)}`)}`;
+        <div class="chk">${tile('bell', TINT.violet)}<span class="grow txt"><b>${t('stPushMin')}</b></span>${sw(!!prefs.pushMin, () => this._save({ pushMin: !prefs.pushMin }), t('stPushMin'))}</div>
+        ${Object.entries(rk).map(([k, n]) => html`<div class="chk">${tile(rkIc[k])}<span class="grow txt"><b>${n}</b></span>${sw(reminderOn(kinds, k), () => this._save({ reminderKinds: { ...kinds, [k]: !reminderOn(kinds, k) } }), n)}</div>`)}`)}`;
     } else if (tab === 'secoes') {
       const hiddenS = new Set(prefs.secHidden || []);
-      body = html`${grp('sections', tabs.find(([k]) => k === 'secoes')[1], html`<span class="muted txt" style="font-size:13px">${t('stSectionsHint')}</span>
-        ${prefs.secOrder.map((k, i) => html`<div class="chk"><span class="grow txt"><b>${secNames[k]}</b></span>
-          <button class="ib sm" ?disabled=${i === 0} aria-label=${t('sectionUp') + ' · ' + secNames[k]} @click=${() => this._moveSection(k, -1)}>${ic('up', 'i s')}</button>
-          <button class="ib sm" ?disabled=${i === prefs.secOrder.length - 1} aria-label=${t('sectionDown') + ' · ' + secNames[k]} @click=${() => this._moveSection(k, 1)}>${ic('down', 'i s')}</button>
+      const secIc = { lights: 'bulb', climate: 'therm', plugs: 'plug', energy: 'bolt', covers: 'blind', openings: 'door', security: 'shield', tv: 'tv', music: 'note', scenes: 'moon' };
+      body = html`<span class="muted txt sthint">${t('stSectionsDrag')}</span>
+        ${grp('sections', t('stOnHome'), html`${prefs.secOrder.map((k) => html`<div class="chk secrow" data-k=${k}>
+          <span class="grip" role="button" tabindex="0" aria-label=${t('stDragSec') + ' · ' + secNames[k]} @pointerdown=${(e) => this._secDrag(e, k)}
+            @keydown=${(e) => { if (e.key === 'ArrowUp') { e.preventDefault(); this._moveSection(k, -1); } if (e.key === 'ArrowDown') { e.preventDefault(); this._moveSection(k, 1); } }}>${ic('grip', 'i s')}</span>
+          ${tile(secIc[k] || 'sections')}<span class="grow txt"><b style=${hiddenS.has(k) ? 'color:var(--mut)' : ''}>${secNames[k]}</b></span>
           ${sw(!hiddenS.has(k), () => { hiddenS.has(k) ? hiddenS.delete(k) : hiddenS.add(k); this._save({ secHidden: [...hiddenS] }); }, secNames[k])}</div>`)}`)}`;
     } else if (tab === 'modos') {
       const defs = this._modeDefs(t), cur = defs.find((d) => d.id === (ui.modeTab || 'away')) || defs[1];
-      body = html`<span class="muted txt" style="font-size:13px;line-height:1.55">${t('stModesHint')}</span>
-        <div class="sttabs" role="tablist" style="background:transparent">${defs.map((d) => html`<button role="tab" aria-selected=${cur.id === d.id ? 'true' : 'false'} @click=${() => this._set({ modeTab: d.id })}>${d.name}</button>`)}</div>
-        ${this.modeConfig(ctx, cur)}`;
+      body = html`<div class="mseg" role="tablist" aria-label=${t('modeTitle')}>${defs.map((d) => html`<button role="tab" aria-selected=${cur.id === d.id ? 'true' : 'false'} @click=${() => this._set({ modeTab: d.id })}>${ic(d.icon, 'i s')}<span>${d.name}</span></button>`)}</div>
+        ${this.modeConfig(ctx, cur)}
+        <span class="muted txt sthint">${t('stModesHint')}</span>`;
     } else if (tab === 'aparelhos') {
       const map = prefs.applMap || {}, hid = prefs.applHidden || {};
       const kinds = ['washer', 'dish', 'dryer'];
-      body = html`<span class="muted txt" style="font-size:13px;line-height:1.55">${t('stApplHint')}</span>
-        ${kinds.map((k) => { const auto = m.appliances.find((a) => a.kind === k && !map[k]); return grp('appl_' + k, t('kind_' + k), html`<div class="applcfg">
-          <div class="row sp" style="gap:12px"><span class="row" style="gap:10px"><span class="ic" style="width:36px;height:36px">${ic(k === 'dish' ? 'dish' : 'washer', 'i s')}</span><b style="font-weight:500">${t('kind_' + k)}</b></span>
-            ${sw(!hid[k], () => this._save({ applHidden: { ...hid, [k]: !hid[k] } }), t('kind_' + k))}</div>
-          ${hid[k] ? html`<span class="muted" style="font-size:12px">${t('applHiddenTxt')}</span>` : html`<label class="lbsel"><span class="eyebrow" style="font-size:10px">${t('applSource')}</span>
-            <select @change=${(e) => this._save({ applMap: { ...map, [k]: e.target.value } })}>
+      body = html`<span class="muted txt sthint">${t('stApplHint')}</span>
+        ${kinds.map((k, ki) => { const auto = m.appliances.find((a) => a.kind === k && !map[k]);
+          const curSrc = map[k] ? (m.appliances.find((a) => a.id === map[k]) || m.plugs.find((p) => p.id === map[k]))?.name || map[k] : auto ? t('applAuto', { n: auto.name }) : t('applAutoNone');
+          return grp('appl_' + k, t('kind_' + k), html`<div class="applcfg">
+          <div class="chk">${tile(k === 'dish' ? 'dish' : 'washer', [TINT.blue, TINT.green, TINT.gold][ki])}<span class="grow txt"><b>${t('applShow')}</b></span>${sw(!hid[k], () => this._save({ applHidden: { ...hid, [k]: !hid[k] } }), t('kind_' + k))}</div>
+          ${hid[k] ? html`<div class="chk"><span class="grow txt"><small style="margin:0">${t('applHiddenTxt')}</small></span></div>` : html`<label class="chk selrow">${tile('plug')}<span class="grow txt"><b>${t('applSource')}</b><small>${curSrc}</small></span>${ic('right', 'i s')}
+            <select aria-label=${t('applSource') + ' · ' + t('kind_' + k)} @change=${(e) => this._save({ applMap: { ...map, [k]: e.target.value } })}>
               <option value="" ?selected=${!map[k]}>${auto ? t('applAuto', { n: auto.name }) : t('applAutoNone')}</option>
               ${m.appliances.filter((a) => !a.plug || a.kind === k).length ? html`<optgroup label=${t('applDevices')}>${m.appliances.filter((a) => !a.plug).map((a) => html`<option value=${a.id} ?selected=${map[k] === a.id}>${a.name}${a.areaName ? ' · ' + a.areaName : ''}</option>`)}</optgroup>` : nothing}
               <optgroup label=${t('applPlugs')}>${m.plugs.slice().sort((x, y) => (y.w != null) - (x.w != null) || x.name.localeCompare(y.name)).map((p) => html`<option value=${p.id} ?selected=${map[k] === p.id}>${p.name}${p.areaName ? ' · ' + p.areaName : ''}${p.w != null ? ' · ' + p.w + ' W' : ''}</option>`)}</optgroup>
@@ -1340,11 +1366,10 @@ class AureonDashboard extends LitElement {
       <div class="sheet rise" role="dialog" aria-modal="true" aria-label=${t('settings')} style="width:min(720px,100%)" @scroll=${(e) => { const up = e.currentTarget.scrollTop > 320; if (up !== !!this._shUp) { this._shUp = up; this.requestUpdate(); } }}>
         <div class="sthead">
           <div class="row" style="gap:10px;min-width:0">
-            ${tab !== 'home' ? html`<button class="btn sm" aria-label=${t('goBack')} @click=${() => this._set({ settings: 'home' })}>${ic('left', 'i s')}${t('goBack')}</button>` : nothing}
-            ${tab === 'home' ? html`<span class="grow sttl"><span class="eyebrow" style="font-size:10px">AUREON · ${t('stAdjust')}</span><b>${t('settings')}</b></span>` : html`<span class="grow" style="font-size:24px;font-weight:300;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tabs.find(([k]) => k === tab)?.[1] || t('settings')}</span>`}
+            ${tab !== 'home' ? html`<button class="ib stback" aria-label=${t('goBack')} title=${t('goBack')} @click=${() => this._set({ settings: 'home' })}>${ic('left', 'i s')}</button>` : nothing}
+            ${tab === 'home' ? html`<span class="grow sttl"><span class="eyebrow" style="font-size:10px">AUREON · ${t('stAdjust')}</span><b>${t('settings')}</b></span>` : html`<span class="grow sttl sttl2"><b>${tabs.find(([k]) => k === tab)?.[1] || t('settings')}</b></span>`}
             <button class="ib sm stclose" aria-label=${t('closeS')} title=${t('closeS')} @click=${() => { this._shUp = false; this._set({ settings: null }); }}>${ic('x', 'i s')}</button>
           </div>
-          ${tab !== 'home' ? html`<div class="sttabs" role="tablist">${tabs.map(([k, n]) => html`<button role="tab" aria-selected=${tab === k ? 'true' : 'false'} @click=${() => this._set({ settings: k })}>${n}</button>`)}</div>` : nothing}
         </div>
         ${body}
         <div class="stfoot">${this._shUp ? html`<button class="ib shtop" aria-label=${t('toTop')} title=${t('toTop')} @click=${(e) => e.currentTarget.closest('.sheet').scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>${ic('up', 'i s')}</button>` : nothing}${this._savedAt && Date.now() - this._savedAt < 2500
@@ -1965,12 +1990,17 @@ class AureonDashboard extends LitElement {
     const estMeters = m.energyMeters.filter((e) => !(e.device && liveDevs.has(e.device)));
     for (const p of m.plugs) {
       const e = m.energyMeters.find((x) => x.device && x.device === p.device);
-      list.push({ name: p.name, area: p.areaName, power: p.wSrc === 'sensor' ? `${p.w} W · ${p.powerId}` : p.wSrc === 'attribute' ? `${p.w} W · ${t('diagAttr')}` : p.wSrc === 'unavailable' ? `${t('diagUnavail')} · ${p.powerId}` : (e && est[e.id] != null ? `≈ ${est[e.id]} W · ${t('estimated')}` : t('diagNoPower')), energy: e ? `${S[e.id]?.state ?? '—'} ${S[e.id]?.attributes?.unit_of_measurement || ''} · ${e.id}` : '—', bad: p.wSrc === 'none' || p.wSrc === 'unavailable' });
+      list.push({ id: p.id, w: p.w, name: p.name, area: p.areaName, power: p.wSrc === 'sensor' ? `${p.w} W · ${p.powerId}` : p.wSrc === 'attribute' ? `${p.w} W · ${t('diagAttr')}` : p.wSrc === 'unavailable' ? `${t('diagUnavail')} · ${p.powerId}` : (e && est[e.id] != null ? `≈ ${est[e.id]} W · ${t('estimated')}` : t('diagNoPower')), energy: e ? `${S[e.id]?.state ?? '—'} ${S[e.id]?.attributes?.unit_of_measurement || ''} · ${e.id}` : '—', bad: p.wSrc === 'none' || p.wSrc === 'unavailable' });
     }
     for (const x of m.loosePower) list.push({ name: x.name, area: x.areaName, power: `${x.w} W · ${x.powerId}`, energy: '', bad: false });
     for (const e of estMeters.filter((x) => !m.plugs.some((p) => p.device && p.device === x.device))) list.push({ name: e.name, area: e.areaName, power: est[e.id] != null ? `≈ ${est[e.id]} W · ${t('estimated')}` : t('diagNoPower'), energy: `${S[e.id]?.state ?? '—'} ${S[e.id]?.attributes?.unit_of_measurement || ''} · ${e.id}`, bad: est[e.id] == null });
-    return html`<div class="ediag">${list.map((r) => html`<div class=${'edr' + (r.bad ? ' bad' : '')}><b>${r.name} <small>${r.area}</small></b><span>${t('diagPower')}: ${r.power}</span>${r.energy ? html`<span>${t('diagEnergy')}: ${r.energy}</span>` : nothing}</div>`)}
-      <span class="dim txt" style="font-size:11px">${t('diagFoot')}</span></div>`;
+    // Owner 2026-11-22: a calm list — dot (green = HA gives power, amber = it doesn't), name, room, value; the sensor
+    // ids only when a row is opened.
+    const short = (v) => String(v || '').split(' · ')[0];
+    return html`<div class="ediag stgb gl">${list.map((r, i) => { const key = r.name + i, open = this._ui.edOpen === key; return html`<div class=${'edr' + (r.bad ? ' bad' : '') + (open ? ' open' : '')}>
+      <button class="edh" aria-expanded=${open ? 'true' : 'false'} @click=${() => this._set({ edOpen: open ? null : key })}><i class="edd"></i><span class="grow txt"><b>${r.name}</b><small>${r.area || ''}</small></span><em>${r.bad ? t('diagNoSensor') : [short(r.power), r.energy && r.energy !== '—' ? short(r.energy) : null].filter(Boolean).join(' · ')}</em>${ic(open ? 'down' : 'right', 'i s')}</button>
+      ${open ? html`<span class="edx">${t('diagPower')}: ${r.power}</span>${r.energy ? html`<span class="edx">${t('diagEnergy')}: ${r.energy}</span>` : nothing}` : nothing}</div>`; })}</div>
+      <span class="muted txt sthint">${t('diagFoot2')}</span>`;
   }
 
   // ── covers ───────────────────────────────────────────────────────────────

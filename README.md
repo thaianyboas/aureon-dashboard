@@ -1,5 +1,13 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.8.5 — 2026-11-22
+
+- Configurações em "lista de vidro": tela inicial com cartão AUREON (tema · versão) e uma lista com ícones coloridos e o valor atual (tema, modo, máquinas).
+- Telas internas no mesmo estilo: botão redondo de voltar e título em itálico (sem a barra de abas); grupos em vidro com linhas finas; interruptores ligados agora mostram a bolinha.
+- Geral: temas compactos (família atual + "Ver todos"), mapa e preço da energia em linhas; diagnóstico com bolinha verde/amarela e o sensor só ao tocar; lembretes com ícones.
+- Modo da casa: modos com ícones, "Ao ativar" (alarme, luzes) e tomadas com círculo de ✓.
+- Aparelhos: "Mostrar no painel" e "De onde vêm os dados" em linhas. Seções: arraste ≡ para reordenar.
+
 ## AUREON Noir 1.8.4 — 2026-11-22
 
 - Filtros "constelação": cômodos em cartões de vidro com ícone próprio, temperatura e um pontinho âmbar quando há luz acesa; categorias numa barra só, a escolhida abre com o nome e as outras ficam só no ícone. Sem contagem de aparelhos. Corrigida a caixa escura atrás do cômodo escolhido.
