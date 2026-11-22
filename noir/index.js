@@ -15,8 +15,8 @@ import { MusicController, isSpotifyPlus, artworkUrl, position } from '../floor-s
 // reminder unless switched on in Settings → Geral.
 const RK_OFF = ['lights', 'waste'];
 const reminderOn = (kinds, k) => (RK_OFF.includes(k) ? kinds[k] === true : kinds[k] !== false);
-export const VERSION = '1.7.9';
-export const BUILD = 'AUREON-NOIR-20261122h';
+export const VERSION = '1.8.0';
+export const BUILD = 'AUREON-NOIR-20261122i';
 
 export const THEMES = [
   { id: 'aureon', name: 'Aureon', desc: 'Ouro · grafite', accent: '#E6CC9A', bg: '#08080A', card: '#111114', card2: '#0E0E11', sunk: '#0B0B0D', raise: '#17171B', line: '#1C1C21', line2: '#26262C' },
@@ -93,6 +93,10 @@ const P = {
   partly: 'M8 2.5v1.5M2.5 8H4M4.1 4.1l1 1M11.9 4.1l-1 1M5.5 10.5A3.5 3.5 0 0 1 11 6M9 20h8a3.5 3.5 0 0 0 .4-7A5 5 0 0 0 8 13.5 3.3 3.3 0 0 0 9 20z', wind: 'M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8',
   out: 'M14 4H6v16h8M10 12h10M17 9l3 3-3 3', suitcase: 'M4 8h16v12H4zM9 8V5h6v3M4 13h16', bell: 'M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0',
   gear: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  gamepad: 'M7 6h10a5 5 0 0 1 5 5v1a4 4 0 0 1-7 2.6l-.6-.6H9.6l-.6.6A4 4 0 0 1 2 12v-1a5 5 0 0 1 5-5zM6 10h4M8 8v4M15 11h.01M18 9h.01',
+  hdmi: 'M3 8h18v6l-2 2H5l-2-2zM7 11h.01M10 11h.01M14 11h.01M17 11h.01', camv: 'M3 7h12v10H3zM15 11l6-3v8l-6-3',
+  apps: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z', gallery: 'M3 5h18v14H3zM3 16l5-5 5 5 3-3 5 5M15.5 8.5h.01',
+  stream: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 8.5l5 3.5-5 3.5z', star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z',
   mapI: 'M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14',
   palette: 'M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 21 9.8C21 6 17 3 12 3zM7.5 12.5h.01M9.5 8h.01M14.5 8h.01'
 };
@@ -153,6 +157,12 @@ const devIc = (name) => (DEV_IC.find(([, re]) => re.test(String(name || ''))) ||
 const opIc = (door, open, cls = 'i') => door
   ? svg`<svg class=${cls + ' opi door' + (open ? ' open' : '')} viewBox="0 0 24 24" aria-hidden="true"><rect class="gap" x="6" y="3.5" width="12" height="17" rx=".5"></rect><path d="M5 21V3h14v18M3 21h18"></path><g class="leaf"><path d="M6 20.5v-17h12v17z"></path><path d="M15.2 12.2h.01"></path></g></svg>`
   : svg`<svg class=${cls + ' opi win' + (open ? ' open' : '')} viewBox="0 0 24 24" aria-hidden="true"><rect class="gap" x="4.5" y="3.5" width="15" height="17"></rect><path d="M3.5 3h17v18h-17z"></path><g class="sl"><path d="M4.5 4h7.5v16H4.5zM4.5 12H12"></path></g><g class="sr"><path d="M12 4h7.5v16H12zM12 12h7.5"></path></g></svg>`;
+// TV source → icon + how likely it is a favourite (owner 2026-11-22 chose "4 favoritas + mais fontes").
+const SRC_IC = [['gamepad', 5, /ps[345]|playstation|xbox|switch|spiel|game|konsole|console/i], ['stream', 4, /netflix|youtube|disney|prime|google|apple|ott|plex|spotify|dazn|joyn|zdf|ard|hbo|max\b|paramount|wow|magenta/i],
+  ['hdmi', 3, /hdmi|av\b|component|scart|dvi/i], ['tv', 2, /tv|channel|kanal|live|antenna|antenne|kabel|sat/i], ['mmic', 0, /alexa|assistant|voice/i],
+  ['camv', 0, /kamera|camera|câmera/i], ['gallery', 0, /galer|gallery|photo|foto|art/i], ['apps', 0, /app|store|home|menu/i]];
+const srcIc = (n) => (SRC_IC.find(([, , re]) => re.test(n)) || ['tv', 1])[0];
+const srcRank = (n) => (SRC_IC.find(([, , re]) => re.test(n)) || [0, 1])[1];
 const ic = (n, cls = 'i') => svg`<svg class=${cls} viewBox="0 0 24 24" aria-hidden="true"><path d=${P[n]}></path></svg>`;
 const WX = { 'clear-night': 'moon', cloudy: 'cloud', exceptional: 'sun', fog: 'fog', hail: 'snow', lightning: 'storm', 'lightning-rainy': 'storm', partlycloudy: 'partly', pouring: 'rain', rainy: 'rain', snowy: 'snow', 'snowy-rainy': 'snow', sunny: 'sun', windy: 'wind', 'windy-variant': 'wind' };
 const WXC = { sun: '#F5D08A', moon: '#C9D8F5', partly: '#F5D08A', rain: '#8FB8FF', storm: '#B9A8FF', snow: '#E6F0FF', fog: '#A1A1AA', wind: '#C9D8F5', cloud: '#C9D8F5' };
@@ -565,6 +575,7 @@ class AureonDashboard extends LitElement {
         ${this.header(ctx)}
         ${ui.edit ? this.banner(t) : nothing}
         ${ui.modeSheet ? this.modeSheet(ctx, this._modeDefs(t).find((d) => d.id === ui.modeSheet)) : nothing}
+        ${ui.tvSrc ? this.tvSrcSheet(ctx) : nothing}
         ${this._blockOrder().map((k) => this.blk(k, ctx, {
           pushes: () => this.pushes(ctx),
           hero: () => this.hero(ctx),
@@ -1095,6 +1106,29 @@ class AureonDashboard extends LitElement {
   // Owner 2026-11-18 ("esse alarme é o nosso modo casa, não precisa repetir em baixo"): one elegant pill beside
   // 3D / Planta shows the active house mode (and the alarm state when there is one). It opens a small menu with the
   // modes; picking one opens the same confirmation sheet as before — nothing is switched until "Ativar" is tapped.
+  // The 4 sources shown on the TV card: the owner's starred ones, else the most likely (consoles, streaming, HDMI).
+  // The current source always takes the last place if it is not among them.
+  _tvFavs(d) {
+    const all = d.attrs?.source_list || [], cur = d.attrs?.source;
+    const mine = ((this._prefs.tvFav || {})[d.id] || []).filter((x) => all.includes(x));
+    let f = (mine.length ? mine : all.map((x, i) => [x, i]).sort((a, b) => srcRank(b[0]) - srcRank(a[0]) || a[1] - b[1]).map((x) => x[0])).slice(0, 4);
+    if (cur && all.includes(cur) && !f.includes(cur)) f = f.length < 4 ? [...f, cur] : [...f.slice(0, 3), cur];
+    return f;
+  }
+  tvSrcSheet({ m, t }) {
+    const d = m.tvs.find((x) => x.id === this._ui.tvSrc); if (!d) return nothing;
+    const all = d.attrs?.source_list || [], cur = d.attrs?.source, mine = ((this._prefs.tvFav || {})[d.id] || []).filter((x) => all.includes(x));
+    const star = (x) => { const has = mine.includes(x), next = has ? mine.filter((y) => y !== x) : [...mine, x].slice(-4); this._save({ tvFav: { ...(this._prefs.tvFav || {}), [d.id]: next } }); };
+    return html`<div class="overlay" @click=${(e) => { if (e.target === e.currentTarget) this._set({ tvSrc: null }); }}>
+      <div class="sheet rise tvsheet" role="dialog" aria-modal="true" aria-label=${t('tvSource') + ' · ' + d.name}>
+        <div class="row sp" style="gap:10px"><span class="txt"><span class="eyebrow" style="font-size:10px">${d.name}</span><b class="tvsh">${t('tvSource')}</b></span>
+          <button class="ib sm stclose" aria-label=${t('closeS')} @click=${() => this._set({ tvSrc: null })}>${ic('x', 'i s')}</button></div>
+        <div class="tvlist">${all.map((x) => html`<div class=${'tvrow' + (x === cur ? ' on' : '')}>
+          <button class="tvpick" aria-pressed=${x === cur ? 'true' : 'false'} @click=${() => { this._call('media_player', 'select_source', { entity_id: d.id, source: x }); this._set({ tvSrc: null }); }}><span class="tvi">${ic(srcIc(x), 'i s')}</span><span class="grow txt">${x}</span>${x === cur ? ic('check', 'i s') : nothing}</button>
+          <button class=${'tvstar' + (mine.includes(x) ? ' on' : '')} aria-pressed=${mine.includes(x) ? 'true' : 'false'} aria-label=${t('favSource') + ' · ' + x} @click=${() => star(x)}>${ic('star', 'i s')}</button></div>`)}</div>
+        <span class="dim txt" style="font-size:11px;text-align:center">${t('favHint')}</span>
+      </div></div>`;
+  }
   houseMenu(ctx, slot = 'R') {
     const { m, t } = ctx, defs = this._modeDefs(t), active = this._activeMode(m), cur = defs.find((d) => d.id === active), a = m.alarms[0], open = this._ui.alarmOpen === slot;
     const st = a?.state, alert = st === 'triggered', armed = /^armed/.test(st || '') || (!a && active !== 'home');
@@ -2055,7 +2089,7 @@ class AureonDashboard extends LitElement {
     // source chips. Every button is a direct tap by the owner.
     if (!this._ui.edit) return html`<section class="sec">${head}<div class="cinegrid">${repeat(list, (d) => d.id, (d) => {
       const on = !d.unavailable && !['off', 'standby'].includes(d.state), muted = !!d.attrs?.is_volume_muted;
-      const src = d.attrs?.source || d.attrs?.app_name || d.attrs?.media_title || '', srcs = (d.attrs?.source_list || []).slice(0, 8);
+      const src = d.attrs?.source || d.attrs?.app_name || d.attrs?.media_title || '', srcs = d.attrs?.source_list || [], favs = this._tvFavs(d);
       const canPow = (d.features & (F.ON | F.OFF)) && !d.unavailable, canVol = on && (d.features & (F.VOL_STEP | F.VOL_SET));
       return html`<div class=${'cine' + (on ? ' on' : '') + (d.unavailable ? ' ghosted' : '')}>
         <div class="cart">
@@ -2069,7 +2103,8 @@ class AureonDashboard extends LitElement {
           <span class="cline" role=${d.features & F.VOL_SET ? 'slider' : 'presentation'} aria-label=${t('volume') + ' · ' + d.name} aria-valuemin="0" aria-valuemax="100" aria-valuenow=${d.vol ?? 0} @click=${(e) => { if (!(d.features & F.VOL_SET)) return; const r = e.currentTarget.getBoundingClientRect(), v = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); this._call('media_player', 'volume_set', { entity_id: d.id, volume_level: Math.round(v * 100) / 100 }); }}><i style=${`width:${Math.max(0, Math.min(100, d.vol ?? 0))}%`}></i></span>
           <button class="vpm" aria-label=${t('volume') + ' + · ' + d.name} @click=${() => this._call('media_player', 'volume_up', { entity_id: d.id })}>${ic('plus', 'i s')}</button>
           ${d.vol != null ? html`<span class="mono vnum">${d.vol}</span>` : nothing}</div>
-          ${srcs.length ? html`<div class="csrcs" role="group" aria-label=${t('tvSource')}>${srcs.map((x) => html`<button class=${'chipb' + (x === d.attrs?.source ? ' on' : '')} aria-pressed=${x === d.attrs?.source ? 'true' : 'false'} @click=${() => this._call('media_player', 'select_source', { entity_id: d.id, source: x })}>${x}</button>`)}</div>` : nothing}
+          ${srcs.length ? html`<div class="tvlbl"><span class="eyebrow" style="font-size:10px">${t('tvSource')}</span>${srcs.length > favs.length ? html`<button class="tvmore" @click=${() => this._set({ tvSrc: d.id })}>${t('moreSources')}${ic('right', 'i s')}</button>` : nothing}</div>
+          <div class="tvfav" role="group" aria-label=${t('tvSource')}>${favs.map((x) => html`<button class=${x === d.attrs?.source ? 'on' : ''} aria-pressed=${x === d.attrs?.source ? 'true' : 'false'} title=${x} @click=${() => this._call('media_player', 'select_source', { entity_id: d.id, source: x })}>${ic(srcIc(x), 'i')}<span class="txt">${x}</span></button>`)}</div>` : nothing}
         </div>` : nothing}
       </div>`; })}</div></section>`;
     return html`<section class="sec">${head}

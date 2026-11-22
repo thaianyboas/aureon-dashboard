@@ -1608,3 +1608,6 @@ The Music browser suite passed again with that label and native transfer.
 
 ## Claude batch — 2026-11-22h (AUREON Noir 1.7.9)
 - Mode menu concept C: `.alm.almc` with `.almtabs` (role=menuitemradio, preview via `_ui.alarmView`), `.almdet` rows from `_modeCfg` + alarm, `.almgo` opens existing `modeSheet`; `.alset` footer. iOS clock colon: `.ccol` own text-fill color. Tests updated, PASS.
+
+## Claude batch — 2026-11-22i (AUREON Noir 1.8.0)
+- TV sources concept C: `.tvfav` 4 slots from `_tvFavs(d)` (pref `tvFav[id]`, else ranked by `SRC_IC`; current source always shown), `srcIc()` icons, `tvSrcSheet` (ui `tvSrc`) lists all sources, `.tvstar` toggles favourites (max 4). Fixture s4 has source_list. Tests PASS.

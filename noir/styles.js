@@ -919,4 +919,21 @@ select.numin{text-align:left}
 .alm .almgo{justify-content:center;margin-top:10px;min-height:46px;border-radius:14px;background:var(--fg);color:#111;font-weight:600}
 .alm .alset{border-top:0;border:1px solid var(--line);border-radius:16px;min-height:44px;padding:0 14px}
 .ccol{color:#E8EEEB;-webkit-text-fill-color:#E8EEEB}
+/* TV sources — "4 favoritas + mais fontes" (owner 2026-11-22). */
+.tvlbl{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 8px}
+.tvmore{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--mut);background:none;border:0;padding:4px 0;cursor:pointer;font-family:inherit}
+.tvfav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:5px;border-radius:22px;background:rgba(0,0,0,.35);border:1px solid var(--line)}
+.tvfav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:72px;padding:10px 4px;border:0;border-radius:17px;background:none;color:var(--mut);font-family:inherit;font-size:11px;line-height:1.25;cursor:pointer;min-width:0}
+.tvfav button .i{width:22px;height:22px}
+.tvfav button .txt{max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;text-align:center}
+.tvfav button.on{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 22%,transparent),color-mix(in srgb,var(--accent) 5%,transparent));color:var(--fg);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 22px -8px var(--accent)}
+.tvfav button.on .i{color:var(--accent)}
+.tvsheet{width:min(460px,100%)}.tvsh{display:block;font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;font-style:italic;font-weight:400;font-size:26px;margin-top:4px}
+.tvlist{display:flex;flex-direction:column;gap:2px}
+.tvrow{display:flex;align-items:center;gap:6px;border-radius:16px}.tvrow.on{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.tvpick{flex:1;min-width:0;display:flex;align-items:center;gap:14px;padding:9px 10px;border:0;background:none;color:var(--fg);font-family:inherit;font-size:14px;text-align:left;cursor:pointer}
+.tvrow.on .tvpick>.i{color:var(--accent)}
+.tvi{width:36px;height:36px;flex:none;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.05);color:var(--mut)}.tvrow.on .tvi{color:var(--accent)}
+.tvstar{width:40px;height:40px;flex:none;display:grid;place-items:center;border:0;background:none;color:color-mix(in srgb,var(--mut) 55%,transparent);cursor:pointer}
+.tvstar.on{color:var(--accent)}.tvstar.on .i{fill:currentColor}
 `;

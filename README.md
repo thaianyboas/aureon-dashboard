@@ -1,5 +1,9 @@
 # AUREON Dashboard
 
+## AUREON Noir 1.8.0 — 2026-11-22
+
+- Fontes da TV redesenhadas: uma barra com 4 fontes favoritas com ícones (a que está passando fica verde e sempre aparece) e "Mais fontes" com a lista completa; toque na ★ para escolher suas 4 favoritas (salvas em todos os aparelhos).
+
 ## AUREON Noir 1.7.9 — 2026-11-22
 
 - Menu do modo da casa redesenhado: abas em vidro com os 4 modos e um painel mostrando o que cada modo faz (alarme, luzes, tomadas). Tocar numa aba só mostra; "Ativar" abre a confirmação de sempre.
