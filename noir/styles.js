@@ -969,4 +969,17 @@ select.numin{text-align:left}
 .cbt.on{flex:2 0 auto;padding:0 16px;color:var(--fg);background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -6px 12px rgba(0,0,0,.25),0 8px 20px -8px rgba(255,255,255,.22)}
 .cbt.on b{font-weight:500;font-size:11px;color:var(--accent)}
 .fh .rc[aria-pressed="true"] .rav>i{background:#FFC37A!important;box-shadow:0 0 8px #FFA845!important}
+/* Settings start page — "lista de vidro" (owner 2026-11-22). */
+.sttl{display:flex;flex-direction:column;gap:4px;min-width:0}.sttl b{font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;font-style:italic;font-weight:400;font-size:32px;line-height:1.05;letter-spacing:0}
+.sthv{gap:12px}
+.sthv .stprof{min-height:76px;padding:14px 16px;border-radius:24px;border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);background:radial-gradient(100% 140% at 0% 0%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 60%),rgba(255,255,255,.02)}
+.stlogo{width:46px;height:46px;flex:none;border-radius:15px;display:grid;place-items:center;background:linear-gradient(160deg,color-mix(in srgb,var(--accent) 100%,#fff 30%),color-mix(in srgb,var(--accent) 70%,#000 20%));color:var(--on-accent);font:italic 400 23px 'Iowan Old Style','Palatino Linotype',Georgia,serif;box-shadow:0 8px 20px -8px color-mix(in srgb,var(--accent) 60%,transparent)}
+.stlist{display:flex;flex-direction:column;border-radius:24px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);overflow:hidden}
+.stlist .sthi{position:relative;min-height:66px;padding:12px 16px;border:0;border-radius:0;background:none}
+.stlist .sthi+.sthi:before{content:'';position:absolute;top:0;left:66px;right:0;height:1px;background:rgba(255,255,255,.06)}
+.stlist .sthi:hover{background:rgba(255,255,255,.03)}
+.stlist .sthi .ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#111;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 4px 10px -4px rgba(0,0,0,.8)}
+.stval{font-style:normal;font-size:12.5px;color:var(--mut);white-space:nowrap;flex:none}
+.sthi .stval+.i{margin-left:-6px}
+.stlist .sthi small,.stprof small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stlist .sthi .txt,.stprof .txt{min-width:0}
 `;

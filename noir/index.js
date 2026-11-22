@@ -1230,8 +1230,15 @@ class AureonDashboard extends LitElement {
     const icons = { geral: 'palette', modos: 'home', aparelhos: 'washer', secoes: 'sections', etiquetas: 'eye', dispositivos: 'plug', sobre: 'gear' };
     if (tab === 'home') {
       // Owner 2026-11-18: a start page for Settings; "Voltar" in any tab returns here, "Fechar" closes.
-      body = html`<div class="sthome">${tabs.map(([k, n]) => html`<button class="sthi" @click=${() => this._set({ settings: k })}>
-        <span class="ic">${ic(icons[k], 'i s')}</span><span class="grow txt"><b>${n}</b><small>${hints[k]}</small></span>${ic('right', 'i s')}</button>`)}</div>`;
+      // Owner 2026-11-22 chose "lista de vidro": a gold AUREON card (theme · version → Sobre), then one glass list with a
+      // tinted icon per entry and the current value on the right.
+      const tints = { geral: '#F2E2BF,#C6A76F', modos: '#C9F2DA,#6FC796', aparelhos: '#D6E6FF,#7FA4E0', secoes: '#EAD9FF,#A98AD8', etiquetas: '#FFE0D0,#E39D7B', dispositivos: '#ECECEE,#9C9CA2' };
+      const curMode = this._modeDefs(t).find((d) => d.id === this._activeMode(m));
+      const vals = { geral: this._theme().name, modos: curMode?.name || '', aparelhos: m.appliances.length ? String(m.appliances.length) : '' };
+      body = html`<div class="sthome sthv">
+        <button class="sthi stprof" @click=${() => this._set({ settings: 'sobre' })}><span class="stlogo" aria-hidden="true">A</span><span class="grow txt"><b>AUREON Noir</b><small>${t('stThemeVer', { th: this._theme().name, v: VERSION })}</small></span>${ic('right', 'i s')}</button>
+        <div class="stlist">${tabs.filter(([k]) => k !== 'sobre').map(([k, n]) => html`<button class="sthi" @click=${() => this._set({ settings: k })}>
+          <span class="ic" style=${`background:linear-gradient(160deg,${tints[k]})`}>${ic(icons[k], 'i s')}</span><span class="grow txt"><b>${n}</b><small>${t('sh_' + k)}</small></span>${vals[k] ? html`<em class="stval">${vals[k]}</em>` : nothing}${ic('right', 'i s')}</button>`)}</div></div>`;
     } else if (tab === 'geral') {
       const weathers = Object.keys(this.hass.states).filter((e) => e.startsWith('weather.'));
       const rk = { arrivals: t('rkArrivals'), lights: t('lights'), openings: t('openings'), locks: t('locked'), appliances: t('cycleDone'), waste: t('waste'), ...{} };
@@ -1334,7 +1341,7 @@ class AureonDashboard extends LitElement {
         <div class="sthead">
           <div class="row" style="gap:10px;min-width:0">
             ${tab !== 'home' ? html`<button class="btn sm" aria-label=${t('goBack')} @click=${() => this._set({ settings: 'home' })}>${ic('left', 'i s')}${t('goBack')}</button>` : nothing}
-            <span class="grow" style="font-size:24px;font-weight:300;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tab === 'home' ? t('settings') : (tabs.find(([k]) => k === tab)?.[1] || t('settings'))}</span>
+            ${tab === 'home' ? html`<span class="grow sttl"><span class="eyebrow" style="font-size:10px">AUREON · ${t('stAdjust')}</span><b>${t('settings')}</b></span>` : html`<span class="grow" style="font-size:24px;font-weight:300;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tabs.find(([k]) => k === tab)?.[1] || t('settings')}</span>`}
             <button class="ib sm stclose" aria-label=${t('closeS')} title=${t('closeS')} @click=${() => { this._shUp = false; this._set({ settings: null }); }}>${ic('x', 'i s')}</button>
           </div>
           ${tab !== 'home' ? html`<div class="sttabs" role="tablist">${tabs.map(([k, n]) => html`<button role="tab" aria-selected=${tab === k ? 'true' : 'false'} @click=${() => this._set({ settings: k })}>${n}</button>`)}</div>` : nothing}
